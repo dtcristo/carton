@@ -2,6 +2,28 @@ raise 'Ruby 4.0+ is required for Rb::Package' if RUBY_VERSION.to_f < 4.0
 
 module Rb
   module Package
+    # Define deconstruct_keys implementation that works in Box context
+    DECONSTRUCT_KEYS_BODY = lambda do |keys|
+      return {} unless keys
+
+      keys.each_with_object({}) do |key, hash|
+        name = key.to_s
+        hash[key] = if name.match?(/\A[A-Z]/)
+          begin
+            const_get(name)
+          rescue NameError
+            next
+          end
+        else
+          begin
+            eval(name)
+          rescue NameError, NoMethodError
+            next
+          end
+        end
+      end
+    end
+
     def import(path)
       box = Ruby::Box.new
       box.require(__FILE__)
@@ -18,33 +40,21 @@ module Rb
         box.require(path)
       end
 
+      # Check for Rb::Package::Exports module first
       begin
-        exports = box.const_get(:EXPORTS)
-        process_exports(exports)
+        exports_module = box.const_get(:"Rb").const_get(:"Package").const_get(:Exports)
+        return exports_module
       rescue NameError
-        # Bare package/gem with no EXPORTS — return the Box instance directly
-        # Inject deconstruct_keys for pattern matching support
-        box.define_singleton_method(:deconstruct_keys) do |keys|
-          return {} unless keys
-
-          keys.each_with_object({}) do |key, hash|
-            name = key.to_s
-            hash[key] = if name.match?(/\A[A-Z]/)
-              begin
-                const_get(name)
-              rescue NameError
-                next
-              end
-            else
-              begin
-                eval(name)
-              rescue NameError, NoMethodError
-                next
-              end
-            end
-          end
+        # Fall back to EXPORT constant
+        begin
+          single_export = box.const_get(:"Rb").const_get(:"Package").const_get(:EXPORT)
+          return single_export
+        rescue NameError
+          # Bare package/gem with no exports — return the Box instance directly
+          # Inject deconstruct_keys for pattern matching support
+          box.define_singleton_method(:deconstruct_keys, DECONSTRUCT_KEYS_BODY)
+          return box
         end
-        box
       end
     end
 
@@ -59,8 +69,44 @@ module Rb
                 'Export takes either a single object or keyword arguments'
         end
 
-      # Sets the EXPORTS constant on the Box's isolated Object namespace
-      Object.const_set(:EXPORTS, value)
+      # Create Rb::Package namespace in the box if it doesn't exist
+      unless Object.const_defined?(:"Rb")
+        Object.const_set(:Rb, Module.new)
+      end
+      rb_module = Object.const_get(:Rb)
+
+      unless rb_module.const_defined?(:"Package")
+        rb_module.const_set(:Package, Module.new)
+      end
+      package_module = rb_module.const_get(:Package)
+
+      if value.is_a?(Hash)
+        # Create Exports module for hash exports
+        exports_module = Module.new
+
+        value.each do |k, v|
+          if k.to_s.match?(/^[A-Z]/)
+            # Capitalized keys become Constants
+            exports_module.const_set(k, v)
+          else
+            # Lowercase keys become Singleton Methods
+            exports_module.define_singleton_method(k) do |*args, **kw, &blk|
+              v.respond_to?(:call) ? v.call(*args, **kw, &blk) : v
+            end
+          end
+        end
+
+        # Attach deconstruct_keys to the Exports module
+        exports_module.define_singleton_method(:deconstruct_keys) do |keys|
+          keys ? value.slice(*keys) : value
+        end
+
+        # Set the Exports module on Rb::Package
+        package_module.const_set(:Exports, exports_module)
+      else
+        # For single exports, set EXPORT constant
+        package_module.const_set(:EXPORT, value)
+      end
     end
 
     private
@@ -77,36 +123,6 @@ module Rb
       paths
     rescue Gem::MissingSpecError
       []
-    end
-
-    def process_exports(exports)
-      if exports.is_a?(Hash)
-        Module.new do
-          const_set(:EXPORTS, exports)
-          private_constant :EXPORTS
-
-          exports.each do |k, v|
-            if k.to_s.match?(/^[A-Z]/)
-              # Capitalized keys become Constants
-              const_set(k, v)
-            else
-              # Lowercase keys become Singleton Methods
-              define_singleton_method(k) do |*args, **kw, &blk|
-                v.respond_to?(:call) ? v.call(*args, **kw, &blk) : v
-              end
-            end
-          end
-
-          # Implement `#deconstruct_keys` to enable Ruby Pattern Matching
-          def self.deconstruct_keys(keys)
-            module_exports = const_get(:EXPORTS)
-            keys ? module_exports.slice(*keys) : module_exports
-          end
-        end
-      else
-        # Single export just returns the object directly
-        exports
-      end
     end
   end
 end
