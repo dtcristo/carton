@@ -1,7 +1,6 @@
 $LOAD_PATH.unshift('../../lib')
 require 'rb/package'
 
-import('faker') => { Faker: faker }
-Faker = faker
+Faker = import('faker')::Faker
 
 puts "Hello, #{Faker::Name.name}!"

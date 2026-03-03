@@ -2,6 +2,63 @@ raise 'Ruby 4.0+ is required for Rb::Package' if RUBY_VERSION.to_f < 4.0
 
 module Rb
   module Package
+    def self.inject_methods(obj, exports_map = nil, box = nil)
+      # Use a local variable to capture exports_map in the closures
+      exports_data = exports_map
+
+      obj.define_singleton_method(:deconstruct_keys) do |keys|
+        return {} unless keys
+
+        keys.each_with_object({}) do |key, hash|
+          name = key.to_s
+          hash[key] = if exports_data
+            exports_data[key.to_sym] || exports_data[key.to_s]
+          elsif box
+            if name.match?(/\A[A-Z]/)
+              begin
+                box.const_get(name)
+              rescue NameError
+                next
+              end
+            else
+              begin
+                box.eval(name)
+              rescue NameError, NoMethodError
+                next
+              end
+            end
+          end
+        end
+      end
+
+      obj.define_singleton_method(:fetch) do |*keys|
+        key = keys.first
+        name = key.to_s
+
+        if exports_data
+          exports_data[key.to_sym] || exports_data[key.to_s]
+        elsif box
+          if name.match?(/\A[A-Z]/)
+            begin
+              box.const_get(name)
+            rescue NameError
+              nil
+            end
+          else
+            begin
+              box.eval(name)
+            rescue NameError, NoMethodError
+              nil
+            end
+          end
+        end
+      end
+
+      obj.define_singleton_method(:fetch_values) do |*keys|
+        keys.map { |key| fetch(key) }
+      end
+    end
+
     def self.gem_require_paths(name, visited = Set.new)
       return [] if visited.include?(name)
 
@@ -35,34 +92,15 @@ module Rb
 
         # Check for Exports module - hash exports
         begin
-          return box::Rb::Package::Exports
+          exports_module = box::Rb::Package::Exports
+          return exports_module
         rescue NameError
           # Fall back to EXPORT constant - single exports
           begin
             return box::Rb::Package::EXPORT
           rescue NameError
             # Bare package/gem with no exports — return the Box instance directly
-            # Inject deconstruct_keys for pattern matching support
-            box.define_singleton_method(:deconstruct_keys) do |keys|
-              return {} unless keys
-
-              keys.each_with_object({}) do |key, hash|
-                name = key.to_s
-                hash[key] = if name.match?(/\A[A-Z]/)
-                  begin
-                    const_get(name)
-                  rescue NameError
-                    next
-                  end
-                else
-                  begin
-                    eval(name)
-                  rescue NameError, NoMethodError
-                    next
-                  end
-                end
-              end
-            end
+            Rb::Package.inject_methods(box, nil, box)
             return box
           end
         end
@@ -93,10 +131,9 @@ module Rb
             end
           end
 
-          # Attach deconstruct_keys to the Exports module
-          exports_module.define_singleton_method(:deconstruct_keys) do |keys|
-            keys ? value.slice(*keys) : value
-          end
+          # Inject deconstruct_keys and fetch methods to the Exports module
+          # Pass the original exports hash for fetch operations
+          Rb::Package.inject_methods(exports_module, value)
 
           Rb::Package.const_set(:Exports, exports_module)
         else

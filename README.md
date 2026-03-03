@@ -89,10 +89,38 @@ import('math') => { add: sum }
 puts sum.(10, 10) # => 20
 ```
 
-**⚠️ Important Gotcha for Constants:** Ruby's pattern matching enforces that local variable names must start with a lowercase letter. If you try to destructure a constant like `{ PI: }`, Ruby will throw a syntax error (`key must be valid as local variables`).
+### Importing Constants
 
-To extract an exported Constant, you must alias it to a lowercase local variable first. If you need it to be a Constant in your file, just promote it immediately:
+Ruby's pattern matching enforces that local variable names must start with a lowercase letter. This creates a gotcha when trying to extract exported Constants using destructuring. Here are the recommended approaches:
 
+**Option 1: Direct Namespace Access** (recommended for single constant)
+```ruby
+PI = import_relative('math')::PI
+
+def calculate_area(r)
+  PI * (r ** 2)
+end
+```
+
+**Option 2: Use `fetch()` Method** (clean one-liner)
+```ruby
+PI = import_relative('math').fetch(:PI)
+
+def calculate_area(r)
+  PI * (r ** 2)
+end
+```
+
+**Option 3: Use `fetch_values()` for Multiple Constants**
+```ruby
+PI, E = import_relative('math').fetch_values(:PI, :E)
+
+def calculate_area(r)
+  PI * (r ** 2)
+end
+```
+
+**Option 4: Alias and Promote** (pattern matching approach)
 ```ruby
 # 1. Destructure and alias to a lowercase local variable
 import_relative('math') => { PI: pi }
@@ -107,17 +135,22 @@ end
 
 ### Importing from Bare Gems/Scripts
 
-If a gem or script file doesn't export anything explicitly (no `export` call), `import` returns the isolated Box instance itself. This allows you to access any constants or methods defined within that gem/script directly through the Box namespace.
+If a gem or script file doesn't export anything explicitly (no `export` call), `import` returns the isolated Box instance itself. This allows you to access any constants or methods defined within that gem/script directly through the Box namespace. See the "Importing Constants" section above for all available approaches.
 
 ```ruby
-# Importing faker gem (which has no export statement)
-import('faker') => { Faker: faker }
-Faker = faker
+# Most direct approach
+Faker = import('faker')::Faker
 
 puts "Hello, #{Faker::Name.name}!"
 ```
 
-In this case, the Box instance is destructured to extract the `Faker` constant. You can then interact with the gem's API directly.
+Or with `fetch()`:
+
+```ruby
+Faker = import('faker').fetch(:Faker)
+
+puts "Hello, #{Faker::Name.name}!"
+```
  
  ## Example
  
