@@ -38,7 +38,7 @@ export(
 
 There are two methods available globally to load these isolated files
 
-- `import(path)`: Resolves the path using Ruby's native `$LOAD_PATH`. Ideal for standard library or gem-like
+- `import(path)`: Resolves the path using Ruby's native `$LOAD_PATH`. Ideal for gems
 - `imports.import_relative(path)`: Resolves the path relative to the directory of the file calling it (exactly like `require_relative`). Ideal for local project files.
 
 How you receive the imported data depends on how you assign it.
@@ -104,6 +104,20 @@ def calculate_area(r)
   PI * (r ** 2)
 end
 ```
+
+### Importing from Bare Gems/Scripts
+
+If a gem or script file doesn't export anything explicitly (no `export` call), `import` returns the isolated Box instance itself. This allows you to access any constants or methods defined within that gem/script directly through the Box namespace.
+
+```ruby
+# Importing faker gem (which has no export statement)
+import('faker') => { Faker: faker }
+Faker = faker
+
+puts "Hello, #{Faker::Name.name}!"
+```
+
+In this case, the Box instance is destructured to extract the `Faker` constant. You can then interact with the gem's API directly.
  
  ## Example
  
@@ -113,7 +127,7 @@ end
  RUBYbox=1 ruby main.rb
  ```
 
- Example importing a bare gem/package:
+ Example importing a bare gem/script:
  ```ruby
  cd examples/bare_gem
  gem install faker
