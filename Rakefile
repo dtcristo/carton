@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+desc 'Run all tests'
 task :test do
-  Dir.glob('test/**/*_test.rb').sort.each { |f| require_relative f }
+  test_files = Dir.glob('test/**/*_test.rb').sort.map { |f| File.expand_path(f) }
+  sh "RUBY_BOX=1 ruby -Ilib -Itest -e 'ARGV.each { |f| require f }' #{test_files.join(' ')}"
 end
 
 EXAMPLES = %w[minimal complex].freeze

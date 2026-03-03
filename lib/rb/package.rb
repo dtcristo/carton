@@ -59,30 +59,20 @@ module Rb
       end
     end
 
-    def self.gem_require_paths(name, visited = Set.new)
-      return [] if visited.include?(name)
-
-      visited << name
-      spec = Gem::Specification.find_by_name(name)
-      paths = spec.full_require_paths.dup
-      spec.runtime_dependencies.each do |dep|
-        paths.concat(gem_require_paths(dep.name, visited))
-      end
-      paths
-    rescue Gem::MissingSpecError
-      []
-    end
-
     def self.extract_exports(box)
-      export_data = Thread.current[:_rb_package_export]
-      Thread.current[:_rb_package_export] = nil
-
-      if export_data
-        export_data
-      else
-        # Bare package/gem with no exports — return the Box instance directly
-        inject_methods(box, nil, box)
-        box
+      # Each box runs its own isolated copy of Rb::Package, so EXPORT and Exports
+      # set by export() inside a box live in that box's namespace and do not leak
+      # to any other box or to the outer module. We look up through the box.
+      begin
+        box::Rb::Package::Exports
+      rescue NameError
+        begin
+          box::Rb::Package::EXPORT
+        rescue NameError
+          # Bare package/gem with no exports — return the Box instance directly
+          inject_methods(box, nil, box)
+          box
+        end
       end
     end
 
@@ -91,15 +81,16 @@ module Rb
         box = Ruby::Box.new
         box.require(__FILE__)
 
-        # Resolve relative/absolute file paths; fall back to gem name lookup
+        # Seed the box's $LOAD_PATH from the caller's. When import is called from
+        # within another box (e.g. after bundler/setup), $LOAD_PATH reflects that
+        # box's load path, so gem and package paths are naturally inherited by the
+        # child box. Each box has its own isolated $LOAD_PATH.
+        $LOAD_PATH.each { |p| box.eval("$LOAD_PATH.unshift(#{p.inspect}) unless $LOAD_PATH.include?(#{p.inspect})") }
+
         expanded = File.expand_path(path, Dir.pwd)
         if File.exist?(expanded) || File.exist?("#{expanded}.rb")
           box.require(expanded)
         else
-          # Gem import: inject transitive load paths into the box first
-          Rb::Package
-            .gem_require_paths(path)
-            .each { |p| box.eval("$LOAD_PATH << #{p.inspect}") }
           box.require(path)
         end
 
@@ -112,6 +103,11 @@ module Rb
 
         box = Ruby::Box.new
         box.require(__FILE__)
+
+        # Propagate LOAD_PATH so nested imports within the loaded file can resolve
+        # gems and packages by name (e.g. after bundler/setup in the caller's box).
+        $LOAD_PATH.each { |p| box.eval("$LOAD_PATH.unshift(#{p.inspect}) unless $LOAD_PATH.include?(#{p.inspect})") }
+
         box.require(absolute_path)
 
         Rb::Package.extract_exports(box)
@@ -142,12 +138,13 @@ module Rb
             end
           end
 
-          # Inject deconstruct_keys and fetch methods to the Exports module
           Rb::Package.inject_methods(exports_module, value)
 
-          Thread.current[:_rb_package_export] = exports_module
+          # Rb::Package::Exports does not leak between boxes — see extract_exports.
+          Rb::Package.const_set(:Exports, exports_module)
         else
-          Thread.current[:_rb_package_export] = value
+          # Rb::Package::EXPORT does not leak between boxes — see extract_exports.
+          Rb::Package.const_set(:EXPORT, value)
         end
       end
     end
