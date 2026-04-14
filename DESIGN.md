@@ -62,7 +62,20 @@ This keeps one package-local bundle isolated from the caller, but current limita
 - switching between conflicting bundles in one process is not reliable today
 - the complex example uses a subprocess for the conflicting `loot` bundle for that reason
 
-Those constraints come from the interaction between `Ruby::Box`, `$LOAD_PATH`, `$LOADED_FEATURES`, and Bundler's process-wide environment and RubyGems hooks. Bundler mutates load paths from Ruby (`Bundler::Runtime#setup`, `Gem.add_to_load_path`), but the activation entrypoint is still process/env-driven. See [TODO.md](TODO.md) for the upstream work that would help.
+The problem is not that Bundler has special C code mutating every box at once. Bundler and RubyGems do their activation work in Ruby:
+
+- `Bundler::SharedHelpers#find_gemfile` reads `ENV['BUNDLE_GEMFILE']`
+- `Bundler::Runtime#setup` calls `clean_load_path`, `replace_entrypoints`, `mark_loaded`, and `Gem.add_to_load_path`
+- RubyGems activation checks and writes `Gem.loaded_specs`
+
+What matters under `Ruby::Box` is which of those pieces are box-local. In practice:
+
+- `$LOAD_PATH` stays box-local; activating a bundle in an imported box does not inject its gem lib paths into the caller box
+- `Gem.loaded_specs` is still shared across boxes in practice; the same hash object is visible in the caller and imported box
+
+That shared activation state is why a second box can see a gem version activated by the first one even though its own `$LOAD_PATH` is separate. In local probes, activating `dotenv 3.2.0` in one box caused a second box targeting `dotenv ~> 2.0` to fail its Bundler activation and then crash under Ruby 4.0 + `Ruby::Box`.
+
+See [TODO.md](TODO.md) for the upstream work that would help.
 
 ## Why the complex example stays explicit
 

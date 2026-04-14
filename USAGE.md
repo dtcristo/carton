@@ -141,13 +141,12 @@ Toolbox.fetch(:helper)
 The library works with or without Bundler. Plain packages need no extra setup. For a bundled package, the reliable pattern today is still: select the Gemfile around the `import` that loads that package.
 
 ```ruby
-entry = File.expand_path('packages/adventure/lib/adventure.rb', __dir__)
 gemfile = File.expand_path('packages/adventure/Gemfile', __dir__)
 
-Adventure = Package.with_bundle(gemfile) { import entry }
+Adventure = Package.with_bundle(gemfile) { import 'adventure' }
 ```
 
-`Package.with_bundle` is just a small wrapper around the same `BUNDLE_GEMFILE` handoff. The underlying constraint is still Bundler's: `bundler/setup` discovers the active Gemfile from env/process state, so conflicting bundles still cannot be switched reliably in one process today.
+`Package.with_bundle` is just a small wrapper around the same `BUNDLE_GEMFILE` handoff. The underlying constraint is still Bundler's: `bundler/setup` discovers the active Gemfile from env/process state, and RubyGems activation state (`Gem.loaded_specs`) is still shared across boxes in practice, so conflicting bundles still cannot be switched reliably in one process today.
 
 Current limits:
 

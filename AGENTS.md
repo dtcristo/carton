@@ -11,11 +11,12 @@ Guidance and memory for agents working on this repo.
 - Current reliable bundled-package pattern: use `Package.with_bundle(gemfile) { import ... }` for the entry import that should activate a package-local bundle.
 - Conflicting bundles still need a subprocess workaround today.
 - Ruby::Box boxes start from root-box load paths/loaded features, so Package must copy parent non-gem load paths forward itself.
+- `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules
 
-- Write tests for new behaviour; run targeted tests as you go and `RUBY_BOX=1 bundle exec rake` before finishing.
+- Everything should have tests. Write tests for new behaviour, run targeted tests as you go, and `RUBY_BOX=1 bundle exec rake` before finishing.
 - If you only changed an example, run that example during iteration and the full suite before finishing.
 - Run `bundle exec rake format` after every change.
 - Keep implementation and docs concise.

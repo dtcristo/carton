@@ -7,6 +7,7 @@ module Package
     def initialize(values = {})
       super()
       @values = values
+      @lookup = {}
       define_exports
     end
 
@@ -14,6 +15,8 @@ module Package
 
     def define_exports
       @values.each do |key, value|
+        @lookup[key.to_s] = value
+
         if key.to_s.match?(/\A[A-Z]/)
           const_set(key, value)
         else
@@ -25,13 +28,8 @@ module Package
     end
 
     def lookup_entry(key)
-      if @values.key?(key.to_sym)
-        [true, @values[key.to_sym]]
-      elsif @values.key?(key.to_s)
-        [true, @values[key.to_s]]
-      else
-        [false, nil]
-      end
+      name = key.to_s
+      @lookup.key?(name) ? [true, @lookup[name]] : [false, nil]
     end
   end
 end

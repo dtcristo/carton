@@ -1,21 +1,21 @@
 # Complex example
 
-Multi-package example showing the library directly: explicit load-path setup, a bundled single export, a named export loaded by name, and a destructured import.
+Multi-package example showing the library directly: explicit load-path setup, a bundled single export loaded by name, a plain package loaded by name, and a destructured import.
 
 ## Packages
 
 | Package | Purpose |
 | --- | --- |
 | `main` | explicit feature tour of the library |
-| `adventure` | bundled package imported by absolute path |
-| `quest` | plain package imported by name, with an internal `import_relative` |
+| `adventure` | bundled package imported by name |
+| `quest` | plain package imported by name |
 | `loot` | package that demonstrates a conflicting `dotenv` version via subprocess |
 
 `main.rb` keeps the load-path setup and bundled import explicit on purpose so the example reads like a direct Package feature tour. `Package.with_bundle` shortens the `BUNDLE_GEMFILE` handoff, but it is still the same Bundler constraint under the hood.
 
 ## Why `loot` still uses a subprocess
 
-One package-local bundle can be activated from an unbundled parent today. A second conflicting bundle in the same process is not reliable yet, so `loot` still loads its `dotenv` data in a subprocess. That is tracked in [../../TODO.md](../../TODO.md).
+One package-local bundle can be activated from an unbundled parent today. The trouble starts when another box tries to activate a conflicting version: box-local `$LOAD_PATH` is not enough because RubyGems activation state is still shared. `loot` therefore loads its `dotenv` data in a subprocess and selects its Gemfile there instead of using `Package.with_bundle` during the import itself. That is tracked in [../../TODO.md](../../TODO.md).
 
 ## Run
 

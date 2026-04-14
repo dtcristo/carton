@@ -2,9 +2,6 @@
 
 module Package
   module ExportMethods
-    UNSET_VALUE = Object.new.freeze
-    private_constant :UNSET_VALUE
-
     def deconstruct_keys(keys)
       return {} unless keys
 
@@ -25,11 +22,16 @@ module Package
 
     alias has_key? key?
 
-    def fetch(key, default = UNSET_VALUE)
+    def fetch(key, *default)
+      if default.size > 1
+        raise ArgumentError,
+              "wrong number of arguments (given #{default.size + 1}, expected 1..2)"
+      end
+
       found, value = lookup_entry(key)
       return value if found
       return yield key if block_given?
-      return default unless default.equal?(UNSET_VALUE)
+      return default.first unless default.empty?
 
       raise KeyError, "key not found: #{key.inspect}"
     end

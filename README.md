@@ -4,9 +4,9 @@ Small wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.ht
 
 ## Why
 
-Use this when plain `require` is too global but a full gem boundary is heavier than you want. Package lets one file or local package expose a small public surface without leaking helper methods, constants, monkey patches, or bundle setup into the caller.
+Package is for modularizing a large Ruby application without turning every boundary into a separate process or full gem. It lets one part of the app require its own code and gems, expose only the constants or methods it wants to share, and keep helper methods, monkey patches, and other global side effects from leaking into the rest of the process.
 
-It fits plugin-like code, local packages inside one repo, and scripts or examples that want a simple import/export shape. Use a single export when the file is "one main thing", named exports for a small namespace, and `Package.with_bundle` when the imported package needs its own Gemfile.
+That same isolation is also the path toward running different gem versions inside one process. Today one package-local bundle works reliably; truly conflicting bundles still hit shared RubyGems activation state and may need a subprocess workaround. Use a single export when a file is "one main thing", named exports for a small namespace, and `Package.with_bundle` when the imported package needs its own Gemfile in the current process.
 
 ## Minimal usage
 

@@ -63,6 +63,7 @@ class ImportTest < Minitest::Test
     result = import "#{FIXTURES_DIR}/hash_export"
     assert_equal '1.0.0', result[:version]
     assert_in_delta 3.14159, result[:PI]
+    assert_nil result[:nothing]
     assert_nil result[:missing]
   end
 
@@ -70,6 +71,7 @@ class ImportTest < Minitest::Test
     result = import "#{FIXTURES_DIR}/hash_export"
     assert_equal '1.0.0', result.fetch(:version)
     assert_in_delta 3.14159, result.fetch(:PI)
+    assert_nil result.fetch(:nothing)
   end
 
   def test_import_fetch_missing_raises
@@ -83,6 +85,11 @@ class ImportTest < Minitest::Test
     assert_equal 'fallback', result.fetch(:missing, 'fallback')
     assert_equal 'computed missing',
                  result.fetch(:missing) { |key| "computed #{key}" }
+  end
+
+  def test_import_fetch_rejects_extra_defaults
+    result = import "#{FIXTURES_DIR}/hash_export"
+    assert_raises(ArgumentError) { result.fetch(:missing, 'a', 'b') }
   end
 
   def test_import_fetch_values
