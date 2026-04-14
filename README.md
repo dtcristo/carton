@@ -2,6 +2,12 @@
 
 Small wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) that makes isolated imports and exports feel like part of Ruby. Requires Ruby 4.0+ and `RUBY_BOX=1`.
 
+## Why
+
+Use this when plain `require` is too global but a full gem boundary is heavier than you want. Package lets one file or local package expose a small public surface without leaking helper methods, constants, monkey patches, or bundle setup into the caller.
+
+It fits plugin-like code, local packages inside one repo, and scripts or examples that want a simple import/export shape. Use a single export when the file is "one main thing", named exports for a small namespace, and `Package.with_bundle` when the imported package needs its own Gemfile.
+
 ## Minimal usage
 
 ```ruby

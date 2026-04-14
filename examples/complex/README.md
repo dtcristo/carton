@@ -11,7 +11,7 @@ Multi-package example showing the library directly: explicit load-path setup, a 
 | `quest` | plain package imported by name, with an internal `import_relative` |
 | `loot` | package that demonstrates a conflicting `dotenv` version via subprocess |
 
-`main.rb` keeps the load-path setup and bundled `import` explicit on purpose so the example reads like a direct Package feature tour.
+`main.rb` keeps the load-path setup and bundled import explicit on purpose so the example reads like a direct Package feature tour. `Package.with_bundle` shortens the `BUNDLE_GEMFILE` handoff, but it is still the same Bundler constraint under the hood.
 
 ## Why `loot` still uses a subprocess
 

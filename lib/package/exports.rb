@@ -24,11 +24,7 @@ module Package
       end
     end
 
-    def lookup(key)
-      @values.key?(key.to_sym) ? @values[key.to_sym] : @values[key.to_s]
-    end
-
-    def lookup_for_pattern(key)
+    def lookup_entry(key)
       if @values.key?(key.to_sym)
         [true, @values[key.to_sym]]
       elsif @values.key?(key.to_s)

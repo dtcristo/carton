@@ -32,6 +32,15 @@ class ImportTest < Minitest::Test
     $LOAD_PATH.delete(FIXTURES_DIR) if added
   end
 
+  def test_import_by_name_supports_index_lookup
+    added = !$LOAD_PATH.include?(FIXTURES_DIR)
+    $LOAD_PATH.unshift(FIXTURES_DIR) if added
+
+    assert_in_delta 3.14159, import('hash_export')[:PI]
+  ensure
+    $LOAD_PATH.delete(FIXTURES_DIR) if added
+  end
+
   def test_import_does_not_inherit_parent_gem_paths
     added = !$LOAD_PATH.include?(GEM_LIKE_DIR)
     $LOAD_PATH.unshift(GEM_LIKE_DIR) if added
@@ -50,10 +59,30 @@ class ImportTest < Minitest::Test
     assert_equal '1.0.0', version
   end
 
+  def test_import_index_lookup
+    result = import "#{FIXTURES_DIR}/hash_export"
+    assert_equal '1.0.0', result[:version]
+    assert_in_delta 3.14159, result[:PI]
+    assert_nil result[:missing]
+  end
+
   def test_import_fetch
     result = import "#{FIXTURES_DIR}/hash_export"
     assert_equal '1.0.0', result.fetch(:version)
     assert_in_delta 3.14159, result.fetch(:PI)
+  end
+
+  def test_import_fetch_missing_raises
+    result = import "#{FIXTURES_DIR}/hash_export"
+    error = assert_raises(KeyError) { result.fetch(:missing) }
+    assert_match 'missing', error.message
+  end
+
+  def test_import_fetch_supports_default_and_block
+    result = import "#{FIXTURES_DIR}/hash_export"
+    assert_equal 'fallback', result.fetch(:missing, 'fallback')
+    assert_equal 'computed missing',
+                 result.fetch(:missing) { |key| "computed #{key}" }
   end
 
   def test_import_fetch_values
@@ -61,5 +90,14 @@ class ImportTest < Minitest::Test
     pi, version = result.fetch_values(:PI, :version)
     assert_in_delta 3.14159, pi
     assert_equal '1.0.0', version
+  end
+
+  def test_import_key_queries_and_values_at
+    result = import "#{FIXTURES_DIR}/hash_export"
+    assert result.key?(:PI)
+    assert result.has_key?(:version)
+    refute result.key?(:missing)
+    assert_equal [3.14159, '1.0.0', nil],
+                 result.values_at(:PI, :version, :missing)
   end
 end

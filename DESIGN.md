@@ -8,12 +8,12 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 
 | File | Role |
 | --- | --- |
-| `lib/package.rb` | Entry point, version guard, and internal wiring |
+| `lib/package.rb` | Entry point, version guard, `Package.with_bundle`, and internal wiring |
 | `lib/package/kernel_patch.rb` | Adds global `import`, `import_relative`, and `export` |
 | `lib/package/runtime.rb` | Builds boxes, resolves targets, runs imports, and extracts exports |
 | `lib/package/box.rb` | Box-specific helpers for requiring files, managing export state, and inheriting safe load paths |
 | `lib/package/exports.rb` | Wraps named exports in a module-like namespace |
-| `lib/package/export_methods.rb` | Shared `fetch`, `fetch_values`, and destructuring support |
+| `lib/package/export_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring support |
 
 ## Import flow
 
@@ -40,7 +40,9 @@ There are three return shapes:
 
 ## Load path model
 
-Imports inherit the parent box's non-gem load paths so local package directories can still be resolved by name.
+Ruby::Box creates new user boxes from the root box, not from the current caller box. In `box.c`, each new box starts by duplicating the root box's `load_path` and `loaded_features`, and `require` resolves against the loading box's local `$LOAD_PATH` / `$LOADED_FEATURES`.
+
+Package therefore re-inherits the parent box's non-gem load paths manually so local package directories can still be resolved by name across nested imports.
 
 The current filter deliberately tries to avoid leaking gem paths from a parent import chain into child boxes:
 
@@ -52,7 +54,7 @@ This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicit
 
 ## Bundler model
 
-The current implementation works best when a package bundle is selected before its entry file is evaluated. In practice that means setting `BUNDLE_GEMFILE` around the `import` call for that package.
+The current implementation works best when a package bundle is selected before its entry file is evaluated. In practice that means selecting `BUNDLE_GEMFILE` around the `import` call for that package; `Package.with_bundle` is the small wrapper for that handoff.
 
 This keeps one package-local bundle isolated from the caller, but current limitations remain:
 
@@ -60,7 +62,7 @@ This keeps one package-local bundle isolated from the caller, but current limita
 - switching between conflicting bundles in one process is not reliable today
 - the complex example uses a subprocess for the conflicting `loot` bundle for that reason
 
-Those constraints come from the interaction between `Ruby::Box`, `$LOAD_PATH`, `$LOADED_FEATURES`, and Bundler's process-wide environment and RubyGems hooks. See [TODO.md](TODO.md) for the upstream work that would help.
+Those constraints come from the interaction between `Ruby::Box`, `$LOAD_PATH`, `$LOADED_FEATURES`, and Bundler's process-wide environment and RubyGems hooks. Bundler mutates load paths from Ruby (`Bundler::Runtime#setup`, `Gem.add_to_load_path`), but the activation entrypoint is still process/env-driven. See [TODO.md](TODO.md) for the upstream work that would help.
 
 ## Why the complex example stays explicit
 

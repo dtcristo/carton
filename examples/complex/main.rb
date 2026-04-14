@@ -3,6 +3,9 @@
 require_relative '../../lib/package'
 
 packages_dir = File.expand_path('packages', __dir__)
+
+# Local package lib directories still need to be on the caller's load path when
+# we want import 'name' to resolve inside nested boxes.
 Dir
   .glob(File.join(packages_dir, '*/lib'))
   .sort
@@ -13,17 +16,15 @@ adventure_entry =
 adventure_gemfile = File.expand_path('packages/adventure/Gemfile', __dir__)
 loot_entry = File.expand_path('packages/loot/lib/loot.rb', __dir__)
 
-previous_gemfile = ENV['BUNDLE_GEMFILE']
-ENV['BUNDLE_GEMFILE'] = adventure_gemfile
-Adventure = import adventure_entry
-if previous_gemfile
-  ENV['BUNDLE_GEMFILE'] = previous_gemfile
-else
-  ENV.delete 'BUNDLE_GEMFILE'
-end
+# Bundler still picks the active Gemfile from env/process state today, so the
+# bundled import stays explicit even though the wrapper is small.
+Adventure = Package.with_bundle(adventure_gemfile) { import adventure_entry }
 
 Plans = import 'quest'
 summary, challenge_summary = Plans.fetch_values :summary, :challenge_summary
+
+# loot keeps dotenv loading in a subprocess because switching from one active
+# bundle to another conflicting one is not reliable in a single process yet.
 import(loot_entry) => { legacy_message:, DOTENV_VERSION: loot_dotenv_version }
 
 puts '-- bundled single export --'

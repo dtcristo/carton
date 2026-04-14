@@ -39,4 +39,11 @@ class ExportTest < Minitest::Test
     result = import "#{FIXTURES}/bare"
     assert_equal 42, result.fetch(:helper)
   end
+
+  def test_bare_export_index_lookup
+    result = import "#{FIXTURES}/bare"
+    assert_equal 'hello from bare', result[:GREETING]
+    assert_equal 42, result[:helper]
+    assert_nil result[:missing]
+  end
 end

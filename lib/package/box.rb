@@ -82,47 +82,29 @@ module Package
         path.include?('/vendor/bundle/') || path.include?('/bundler/gems/')
     end
 
-    def lookup(key)
+    def lookup_entry(key)
       name = key.to_s
 
       if name.match?(/\A[A-Z]/)
-        begin
-          self.const_get(name)
-        rescue NameError
-          nil
-        end
+        lookup_constant_entry(name)
       else
-        begin
-          self.eval(name)
-        rescue NameError, NoMethodError
-          begin
-            self.__send__(name)
-          rescue NoMethodError
-            nil
-          end
-        end
+        lookup_method_entry(name)
       end
     end
 
-    def lookup_for_pattern(key)
-      name = key.to_s
+    def lookup_constant_entry(name)
+      [true, const_get(name)]
+    rescue NameError
+      [false, nil]
+    end
 
-      if name.match?(/\A[A-Z]/)
-        begin
-          [true, self.const_get(name)]
-        rescue NameError
-          [false, nil]
-        end
-      else
-        begin
-          [true, self.eval(name)]
-        rescue NameError, NoMethodError
-          begin
-            [true, self.__send__(name)]
-          rescue NoMethodError
-            [false, nil]
-          end
-        end
+    def lookup_method_entry(name)
+      [true, eval(name)]
+    rescue NameError, NoMethodError
+      begin
+        [true, __send__(name)]
+      rescue NoMethodError
+        [false, nil]
       end
     end
   end

@@ -38,10 +38,11 @@ Use keyword arguments when the file exports a small namespace.
 # math.rb
 def add(a, b) = a + b
 
-export \
+export(
   PI: 3.14159,
   version: '1.0.0',
   add: method(:add)
+)
 ```
 
 Importing named exports returns a `Package::Exports` object, which behaves like a namespace module.
@@ -53,6 +54,8 @@ MathTools::PI
 MathTools.version
 MathTools.add(2, 3)
 ```
+
+`Package::Exports` and bare `Package::Box` imports share a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
 
 ## Importing
 
@@ -105,7 +108,7 @@ sum.(10, 10)
 
 ## Constants
 
-For exported constants, the simplest options are namespace access or `fetch`.
+For exported constants, the simplest options are namespace access, `[]`, or `fetch`.
 
 ```ruby
 MathTools = import_relative 'math'
@@ -113,13 +116,13 @@ PI = MathTools::PI
 ```
 
 ```ruby
-PI = (import_relative 'math').fetch :PI
+PI = import('math')[:PI]
 ```
 
 For multiple values:
 
 ```ruby
-PI, version = (import_relative 'math').fetch_values :PI, :version
+PI, version = import_relative('math').fetch_values(:PI, :version)
 ```
 
 ## Bare imports
@@ -135,23 +138,16 @@ Toolbox.fetch(:helper)
 
 ## Bundler inside packages
 
-The library works with or without Bundler. Plain packages need no extra setup. For a bundled package, the reliable pattern today is still: set `BUNDLE_GEMFILE` before the `import` that loads that package.
+The library works with or without Bundler. Plain packages need no extra setup. For a bundled package, the reliable pattern today is still: select the Gemfile around the `import` that loads that package.
 
 ```ruby
 entry = File.expand_path('packages/adventure/lib/adventure.rb', __dir__)
 gemfile = File.expand_path('packages/adventure/Gemfile', __dir__)
 
-previous = ENV['BUNDLE_GEMFILE']
-ENV['BUNDLE_GEMFILE'] = gemfile
-Adventure = import entry
-if previous
-  ENV['BUNDLE_GEMFILE'] = previous
-else
-  ENV.delete 'BUNDLE_GEMFILE'
-end
+Adventure = Package.with_bundle(gemfile) { import entry }
 ```
 
-That is the pattern used directly in the complex example.
+`Package.with_bundle` is just a small wrapper around the same `BUNDLE_GEMFILE` handoff. The underlying constraint is still Bundler's: `bundler/setup` discovers the active Gemfile from env/process state, so conflicting bundles still cannot be switched reliably in one process today.
 
 Current limits:
 

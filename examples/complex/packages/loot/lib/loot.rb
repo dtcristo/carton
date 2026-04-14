@@ -6,6 +6,8 @@ require 'rbconfig'
 
 Plans = import 'quest'
 
+# This stays in a subprocess because adventure may already have activated a
+# conflicting bundle in-process, and Bundler cannot reliably switch contexts.
 dotenv_payload =
   begin
     env_file = File.expand_path('../.env', __dir__)

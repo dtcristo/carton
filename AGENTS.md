@@ -8,8 +8,9 @@ Guidance and memory for agents working on this repo.
 - Prefer simpler implementation over complexity.
 - Keep the public API small and Ruby-like.
 - The project should work with or without Bundler.
-- Current reliable bundled-package pattern: set `BUNDLE_GEMFILE` around the `import` that loads the bundled entry file.
+- Current reliable bundled-package pattern: use `Package.with_bundle(gemfile) { import ... }` for the entry import that should activate a package-local bundle.
 - Conflicting bundles still need a subprocess workaround today.
+- Ruby::Box boxes start from root-box load paths/loaded features, so Package must copy parent non-gem load paths forward itself.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules
