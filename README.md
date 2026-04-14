@@ -1,6 +1,6 @@
 # Ruby Package
 
-Small wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) that gives Ruby files isolated, ESM-style imports and exports. Requires Ruby 4.0+ and `RUBY_BOX=1`.
+Small wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) that makes isolated imports and exports feel like part of Ruby. Requires Ruby 4.0+ and `RUBY_BOX=1`.
 
 ## Minimal usage
 
@@ -17,7 +17,7 @@ export User
 # main.rb
 require 'package'
 
-User = import_relative('user')
+User = import_relative 'user'
 alice = User.new('Alice')
 ```
 
@@ -27,11 +27,11 @@ Named exports return a namespace-like module:
 # math.rb
 def add(a, b) = a + b
 
-export(PI: 3.14159, add: method(:add))
+export PI: 3.14159, add: method(:add)
 ```
 
 ```ruby
-MathTools = import_relative('math')
+MathTools = import_relative 'math'
 MathTools::PI
 MathTools.add(2, 3)
 ```

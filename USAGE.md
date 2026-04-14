@@ -26,7 +26,7 @@ export User
 Importing that file returns the exported object itself:
 
 ```ruby
-User = import_relative('user')
+User = import_relative 'user'
 User.new('Alice').greet
 ```
 
@@ -38,17 +38,16 @@ Use keyword arguments when the file exports a small namespace.
 # math.rb
 def add(a, b) = a + b
 
-export(
+export \
   PI: 3.14159,
   version: '1.0.0',
-  add: method(:add),
-)
+  add: method(:add)
 ```
 
 Importing named exports returns a `Package::Exports` object, which behaves like a namespace module.
 
 ```ruby
-MathTools = import_relative('math')
+MathTools = import_relative 'math'
 
 MathTools::PI
 MathTools.version
@@ -59,22 +58,22 @@ MathTools.add(2, 3)
 
 ### `import_relative`
 
-`import_relative(path)` resolves relative to the calling file, like `require_relative`.
+`import_relative path` resolves relative to the calling file, like `require_relative`.
 
 ```ruby
-User = import_relative('user')
+User = import_relative 'user'
 ```
 
 ### `import`
 
-`import(path)` resolves using the current box's `$LOAD_PATH` or an absolute path.
+`import path` resolves using the current box's `$LOAD_PATH` or an absolute path.
 
 ```ruby
-Quest = import('quest')
-Widget = import('/absolute/path/to/widget.rb')
+Quest = import 'quest'
+Widget = import '/absolute/path/to/widget.rb'
 ```
 
-When you want `import('name')` to work across local packages, add their `lib/` directories to `$LOAD_PATH` first.
+When you want `import 'name'` to work across local packages, add their `lib/` directories to `$LOAD_PATH` first.
 
 ```ruby
 packages_dir = File.expand_path('packages', __dir__)
@@ -84,7 +83,7 @@ Dir.glob(File.join(packages_dir, '*/lib')).sort.each do |dir|
 end
 ```
 
-The complex example wraps that pattern in `examples/complex/support/package_support.rb`.
+The complex example keeps that setup explicit in `examples/complex/main.rb`.
 
 ## Destructuring
 
@@ -109,18 +108,18 @@ sum.(10, 10)
 For exported constants, the simplest options are namespace access or `fetch`.
 
 ```ruby
-MathTools = import_relative('math')
+MathTools = import_relative 'math'
 PI = MathTools::PI
 ```
 
 ```ruby
-PI = import_relative('math').fetch(:PI)
+PI = (import_relative 'math').fetch :PI
 ```
 
 For multiple values:
 
 ```ruby
-PI, version = import_relative('math').fetch_values(:PI, :version)
+PI, version = (import_relative 'math').fetch_values :PI, :version
 ```
 
 ## Bare imports
@@ -128,7 +127,7 @@ PI, version = import_relative('math').fetch_values(:PI, :version)
 If a file does not call `export`, importing it returns the `Package::Box` itself.
 
 ```ruby
-Toolbox = import('some_script')
+Toolbox = import 'some_script'
 
 Toolbox::SomeConstant
 Toolbox.fetch(:helper)
@@ -136,27 +135,23 @@ Toolbox.fetch(:helper)
 
 ## Bundler inside packages
 
-Package-local Bundler works today, but the reliable pattern is still: set `BUNDLE_GEMFILE` before the `import` that loads that package.
+The library works with or without Bundler. Plain packages need no extra setup. For a bundled package, the reliable pattern today is still: set `BUNDLE_GEMFILE` before the `import` that loads that package.
 
 ```ruby
-def import_with_bundle(path)
-  package_root = File.expand_path('..', File.dirname(path))
-  gemfile =
-    %w[gems.rb Gemfile]
-      .map { |name| File.join(package_root, name) }
-      .find { |candidate| File.file?(candidate) }
+entry = File.expand_path('packages/adventure/lib/adventure.rb', __dir__)
+gemfile = File.expand_path('packages/adventure/Gemfile', __dir__)
 
-  return import(path) unless gemfile
-
-  previous = ENV['BUNDLE_GEMFILE']
-  ENV['BUNDLE_GEMFILE'] = gemfile
-  import(path)
-ensure
-  previous ? ENV['BUNDLE_GEMFILE'] = previous : ENV.delete('BUNDLE_GEMFILE')
+previous = ENV['BUNDLE_GEMFILE']
+ENV['BUNDLE_GEMFILE'] = gemfile
+Adventure = import entry
+if previous
+  ENV['BUNDLE_GEMFILE'] = previous
+else
+  ENV.delete 'BUNDLE_GEMFILE'
 end
 ```
 
-That is the pattern used by the complex example helper.
+That is the pattern used directly in the complex example.
 
 Current limits:
 

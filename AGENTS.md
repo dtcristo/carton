@@ -4,10 +4,11 @@ Guidance and memory for agents working on this repo.
 
 ## Memory bank
 
-- Goal: keep Package small, simple, and focused on isolated `Ruby::Box` imports/exports.
-- Prefer the smallest clear implementation over cleverness or extra abstraction.
-- Keep the public API minimal; example-only glue can live in examples while designs are still settling.
-- Current reliable Bundler pattern: set `BUNDLE_GEMFILE` around the `import` that loads a bundled package.
+- Goal: make Package feel like part of Ruby: built-in, simple, streamlined, and not verbose.
+- Prefer simpler implementation over complexity.
+- Keep the public API small and Ruby-like.
+- The project should work with or without Bundler.
+- Current reliable bundled-package pattern: set `BUNDLE_GEMFILE` around the `import` that loads the bundled entry file.
 - Conflicting bundles still need a subprocess workaround today.
 - Never push. Make local commits only; the user handles pushes.
 

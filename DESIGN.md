@@ -2,7 +2,7 @@
 
 ## Goal
 
-Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated file-to-file imports feel closer to ESM-style modules.
+Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated file-to-file imports feel like part of Ruby.
 
 ## Main pieces
 
@@ -48,7 +48,7 @@ The current filter deliberately tries to avoid leaking gem paths from a parent i
 - common Bundler vendor paths are filtered
 - local, non-gem package paths are preserved
 
-This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicitly before using `import('name')`.
+This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicitly before using `import 'name'`.
 
 ## Bundler model
 
@@ -62,6 +62,6 @@ This keeps one package-local bundle isolated from the caller, but current limita
 
 Those constraints come from the interaction between `Ruby::Box`, `$LOAD_PATH`, `$LOADED_FEATURES`, and Bundler's process-wide environment and RubyGems hooks. See [TODO.md](TODO.md) for the upstream work that would help.
 
-## Why the examples have helper glue
+## Why the complex example stays explicit
 
-The example helper in `examples/complex/support/package_support.rb` is intentionally example-specific. It keeps the public library surface small while the correct Bundler ergonomics are still being explored.
+The complex example keeps load-path setup and bundled imports visible in `main.rb` on purpose. It is meant to demonstrate Package directly, not hide the mechanics behind another layer.

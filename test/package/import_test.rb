@@ -8,13 +8,13 @@ GEM_LIKE_DIR =
 
 class ImportTest < Minitest::Test
   def test_import_absolute_path
-    result = import("#{FIXTURES_DIR}/single_export")
+    result = import "#{FIXTURES_DIR}/single_export"
     user = result.new('Bob')
     assert_equal 'Hello, Bob!', user.greet
   end
 
   def test_import_hash_namespace
-    result = import("#{FIXTURES_DIR}/hash_export")
+    result = import "#{FIXTURES_DIR}/hash_export"
     assert_kind_of Package::Exports, result
     assert_respond_to result, :add
     assert_respond_to result, :subtract
@@ -26,7 +26,7 @@ class ImportTest < Minitest::Test
     added = !$LOAD_PATH.include?(FIXTURES_DIR)
     $LOAD_PATH.unshift(FIXTURES_DIR) if added
 
-    result = import('single_export')
+    result = import 'single_export'
     assert_equal 'User', result.name
   ensure
     $LOAD_PATH.delete(FIXTURES_DIR) if added
@@ -36,9 +36,9 @@ class ImportTest < Minitest::Test
     added = !$LOAD_PATH.include?(GEM_LIKE_DIR)
     $LOAD_PATH.unshift(GEM_LIKE_DIR) if added
 
-    result = import("#{FIXTURES_DIR}/bare")
+    result = import "#{FIXTURES_DIR}/bare"
     refute_includes result.load_path, GEM_LIKE_DIR
-    assert_raises(LoadError) { import('leaked_feature') }
+    assert_raises(LoadError) { import 'leaked_feature' }
   ensure
     $LOAD_PATH.delete(GEM_LIKE_DIR) if added
   end
@@ -51,13 +51,13 @@ class ImportTest < Minitest::Test
   end
 
   def test_import_fetch
-    result = import("#{FIXTURES_DIR}/hash_export")
+    result = import "#{FIXTURES_DIR}/hash_export"
     assert_equal '1.0.0', result.fetch(:version)
     assert_in_delta 3.14159, result.fetch(:PI)
   end
 
   def test_import_fetch_values
-    result = import("#{FIXTURES_DIR}/hash_export")
+    result = import "#{FIXTURES_DIR}/hash_export"
     pi, version = result.fetch_values(:PI, :version)
     assert_in_delta 3.14159, pi
     assert_equal '1.0.0', version

@@ -7,4 +7,4 @@ def hello
   "Hello from Bar! (#{Baz.hello})"
 end
 
-export(hello: method(:hello), MAGIC: 42)
+export hello: method(:hello), MAGIC: 42

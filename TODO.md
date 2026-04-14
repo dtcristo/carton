@@ -11,7 +11,7 @@
 ## Library
 
 - Revisit `Package::Box#gem_path?`; it still relies partly on path heuristics.
-- Consider a tiny public helper for bundle-wrapped imports if the example helper pattern proves stable in real usage.
+- Consider a first-party Bundler helper such as `Package.with_bundle` if the explicit pattern proves repetitive enough to deserve a public API.
 - Add targeted tests for bundled package imports instead of covering that behavior only through the complex example.
 - Investigate the Minitest `object_id` warning that appears under Ruby 4.0 + `Ruby::Box`.
 - Review whether `Package::Box` and `Package::Exports` lookup helpers can be simplified further without obscuring the behavior.
