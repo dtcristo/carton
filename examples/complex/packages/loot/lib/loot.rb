@@ -22,7 +22,7 @@ module Loot
   DOTENV_PAYLOAD =
     begin
       env_file = File.expand_path('../.env', __dir__)
-      gemfile = File.expand_path('../gems.rb', __dir__)
+      gemfile = File.expand_path('../Gemfile', __dir__)
       script = <<~'RUBY'
         require 'json'
         require 'bundler/setup'

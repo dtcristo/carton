@@ -199,19 +199,14 @@ cd examples/complex/packages/loot && BUNDLE_GEMFILE=gems.rb bundle install && cd
 RUBY_BOX=1 ruby examples/complex/main.rb
 ```
 
-## Running
+## Development
 
 ```sh
-# Run all tests
-RUBY_BOX=1 rake test
-
-# Run all examples
-RUBY_BOX=1 rake examples
-
-# Run a specific example
-RUBY_BOX=1 rake example:minimal
-RUBY_BOX=1 rake example:complex
-
-# Run everything (default)
-RUBY_BOX=1 rake
+bundle install                        # Install root dependencies
+RUBY_BOX=1 bundle exec rake           # Run all tests and examples
+bundle exec rake format               # Format codee
 ```
+
+## License
+
+Available as open source under the [MIT License](https://opensource.org/licenses/MIT).
