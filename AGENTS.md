@@ -1,24 +1,42 @@
 # Agents
 
-Guidelines for AI agents working on this codebase.
+Guidance and memory for agents working on this repo.
 
-- Write tests for new behaviour; run existing tests before committing.
-- If you only changed an example, only run that example's tests.
-- Run targeted tests as you go for fast feedback; run the full suite once before committing.
-- Whenever adding new features/functionality, update complex example with support for it (if appropriate).
-- Update relevant documentation (README, USAGE, ARCHITECTURE, TODO).
-- Keep README concise — detailed usage belongs in USAGE.md.
-- Keep documentation minimal — don't be wordy.
-- Consistent style with existing code and docs.
-- Commit as you go with descriptive messages.
-- Don't over-engineer — keep it simple.
-- When multiple implementations or design choices exist, present a menu to the user with your recommendation.
-- Run `RUBY_BOX=1 bundle exec rake` to run all tests (unit, examples).
-- Run `RUBY_BOX=1 bundle exec rake test` for unit tests only.
-- Run `RUBY_BOX=1 bundle exec rake example:minimal` for a specific example.
-- Run `bundle exec rake format` to format code after every change.
-- Fix any warnings.
-- Use sub-agents where appropriate.
+## Memory bank
+
+- Goal: keep Package small, simple, and focused on isolated `Ruby::Box` imports/exports.
+- Prefer the smallest clear implementation over cleverness or extra abstraction.
+- Keep the public API minimal; example-only glue can live in examples while designs are still settling.
+- Current reliable Bundler pattern: set `BUNDLE_GEMFILE` around the `import` that loads a bundled package.
+- Conflicting bundles still need a subprocess workaround today.
+- Never push. Make local commits only; the user handles pushes.
+
+## Working rules
+
+- Write tests for new behaviour; run targeted tests as you go and `RUBY_BOX=1 bundle exec rake` before finishing.
+- If you only changed an example, run that example during iteration and the full suite before finishing.
+- Run `bundle exec rake format` after every change.
+- Keep implementation and docs concise.
+- Do not over-engineer.
 - Never use thread local variables in implementation.
 - Always review https://docs.ruby-lang.org/en/4.0/Ruby/Box.html on how `Ruby::Box` works.
-- Never bump version or publish gem.
+- Never bump the version or publish the gem.
+- When multiple implementation choices are viable, present a menu with your recommendation.
+- Commit as you go with descriptive messages and the required Co-authored-by trailer.
+- Never push; the user will do that.
+
+## Docs
+
+- Keep `README.md`, `USAGE.md`, `DESIGN.md`, `TODO.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, or plans change.
+- Keep the root `README.md` minimal; move detail into focused docs.
+- Put future work, open questions, and upstream ideas in `TODO.md`.
+- Update `AGENTS.md` whenever the user gives durable project guidance or you discover stable context worth remembering.
+- Use `AGENTS.md` as a concise memory bank, not a changelog.
+
+## Commands
+
+- `RUBY_BOX=1 bundle exec rake` - full suite
+- `RUBY_BOX=1 bundle exec rake test` - unit tests only
+- `RUBY_BOX=1 bundle exec rake example:minimal` - minimal example
+- `RUBY_BOX=1 bundle exec rake example:complex` - complex example
+- `bundle exec rake format` - format code
