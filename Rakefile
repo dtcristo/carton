@@ -19,14 +19,13 @@ namespace :example do
       Bundler.with_unbundled_env do
         # Install gems for any package/local example gemfile.
         Dir
-          .glob(File.join(dir, '**/{gems.rb,Gemfile}'))
+          .glob(File.join(dir, '**/Gemfile'))
           .each do |gemfile|
             pkg_dir = File.dirname(gemfile)
-            gemfile_name = File.basename(gemfile)
             sh(
               "cd #{pkg_dir} && " \
-                "BUNDLE_GEMFILE=#{gemfile_name} bundle check || " \
-                "BUNDLE_GEMFILE=#{gemfile_name} bundle install",
+                'BUNDLE_GEMFILE=Gemfile bundle check || ' \
+                'BUNDLE_GEMFILE=Gemfile bundle install',
             )
           end
 
