@@ -17,6 +17,10 @@ namespace :example do
     task name.to_sym do
       dir = File.join('examples', name)
 
+      puts
+      puts "== Running example/#{name} =="
+      puts
+
       Bundler.with_unbundled_env do
         # Install gems for any package/local example gemfile.
         Dir

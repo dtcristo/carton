@@ -12,6 +12,7 @@ Guidance and memory for agents working on this repo.
 - Conflicting bundles still need a subprocess workaround today.
 - Ruby::Box boxes start from root-box load paths/loaded features, so Package must copy parent non-gem load paths forward itself.
 - `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
+- Duplicating `Gem.loaded_specs` inside a box isolates a single bundled import from root state, but conflicting bundles still fail because Bundler also rewrites shared RubyGems entrypoints/spec state such as `Gem::Specification.all`.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules

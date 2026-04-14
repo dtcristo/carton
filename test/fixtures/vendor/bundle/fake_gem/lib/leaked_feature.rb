@@ -4,4 +4,4 @@ module LeakedFeature
   def self.status = :visible
 end
 
-export LeakedFeature
+export_default LeakedFeature

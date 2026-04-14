@@ -14,6 +14,10 @@ module Package
     def export(*args, **kwargs)
       Runtime.export(args, kwargs)
     end
+
+    def export_default(value)
+      Runtime.export_default(value)
+    end
   end
 end
 

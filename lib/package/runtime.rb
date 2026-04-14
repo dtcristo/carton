@@ -16,28 +16,17 @@ module Package
     end
 
     def export(args, kwargs)
-      value = normalize_export(args, kwargs)
-      box = Ruby::Box.current
-
-      unless box.respond_to?(:set_export, true)
-        raise RuntimeError,
-              'export must be called from inside Package.import/import_relative'
-      end
-
-      box.__send__(:set_export, value)
-    end
-
-    def normalize_export(args, kwargs)
-      if kwargs.any? && args.empty?
-        kwargs
-      elsif args.size == 1 && kwargs.empty?
-        args.first
-      else
+      if args.any? || kwargs.empty?
         raise ArgumentError,
-              'Export takes either a single object or keyword arguments'
+              'export takes keyword arguments; use export_default for a single export'
       end
+
+      current_import_box.__send__(:set_export, kwargs)
     end
-    private_class_method :normalize_export
+
+    def export_default(value)
+      current_import_box.__send__(:set_export, value)
+    end
 
     def build_import_box
       parent_box = Ruby::Box.current
@@ -60,6 +49,18 @@ module Package
       value.is_a?(Hash) ? Package::Exports.new(value) : value
     end
     private_class_method :extract_export
+
+    def current_import_box
+      box = Ruby::Box.current
+
+      unless box.respond_to?(:set_export, true)
+        raise RuntimeError,
+              'export/export_default must be called from inside Package.import/import_relative'
+      end
+
+      box
+    end
+    private_class_method :current_import_box
 
     def resolve_import_target(box, path, base_dir:)
       expanded = File.expand_path(path, base_dir)

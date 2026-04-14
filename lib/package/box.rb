@@ -38,6 +38,10 @@ module Package
     end
 
     def set_export(value)
+      if export_set?
+        raise RuntimeError, 'only one export is allowed per imported file'
+      end
+
       @export = value
     end
 

@@ -3,4 +3,4 @@ class User
   def greet = "Hello, #{@name}!"
 end
 
-export User
+export_default User

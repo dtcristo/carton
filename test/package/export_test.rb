@@ -46,4 +46,16 @@ class ExportTest < Minitest::Test
     assert_equal 42, result[:helper]
     assert_nil result[:missing]
   end
+
+  def test_export_raises_when_called_more_than_once
+    error = assert_raises(RuntimeError) { import "#{FIXTURES}/double_export" }
+    assert_equal 'only one export is allowed per imported file', error.message
+  end
+
+  def test_single_export_requires_export_default
+    error =
+      assert_raises(ArgumentError) { import "#{FIXTURES}/legacy_single_export" }
+    assert_equal 'export takes keyword arguments; use export_default for a single export',
+                 error.message
+  end
 end

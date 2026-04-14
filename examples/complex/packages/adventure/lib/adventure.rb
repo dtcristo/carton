@@ -9,4 +9,4 @@ module Adventure
   def self.dotenv_version = Gem.loaded_specs.fetch('dotenv').version.to_s
 end
 
-export Adventure
+export_default Adventure

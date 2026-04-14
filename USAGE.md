@@ -4,7 +4,7 @@
 
 - Ruby 4.0+
 - `RUBY_BOX=1`
-- `require 'package'` before using `import`, `import_relative`, or `export`
+- `require 'package'` before using `import`, `import_relative`, `export_default`, or `export`
 
 ## Exporting
 
@@ -20,7 +20,7 @@ class User
   def greet = "Hello, #{@name}!"
 end
 
-export User
+export_default User
 ```
 
 Importing that file returns the exported object itself:
@@ -56,6 +56,8 @@ MathTools.add(2, 3)
 ```
 
 `Package::Exports` and bare `Package::Box` imports share a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
+
+Only one export call is allowed per imported file. Use `export_default value` for single exports or `export foo:, bar:` for named exports.
 
 ## Importing
 

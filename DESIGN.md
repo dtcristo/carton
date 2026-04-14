@@ -9,7 +9,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | File | Role |
 | --- | --- |
 | `lib/package.rb` | Entry point, version guard, `Package.with_bundle`, and internal wiring |
-| `lib/package/kernel_patch.rb` | Adds global `import`, `import_relative`, and `export` |
+| `lib/package/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
 | `lib/package/runtime.rb` | Builds boxes, resolves targets, runs imports, and extracts exports |
 | `lib/package/box.rb` | Box-specific helpers for requiring files, managing export state, and inheriting safe load paths |
 | `lib/package/exports.rb` | Wraps named exports in a module-like namespace |
@@ -22,7 +22,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 3. The package entrypoint (`lib/package.rb`) is required inside the box so the box has `export`, `import`, and `import_relative`.
 4. The target file is resolved either from the caller's base directory or from the current box's `$LOAD_PATH`.
 5. The target file is required inside the box.
-6. If the file called `export`, the exported value is returned.
+6. If the file called `export_default` or `export`, the exported value is returned.
 7. If the export was a hash, it is wrapped in `Package::Exports`.
 8. If there was no export, the box itself is returned.
 
@@ -36,7 +36,7 @@ There are three return shapes:
 - named exports: `Package::Exports`
 - no export: `Package::Box`
 
-`Package::Exports` exposes capitalized keys as constants and lowercase keys as singleton methods. Both `Package::Exports` and `Package::Box` share the same small fetch/deconstruction API through `ExportMethods`.
+`export_default` is the explicit single-export form. `export` is the named-export form and only accepts keyword arguments. `Package::Exports` exposes capitalized keys as constants and lowercase keys as singleton methods. Both `Package::Exports` and `Package::Box` share the same small fetch/deconstruction API through `ExportMethods`.
 
 ## Load path model
 
@@ -71,7 +71,9 @@ The problem is not that Bundler has special C code mutating every box at once. B
 What matters under `Ruby::Box` is which of those pieces are box-local. In practice:
 
 - `$LOAD_PATH` stays box-local; activating a bundle in an imported box does not inject its gem lib paths into the caller box
-- `Gem.loaded_specs` is still shared across boxes in practice; the same hash object is visible in the caller and imported box
+- `Gem.loaded_specs` is still shared across boxes in practice unless it is explicitly replaced inside the box
+
+Duplicating `Gem.loaded_specs` inside an imported box was enough to keep a single bundled import from leaking back into the caller box, but it was still not enough to make two conflicting bundles coexist. Bundler also rewrites RubyGems entrypoints and spec state through code paths such as `replace_entrypoints`, `stub_rubygems`, `Gem::Specification.all = ...`, and `Gem.clear_paths`.
 
 That shared activation state is why a second box can see a gem version activated by the first one even though its own `$LOAD_PATH` is separate. In local probes, activating `dotenv 3.2.0` in one box caused a second box targeting `dotenv ~> 2.0` to fail its Bundler activation and then crash under Ruby 4.0 + `Ruby::Box`.
 
