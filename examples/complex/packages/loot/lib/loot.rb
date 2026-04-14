@@ -1,15 +1,8 @@
 # frozen_string_literal: true
 
-# Loot package entry point — has its own gem dependency (dotenv ~> 2.0)
-# Add all sibling packages' lib dirs to $LOAD_PATH for cross-package imports.
-packages_dir = File.expand_path('../..', __dir__)
-Dir.glob("#{packages_dir}/*/lib") do |d|
-  $LOAD_PATH.unshift(d) unless $LOAD_PATH.include?(d)
-end
+require_relative '../../../support/package_support'
 
-require 'json'
-require 'open3'
-require 'rbconfig'
+ComplexExample::PackageSupport.add_sibling_package_libs(__dir__)
 
 require 'loot/item'
 
@@ -20,33 +13,10 @@ module Loot
   LIST_SEPARATOR = '|'
 
   DOTENV_PAYLOAD =
-    begin
-      env_file = File.expand_path('../.env', __dir__)
-      gemfile = File.expand_path('../Gemfile', __dir__)
-      script = <<~'RUBY'
-        require 'json'
-        require 'bundler/setup'
-        require 'dotenv'
-
-        config = Dotenv.parse(ARGV.fetch(0))
-        version = Gem.loaded_specs.fetch('dotenv').version.to_s
-        puts JSON.generate(version:, config:)
-      RUBY
-
-      output, status =
-        Open3.capture2e(
-          { 'BUNDLE_GEMFILE' => gemfile },
-          RbConfig.ruby,
-          '-e',
-          script,
-          env_file,
-        )
-      unless status.success?
-        raise RuntimeError, "failed to load loot dotenv bundle: #{output}"
-      end
-
-      JSON.parse(output)
-    end
+    ComplexExample::PackageSupport.load_dotenv_payload(
+      package_root: File.expand_path('..', __dir__),
+      env_file: File.expand_path('../.env', __dir__),
+    )
 
   CONFIG = DOTENV_PAYLOAD.fetch('config')
   DOTENV_VERSION = DOTENV_PAYLOAD.fetch('version')

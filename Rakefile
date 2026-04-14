@@ -36,7 +36,7 @@ namespace :example do
   end
 end
 
-desc 'Run all exapmles'
+desc 'Run all examples'
 task examples: EXAMPLES.map { |n| "example:#{n}" }
 
 desc 'Format code'

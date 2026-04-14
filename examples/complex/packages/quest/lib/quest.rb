@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-# Quest package entry point — no gem dependencies
-# Add all sibling packages' lib dirs to $LOAD_PATH for cross-package imports.
-packages_dir = File.expand_path('../..', __dir__)
-Dir.glob("#{packages_dir}/*/lib") do |d|
-  $LOAD_PATH.unshift(d) unless $LOAD_PATH.include?(d)
-end
+require_relative '../../../support/package_support'
+
+ComplexExample::PackageSupport.add_sibling_package_libs(__dir__)
 
 Challenge = import_relative('quest/challenge')
 
