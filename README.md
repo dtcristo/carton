@@ -53,9 +53,9 @@ MathTools.add(2, 3)
 ## Development
 
 ```sh
-bundle install
-RUBY_BOX=1 bundle exec rake
-bundle exec rake format
+bundle install                        # Install development deps
+RUBY_BOX=1 bundle exec rake           # Run all tests and examples
+bundle exec rake format               # Format code
 ```
 
 ## License
