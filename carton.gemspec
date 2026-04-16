@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ['David Cristofaro']
   spec.email = ['david@dtcristo.com']
 
-  spec.summary = 'Easily modularize Ruby with boxes'
+  spec.summary = 'Easily box your Ruby'
   spec.description =
     'Carton is a thin wrapper around Ruby::Box for safe, ergonomic modularization in Ruby 4+. It gives you imports and exports that feel like ES Modules while still reading like Ruby. Each carton can isolate constants, gems, and monkey patches behind a small public API, so large apps can keep clear boundaries.'
   spec.homepage = 'https://github.com/dtcristo/carton'

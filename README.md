@@ -2,12 +2,12 @@
   <h1>
     Carton
   </h1>
+  <img src="images/carton.png" alt="Carton logo" width="200" />
   <p>
     <strong>
-      Easily modularize your Ruby with boxes
+      Easily box your Ruby
     </strong>
   </p>
-  <img src="images/carton.png" alt="Carton logo" width="200" />
 </div>
 
 Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4+. It gives you imports and exports that feel like ES Modules while still reading like Ruby. Each carton can isolate constants, gems, and monkey patches behind a small public API, so large apps can keep clear boundaries.
