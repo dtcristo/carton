@@ -10,7 +10,7 @@
   </p>
 </div>
 
-Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4+. It gives you imports and exports that feel like ES Modules while still reading like Ruby. Each carton can isolate constants, gems, and monkey patches behind a small public API, so large apps can keep clear boundaries.
+Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
 
 ## Minimal usage
 
