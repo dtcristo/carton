@@ -4,13 +4,14 @@ Guidance and memory for agents working on this repo.
 
 ## Memory bank
 
-- Goal: make Package feel like part of Ruby: built-in, simple, streamlined, and not verbose.
+- Goal: make Carton feel like part of Ruby: built-in, simple, streamlined, and not verbose.
 - Prefer simpler implementation over complexity.
 - Keep the public API small and Ruby-like.
 - The project should work with or without Bundler.
-- Current reliable bundled-package pattern: use `Package.with_bundle(gemfile) { import ... }` for the entry import that should activate a package-local bundle.
+- A package in this system is called a carton, though docs can still use "package" in plain English when it reads better.
+- Current reliable bundled-carton pattern: use `Carton.with_bundle(gemfile) { import ... }` for the entry import that should activate a carton-local bundle.
 - Conflicting bundles still need a subprocess workaround today.
-- Ruby::Box boxes start from root-box load paths/loaded features, so Package must copy parent non-gem load paths forward itself.
+- Ruby::Box boxes start from root-box load paths/loaded features, so Carton must copy parent non-gem load paths forward itself.
 - `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
 - Duplicating `Gem.loaded_specs` inside a box isolates a single bundled import from root state, but conflicting bundles still fail because Bundler also rewrites shared RubyGems entrypoints/spec state such as `Gem::Specification.all`.
 - Never push. Make local commits only; the user handles pushes.

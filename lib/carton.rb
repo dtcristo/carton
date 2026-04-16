@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-raise 'Ruby 4.0+ is required for Package' if RUBY_VERSION.to_f < 4.0
+raise 'Ruby 4.0+ is required for Carton' if RUBY_VERSION.to_f < 4.0
 
-module Package
+module Carton
   module_function
 
   def with_bundle(gemfile)
@@ -18,13 +18,13 @@ module Package
   end
 end
 
-require_relative 'package/export_methods'
-require_relative 'package/exports'
-require_relative 'package/box'
-require_relative 'package/runtime'
-require_relative 'package/kernel_patch'
+require_relative 'carton/export_methods'
+require_relative 'carton/exports'
+require_relative 'carton/box'
+require_relative 'carton/runtime'
+require_relative 'carton/kernel_patch'
 
-module Package
+module Carton
   private_constant :ExportMethods
   private_constant :Runtime
   private_constant :KernelPatch

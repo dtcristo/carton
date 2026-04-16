@@ -12,7 +12,7 @@ class ImportRelativeTest < Minitest::Test
 
   def test_import_relative_hash_export
     result = import_relative '../fixtures/hash_export'
-    assert_kind_of Package::Exports, result
+    assert_kind_of Carton::Exports, result
     assert_equal 8, result.add(3, 5)
     assert_equal 2, result.subtract(5, 3)
     assert_equal '1.0.0', result.version
@@ -39,7 +39,7 @@ class ImportRelativeTest < Minitest::Test
 
   def test_import_relative_bare
     result = import_relative '../fixtures/bare'
-    assert_kind_of Package::Box, result
+    assert_kind_of Carton::Box, result
     assert_equal 'hello from bare', result.fetch(:GREETING)
   end
 end

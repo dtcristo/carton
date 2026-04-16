@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../lib/package'
+require_relative '../../lib/carton'
 
 # Single import — Foo exports a module
 Foo = import_relative 'foo'

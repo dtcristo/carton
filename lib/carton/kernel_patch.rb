@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Package
+module Carton
   module KernelPatch
     def import(path)
       Runtime.import(path, base_dir: Dir.pwd)
@@ -22,4 +22,4 @@ module Package
 end
 
 # Inject only the Kernel patch module into Kernel.
-::Kernel.prepend(Package::KernelPatch)
+::Kernel.prepend(Carton::KernelPatch)

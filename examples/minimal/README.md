@@ -7,7 +7,7 @@ Smallest working example of the library.
 - single export (`foo.rb`, `baz.rb`)
 - named exports (`bar.rb`)
 - `import_relative`
-- one package importing another package internally
+- one carton importing another carton internally
 
 ## Run
 

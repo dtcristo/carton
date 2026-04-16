@@ -1,25 +1,25 @@
 # frozen_string_literal: true
 
-require_relative '../../lib/package'
+require_relative '../../lib/carton'
 
-packages_dir = File.expand_path('packages', __dir__)
+cartons_dir = File.expand_path('cartons', __dir__)
 
-# Local package lib directories still need to be on the caller's load path when
+# Local carton lib directories still need to be on the caller's load path when
 # we want import 'name' to resolve inside nested boxes.
 Dir
-  .glob(File.join(packages_dir, '*/lib'))
+  .glob(File.join(cartons_dir, '*/lib'))
   .sort
   .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
-adventure_gemfile = File.expand_path('packages/adventure/Gemfile', __dir__)
+adventure_gemfile = File.expand_path('cartons/adventure/Gemfile', __dir__)
 
 # Bundler still picks the active Gemfile from env/process state today, so the
 # bundled import stays explicit even though the wrapper is small.
-Adventure = Package.with_bundle(adventure_gemfile) { import 'adventure' }
+Adventure = Carton.with_bundle(adventure_gemfile) { import 'adventure' }
 
 Plans = import 'quest'
 
-# loot still imports by name, but it does not need Package.with_bundle here
+# loot still imports by name, but it does not need Carton.with_bundle here
 # because the conflicting dotenv activation happens entirely in the subprocess
 # inside loot.rb, not during this import itself.
 import('loot') => { legacy_message:, DOTENV_VERSION: loot_dotenv_version }

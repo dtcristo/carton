@@ -2,14 +2,14 @@
 
 require_relative '../test_helper'
 
-class PackageTest < Minitest::Test
+class CartonTest < Minitest::Test
   def test_export_default_is_available_globally
     assert_respond_to TOPLEVEL_BINDING.receiver, :export_default
   end
 
   def test_with_bundle_sets_and_restores_bundle_gemfile
     previous = ENV['BUNDLE_GEMFILE']
-    result = Package.with_bundle('/tmp/demo/Gemfile') { ENV['BUNDLE_GEMFILE'] }
+    result = Carton.with_bundle('/tmp/demo/Gemfile') { ENV['BUNDLE_GEMFILE'] }
 
     assert_equal '/tmp/demo/Gemfile', result
     if previous
@@ -30,7 +30,7 @@ class PackageTest < Minitest::Test
 
     error =
       assert_raises(RuntimeError) do
-        Package.with_bundle('/tmp/demo/Gemfile') { raise 'boom' }
+        Carton.with_bundle('/tmp/demo/Gemfile') { raise 'boom' }
       end
 
     assert_equal 'boom', error.message

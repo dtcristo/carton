@@ -6,7 +6,7 @@ require 'rbconfig'
 
 Plans = import 'quest'
 
-# This package is imported plainly by name. The subprocess below is where it
+# This carton is imported plainly by name. The subprocess below is where it
 # selects its own Gemfile, because doing the conflicting dotenv activation
 # directly in another box still collides through shared RubyGems activation
 # state and can even crash under Ruby::Box today.

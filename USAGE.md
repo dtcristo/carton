@@ -4,7 +4,9 @@
 
 - Ruby 4.0+
 - `RUBY_BOX=1`
-- `require 'package'` before using `import`, `import_relative`, `export_default`, or `export`
+- `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
+
+In Carton, an importable package is called a carton. This guide still says "package" sometimes in plain English, but "carton" is the project term.
 
 ## Exporting
 
@@ -45,7 +47,7 @@ export(
 )
 ```
 
-Importing named exports returns a `Package::Exports` object, which behaves like a namespace module.
+Importing named exports returns a `Carton::Exports` object, which behaves like a namespace module.
 
 ```ruby
 MathTools = import_relative 'math'
@@ -55,7 +57,7 @@ MathTools.version
 MathTools.add(2, 3)
 ```
 
-`Package::Exports` and bare `Package::Box` imports share a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
+`Carton::Exports` and bare `Carton::Box` imports share a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
 
 Only one export call is allowed per imported file. Use `export_default value` for single exports or `export foo:, bar:` for named exports.
 
@@ -78,12 +80,12 @@ Quest = import 'quest'
 Widget = import '/absolute/path/to/widget.rb'
 ```
 
-When you want `import 'name'` to work across local packages, add their `lib/` directories to `$LOAD_PATH` first.
+When you want `import 'name'` to work across local cartons, add their `lib/` directories to `$LOAD_PATH` first.
 
 ```ruby
-packages_dir = File.expand_path('packages', __dir__)
+cartons_dir = File.expand_path('cartons', __dir__)
 
-Dir.glob(File.join(packages_dir, '*/lib')).sort.each do |dir|
+Dir.glob(File.join(cartons_dir, '*/lib')).sort.each do |dir|
   $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir)
 end
 ```
@@ -129,7 +131,7 @@ PI, version = import_relative('math').fetch_values(:PI, :version)
 
 ## Bare imports
 
-If a file does not call `export`, importing it returns the `Package::Box` itself.
+If a file does not call `export`, importing it returns the `Carton::Box` itself.
 
 ```ruby
 Toolbox = import 'some_script'
@@ -138,22 +140,22 @@ Toolbox::SomeConstant
 Toolbox.fetch(:helper)
 ```
 
-## Bundler inside packages
+## Bundler inside cartons
 
-The library works with or without Bundler. Plain packages need no extra setup. For a bundled package, the reliable pattern today is still: select the Gemfile around the `import` that loads that package.
+The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, the reliable pattern today is still: select the Gemfile around the `import` that loads that carton.
 
 ```ruby
-gemfile = File.expand_path('packages/adventure/Gemfile', __dir__)
+gemfile = File.expand_path('cartons/adventure/Gemfile', __dir__)
 
-Adventure = Package.with_bundle(gemfile) { import 'adventure' }
+Adventure = Carton.with_bundle(gemfile) { import 'adventure' }
 ```
 
-`Package.with_bundle` is just a small wrapper around the same `BUNDLE_GEMFILE` handoff. The underlying constraint is still Bundler's: `bundler/setup` discovers the active Gemfile from env/process state, and RubyGems activation state (`Gem.loaded_specs`) is still shared across boxes in practice, so conflicting bundles still cannot be switched reliably in one process today.
+`Carton.with_bundle` is just a small wrapper around the same `BUNDLE_GEMFILE` handoff. The underlying constraint is still Bundler's: `bundler/setup` discovers the active Gemfile from env/process state, and RubyGems activation state (`Gem.loaded_specs`) is still shared across boxes in practice, so conflicting bundles still cannot be switched reliably in one process today.
 
 Current limits:
 
-- one package-local bundle can be activated cleanly from an unbundled parent
-- a bundled parent process is not a reliable place to import a child package with its own bundle
+- one carton-local bundle can be activated cleanly from an unbundled parent
+- a bundled parent process is not a reliable place to import a child carton with its own bundle
 - conflicting bundles in one process still need a subprocess workaround
 
 See [TODO.md](TODO.md) for the upstream Bundler work that would make this cleaner.

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-module Package
+module Carton
   module Runtime
-    ENTRYPOINT = File.expand_path('../package.rb', __dir__)
+    ENTRYPOINT = File.expand_path('../carton.rb', __dir__)
     private_constant :ENTRYPOINT
 
     module_function
@@ -30,7 +30,7 @@ module Package
 
     def build_import_box
       parent_box = Ruby::Box.current
-      box = Package::Box.new
+      box = Carton::Box.new
       bundle_gemfile = parent_box.eval("ENV['BUNDLE_GEMFILE']")
       box.__send__(
         :configure_for_import,
@@ -46,7 +46,7 @@ module Package
       return box unless box.__send__(:export_set?)
 
       value = box.__send__(:export_value)
-      value.is_a?(Hash) ? Package::Exports.new(value) : value
+      value.is_a?(Hash) ? Carton::Exports.new(value) : value
     end
     private_class_method :extract_export
 
@@ -55,7 +55,7 @@ module Package
 
       unless box.respond_to?(:set_export, true)
         raise RuntimeError,
-              'export/export_default must be called from inside Package.import/import_relative'
+              'export/export_default must be called from inside Carton.import/import_relative'
       end
 
       box

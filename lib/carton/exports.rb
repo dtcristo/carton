@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Package
+module Carton
   class Exports < ::Module
     include ExportMethods
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Package
+module Carton
   module ExportMethods
     def deconstruct_keys(keys)
       return {} unless keys

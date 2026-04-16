@@ -15,7 +15,7 @@ class ImportTest < Minitest::Test
 
   def test_import_hash_namespace
     result = import "#{FIXTURES_DIR}/hash_export"
-    assert_kind_of Package::Exports, result
+    assert_kind_of Carton::Exports, result
     assert_respond_to result, :add
     assert_respond_to result, :subtract
     assert_respond_to result, :version

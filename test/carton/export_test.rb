@@ -14,7 +14,7 @@ class ExportTest < Minitest::Test
 
   def test_hash_export_returns_module_with_methods
     result = import "#{FIXTURES}/hash_export"
-    assert_kind_of Package::Exports, result
+    assert_kind_of Carton::Exports, result
     assert_equal 10, result.add(3, 7)
     assert_equal 6, result.subtract(10, 4)
     assert_equal '1.0.0', result.version
@@ -27,7 +27,7 @@ class ExportTest < Minitest::Test
 
   def test_bare_export_returns_box
     result = import "#{FIXTURES}/bare"
-    assert_kind_of Package::Box, result
+    assert_kind_of Carton::Box, result
   end
 
   def test_bare_export_fetch_constant

@@ -22,7 +22,7 @@ namespace :example do
       puts
 
       Bundler.with_unbundled_env do
-        # Install gems for any package/local example gemfile.
+        # Install gems for any carton/local example gemfile.
         Dir
           .glob(File.join(dir, '**/Gemfile'))
           .each do |gemfile|

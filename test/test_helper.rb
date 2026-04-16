@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
-require 'package'
+require 'carton'
 
 module Warning
   class << self
-    alias_method :package_original_warn, :warn
+    alias_method :carton_original_warn, :warn
 
     def warn(message, *args, **kwargs)
       if message.include?(
@@ -14,7 +14,7 @@ module Warning
         return
       end
 
-      package_original_warn(message, *args, **kwargs)
+      carton_original_warn(message, *args, **kwargs)
     end
   end
 end

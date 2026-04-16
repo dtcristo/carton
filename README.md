@@ -1,12 +1,14 @@
-# Ruby Package
+# Carton
 
 Small wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) that makes isolated imports and exports feel like part of Ruby. Requires Ruby 4.0+ and `RUBY_BOX=1`.
 
 ## Why
 
-Package is for modularizing a large Ruby application without turning every boundary into a separate process or full gem. It lets one part of the app require its own code and gems, expose only the constants or methods it wants to share, and keep helper methods, monkey patches, and other global side effects from leaking into the rest of the process.
+Carton is for modularizing a large Ruby application without turning every boundary into a separate process or full gem. It lets one part of the app require its own code and gems, expose only the constants or methods it wants to share, and keep helper methods, monkey patches, and other global side effects from leaking into the rest of the process.
 
-That same isolation is also the path toward running different gem versions inside one process. Today one package-local bundle works reliably; truly conflicting bundles still hit shared RubyGems activation state and may need a subprocess workaround. Use `export_default` when a file is "one main thing", `export` for a small named namespace, and `Package.with_bundle` when the imported package needs its own Gemfile in the current process.
+In Carton, an importable package is called a carton. We still use "package" in plain English when it reads better, but "carton" is the project term.
+
+That same isolation is also the path toward running different gem versions inside one process. Today one carton-local bundle works reliably; truly conflicting bundles still hit shared RubyGems activation state and may need a subprocess workaround. Use `export_default` when a file is "one main thing", `export` for a small named namespace, and `Carton.with_bundle` when the imported carton needs its own Gemfile in the current process.
 
 ## Minimal usage
 
@@ -21,7 +23,7 @@ export_default User
 
 ```ruby
 # main.rb
-require 'package'
+require 'carton'
 
 User = import_relative 'user'
 alice = User.new('Alice')
@@ -48,7 +50,7 @@ MathTools.add(2, 3)
 - [DESIGN.md](DESIGN.md) - implementation overview and constraints
 - [TODO.md](TODO.md) - future improvements and Bundler upstream ideas
 - [examples/minimal/README.md](examples/minimal/README.md) - smallest example
-- [examples/complex/README.md](examples/complex/README.md) - multi-package example
+- [examples/complex/README.md](examples/complex/README.md) - multi-carton example
 
 ## Development
 
