@@ -27,6 +27,10 @@ module Carton
       eval("require #{feature.inspect}")
     end
 
+    def add_import_load_path(path)
+      load_path.unshift(path) unless load_path.include?(path)
+    end
+
     def set_export(value)
       if export_set?
         raise RuntimeError, 'only one export is allowed per imported file'

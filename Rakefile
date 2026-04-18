@@ -1,14 +1,49 @@
 # frozen_string_literal: true
 
+require 'shellwords'
+
 STREE_FILES = '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile"'
 EXAMPLES = %w[minimal complex].freeze
+
+def install_example_bundle(gemfile)
+  dir = Shellwords.escape(File.dirname(gemfile))
+
+  sh(
+    "cd #{dir} && " \
+      '(BUNDLE_GEMFILE=Gemfile bundle check >/dev/null 2>&1 || ' \
+      'BUNDLE_FROZEN=1 BUNDLE_GEMFILE=Gemfile bundle install --quiet)',
+    verbose: false,
+  )
+end
+
+def test_runner
+  <<~RUBY
+    at_exit do
+      status =
+        if $!.is_a?(SystemExit)
+          $!.status
+        elsif $!
+          1
+        else
+          0
+        end
+
+      Process.exit!(status)
+    end
+
+    ARGV.each { |file| require file }
+  RUBY
+end
 
 desc 'Run all tests'
 task :test do
   test_files =
     Dir.glob('test/**/*_test.rb').sort.map { |f| File.expand_path(f) }
-  sh "RUBY_BOX=1 ruby -Ilib -Itest -e 'ARGV.each { |f| require f }' #{test_files.join(' ')}",
-     verbose: false
+  sh(
+    "RUBY_BOX=1 ruby -Ilib -Itest -e #{Shellwords.escape(test_runner)} " \
+      "#{test_files.map { |file| Shellwords.escape(file) }.join(' ')}",
+    verbose: false,
+  )
 end
 
 namespace :example do
@@ -22,20 +57,13 @@ namespace :example do
       puts
 
       Bundler.with_unbundled_env do
-        # Install gems for any carton/local example gemfile.
         Dir
           .glob(File.join(dir, '**/Gemfile'))
-          .each do |gemfile|
-            pkg_dir = File.dirname(gemfile)
-            sh(
-              "cd #{pkg_dir} && " \
-                'BUNDLE_GEMFILE=Gemfile bundle check >/dev/null 2>&1 || ' \
-                'BUNDLE_GEMFILE=Gemfile bundle install --quiet',
-              verbose: false,
-            )
-          end
+          .sort
+          .each { |gemfile| install_example_bundle(gemfile) }
 
-        sh "RUBY_BOX=1 ruby #{File.join(dir, 'main.rb')}", verbose: false
+        sh "RUBY_BOX=1 ruby #{Shellwords.escape(File.join(dir, 'main.rb'))}",
+           verbose: false
       end
     end
   end

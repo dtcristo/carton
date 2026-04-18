@@ -4,6 +4,8 @@ module Carton
   module Runtime
     ENTRYPOINT = File.expand_path('../carton.rb', __dir__)
     private_constant :ENTRYPOINT
+    ImportTarget = Struct.new(:feature, :load_path, keyword_init: true)
+    private_constant :ImportTarget
 
     module_function
 
@@ -11,7 +13,8 @@ module Carton
       previous_loaded_specs = Gem.loaded_specs.dup
       target = resolve_import_target(path, base_dir:)
       box = build_import_box
-      box.__send__(:require_in_box, target)
+      box.__send__(:add_import_load_path, target.load_path) if target.load_path
+      box.__send__(:require_in_box, target.feature)
       extract_export(box)
     ensure
       if previous_loaded_specs && box&.__send__(:rubygems_bootstrapped?)
@@ -61,22 +64,40 @@ module Carton
 
     def resolve_import_target(path, base_dir:)
       expanded = File.expand_path(path, base_dir)
-      return expanded if File.file?(expanded)
+      return ImportTarget.new(feature: expanded) if File.file?(expanded)
 
       expanded_rb = "#{expanded}.rb"
-      return expanded_rb if File.file?(expanded_rb)
+      return ImportTarget.new(feature: expanded_rb) if File.file?(expanded_rb)
 
       resolved =
         Ruby::Box.current.eval(
           "$LOAD_PATH.resolve_feature_path(#{path.inspect})",
         )
-      return path unless resolved
+      return ImportTarget.new(feature: path) unless resolved
 
       type, resolved_path = resolved
-      return resolved_path if type == :rb && File.file?(resolved_path)
+      if type == :rb && File.file?(resolved_path)
+        return(
+          ImportTarget.new(
+            feature: resolved_path,
+            load_path: resolve_import_load_path(path, resolved_path),
+          )
+        )
+      end
 
-      path
+      ImportTarget.new(feature: path)
     end
     private_class_method :resolve_import_target
+
+    def resolve_import_load_path(feature, resolved_path)
+      load_paths = Ruby::Box.current.eval('$LOAD_PATH.to_a')
+
+      load_paths.find do |path|
+        expanded = File.expand_path(path)
+        resolved_path == File.join(expanded, feature) ||
+          resolved_path == File.join(expanded, "#{feature}.rb")
+      end
+    end
+    private_class_method :resolve_import_load_path
   end
 end

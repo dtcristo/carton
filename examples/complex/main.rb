@@ -4,8 +4,8 @@ require_relative '../../lib/carton'
 
 cartons_dir = File.expand_path('cartons', __dir__)
 
-# Local carton lib directories still need to be on the caller's load path when
-# we want import 'name' to resolve inside nested boxes.
+# Name-based imports stay explicit: the caller chooses which carton lib
+# directories are available here.
 Dir
   .glob(File.join(cartons_dir, '*/lib'))
   .sort
@@ -13,10 +13,6 @@ Dir
 
 Adventure = import 'adventure'
 Plans = import 'quest'
-
-# loot still imports by name, but it does not need Carton.with_bundle here
-# because the conflicting dotenv activation happens entirely in the subprocess
-# inside loot.rb, not during this import itself.
 import('loot') => { legacy_message:, DOTENV_VERSION: loot_dotenv_version }
 
 puts '-- Bundled single export --'
@@ -30,3 +26,6 @@ puts
 puts '-- Destructured named export --'
 puts "loot dotenv version = #{loot_dotenv_version}"
 puts "legacy_message = #{legacy_message}"
+
+STDOUT.flush
+Process.exit!(0)

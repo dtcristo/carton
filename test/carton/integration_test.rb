@@ -64,13 +64,22 @@ class IntegrationTest < Minitest::Test
 
   def test_with_bundle_auto_finds_parent_gemfile_inside_box
     previous = ENV['BUNDLE_GEMFILE']
+    previous_lockfile = ENV['BUNDLE_LOCKFILE']
     result = import "#{FIXTURES}/with_bundle/nested/auto_gemfile"
 
     assert_equal "#{FIXTURES}/with_bundle/Gemfile", result.fetch(:selected)
+    assert_equal "#{FIXTURES}/with_bundle/Gemfile.lock",
+                 result.fetch(:selected_lockfile)
     if previous
       assert_equal previous, result.fetch(:restored)
     else
       assert_nil result.fetch(:restored)
+    end
+
+    if previous_lockfile
+      assert_equal previous_lockfile, result.fetch(:restored_lockfile)
+    else
+      assert_nil result.fetch(:restored_lockfile)
     end
   end
 

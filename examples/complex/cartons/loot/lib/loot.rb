@@ -1,47 +1,14 @@
 # frozen_string_literal: true
 
-require 'json'
-require 'open3'
-require 'rbconfig'
+Carton.bootstrap_rubygems!
+Carton.with_bundle { require 'bundler/setup' }
 
-Plans = import 'quest'
+Plans = import File.expand_path('../../quest/lib/quest', __dir__)
+Environment = import 'dotenv'
 
-# This carton is imported plainly by name. The subprocess below is where it
-# selects its own Gemfile, because doing the conflicting dotenv activation
-# directly in another box still collides through shared RubyGems activation
-# state and can even crash under Ruby::Box today.
-dotenv_payload =
-  begin
-    env_file = File.expand_path('../.env', __dir__)
-    gemfile = File.expand_path('../Gemfile', __dir__)
-    script = <<~'RUBY'
-      require 'json'
-      require 'bundler/setup'
-      require 'dotenv'
-
-      config = Dotenv.parse(ARGV.fetch(0))
-      version = Gem.loaded_specs.fetch('dotenv').version.to_s
-      puts JSON.generate(version:, config:)
-    RUBY
-
-    output, status =
-      Open3.capture2e(
-        { 'BUNDLE_GEMFILE' => gemfile },
-        RbConfig.ruby,
-        '-e',
-        script,
-        env_file,
-      )
-
-    unless status.success?
-      raise RuntimeError, "failed to load loot dotenv bundle: #{output}"
-    end
-
-    JSON.parse output
-  end
-
-dotenv_version = dotenv_payload.fetch 'version'
+dotenv_version = Gem.loaded_specs.fetch('dotenv').version.to_s
+config = Environment.fetch(:Dotenv).parse(File.expand_path('../.env', __dir__))
 legacy_message =
-  "#{dotenv_payload.fetch('config').fetch('MESSAGE')} | quest says: #{Plans.fetch :summary}"
+  "#{config.fetch('MESSAGE')} | quest says: #{Plans.fetch :summary}"
 
 export legacy_message:, DOTENV_VERSION: dotenv_version

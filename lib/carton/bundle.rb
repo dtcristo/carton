@@ -222,14 +222,23 @@ module Carton
 
     resolved_gemfile =
       resolve_bundle_gemfile(gemfile, caller_locations(1, 1).first)
-    previous = ENV['BUNDLE_GEMFILE']
+    resolved_lockfile = resolve_bundle_lockfile(resolved_gemfile)
+    previous_gemfile = ENV['BUNDLE_GEMFILE']
+    previous_lockfile = ENV['BUNDLE_LOCKFILE']
     ENV['BUNDLE_GEMFILE'] = resolved_gemfile
+    ENV['BUNDLE_LOCKFILE'] = resolved_lockfile
     yield
   ensure
-    if previous
-      ENV['BUNDLE_GEMFILE'] = previous
+    if previous_gemfile
+      ENV['BUNDLE_GEMFILE'] = previous_gemfile
     else
       ENV.delete 'BUNDLE_GEMFILE'
+    end
+
+    if previous_lockfile
+      ENV['BUNDLE_LOCKFILE'] = previous_lockfile
+    else
+      ENV.delete 'BUNDLE_LOCKFILE'
     end
   end
 
@@ -351,6 +360,16 @@ module Carton
     raise GemfileNotFound, "Gemfile not found: #{resolved}"
   end
   private_class_method :resolve_explicit_bundle_gemfile
+
+  def resolve_bundle_lockfile(gemfile)
+    case File.basename(gemfile)
+    when 'gems.rb'
+      gemfile.sub(/\.rb\z/, '.locked')
+    else
+      "#{gemfile}.lock"
+    end
+  end
+  private_class_method :resolve_bundle_lockfile
 
   def caller_directory(call_site)
     path = call_site&.absolute_path || call_site&.path
