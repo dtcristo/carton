@@ -19,6 +19,7 @@ module Carton
       purge_gem_load_path
       purge_gem_loaded_features
       reset_export
+      add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
       self
     end

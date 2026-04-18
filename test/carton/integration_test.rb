@@ -99,20 +99,35 @@ class IntegrationTest < Minitest::Test
     end
   end
 
+  def test_imported_file_can_require_carton_by_name
+    Dir.mktmpdir('carton-require') do |dir|
+      entry = File.join(dir, 'requires_carton.rb')
+      File.write(entry, <<~RUBY)
+          # frozen_string_literal: true
+
+          require 'carton'
+
+          export bootstraps_rubygems: Carton.respond_to?(:bootstrap_rubygems!)
+        RUBY
+
+      result = import entry
+      assert_equal true, result.fetch(:bootstraps_rubygems)
+    end
+  end
+
   def test_bundled_import_activates_inside_box_only
     script = <<~'RUBY'
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
-      adventure_lib = File.expand_path('examples/complex/cartons/adventure/lib', Dir.pwd)
-      $LOAD_PATH.unshift(adventure_lib) unless $LOAD_PATH.include?(adventure_lib)
+      bigdecimal4_lib = File.expand_path('examples/bundler/cartons/bigdecimal4/lib', Dir.pwd)
+      $LOAD_PATH.unshift(bigdecimal4_lib) unless $LOAD_PATH.include?(bigdecimal4_lib)
 
-      adventure = import 'adventure'
+      bigdecimal4 = import 'bigdecimal4'
 
       puts JSON.generate(
-        banner: adventure.banner,
-        dotenv_version: adventure.dotenv_version,
-        root_dotenv: Gem.loaded_specs['dotenv']&.version&.to_s,
+        bigdecimal_version: bigdecimal4.version,
+        root_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
       )
       STDOUT.flush
       Process.exit!(0)
@@ -127,9 +142,7 @@ class IntegrationTest < Minitest::Test
     assert status.success?, [output, error].reject(&:empty?).join("\n")
 
     payload = JSON.parse(output)
-    assert_equal 'single export loaded from a bundled carton',
-                 payload.fetch('banner')
-    assert_equal '3.2.0', payload.fetch('dotenv_version')
-    assert_nil payload.fetch('root_dotenv')
+    assert_equal '4.1.1', payload.fetch('bigdecimal_version')
+    assert_nil payload.fetch('root_bigdecimal')
   end
 end

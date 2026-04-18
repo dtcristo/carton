@@ -1,6 +1,6 @@
 # Minimal example
 
-Smallest working example of the library.
+Smallest working example of the library with no gems or Bundler involved.
 
 `main.rb` ends with `Process.exit!(0)` as a temporary workaround for the current Ruby 4.0.2 `Ruby::Box` teardown crash.
 

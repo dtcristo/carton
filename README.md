@@ -56,7 +56,9 @@ MathTools.add(2, 3)
 - [RUBY_UPSTREAM.md](docs/RUBY_UPSTREAM.md) - minimal Ruby upstream plan
 - [TODO.md](docs/TODO.md) - future library, docs, and tooling work
 - [examples/minimal/README.md](examples/minimal/README.md) - smallest example
-- [examples/complex/README.md](examples/complex/README.md) - multi-carton example
+- [examples/gems/README.md](examples/gems/README.md) - manual RubyGems activation without Bundler
+- [examples/bundler/README.md](examples/bundler/README.md) - bundled cartons plus a path gem
+- [examples/gem_in_carton/README.md](examples/gem_in_carton/README.md) - minimal carton-aware gem
 
 ## Development
 

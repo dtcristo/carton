@@ -1,1 +1,4 @@
 /Gemfile.lock
+/examples/.gem-home/
+/examples/.vendor/
+/examples/gems/.gem-home/

@@ -90,7 +90,7 @@ Dir.glob(File.join(cartons_dir, '*/lib')).sort.each do |dir|
 end
 ```
 
-The complex example keeps that setup explicit in `examples/complex/main.rb`.
+The bundler example keeps that setup explicit in `examples/bundler/main.rb`.
 
 ## Destructuring
 
@@ -145,18 +145,18 @@ Toolbox.fetch(:helper)
 The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, do the RubyGems/Bundler setup inside that carton's entry file.
 
 ```ruby
-# cartons/adventure/lib/adventure.rb
+# cartons/bigdecimal4/lib/bigdecimal4.rb
 Carton.bootstrap_rubygems!
 Carton.with_bundle { require 'bundler/setup' }
 
-require 'dotenv'
-export_default Dotenv
+require 'bigdecimal'
+export bigdecimal_version: BigDecimal::VERSION
 ```
 
 Then import the carton normally:
 
 ```ruby
-Adventure = import 'adventure'
+BigDecimal4 = import 'bigdecimal4'
 ```
 
 `Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` only scopes `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` for the block, so `require 'bundler/setup'` still uses Bundler's own Gemfile/lockfile discovery rules. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
@@ -173,10 +173,14 @@ See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEM
 
 ```sh
 RUBY_BOX=1 ruby examples/minimal/main.rb
-RUBY_BOX=1 bundle exec rake example:complex
+RUBY_BOX=1 bundle exec rake example:gems
+RUBY_BOX=1 bundle exec rake example:bundler
+RUBY_BOX=1 bundle exec rake example:gem
 ```
 
 See the example READMEs for details:
 
 - [examples/minimal/README.md](examples/minimal/README.md)
-- [examples/complex/README.md](examples/complex/README.md)
+- [examples/gems/README.md](examples/gems/README.md)
+- [examples/bundler/README.md](examples/bundler/README.md)
+- [examples/gem_in_carton/README.md](examples/gem_in_carton/README.md)

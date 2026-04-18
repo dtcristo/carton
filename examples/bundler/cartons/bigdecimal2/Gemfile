@@ -2,4 +2,4 @@
 
 source 'https://rubygems.org'
 
-gem 'dotenv', '~> 3.0'
+gem 'bigdecimal', '= 2.0.3'

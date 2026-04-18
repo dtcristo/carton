@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bigdecimal (2.0.3)
+
+PLATFORMS
+  arm64-darwin-23
+  ruby
+
+DEPENDENCIES
+  bigdecimal (= 2.0.3)
+
+CHECKSUMS
+  bigdecimal (2.0.3) sha256=6a257cafef117074076fb25bbdceb0a0fa80f5818ad537c28ba72f38181d57d8
+
+BUNDLED WITH
+  4.0.10

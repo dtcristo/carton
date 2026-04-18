@@ -1,0 +1,32 @@
+PATH
+  remote: ../..
+  specs:
+    carton (0.1.0)
+
+PATH
+  remote: .
+  specs:
+    gem_in_carton (0.1.0)
+      bigdecimal (= 2.0.3)
+      carton
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bigdecimal (2.0.3)
+
+PLATFORMS
+  arm64-darwin-23
+  ruby
+
+DEPENDENCIES
+  carton!
+  gem_in_carton!
+
+CHECKSUMS
+  bigdecimal (2.0.3) sha256=6a257cafef117074076fb25bbdceb0a0fa80f5818ad537c28ba72f38181d57d8
+  carton (0.1.0)
+  gem_in_carton (0.1.0)
+
+BUNDLED WITH
+  4.0.10

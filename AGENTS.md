@@ -30,7 +30,7 @@ Guidance and memory for agents working on this repo.
 - Read `docs/RUBY_UPSTREAM.md` and `docs/RUBYGEMS_UPSTREAM.md` whenever upstream implications are relevant, and update them when plans or findings change.
 - Never bump the version or publish the gem.
 - When multiple implementation choices are viable, present a menu with your recommendation.
-- Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with descriptive messages and the required Co-authored-by trailer.
+- Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with commit messages that explain what changed and why, not terse one-liners, plus the required Co-authored-by trailer.
 - Never push; the user will do that.
 
 ## Docs
@@ -46,5 +46,7 @@ Guidance and memory for agents working on this repo.
 - `RUBY_BOX=1 bundle exec rake` - full suite
 - `RUBY_BOX=1 bundle exec rake test` - unit tests only
 - `RUBY_BOX=1 bundle exec rake example:minimal` - minimal example
-- `RUBY_BOX=1 bundle exec rake example:complex` - complex example
+- `RUBY_BOX=1 bundle exec rake example:gems` - manual RubyGems example
+- `RUBY_BOX=1 bundle exec rake example:bundler` - bundled cartons example
+- `RUBY_BOX=1 bundle exec rake example:gem` - carton-aware gem example
 - `bundle exec rake format` - format code

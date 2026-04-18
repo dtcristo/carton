@@ -80,6 +80,6 @@ That shared activation state is why a second box can see a gem version activated
 
 See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) and [HOW_BOXES_WORK.md](HOW_BOXES_WORK.md) for the deeper runtime model, plus [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) and [RUBY_UPSTREAM.md](RUBY_UPSTREAM.md) for the minimal upstream work.
 
-## Why the complex example stays explicit
+## Why the bundler example stays explicit
 
-The complex example keeps load-path setup and bundled imports visible in `main.rb` on purpose. It is meant to demonstrate Carton directly, not hide the mechanics behind another layer.
+The bundler example keeps load-path setup, the top-level bundle for `gem_in_carton`, and the bundled imports visible in `main.rb` on purpose. It is meant to demonstrate Carton directly, not hide the mechanics behind another layer.

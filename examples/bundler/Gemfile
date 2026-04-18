@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'carton', path: '../..'
+gem 'gem_in_carton', path: '../gem_in_carton'
