@@ -139,13 +139,15 @@ The short version:
 - but RubyGems state such as `Gem.loaded_specs` and `Gem::Specification`'s registries still need special handling,
 - and some RubyGems singleton methods loaded in the root box keep acting like root-defined behavior unless they are redefined inside the box.
 
-That is why Carton's current reliable pattern is:
+That is why Carton's current bundled-carton pattern is:
 
 ```ruby
-Carton.with_bundle(gemfile) { import "my_carton" }
+# cartons/my_carton/lib/my_carton.rb
+Carton.bootstrap_rubygems!
+Carton.with_bundle { require "bundler/setup" }
 ```
 
-This reliably supports one bundled import from an otherwise unbundled parent. It does **not** yet make two conflicting bundles coexist safely in one process.
+This works for conflicting bundled cartons from an otherwise unbundled parent. It still does **not** make an already-bundled parent process a reliable place to activate another boxed bundle.
 
 ### What applications generally should touch
 
@@ -235,7 +237,7 @@ In `ruby/box.c`, `box_entry_initialize` creates a new user box by duplicating st
 
 That means a new box does **not** start from the caller's current box. It starts from the root snapshot.
 
-This is why Carton manually forwards non-gem parent load paths in `lib/carton/box.rb`.
+This is why Carton resolves feature names in the caller box and only carries the matching load-path entry into the imported box when that feature root is needed.
 
 ## 3. Ruby boot order: why RubyGems is already loaded in every new box
 
@@ -562,6 +564,8 @@ That matters because Bundler still uses process-global environment discovery:
 
 This is separate from the activation-isolation problem, but still relevant.
 
+It is also why `Carton.with_bundle` now scopes both `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE`: Bundler leaves both in `ENV`, and the second boxed bundle will otherwise reuse the first box's lockfile path.
+
 ## 8. Public APIs that matter for advanced gem/runtime work
 
 ### Ruby core
@@ -608,11 +612,12 @@ These are the exact areas Carton and any upstream isolation work eventually need
 
 Carton's current design matches the runtime facts well:
 
-- `Carton::Box` forwards non-gem parent load paths because Ruby boxes are copied from the root box, not the caller box.
-- `Carton.with_bundle` wraps `ENV["BUNDLE_GEMFILE"]` because Bundler still discovers bundles from environment/process state.
-- `Carton::Box#activate_bundle_if_configured` runs `require "bundler/setup"` inside the import box so bundle load-path mutation happens in the box.
+- `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
+- `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
+- `Carton.bootstrap_rubygems!` plus in-box `require "bundler/setup"` keeps Bundler load-path mutation inside the box.
+- `Carton::Runtime.import` snapshots/restores `Gem.loaded_specs` after a bootstrapped boxed import because that RubyGems registry still leaks across boxes in practice.
 
-That is why one bundled import from an unbundled parent can work today.
+That is why conflicting bundled cartons can work today from an unbundled parent.
 
 But the current ceiling is also explained cleanly by the source:
 
@@ -622,10 +627,12 @@ But the current ceiling is also explained cleanly by the source:
 4. Bundler rewrites RubyGems registries, not only `Gem.loaded_specs`.
 5. some of those RubyGems methods need box-local redefinition, not just box-local instance variables.
 6. `ENV` is still process-global.
+7. an already-bundled parent process can preload enough Bundler state to make boxed re-activation unreliable.
 
 So the long-term shape for Carton is:
 
 - keep using box-local `require "bundler/setup"` as the entry model,
+- keep the explicit `Carton.bootstrap_rubygems!` step before that setup,
 - split the small amount of RubyGems state that really must become per-box,
 - avoid unnecessary Ruby core changes unless the VM itself proves to be the blocker.
 

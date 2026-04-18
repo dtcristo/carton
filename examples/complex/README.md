@@ -11,7 +11,7 @@ Multi-carton example showing the library directly: explicit load-path setup, a b
 | `quest` | plain carton imported by name |
 | `loot` | bundled carton that imports `dotenv` into its own box |
 
-`main.rb` keeps the load-path setup and bundled import explicit on purpose so the example reads like a direct Carton feature tour. Both bundled cartons call `Carton.bootstrap_rubygems!` inside the box, then wrap `require 'bundler/setup'` in `Carton.with_bundle`. `loot` also shows that `import 'dotenv'` can wrap a gem that does not export anything into its own box.
+`main.rb` keeps the load-path setup and bundled import explicit on purpose so the example reads like a direct Carton feature tour. Both bundled cartons call `Carton.bootstrap_rubygems!` inside the box, then wrap `require 'bundler/setup'` in `Carton.with_bundle`. `loot` also shows that `import 'dotenv'` can wrap a gem that does not export anything into its own box. The script ends with `Process.exit!(0)` as a temporary workaround for the current Ruby 4.0.2 `Ruby::Box` teardown crash.
 
 ## Run
 

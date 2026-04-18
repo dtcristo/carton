@@ -142,21 +142,30 @@ Toolbox.fetch(:helper)
 
 ## Bundler inside cartons
 
-The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, the reliable pattern today is still: select the Gemfile around the `import` that loads that carton.
+The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, do the RubyGems/Bundler setup inside that carton's entry file.
 
 ```ruby
-gemfile = File.expand_path('cartons/adventure/Gemfile', __dir__)
+# cartons/adventure/lib/adventure.rb
+Carton.bootstrap_rubygems!
+Carton.with_bundle { require 'bundler/setup' }
 
-Adventure = Carton.with_bundle(gemfile) { import 'adventure' }
+require 'dotenv'
+export_default Dotenv
 ```
 
-`Carton.with_bundle` is just a small wrapper around the same `BUNDLE_GEMFILE` handoff. The underlying constraint is still Bundler's: `bundler/setup` discovers the active Gemfile from env/process state, and RubyGems activation state (`Gem.loaded_specs`) is still shared across boxes in practice, so conflicting bundles still cannot be switched reliably in one process today.
+Then import the carton normally:
+
+```ruby
+Adventure = import 'adventure'
+```
+
+`Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` only scopes `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` for the block, so `require 'bundler/setup'` still uses Bundler's own Gemfile/lockfile discovery rules. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
 
 Current limits:
 
-- one carton-local bundle can be activated cleanly from an unbundled parent
-- a bundled parent process is not a reliable place to import a child carton with its own bundle
-- conflicting bundles in one process still need a subprocess workaround
+- bundled cartons work best from an unbundled parent process
+- treat `bundle exec` as unsupported when a box will activate its own bundle
+- `Gem.loaded_specs` is still shared enough that Carton snapshots/restores it at the import boundary after a bootstrapped boxed import
 
 See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) for the minimal upstream plan.
 

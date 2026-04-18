@@ -8,7 +8,7 @@
 ## Library
 
 - Revisit `Carton::Box#gem_path?`; it still relies partly on path heuristics.
-- Add targeted tests for bundled carton imports instead of covering that behavior only through the complex example.
+- Decide and document the supported main-box Bundler story. The likely shape is explicit `Carton.bootstrap_rubygems!` plus `Carton.with_bundle { require 'bundler/setup' }`, with `bundle exec` kept out of scope.
 - Remove the targeted Minitest `object_id` warning suppression once Ruby::Box or Minitest no longer emits it under Ruby 4.0.
 - Revisit whether `import` should always return a `Carton::Exports` wrapper with a `default` accessor, or whether the current duck-typed return values are the better long-term fit.
 

@@ -48,7 +48,7 @@ MathTools.add(2, 3)
 
 ## Docs
 
-- [USAGE.md](docs/USAGE.md) - detailed import/export, load path, and Bundler usage
+- [USAGE.md](docs/USAGE.md) - detailed import/export, caller load path, and explicit Bundler bootstrap
 - [DESIGN.md](docs/DESIGN.md) - implementation overview and constraints
 - [HOW_GEMS_WORK.md](docs/HOW_GEMS_WORK.md) - deep guide to RubyGems, Bundler, activation, and boxes
 - [HOW_BOXES_WORK.md](docs/HOW_BOXES_WORK.md) - deep guide to `Ruby::Box` internals and sharp edges

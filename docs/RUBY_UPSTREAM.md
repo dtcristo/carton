@@ -199,9 +199,9 @@ RubyGems can build on that itself. Ruby should not absorb RubyGems policy into t
 
 Bundler uses environment variables, and that is awkward. But `ENV` is process-global by nature, and changing that would be much larger than the actual activation-isolation problem.
 
-### Do not add new public APIs just to avoid Carton's current load-path forwarding
+### Do not add new public APIs just to avoid Carton's current caller-side import resolution
 
-Carton currently forwards non-gem parent load paths because boxes start from the root box. That is consistent with the current box model.
+Carton now resolves imports in the caller box and only carries the matched load-path entry when a name-based import needs that feature root. That is still consistent with the current box model.
 
 Changing that model would be broader than the current need.
 

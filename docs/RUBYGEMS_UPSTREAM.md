@@ -93,13 +93,13 @@ The problem is:
 
 The minimal worthwhile upstream work is:
 
-1. add a very small RubyGems "boxed runtime bootstrap" helper,
-2. call it from Bundler setup before Bundler rewrites RubyGems entrypoints,
-3. keep the rest of Bundler's flow the same.
+1. upstream the small RubyGems state split that Carton currently monkey patches in `Carton.bootstrap_rubygems!`,
+2. keep Carton's explicit pre-Bundler bootstrap model if that remains sufficient,
+3. only touch Bundler if RubyGems cannot make that bootstrap self-contained.
 
 In other words:
 
-> do not invent a new Bundler architecture; just install a box-local RubyGems view before normal Bundler setup runs.
+> do not invent a new Bundler architecture; make the RubyGems runtime view that Bundler mutates become box-local, then keep `require "bundler/setup"` as ordinary setup.
 
 ## Recommended implementation order
 
@@ -118,7 +118,14 @@ The prototype should:
 
 If that prototype fails, upstream should not start yet.
 
-If it succeeds, upstream can be tiny and precise.
+That proof now exists in Carton as the explicit sequence:
+
+```ruby
+Carton.bootstrap_rubygems!
+Carton.with_bundle { require "bundler/setup" }
+```
+
+If that model keeps holding up, upstream can stay tiny and precise.
 
 ## Phase 1: add a RubyGems internal bootstrap for boxed state
 
@@ -126,15 +133,9 @@ RubyGems should gain an internal helper that does one job:
 
 > materialize box-local mutable RubyGems state in the current box before Bundler starts mutating it.
 
-This does **not** need to be a large public API at first.
+This does **not** need to be a large public API.
 
-A reasonable shape is an internal helper used only by Bundler, for example conceptually:
-
-```ruby
-Gem.boxed_runtime_bootstrap!
-```
-
-The exact name is not important. The behavior is.
+Carton is already proving the behavior from user space; upstream should absorb the RubyGems half of that behavior without forcing Carton to keep monkey-patching private RubyGems internals forever. The exact internal shape is less important than the behavior.
 
 ### State that should become box-local for Bundler setup
 
@@ -188,33 +189,29 @@ The first pass only needs to support:
 
 If broader RubyGems-in-box support becomes desirable later, expand from there.
 
-## Phase 2: have Bundler call the bootstrap automatically
+## Phase 2: keep Bundler untouched unless RubyGems cannot stand alone
 
-Once RubyGems has the boxed bootstrap, Bundler should call it very early in setup.
+Carton's current working model does **not** require any Bundler patch:
 
-The safest place is before it starts replacing entrypoints and stubbing specs.
+1. `Carton.bootstrap_rubygems!`
+2. `Carton.with_bundle { require "bundler/setup" }`
 
-Concretely, the call needs to happen before:
+That is acceptable if the goal is to upstream only what is strictly necessary.
 
-- `replace_entrypoints`
-- `mark_loaded`
-- `Gem.add_to_load_path`
+So the first upstream target should be:
 
-so `Bundler::Runtime#setup` is a good place conceptually.
+- RubyGems owns the boxed mutable state split,
+- `require "bundler/setup"` itself stays unchanged,
+- Carton keeps calling its explicit bootstrap before Bundler setup.
 
-The flow becomes:
-
-1. build the `Definition`,
-2. if running in a non-root user box, bootstrap boxed RubyGems state,
-3. continue with normal Bundler setup.
-
-The ideal property is that most Bundler code does not know or care about boxes. It simply sees a RubyGems runtime that is already localized.
+Only revisit a tiny Bundler-side hook if RubyGems cannot make the bootstrap reliable without one.
 
 ## Phase 3: leave Gemfile selection alone unless it still blocks the design
 
-Bundler currently finds the active Gemfile through:
+Bundler currently finds the active Gemfile/lockfile through:
 
 - `ENV["BUNDLE_GEMFILE"]`
+- `ENV["BUNDLE_LOCKFILE"]`
 - current working directory search
 
 That is awkward under boxes because `ENV` is process-global.
@@ -225,8 +222,8 @@ So the first upstream plan should **not** ask for a new `Bundler.setup(gemfile: 
 
 For the first working design:
 
-- Carton can continue to hand off `BUNDLE_GEMFILE`,
-- or the carton entry file can set it before `require "bundler/setup"`,
+- Carton can continue to hand off `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE`,
+- or the carton entry file can set them before `require "bundler/setup"`,
 - while the real upstream work stays focused on activation isolation.
 
 Only revisit explicit-Gemfile APIs if the boxed activation patch proves good and `ENV` ergonomics become the remaining blocker.

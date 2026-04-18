@@ -442,9 +442,9 @@ Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
 But the internals also explain Carton's current constraints:
 
-### Why Carton forwards parent load paths manually
+### Why Carton resolves imports in the caller box first
 
-Because new boxes copy the **root** box, not the current caller box.
+Because new boxes copy the **root** box, not the current caller box. Carton therefore asks the caller box to resolve the feature name, then carries only the matched load-path entry into the imported box when that feature needs its own load-path root.
 
 ### Why `require "bundler/setup"` inside the box is the right shape
 
