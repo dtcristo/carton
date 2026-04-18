@@ -41,13 +41,13 @@ class ImportTest < Minitest::Test
     $LOAD_PATH.delete(FIXTURES_DIR) if added
   end
 
-  def test_import_does_not_inherit_parent_gem_paths
+  def test_import_by_name_uses_caller_gem_paths_without_copying_them_into_box
     added = !$LOAD_PATH.include?(GEM_LIKE_DIR)
     $LOAD_PATH.unshift(GEM_LIKE_DIR) if added
 
     result = import "#{FIXTURES_DIR}/bare"
     refute_includes result.load_path, GEM_LIKE_DIR
-    assert_raises(LoadError) { import 'leaked_feature' }
+    assert_equal :visible, import('leaked_feature').status
   ensure
     $LOAD_PATH.delete(GEM_LIKE_DIR) if added
   end

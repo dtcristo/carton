@@ -224,10 +224,6 @@ module Carton
       resolve_bundle_gemfile(gemfile, caller_locations(1, 1).first)
     previous = ENV['BUNDLE_GEMFILE']
     ENV['BUNDLE_GEMFILE'] = resolved_gemfile
-    if current_import_box?
-      Ruby::Box.current.__send__(:mark_bundle_activated)
-      activate_bundler!
-    end
     yield
   ensure
     if previous
@@ -241,19 +237,15 @@ module Carton
     return if @boxed_rubygems_bootstrapped
 
     @boxed_rubygems_state = build_boxed_rubygems_state
-    Gem.singleton_class.prepend(BoxedRubyGems::GemMethods)
-    Gem::Specification.singleton_class.prepend(
+    prepend_once(Gem.singleton_class, BoxedRubyGems::GemMethods)
+    prepend_once(
+      Gem::Specification.singleton_class,
       BoxedRubyGems::SpecificationMethods,
     )
+    activate_bundler!
+    mark_current_box_rubygems_bootstrapped!
     @boxed_rubygems_bootstrapped = true
   end
-  private_class_method :bootstrap_rubygems!
-
-  def current_import_box?
-    ENV['RUBY_BOX'] == '1' && defined?(Ruby::Box) &&
-      Ruby::Box.current.class.name == 'Carton::Box'
-  end
-  private_class_method :current_import_box?
 
   def activate_bundler!
     spec = Gem::Specification.find_all_by_name('bundler').max_by(&:version)
@@ -263,7 +255,7 @@ module Carton
     spec.full_require_paths.reverse_each do |path|
       $LOAD_PATH.unshift(path) unless $LOAD_PATH.include?(path)
     end
-    unload_bundler! if defined?(Bundler)
+    unload_bundler!
     require 'bundler'
     install_bundler_spec_normalizers!
     Gem.loaded_specs.each_value do |loaded_spec|
@@ -273,11 +265,19 @@ module Carton
   private_class_method :activate_bundler!
 
   def unload_bundler!
-    Bundler.rubygems.undo_replacements if Bundler.respond_to?(:rubygems)
-    Bundler.reset! if Bundler.respond_to?(:reset!)
-    Object.send(:remove_const, :Bundler) if Object.const_defined?(:Bundler)
+    if defined?(Bundler)
+      Bundler.rubygems.undo_replacements if Bundler.respond_to?(:rubygems)
+      Bundler.reset! if Bundler.respond_to?(:reset!)
+      Object.send(:remove_const, :Bundler)
+    end
+
     if Gem.const_defined?(:VALIDATES_FOR_RESOLUTION, false)
       Gem.send(:remove_const, :VALIDATES_FOR_RESOLUTION)
+    end
+
+    $LOADED_FEATURES.reject! do |feature|
+      expanded = File.expand_path(feature)
+      expanded.end_with?('/bundler.rb') || expanded.include?('/bundler/')
     end
   end
   private_class_method :unload_bundler!
@@ -286,28 +286,20 @@ module Carton
     return if @bundler_spec_normalizers_installed
 
     spec_singleton = Gem::Specification.singleton_class
-    unless spec_singleton.ancestors.include?(
-             BoxedRubyGems::SpecificationLoadMethods,
-           )
-      spec_singleton.prepend(BoxedRubyGems::SpecificationLoadMethods)
-    end
+    prepend_once(spec_singleton, BoxedRubyGems::SpecificationLoadMethods)
 
     if defined?(Gem::StubSpecification)
-      unless Gem::StubSpecification.ancestors.include?(
-               BoxedRubyGems::StubSpecificationMethods,
-             )
-        Gem::StubSpecification.prepend(BoxedRubyGems::StubSpecificationMethods)
-      end
+      prepend_once(
+        Gem::StubSpecification,
+        BoxedRubyGems::StubSpecificationMethods,
+      )
     end
 
     require 'bundler/resolver/spec_group'
-    unless Bundler::Resolver::SpecGroup.ancestors.include?(
-             BoxedRubyGems::ResolverSpecGroupMethods,
-           )
-      Bundler::Resolver::SpecGroup.prepend(
-        BoxedRubyGems::ResolverSpecGroupMethods,
-      )
-    end
+    prepend_once(
+      Bundler::Resolver::SpecGroup,
+      BoxedRubyGems::ResolverSpecGroupMethods,
+    )
 
     @bundler_spec_normalizers_installed = true
   end
@@ -332,19 +324,15 @@ module Carton
 
   def resolve_bundle_gemfile(gemfile, call_site)
     caller_dir = caller_directory(call_site)
-
-    if gemfile
-      resolved = File.expand_path(gemfile, caller_dir)
-      return resolved if File.file?(resolved)
-
-      raise GemfileNotFound, "Gemfile not found: #{resolved}"
-    end
+    return resolve_explicit_bundle_gemfile(gemfile, caller_dir) if gemfile
 
     current = caller_dir
 
     loop do
-      candidate = File.join(current, 'Gemfile')
-      return candidate if File.file?(candidate)
+      bundle_gemfile_names.each do |name|
+        candidate = File.join(current, name)
+        return candidate if File.file?(candidate)
+      end
 
       parent = File.dirname(current)
       break if parent == current
@@ -356,6 +344,14 @@ module Carton
   end
   private_class_method :resolve_bundle_gemfile
 
+  def resolve_explicit_bundle_gemfile(gemfile, caller_dir)
+    resolved = File.expand_path(gemfile, caller_dir)
+    return resolved if File.file?(resolved)
+
+    raise GemfileNotFound, "Gemfile not found: #{resolved}"
+  end
+  private_class_method :resolve_explicit_bundle_gemfile
+
   def caller_directory(call_site)
     path = call_site&.absolute_path || call_site&.path
     return Dir.pwd unless path && !path.start_with?('(')
@@ -363,6 +359,28 @@ module Carton
     File.dirname(File.expand_path(path))
   end
   private_class_method :caller_directory
+
+  def bundle_gemfile_names
+    %w[gems.rb Gemfile]
+  end
+  private_class_method :bundle_gemfile_names
+
+  def prepend_once(target, mod)
+    return if target.ancestors.any? { |ancestor| ancestor.name == mod.name }
+
+    target.prepend(mod)
+  end
+  private_class_method :prepend_once
+
+  def mark_current_box_rubygems_bootstrapped!
+    return unless defined?(Ruby::Box)
+
+    box = Ruby::Box.current
+    return unless box.respond_to?(:mark_rubygems_bootstrapped, true)
+
+    box.__send__(:mark_rubygems_bootstrapped)
+  end
+  private_class_method :mark_current_box_rubygems_bootstrapped!
 
   def build_boxed_rubygems_state
     BoxedRubyGems::State.new(

@@ -67,7 +67,11 @@ class IntegrationTest < Minitest::Test
     result = import "#{FIXTURES}/with_bundle/nested/auto_gemfile"
 
     assert_equal "#{FIXTURES}/with_bundle/Gemfile", result.fetch(:selected)
-    assert_equal previous, result.fetch(:restored)
+    if previous
+      assert_equal previous, result.fetch(:restored)
+    else
+      assert_nil result.fetch(:restored)
+    end
   end
 
   def test_with_bundle_raises_when_explicit_gemfile_is_missing
@@ -105,14 +109,13 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    env =
-      ENV.to_h.reject do |key, _|
-        key == 'RUBYOPT' || key.start_with?('BUNDLE_')
-      end
-    output, status =
-      Open3.capture2e(env.merge('RUBY_BOX' => '1'), RbConfig.ruby, '-e', script)
+    env = ENV.keys.grep(/\ABUNDLE_/).to_h { |key| [key, nil] }
+    env['RUBYOPT'] = nil
+    env['RUBYLIB'] = nil
+    env['RUBY_BOX'] = '1'
+    output, error, status = Open3.capture3(env, RbConfig.ruby, '-e', script)
 
-    assert status.success?, output
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
 
     payload = JSON.parse(output)
     assert_equal 'single export loaded from a bundled carton',

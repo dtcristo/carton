@@ -9,12 +9,12 @@ module Carton
 
     def import(path, base_dir:)
       previous_loaded_specs = Gem.loaded_specs.dup
+      target = resolve_import_target(path, base_dir:)
       box = build_import_box
-      target = resolve_import_target(box, path, base_dir:)
       box.__send__(:require_in_box, target)
       extract_export(box)
     ensure
-      if previous_loaded_specs && box&.__send__(:bundle_activated?)
+      if previous_loaded_specs && box&.__send__(:rubygems_bootstrapped?)
         Gem.loaded_specs.replace(previous_loaded_specs)
       end
     end
@@ -33,9 +33,8 @@ module Carton
     end
 
     def build_import_box
-      parent_box = Ruby::Box.current
       box = Carton::Box.new
-      box.__send__(:configure_for_import, parent_box:, entrypoint: ENTRYPOINT)
+      box.__send__(:configure_for_import, entrypoint: ENTRYPOINT)
       box
     end
     private_class_method :build_import_box
@@ -60,14 +59,17 @@ module Carton
     end
     private_class_method :current_import_box
 
-    def resolve_import_target(box, path, base_dir:)
+    def resolve_import_target(path, base_dir:)
       expanded = File.expand_path(path, base_dir)
       return expanded if File.file?(expanded)
 
       expanded_rb = "#{expanded}.rb"
       return expanded_rb if File.file?(expanded_rb)
 
-      resolved = box.__send__(:resolve_feature_path_in_box, path)
+      resolved =
+        Ruby::Box.current.eval(
+          "$LOAD_PATH.resolve_feature_path(#{path.inspect})",
+        )
       return path unless resolved
 
       type, resolved_path = resolved
