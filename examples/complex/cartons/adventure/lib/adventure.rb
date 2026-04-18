@@ -2,6 +2,7 @@
 
 Carton.bootstrap_rubygems!
 Carton.with_bundle { require 'bundler/setup' }
+
 require 'dotenv'
 
 module Adventure
