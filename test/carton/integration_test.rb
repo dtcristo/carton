@@ -120,13 +120,13 @@ class IntegrationTest < Minitest::Test
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
-      bigdecimal4_lib = File.expand_path('examples/bundler/cartons/bigdecimal4/lib', Dir.pwd)
-      $LOAD_PATH.unshift(bigdecimal4_lib) unless $LOAD_PATH.include?(bigdecimal4_lib)
+      adventure_lib = File.expand_path('examples/bundler/cartons/adventure/lib', Dir.pwd)
+      $LOAD_PATH.unshift(adventure_lib) unless $LOAD_PATH.include?(adventure_lib)
 
-      bigdecimal4 = import 'bigdecimal4'
+      adventure = import 'adventure'
 
       puts JSON.generate(
-        bigdecimal_version: bigdecimal4.version,
+        bigdecimal_version: adventure.version,
         root_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
       )
       STDOUT.flush

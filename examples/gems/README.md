@@ -12,7 +12,7 @@ gem install bigdecimal -v 3.3.1
 RUBY_BOX=1 ruby examples/gems/main.rb
 ```
 
-Or let the repo task provision an example-local gem home automatically:
+Or let the repo task install any missing versions into your normal gem home:
 
 ```sh
 RUBY_BOX=1 bundle exec rake example:gems

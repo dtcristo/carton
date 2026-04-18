@@ -145,18 +145,25 @@ Toolbox.fetch(:helper)
 The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, do the RubyGems/Bundler setup inside that carton's entry file.
 
 ```ruby
-# cartons/bigdecimal4/lib/bigdecimal4.rb
+# cartons/adventure/lib/adventure.rb
 Carton.bootstrap_rubygems!
 Carton.with_bundle { require 'bundler/setup' }
 
 require 'bigdecimal'
-export bigdecimal_version: BigDecimal::VERSION
+
+module Adventure
+  VERSION = BigDecimal::VERSION
+
+  def self.version = VERSION
+end
+
+export_default Adventure
 ```
 
 Then import the carton normally:
 
 ```ruby
-BigDecimal4 = import 'bigdecimal4'
+Adventure = import 'adventure'
 ```
 
 `Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` only scopes `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` for the block, so `require 'bundler/setup'` still uses Bundler's own Gemfile/lockfile discovery rules. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
@@ -175,7 +182,6 @@ See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEM
 RUBY_BOX=1 ruby examples/minimal/main.rb
 RUBY_BOX=1 bundle exec rake example:gems
 RUBY_BOX=1 bundle exec rake example:bundler
-RUBY_BOX=1 bundle exec rake example:gem
 ```
 
 See the example READMEs for details:
@@ -183,4 +189,3 @@ See the example READMEs for details:
 - [examples/minimal/README.md](examples/minimal/README.md)
 - [examples/gems/README.md](examples/gems/README.md)
 - [examples/bundler/README.md](examples/bundler/README.md)
-- [examples/gem_in_carton/README.md](examples/gem_in_carton/README.md)

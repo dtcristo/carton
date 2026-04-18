@@ -48,5 +48,4 @@ Guidance and memory for agents working on this repo.
 - `RUBY_BOX=1 bundle exec rake example:minimal` - minimal example
 - `RUBY_BOX=1 bundle exec rake example:gems` - manual RubyGems example
 - `RUBY_BOX=1 bundle exec rake example:bundler` - bundled cartons example
-- `RUBY_BOX=1 bundle exec rake example:gem` - carton-aware gem example
 - `bundle exec rake format` - format code

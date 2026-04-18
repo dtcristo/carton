@@ -5,4 +5,10 @@ Carton.with_bundle { require 'bundler/setup' }
 
 require 'bigdecimal'
 
-export bigdecimal_version: BigDecimal::VERSION
+module Adventure
+  VERSION = BigDecimal::VERSION
+
+  def self.version = VERSION
+end
+
+export_default Adventure

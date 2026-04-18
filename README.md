@@ -57,8 +57,7 @@ MathTools.add(2, 3)
 - [TODO.md](docs/TODO.md) - future library, docs, and tooling work
 - [examples/minimal/README.md](examples/minimal/README.md) - smallest example
 - [examples/gems/README.md](examples/gems/README.md) - manual RubyGems activation without Bundler
-- [examples/bundler/README.md](examples/bundler/README.md) - bundled cartons plus a path gem
-- [examples/gem_in_carton/README.md](examples/gem_in_carton/README.md) - minimal carton-aware gem
+- [examples/bundler/README.md](examples/bundler/README.md) - bundled cartons plus a support gem
 
 ## Development
 

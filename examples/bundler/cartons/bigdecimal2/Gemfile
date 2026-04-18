@@ -1,5 +1,0 @@
-# frozen_string_literal: true
-
-source 'https://rubygems.org'
-
-gem 'bigdecimal', '= 2.0.3'

@@ -3,8 +3,11 @@
 require 'carton'
 
 Carton.bootstrap_rubygems!
-Carton.with_bundle { require 'bundler/setup' }
 
+spec = Gem::Specification.find_by_name('bigdecimal', '= 3.3.1')
+spec.full_require_paths.reverse_each do |path|
+  $LOAD_PATH.unshift(path) unless $LOAD_PATH.include?(path)
+end
 require 'bigdecimal'
 
 module GemInCarton

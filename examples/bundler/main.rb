@@ -19,16 +19,16 @@ unless $LOAD_PATH.include?(gem_in_carton_lib)
   $LOAD_PATH.unshift(gem_in_carton_lib)
 end
 
-BigDecimal4 = import 'bigdecimal4'
-import('bigdecimal3') => { bigdecimal_version:, transient_version: }
+Adventure = import 'adventure'
+Quest = import 'quest'
 GemInCarton = import 'gem_in_carton'
 
 puts '-- Bundled require --'
-puts "bigdecimal4 version = #{BigDecimal4.version}"
+puts "adventure bigdecimal version = #{Adventure.version}"
 puts
-puts '-- Bundled import --'
-puts "bigdecimal3 version = #{bigdecimal_version}"
-puts "bigdecimal2 version = #{transient_version}"
+puts '-- Transient bundled import --'
+puts "quest summary = #{Quest.fetch(:summary)}"
+puts "loot bigdecimal version = #{Quest.fetch(:bigdecimal_version)}"
 puts
 puts '-- Gem carton --'
 puts "gem_in_carton version = #{GemInCarton.fetch(:version)}"
