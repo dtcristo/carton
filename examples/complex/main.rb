@@ -11,12 +11,7 @@ Dir
   .sort
   .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
-adventure_gemfile = File.expand_path('cartons/adventure/Gemfile', __dir__)
-
-# Bundler still picks the active Gemfile from env/process state today, so the
-# bundled import stays explicit even though the wrapper is small.
-Adventure = Carton.with_bundle(adventure_gemfile) { import 'adventure' }
-
+Adventure = import 'adventure'
 Plans = import 'quest'
 
 # loot still imports by name, but it does not need Carton.with_bundle here

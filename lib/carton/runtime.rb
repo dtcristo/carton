@@ -8,11 +8,15 @@ module Carton
     module_function
 
     def import(path, base_dir:)
+      previous_loaded_specs = Gem.loaded_specs.dup
       box = build_import_box
       target = resolve_import_target(box, path, base_dir:)
-      box.__send__(:activate_bundle_if_configured) if target == path
       box.__send__(:require_in_box, target)
       extract_export(box)
+    ensure
+      if previous_loaded_specs && box&.__send__(:bundle_activated?)
+        Gem.loaded_specs.replace(previous_loaded_specs)
+      end
     end
 
     def export(args, kwargs)
@@ -31,13 +35,7 @@ module Carton
     def build_import_box
       parent_box = Ruby::Box.current
       box = Carton::Box.new
-      bundle_gemfile = parent_box.eval("ENV['BUNDLE_GEMFILE']")
-      box.__send__(
-        :configure_for_import,
-        parent_box:,
-        entrypoint: ENTRYPOINT,
-        bundle_gemfile:,
-      )
+      box.__send__(:configure_for_import, parent_box:, entrypoint: ENTRYPOINT)
       box
     end
     private_class_method :build_import_box

@@ -9,9 +9,10 @@ class CartonTest < Minitest::Test
 
   def test_with_bundle_sets_and_restores_bundle_gemfile
     previous = ENV['BUNDLE_GEMFILE']
-    result = Carton.with_bundle('/tmp/demo/Gemfile') { ENV['BUNDLE_GEMFILE'] }
+    gemfile = File.expand_path('../fixtures/with_bundle/Gemfile', __dir__)
+    result = Carton.with_bundle(gemfile) { ENV['BUNDLE_GEMFILE'] }
 
-    assert_equal '/tmp/demo/Gemfile', result
+    assert_equal gemfile, result
     if previous
       assert_equal previous, ENV['BUNDLE_GEMFILE']
     else
@@ -27,10 +28,11 @@ class CartonTest < Minitest::Test
 
   def test_with_bundle_restores_bundle_gemfile_after_error
     previous = ENV['BUNDLE_GEMFILE']
+    gemfile = File.expand_path('../fixtures/with_bundle/Gemfile', __dir__)
 
     error =
       assert_raises(RuntimeError) do
-        Carton.with_bundle('/tmp/demo/Gemfile') { raise 'boom' }
+        Carton.with_bundle(gemfile) { raise 'boom' }
       end
 
     assert_equal 'boom', error.message

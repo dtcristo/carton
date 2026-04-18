@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'json'
+require 'open3'
+require 'rbconfig'
+require 'tmpdir'
 
 class IntegrationTest < Minitest::Test
   FIXTURES = File.expand_path('../fixtures', __dir__)
+  EXAMPLES = File.expand_path('../../examples', __dir__)
 
   def test_nested_import_relative_chain
     # advanced.rb uses import_relative to load basic.rb, re-exports add
@@ -55,5 +60,64 @@ class IntegrationTest < Minitest::Test
     # relative_importer.rb uses import_relative internally to load single_export.rb
     result = import_relative '../fixtures/relative_importer'
     assert_equal 'Hello, World!', result.greeting
+  end
+
+  def test_with_bundle_auto_finds_parent_gemfile_inside_box
+    previous = ENV['BUNDLE_GEMFILE']
+    result = import "#{FIXTURES}/with_bundle/nested/auto_gemfile"
+
+    assert_equal "#{FIXTURES}/with_bundle/Gemfile", result.fetch(:selected)
+    assert_equal previous, result.fetch(:restored)
+  end
+
+  def test_with_bundle_raises_when_explicit_gemfile_is_missing
+    Dir.mktmpdir('carton-with-bundle') do |dir|
+      entry = File.join(dir, 'missing_gemfile.rb')
+      File.write(entry, <<~RUBY)
+          # frozen_string_literal: true
+
+          Carton.with_bundle('Gemfile') do
+            export_default true
+          end
+        RUBY
+
+      error = assert_raises(StandardError) { import entry }
+      assert_equal 'Carton::GemfileNotFound', error.class.name
+    end
+  end
+
+  def test_bundled_import_activates_inside_box_only
+    script = <<~'RUBY'
+      require 'json'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      adventure_lib = File.expand_path('examples/complex/cartons/adventure/lib', Dir.pwd)
+      $LOAD_PATH.unshift(adventure_lib) unless $LOAD_PATH.include?(adventure_lib)
+
+      adventure = import 'adventure'
+
+      puts JSON.generate(
+        banner: adventure.banner,
+        dotenv_version: adventure.dotenv_version,
+        root_dotenv: Gem.loaded_specs['dotenv']&.version&.to_s,
+      )
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    env =
+      ENV.to_h.reject do |key, _|
+        key == 'RUBYOPT' || key.start_with?('BUNDLE_')
+      end
+    output, status =
+      Open3.capture2e(env.merge('RUBY_BOX' => '1'), RbConfig.ruby, '-e', script)
+
+    assert status.success?, output
+
+    payload = JSON.parse(output)
+    assert_equal 'single export loaded from a bundled carton',
+                 payload.fetch('banner')
+    assert_equal '3.2.0', payload.fetch('dotenv_version')
+    assert_nil payload.fetch('root_dotenv')
   end
 end

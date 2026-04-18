@@ -9,16 +9,18 @@ module Carton
 
     def initialize
       super
+      @bundle_activated = false
       reset_export
     end
 
     private
 
-    def configure_for_import(parent_box:, entrypoint:, bundle_gemfile:)
+    def configure_for_import(parent_box:, entrypoint:)
+      purge_gem_load_path
+      purge_gem_loaded_features
       inherit_load_path(parent_box)
       reset_export
       require_in_box(entrypoint)
-      set_bundle_gemfile(bundle_gemfile)
       self
     end
 
@@ -28,13 +30,6 @@ module Carton
 
     def resolve_feature_path_in_box(feature)
       eval("$LOAD_PATH.resolve_feature_path(#{feature.inspect})")
-    end
-
-    def activate_bundle_if_configured
-      gemfile = ENV['BUNDLE_GEMFILE']
-      return unless gemfile && File.file?(gemfile)
-
-      require_in_box('bundler/setup')
     end
 
     def set_export(value)
@@ -57,10 +52,22 @@ module Carton
       @export = UNSET_EXPORT
     end
 
-    def set_bundle_gemfile(path)
-      return unless path
+    def mark_bundle_activated
+      @bundle_activated = true
+    end
 
-      eval("ENV['BUNDLE_GEMFILE'] = #{path.inspect}")
+    def bundle_activated?
+      @bundle_activated
+    end
+
+    def purge_gem_load_path
+      load_path.reject! { |path| gem_path?(File.expand_path(path)) }
+    end
+
+    def purge_gem_loaded_features
+      eval('$LOADED_FEATURES').reject! do |feature|
+        gem_path?(File.expand_path(feature))
+      end
     end
 
     def inherit_load_path(source_box)
