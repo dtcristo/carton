@@ -15,3 +15,6 @@ puts
 puts '-- Bar (uses Baz internally) --'
 puts Bar.hello
 puts "Bar::MAGIC = #{Bar::MAGIC}"
+
+STDOUT.flush
+Process.exit!(0)
