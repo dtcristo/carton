@@ -50,7 +50,11 @@ MathTools.add(2, 3)
 
 - [USAGE.md](USAGE.md) - detailed import/export, load path, and Bundler usage
 - [DESIGN.md](DESIGN.md) - implementation overview and constraints
-- [TODO.md](TODO.md) - future improvements and Bundler upstream ideas
+- [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) - deep guide to RubyGems, Bundler, activation, and boxes
+- [HOW_BOXES_WORK.md](HOW_BOXES_WORK.md) - deep guide to `Ruby::Box` internals and sharp edges
+- [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) - minimal RubyGems/Bundler upstream plan
+- [RUBY_UPSTREAM.md](RUBY_UPSTREAM.md) - minimal Ruby upstream plan
+- [TODO.md](TODO.md) - future library, docs, and tooling work
 - [examples/minimal/README.md](examples/minimal/README.md) - smallest example
 - [examples/complex/README.md](examples/complex/README.md) - multi-carton example
 

@@ -14,6 +14,8 @@ Guidance and memory for agents working on this repo.
 - Ruby::Box boxes start from root-box load paths/loaded features, so Carton must copy parent non-gem load paths forward itself.
 - `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
 - Duplicating `Gem.loaded_specs` inside a box isolates a single bundled import from root state, but conflicting bundles still fail because Bundler also rewrites shared RubyGems entrypoints/spec state such as `Gem::Specification.all`.
+- Bundler itself can already load per box; the hard parts are root-loaded RubyGems methods/state and the Ruby 4.0.2 teardown crash when Bundler is required in multiple boxes.
+- Upstream changes must be strictly necessary; prototype a Carton-side monkey patch first and only upstream the smallest supportable RubyGems/Ruby changes afterward.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules

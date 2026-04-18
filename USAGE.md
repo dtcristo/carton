@@ -158,7 +158,7 @@ Current limits:
 - a bundled parent process is not a reliable place to import a child carton with its own bundle
 - conflicting bundles in one process still need a subprocess workaround
 
-See [TODO.md](TODO.md) for the upstream Bundler work that would make this cleaner.
+See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) for the minimal upstream plan.
 
 ## Examples
 

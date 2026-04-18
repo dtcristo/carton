@@ -1,19 +1,9 @@
 # TODO
 
-## Bundler / upstream
+## Upstream
 
-- Add a Bundler API that can activate a specific Gemfile explicitly instead of relying on process-global `ENV['BUNDLE_GEMFILE']` and `bundler/setup`.
-- Make multiple bundle contexts safer for embedded runtimes. Today one carton-local bundle can work, but importing a second conflicting bundle in the same process still resolves against the first bundle's shared RubyGems activation state and can crash under `Ruby::Box`.
-- Expose resolved bundle load paths without forcing full `Bundler.setup` and RubyGems entrypoint replacement.
-- Make `Bundler.reset!`, `with_original_env`, and `with_unbundled_env` sufficient for re-entering Bundler with another Gemfile, or add a supported replacement for that workflow.
-- Improve support for a parent process already running under Bundler importing a child carton that needs a different bundle.
-- Make RubyGems activation state such as `Gem.loaded_specs` safely box-local or otherwise explicitly isolateable so two conflicting bundles can coexist under `Ruby::Box` without a subprocess.
-- Investigate whether `Bundler.rubygems.replace_entrypoints`, `stub_rubygems`, `Gem::Specification.all`, and `Gem.clear_paths` can be made box-local. Duplicating `Gem.loaded_specs` inside the box isolated a single bundled import from the root box, but it was not enough to make a second conflicting bundle work.
-
-## Ruby::Box / upstream
-
-- Expose more public APIs or clearer guarantees around box-local `$LOAD_PATH`, `$LOADED_FEATURES`, and feature resolution so libraries like Carton do not need to manually copy parent load paths and call `resolve_feature_path`.
-- Investigate the crash path after conflicting bundled imports under Ruby 4.0 + `Ruby::Box`, even when the immediate conflict is already surfaced as a Bundler/RubyGems activation error.
+- Keep RubyGems/Bundler upstream work limited to the necessary-only plan in [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md). Prototype the boxed RubyGems patch in Carton first, then upstream only the smallest supportable surface.
+- Keep Ruby upstream work limited to the required `Ruby::Box` runtime fix in [RUBY_UPSTREAM.md](RUBY_UPSTREAM.md). Avoid broader box/gem redesign unless the RubyGems prototype proves it is necessary.
 
 ## Library
 
