@@ -7,11 +7,10 @@ Guidance and memory for agents working on this repo.
 - Goal: make Carton feel like part of Ruby: built-in, simple, streamlined, and not verbose.
 - Prefer simpler implementation over complexity.
 - Keep the public API small and Ruby-like.
+- Keep the library feeling native to Ruby; explicit setup is fine when it keeps behavior simple and unsurprising.
 - The project should work with or without Bundler.
 - A package in this system is called a carton, though docs can still use "package" in plain English when it reads better.
-- Current reliable bundled-carton pattern: use `Carton.with_bundle(gemfile) { import ... }` for the entry import that should activate a carton-local bundle.
-- Conflicting bundles still need a subprocess workaround today.
-- Ruby::Box boxes start from root-box load paths/loaded features, so Carton must copy parent non-gem load paths forward itself.
+- Ruby::Box boxes start from root-box load paths/loaded features; prefer explicit caller-managed load-path setup over automatic inheritance.
 - `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
 - Duplicating `Gem.loaded_specs` inside a box isolates a single bundled import from root state, but conflicting bundles still fail because Bundler also rewrites shared RubyGems entrypoints/spec state such as `Gem::Specification.all`.
 - Bundler itself can already load per box; the hard parts are root-loaded RubyGems methods/state and the Ruby 4.0.2 teardown crash when Bundler is required in multiple boxes.
@@ -27,14 +26,16 @@ Guidance and memory for agents working on this repo.
 - Do not over-engineer.
 - Never use thread local variables in implementation.
 - Always review https://docs.ruby-lang.org/en/4.0/Ruby/Box.html on how `Ruby::Box` works.
+- For box/gem/Bundler/RubyGems work, always re-read `docs/HOW_BOXES_WORK.md` and `docs/HOW_GEMS_WORK.md` before changing code.
+- Read `docs/RUBY_UPSTREAM.md` and `docs/RUBYGEMS_UPSTREAM.md` whenever upstream implications are relevant, and update them when plans or findings change.
 - Never bump the version or publish the gem.
 - When multiple implementation choices are viable, present a menu with your recommendation.
-- Commit as you go with descriptive messages and the required Co-authored-by trailer.
+- Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with descriptive messages and the required Co-authored-by trailer.
 - Never push; the user will do that.
 
 ## Docs
 
-- Keep `README.md`, `docs/USAGE.md`, `docs/DESIGN.md`, `docs/TODO.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, or plans change.
+- Keep `README.md`, `docs/USAGE.md`, `docs/DESIGN.md`, `docs/TODO.md`, `docs/HOW_GEMS_WORK.md`, `docs/HOW_BOXES_WORK.md`, `docs/RUBYGEMS_UPSTREAM.md`, `docs/RUBY_UPSTREAM.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, findings, or upstream plans change.
 - Keep the root `README.md` minimal; move detail into focused docs.
 - Put future work, open questions, and upstream ideas in `docs/TODO.md`.
 - Update `AGENTS.md` whenever the user gives durable project guidance or you discover stable context worth remembering.
