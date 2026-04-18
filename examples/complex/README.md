@@ -15,7 +15,7 @@ Multi-carton example showing the library directly: explicit load-path setup, a b
 
 ## Why `loot` still uses a subprocess
 
-One carton-local bundle can be activated from an unbundled parent today. The trouble starts when another box tries to activate a conflicting version: box-local `$LOAD_PATH` is not enough because RubyGems activation state is still shared. `loot` therefore loads its `dotenv` data in a subprocess and selects its Gemfile there instead of using `Carton.with_bundle` during the import itself. That is tracked in [../../TODO.md](../../TODO.md).
+One carton-local bundle can be activated from an unbundled parent today. The trouble starts when another box tries to activate a conflicting version: box-local `$LOAD_PATH` is not enough because RubyGems activation state is still shared. `loot` therefore loads its `dotenv` data in a subprocess and selects its Gemfile there instead of using `Carton.with_bundle` during the import itself. That is tracked in [../../docs/TODO.md](../../docs/TODO.md).
 
 ## Run
 

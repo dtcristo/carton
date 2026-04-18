@@ -34,9 +34,9 @@ Guidance and memory for agents working on this repo.
 
 ## Docs
 
-- Keep `README.md`, `USAGE.md`, `DESIGN.md`, `TODO.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, or plans change.
+- Keep `README.md`, `docs/USAGE.md`, `docs/DESIGN.md`, `docs/TODO.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, or plans change.
 - Keep the root `README.md` minimal; move detail into focused docs.
-- Put future work, open questions, and upstream ideas in `TODO.md`.
+- Put future work, open questions, and upstream ideas in `docs/TODO.md`.
 - Update `AGENTS.md` whenever the user gives durable project guidance or you discover stable context worth remembering.
 - Use `AGENTS.md` as a concise memory bank, not a changelog.
 
