@@ -50,7 +50,8 @@ export(
 Importing named exports returns a `Carton::Exports` object, which behaves like a namespace module.
 
 ```ruby
-MathTools = import_relative 'math'
+$LOAD_PATH.unshift(__dir__)
+MathTools = import 'math'
 
 MathTools::PI
 MathTools.version
@@ -76,7 +77,7 @@ User = import_relative 'user'
 `import path` resolves using the current box's `$LOAD_PATH` or an absolute path.
 
 ```ruby
-Quest = import 'quest'
+MathTools = import 'math_tools'
 Widget = import '/absolute/path/to/widget.rb'
 ```
 
@@ -97,7 +98,7 @@ The bundler example keeps that setup explicit in `examples/bundler/main.rb`.
 Named exports support pattern matching through `deconstruct_keys`.
 
 ```ruby
-import_relative('math') => { add:, version: }
+import('math') => { add:, version: }
 
 add.(2, 3)
 version
@@ -106,7 +107,7 @@ version
 You can rename during destructuring:
 
 ```ruby
-import_relative('math') => { add: sum }
+import('math') => { add: sum }
 sum.(10, 10)
 ```
 
@@ -115,7 +116,7 @@ sum.(10, 10)
 For exported constants, the simplest options are namespace access, `[]`, or `fetch`.
 
 ```ruby
-MathTools = import_relative 'math'
+MathTools = import 'math'
 PI = MathTools::PI
 ```
 
@@ -126,7 +127,7 @@ PI = import('math')[:PI]
 For multiple values:
 
 ```ruby
-PI, version = import_relative('math').fetch_values(:PI, :version)
+PI, version = import('math').fetch_values(:PI, :version)
 ```
 
 ## Bare imports
@@ -145,28 +146,26 @@ Toolbox.fetch(:helper)
 The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, do the RubyGems/Bundler setup inside that carton's entry file.
 
 ```ruby
-# cartons/adventure/lib/adventure.rb
+# cartons/math_helper/lib/math_helper.rb
 Carton.bootstrap_rubygems!
 Carton.with_bundle { require 'bundler/setup' }
 
+# `require` exposes BigDecimal directly in this carton.
 require 'bigdecimal'
 
-module Adventure
-  VERSION = BigDecimal::VERSION
-
-  def self.version = VERSION
-end
-
-export_default Adventure
+export version: BigDecimal::VERSION, number_type: BigDecimal.name
 ```
 
 Then import the carton normally:
 
 ```ruby
-Adventure = import 'adventure'
+MathHelper = import 'math_helper'
+MathHelper.fetch(:number_type)
 ```
 
-`Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` only scopes `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` for the block, so `require 'bundler/setup'` still uses Bundler's own Gemfile/lockfile discovery rules. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
+If the top-level app only needs its own bundle, `Carton.with_bundle { require 'bundler/setup' }` is enough. `Carton.bootstrap_rubygems!` is the extra step for bundled cartons loaded inside fresh boxes.
+
+`Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and then lets Bundler derive the matching lockfile itself. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
 
 Current limits:
 

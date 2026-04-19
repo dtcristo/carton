@@ -222,8 +222,8 @@ So the first upstream plan should **not** ask for a new `Bundler.setup(gemfile: 
 
 For the first working design:
 
-- Carton can continue to hand off `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE`,
-- or the carton entry file can set them before `require "bundler/setup"`,
+- Carton can continue to hand off `BUNDLE_GEMFILE` and clear stale `BUNDLE_LOCKFILE`,
+- or the carton entry file can set those environment details before `require "bundler/setup"`,
 - while the real upstream work stays focused on activation isolation.
 
 Only revisit explicit-Gemfile APIs if the boxed activation patch proves good and `ENV` ergonomics become the remaining blocker.

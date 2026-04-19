@@ -138,13 +138,13 @@ class IntegrationTest < Minitest::Test
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
-      adventure_lib = File.expand_path('examples/bundler/cartons/adventure/lib', Dir.pwd)
-      $LOAD_PATH.unshift(adventure_lib) unless $LOAD_PATH.include?(adventure_lib)
+      math_helper_lib = File.expand_path('examples/bundler/cartons/math_helper/lib', Dir.pwd)
+      $LOAD_PATH.unshift(math_helper_lib) unless $LOAD_PATH.include?(math_helper_lib)
 
-      adventure = import 'adventure'
+      math_helper = import 'math_helper'
 
       puts JSON.generate(
-        bigdecimal_version: adventure.version,
+        bigdecimal_version: math_helper.fetch(:version),
         root_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
       )
       STDOUT.flush

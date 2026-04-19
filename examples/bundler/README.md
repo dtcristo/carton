@@ -1,19 +1,23 @@
 # Bundler example
 
-Bundled multi-carton example showing two cartons imported by `main.rb`, one transient bundled dependency, and a supporting path gem.
+Small app-shaped example showing:
+
+- a bundled carton that `require`s `bigdecimal`
+- a plain carton that forwards to a transient bundled carton
+- a support gem resolved by the app bundle and imported as a carton
 
 ## Cartons
 
 | Carton | `bigdecimal` | How it loads |
 | --- | --- | --- |
-| `adventure` | `4.1.1` | imported by name from `main.rb`, uses `require 'bigdecimal'` |
-| `quest` | none directly | imported by name from `main.rb`, plain carton that `import_relative`s `loot` |
-| `loot` | `3.3.1` | transient bundled carton, uses `import 'bigdecimal'` |
-| `gem_in_carton` | `3.3.1` | support gem loaded by name from the top-level bundle |
+| `math_helper` | `4.1.1` | imported by name from `main.rb`, uses `require 'bigdecimal'` |
+| `billing` | none directly | imported by name from `main.rb`, plain carton that `import_relative`s `rounding` |
+| `rounding` | `4.1.1` | transient bundled carton, uses `import 'bigdecimal'` |
+| `gem_in_carton` | none | support gem resolved by the top-level bundle, then imported by file path |
 
-`main.rb` keeps both the explicit local-carton load-path setup and the top-level bundle for `gem_in_carton` visible on purpose. After Bundler resolves the path gem, `main.rb` explicitly exposes that gem's `lib/` directory on `$LOAD_PATH` before importing it by name. `adventure` and `loot` bootstrap RubyGems and load their own bundles inside the box, while `quest` stays plain and just forwards to `loot`.
+`main.rb` keeps the carton `lib/` load-path setup explicit so `import 'math_helper'` and `import 'billing'` are easy to follow. The support gem comes from the app bundle instead: Bundler resolves the path gem, then `main.rb` imports that gem's entry file directly from the resolved gem path.
 
-`main.rb` ends with `Process.exit!(0)` as a temporary workaround for the current Ruby 4.0.2 `Ruby::Box` teardown crash.
+The `at_exit` hook in `main.rb` is a temporary workaround for the current Ruby 4.0.2 `Ruby::Box` teardown crash after Bundler has been loaded in multiple boxes.
 
 ## Run
 

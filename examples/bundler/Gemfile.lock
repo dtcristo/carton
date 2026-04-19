@@ -7,13 +7,11 @@ PATH
   remote: ../gem_in_carton
   specs:
     gem_in_carton (0.1.0)
-      bigdecimal (= 3.3.1)
       carton
 
 GEM
   remote: https://rubygems.org/
   specs:
-    bigdecimal (3.3.1)
 
 PLATFORMS
   arm64-darwin-23
@@ -24,7 +22,6 @@ DEPENDENCIES
   gem_in_carton!
 
 CHECKSUMS
-  bigdecimal (3.3.1) sha256=eaa01e228be54c4f9f53bf3cc34fe3d5e845c31963e7fcc5bedb05a4e7d52218
   carton (0.1.0)
   gem_in_carton (0.1.0)
 

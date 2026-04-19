@@ -10,6 +10,7 @@ Guidance and memory for agents working on this repo.
 - Keep the library feeling native to Ruby; explicit setup is fine when it keeps behavior simple and unsurprising.
 - The project should work with or without Bundler.
 - A package in this system is called a carton, though docs can still use "package" in plain English when it reads better.
+- Keep optional Bundler/RubyGems support clearly separated from the core import/export runtime.
 - Ruby::Box boxes start from root-box load paths/loaded features; prefer explicit caller-managed load-path setup over automatic inheritance.
 - `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
 - Duplicating `Gem.loaded_specs` inside a box isolates a single bundled import from root state, but conflicting bundles still fail because Bundler also rewrites shared RubyGems entrypoints/spec state such as `Gem::Specification.all`.
@@ -24,6 +25,7 @@ Guidance and memory for agents working on this repo.
 - Run `bundle exec rake format` after every change.
 - Keep implementation and docs concise.
 - Do not over-engineer.
+- Comment important lines in examples so readers can see the carton, export, and bundle boundaries at a glance.
 - Never use thread local variables in implementation.
 - Always review https://docs.ruby-lang.org/en/4.0/Ruby/Box.html on how `Ruby::Box` works.
 - For box/gem/Bundler/RubyGems work, always re-read `docs/HOW_BOXES_WORK.md` and `docs/HOW_GEMS_WORK.md` before changing code.

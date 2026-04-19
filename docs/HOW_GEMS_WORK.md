@@ -564,7 +564,10 @@ That matters because Bundler still uses process-global environment discovery:
 
 This is separate from the activation-isolation problem, but still relevant.
 
-It is also why `Carton.with_bundle` now scopes both `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE`: Bundler leaves both in `ENV`, and the second boxed bundle will otherwise reuse the first box's lockfile path.
+It is also why `Carton.with_bundle` scopes `BUNDLE_GEMFILE` and clears any
+stale `BUNDLE_LOCKFILE`: Bundler reads both from process-global `ENV`, and a
+leftover lockfile path would override the lockfile Bundler would otherwise
+derive from the selected Gemfile.
 
 ## 8. Public APIs that matter for advanced gem/runtime work
 
@@ -613,7 +616,7 @@ These are the exact areas Carton and any upstream isolation work eventually need
 Carton's current design matches the runtime facts well:
 
 - `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
-- `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
+- `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and clears stale `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
 - `Carton.bootstrap_rubygems!` plus in-box `require "bundler/setup"` keeps Bundler load-path mutation inside the box.
 - `Carton::Runtime.import` snapshots/restores `Gem.loaded_specs` after a bootstrapped boxed import because that RubyGems registry still leaks across boxes in practice.
 

@@ -8,16 +8,16 @@ Gem::Specification.new do |spec|
   spec.authors = ['David Cristofaro']
   spec.email = ['david@dtcristo.com']
 
-  spec.summary = 'Easily box your Ruby'
+  spec.summary = 'Thin import/export wrapper around Ruby::Box'
   spec.description =
-    'Carton is a thin wrapper around Ruby::Box for safe, ergonomic modularization in Ruby 4+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.'
+    'Carton wraps Ruby::Box with small import/export helpers so Ruby files can expose explicit APIs while keeping constants, gems, and monkey patches boxed.'
   spec.homepage = 'https://github.com/dtcristo/carton'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>= 4.0.1'
+  spec.required_ruby_version = '>= 4.0.0'
 
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
   spec.metadata['homepage_uri'] = spec.homepage
-  spec.metadata['source_code_uri'] = 'https://github.com/dtcristo/carton'
+  spec.metadata['source_code_uri'] = spec.homepage
   spec.metadata[
     'changelog_uri'
   ] = 'https://github.com/dtcristo/carton/blob/main/CHANGELOG.md'
