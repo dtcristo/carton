@@ -9,19 +9,16 @@ module Carton
 
     module_function
 
+    # Build a fresh box, load the target feature inside it, and return the
+    # exported value. If the target does not export anything, return the box.
     def import(path, base_dir:)
-      previous_loaded_specs = Gem.loaded_specs.dup
       target = resolve_import_target(path, base_dir:)
       box = build_import_box
-      box.__send__(:add_import_load_path, target.load_path) if target.load_path
-      box.__send__(:require_in_box, target.feature)
+      box.__send__(:load_import, target.feature, load_path: target.load_path)
       extract_export(box)
-    ensure
-      if previous_loaded_specs && box&.__send__(:rubygems_bootstrapped?)
-        Gem.loaded_specs.replace(previous_loaded_specs)
-      end
     end
 
+    # Export a small named surface from the current carton.
     def export(args, kwargs)
       if args.any? || kwargs.empty?
         raise ArgumentError,
@@ -31,6 +28,7 @@ module Carton
       current_import_box.__send__(:set_export, kwargs)
     end
 
+    # Export a single value from the current carton.
     def export_default(value)
       current_import_box.__send__(:set_export, value)
     end
@@ -50,6 +48,8 @@ module Carton
     end
     private_class_method :extract_export
 
+    # `export` and `export_default` only make sense while Carton is loading a
+    # file inside an import box.
     def current_import_box
       box = Ruby::Box.current
 
@@ -62,6 +62,9 @@ module Carton
     end
     private_class_method :current_import_box
 
+    # Resolve the import the same way Ruby would resolve a regular `require` in
+    # the caller box, then carry only the matched load-path root into the new
+    # import box when the target was found by name.
     def resolve_import_target(path, base_dir:)
       expanded = File.expand_path(path, base_dir)
       return ImportTarget.new(feature: expanded) if File.file?(expanded)
@@ -89,6 +92,9 @@ module Carton
     end
     private_class_method :resolve_import_target
 
+    # When a name-based import resolved through a specific caller load-path
+    # entry, seed only that entry into the imported box instead of copying the
+    # whole caller `$LOAD_PATH` forward.
     def resolve_import_load_path(feature, resolved_path)
       load_paths = Ruby::Box.current.eval('$LOAD_PATH.to_a')
 

@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 module Carton
+  # Module-like wrapper returned from named exports.
+  #
+  # Capitalized keys become constants. Lowercase keys become singleton methods
+  # or values addressable through the shared lookup helpers in `ExportMethods`.
   class Exports < ::Module
     include ExportMethods
 

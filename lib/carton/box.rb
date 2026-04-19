@@ -15,6 +15,9 @@ module Carton
 
     private
 
+    # Fresh boxes inherit root-box gem paths and loaded features. Strip those
+    # inherited gem entries, then load Carton's own entrypoint so the imported
+    # file gets `import`, `import_relative`, and `export`.
     def configure_for_import(entrypoint:)
       purge_gem_load_path
       purge_gem_loaded_features
@@ -22,6 +25,15 @@ module Carton
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
       self
+    end
+
+    # Load the target feature inside the box. If the target bootstrapped
+    # RubyGems, restore the caller's loaded-spec view after the import. This is
+    # a temporary RubyGems isolation hack, not part of Carton's core box model.
+    def load_import(feature, load_path: nil)
+      add_import_load_path(load_path) if load_path
+
+      preserve_loaded_specs { require_in_box(feature) }
     end
 
     def require_in_box(feature)
@@ -58,6 +70,13 @@ module Carton
 
     def rubygems_bootstrapped?
       @rubygems_bootstrapped
+    end
+
+    def preserve_loaded_specs
+      previous_loaded_specs = Gem.loaded_specs.dup if rubygems_bootstrapped?
+      yield
+    ensure
+      Gem.loaded_specs.replace(previous_loaded_specs) if previous_loaded_specs
     end
 
     def purge_gem_load_path

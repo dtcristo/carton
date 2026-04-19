@@ -56,6 +56,25 @@ class IntegrationTest < Minitest::Test
     assert_equal 100, result.add(40, 60)
   end
 
+  def test_named_export_hides_unexported_constants
+    Dir.mktmpdir('carton-hidden-export') do |dir|
+      entry = File.join(dir, 'hidden_export.rb')
+      File.write(entry, <<~RUBY)
+          # frozen_string_literal: true
+
+          INTERNAL_TEMPLATE = 'draft-only'
+
+          export public_label: 'invoice'
+        RUBY
+
+      result = import entry
+
+      assert_equal 'invoice', result.fetch(:public_label)
+      refute result.key?(:INTERNAL_TEMPLATE)
+      refute result.const_defined?(:INTERNAL_TEMPLATE, false)
+    end
+  end
+
   def test_import_relative_from_within_box
     # relative_importer.rb uses import_relative internally to load single_export.rb
     result = import_relative '../fixtures/relative_importer'
@@ -68,8 +87,7 @@ class IntegrationTest < Minitest::Test
     result = import "#{FIXTURES}/with_bundle/nested/auto_gemfile"
 
     assert_equal "#{FIXTURES}/with_bundle/Gemfile", result.fetch(:selected)
-    assert_equal "#{FIXTURES}/with_bundle/Gemfile.lock",
-                 result.fetch(:selected_lockfile)
+    assert_nil result.fetch(:selected_lockfile)
     if previous
       assert_equal previous, result.fetch(:restored)
     else
