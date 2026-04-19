@@ -73,10 +73,12 @@ module Carton
     end
 
     def preserve_loaded_specs
-      previous_loaded_specs = Gem.loaded_specs.dup if rubygems_bootstrapped?
+      previous_loaded_specs = Gem.loaded_specs.dup
       yield
     ensure
-      Gem.loaded_specs.replace(previous_loaded_specs) if previous_loaded_specs
+      if previous_loaded_specs && rubygems_bootstrapped?
+        Gem.loaded_specs.replace(previous_loaded_specs)
+      end
     end
 
     def purge_gem_load_path
