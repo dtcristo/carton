@@ -4,9 +4,9 @@ PATH
     carton (0.1.0)
 
 PATH
-  remote: ../gem_in_carton
+  remote: cartoned_gem
   specs:
-    gem_in_carton (0.1.0)
+    cartoned_gem (0.1.0)
       carton
 
 GEM
@@ -19,11 +19,11 @@ PLATFORMS
 
 DEPENDENCIES
   carton!
-  gem_in_carton!
+  cartoned_gem!
 
 CHECKSUMS
   carton (0.1.0)
-  gem_in_carton (0.1.0)
+  cartoned_gem (0.1.0)
 
 BUNDLED WITH
   4.0.10

@@ -17,8 +17,6 @@ Small app-shaped example showing:
 
 `main.rb` keeps the carton `lib/` load-path setup explicit so `import 'math_helper'` and `import 'billing'` are easy to follow. The support gem comes from the app bundle instead: Bundler resolves the path gem, then `main.rb` imports that gem's entry file directly from the resolved gem path.
 
-The `at_exit` hook in `main.rb` is a temporary workaround for the current Ruby 4.0.2 `Ruby::Box` teardown crash after Bundler has been loaded in multiple boxes.
-
 ## Run
 
 ```sh

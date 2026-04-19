@@ -2,24 +2,6 @@
 
 require_relative '../../lib/carton'
 
-# Ruby 4.0.2 still crashes on normal exit after Bundler has been loaded in
-# multiple boxes. Exit hard after printing so the example shows Carton's
-# behavior without tripping that runtime bug.
-at_exit do
-  status =
-    if $!.is_a?(SystemExit)
-      $!.status
-    elsif $!
-      1
-    else
-      0
-    end
-
-  STDOUT.flush
-  STDERR.flush
-  Process.exit!(status)
-end
-
 # The app's own Gemfile is only here so Bundler can resolve the support gem.
 Carton.with_bundle { require 'bundler/setup' }
 
@@ -32,39 +14,39 @@ Dir
   .sort
   .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
-math_gem = Gem.loaded_specs.fetch('gem_in_carton')
+cartoned_gem = Gem.loaded_specs.fetch('cartoned_gem')
 
 # Bundler found the support gem for us, so import its entry file directly from
 # the resolved gem path.
-gem_in_carton_entry =
+cartoned_gem_entry =
   File.join(
-    math_gem.full_gem_path,
-    math_gem.require_paths.fetch(0),
-    'gem_in_carton.rb',
+    cartoned_gem.full_gem_path,
+    cartoned_gem.require_paths.fetch(0),
+    'cartoned_gem.rb',
   )
+pp cartoned_gem_entry
 
 MathHelper = import 'math_helper'
 Billing = import 'billing'
-GemInCarton = import gem_in_carton_entry
-
-main_can_see_bigdecimal =
-  begin
-    BigDecimal
-    true
-  rescue NameError
-    false
-  end
+# CartonedGemExports = import 'gem_in_carton'
+CartonedGemExports = import cartoned_gem_entry
 
 puts '-- Bundled require --'
-puts "math_helper bigdecimal version = #{MathHelper.fetch(:version)}"
-puts "math_helper number type = #{MathHelper.fetch(:number_type)}"
-puts "main can see BigDecimal? #{main_can_see_bigdecimal}"
+puts "math_helper bigdecimal version = #{MathHelper.version}"
+puts "math_helper number type = #{MathHelper.number_type}"
 puts
 puts '-- Transient bundled import --'
-puts "billing summary = #{Billing.fetch(:summary)}"
-puts "billing rounds with bigdecimal = #{Billing.fetch(:rounding_version)}"
+puts "billing summary = #{Billing.summary}"
+puts "billing rounds with bigdecimal = #{Billing.rounding_version}"
 puts
-puts '-- Gem carton --'
-puts "gem_in_carton version = #{GemInCarton.fetch(:version)}"
-puts "invoice label = #{GemInCarton.fetch(:invoice_label).('42')}"
-puts "exports hide INTERNAL_TEMPLATE? #{GemInCarton.const_defined?(:INTERNAL_TEMPLATE, false)}"
+puts '-- Cartoned gem --'
+puts "gem_in_carton version = #{CartonedGemExports.version}"
+puts "invoice label = #{CartonedGemExports.invoice_label('42')}"
+puts "INTERNAL_TEMPLATE defined? #{CartonedGemExports.const_defined?(:INTERNAL_TEMPLATE, false)}"
+
+# Ruby 4.0.2 still crashes on normal exit after Bundler has been loaded in
+# multiple boxes. Exit hard after printing so the example shows Carton's
+# behavior without tripping that runtime bug.
+STDOUT.flush
+STDERR.flush
+Process.exit!(0)

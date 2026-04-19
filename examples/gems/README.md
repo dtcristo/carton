@@ -4,8 +4,6 @@ Flat, non-Bundler example showing two cartons manually activating different `big
 
 `main.rb`, `bigdecimal4.rb`, and `bigdecimal3.rb` all live at the same level. Each carton calls `Carton.bootstrap_rubygems!`, activates one `bigdecimal` version with `gem`, then requires it and exports `BigDecimal::VERSION`.
 
-`main.rb` uses an `at_exit` hard exit as a temporary Ruby 4.0.2 workaround after loading two boxed native-extension copies of `bigdecimal`.
-
 ## Run
 
 ```sh

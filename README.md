@@ -43,11 +43,9 @@ export PI: 3.14159, add: method(:add)
 ```ruby
 require 'carton'
 
-$LOAD_PATH.unshift(__dir__)
-import('math') => { add:, PI: }
-
-add.(2, 3)
-PI
+MathTools = import_relative 'math'
+MathTools::PI
+MathTools.add(2, 3)
 ```
 
 ## Docs

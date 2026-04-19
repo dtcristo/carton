@@ -6,4 +6,4 @@ Rounding = import_relative '../../rounding/lib/rounding'
 
 SUMMARY = 'billing stays plain and forwards gem work to rounding'
 
-export summary: SUMMARY, rounding_version: Rounding.fetch(:version)
+export summary: SUMMARY, rounding_version: Rounding.version

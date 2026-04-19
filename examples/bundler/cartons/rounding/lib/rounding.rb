@@ -9,4 +9,4 @@ Carton.with_bundle { require 'bundler/setup' }
 # constants stay behind the returned namespace instead of becoming top-level here.
 BigDecimalBox = import 'bigdecimal'
 
-export version: BigDecimalBox.fetch(:BigDecimal)::VERSION
+export version: BigDecimalBox::BigDecimal::VERSION
