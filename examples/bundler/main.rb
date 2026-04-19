@@ -3,6 +3,7 @@
 require_relative '../../lib/carton'
 
 # The app's own Gemfile is only here so Bundler can resolve the support gem.
+Carton.bootstrap_rubygems!
 Carton.with_bundle { require 'bundler/setup' }
 
 cartons_dir = File.expand_path('cartons', __dir__)
@@ -28,7 +29,7 @@ pp cartoned_gem_entry
 
 MathHelper = import 'math_helper'
 Billing = import 'billing'
-# CartonedGemExports = import 'gem_in_carton'
+# CartonedGemExports = import 'cartoned_gem'
 CartonedGemExports = import cartoned_gem_entry
 
 puts '-- Bundled require --'

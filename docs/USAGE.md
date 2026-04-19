@@ -160,7 +160,7 @@ Then import the carton normally:
 
 ```ruby
 MathHelper = import 'math_helper'
-MathHelper.fetch(:number_type)
+MathHelper.number_type
 ```
 
 If the top-level app only needs its own bundle, `Carton.with_bundle { require 'bundler/setup' }` is enough. `Carton.bootstrap_rubygems!` is the extra step for bundled cartons loaded inside fresh boxes.
