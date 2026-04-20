@@ -93,6 +93,6 @@ See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) and [HOW_BOXES_WORK.md](HOW_BOXES_WORK.
 ## Why the bundler example stays explicit
 
 The bundler example keeps load-path setup, the top-level bundle that resolves
-`gem_in_carton`, and the bundled imports visible in `main.rb` on purpose. It is
+`cartoned_gem`, and the bundled imports visible in `main.rb` on purpose. It is
 meant to demonstrate Carton directly, not hide the mechanics behind another
 layer.

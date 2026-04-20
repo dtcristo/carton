@@ -13,7 +13,7 @@ Small app-shaped example showing:
 | `math_helper` | `4.1.1` | imported by name from `main.rb`, uses `require 'bigdecimal'` |
 | `billing` | none directly | imported by name from `main.rb`, plain carton that `import_relative`s `rounding` |
 | `rounding` | `4.1.1` | transient bundled carton, uses `import 'bigdecimal'` |
-| `gem_in_carton` | none | support gem resolved by the top-level bundle, then imported by file path |
+| `cartoned_gem` | none | support gem resolved by the top-level bundle, then imported by file path |
 
 `main.rb` keeps the carton `lib/` load-path setup explicit so `import 'math_helper'` and `import 'billing'` are easy to follow. The support gem comes from the app bundle instead: Bundler resolves the path gem, then `main.rb` imports that gem's entry file directly from the resolved gem path.
 

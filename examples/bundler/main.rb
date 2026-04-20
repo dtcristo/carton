@@ -41,7 +41,7 @@ puts "billing summary = #{Billing.summary}"
 puts "billing rounds with bigdecimal = #{Billing.rounding_version}"
 puts
 puts '-- Cartoned gem --'
-puts "gem_in_carton version = #{CartonedGemExports.version}"
+puts "cartoned_gem version = #{CartonedGemExports.version}"
 puts "invoice label = #{CartonedGemExports.invoice_label('42')}"
 puts "INTERNAL_TEMPLATE defined? #{CartonedGemExports.const_defined?(:INTERNAL_TEMPLATE, false)}"
 
