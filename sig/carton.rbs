@@ -1,8 +1,3 @@
-module Ruby
-  class Box < ::Module
-  end
-end
-
 module Kernel
   private
 
