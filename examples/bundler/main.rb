@@ -33,8 +33,6 @@ Dir
 
 MathHelper = import 'math_helper'
 Billing = import 'billing'
-# Bundler put the support gem on this box's load path, so it imports by name
-# just like any other carton feature.
 CartonedGemExports = import 'cartoned_gem'
 
 puts '-- Bundled require --'

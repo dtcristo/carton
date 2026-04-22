@@ -92,10 +92,3 @@ Duplicating and redefining the small RubyGems runtime surface inside an imported
 That shared activation state is why a second box can see a gem version activated by the first one even though its own `$LOAD_PATH` is separate. In local probes, activating `dotenv 3.2.0` in one box caused a second box targeting `dotenv ~> 2.0` to fail its Bundler activation and then crash under Ruby 4.0 + `Ruby::Box`.
 
 See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) and [HOW_BOXES_WORK.md](HOW_BOXES_WORK.md) for the deeper runtime model, plus [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) and [RUBY_UPSTREAM.md](RUBY_UPSTREAM.md) for the minimal upstream work.
-
-## Why the bundler example stays explicit
-
-The bundler example keeps load-path setup, the top-level bundle that resolves
-`cartoned_gem`, and the bundled imports visible in `main.rb` on purpose. It is
-meant to demonstrate Carton directly, not hide the mechanics behind another
-layer.
