@@ -23,6 +23,7 @@ Guidance and memory for agents working on this repo.
 - Everything should have tests. Write tests for new behaviour, run targeted tests as you go, and `RUBY_BOX=1 bundle exec rake` before finishing.
 - If you only changed an example, run that example during iteration and the full suite before finishing.
 - Run `bundle exec rake format` after every change.
+- Run `bundle exec rake rubocop` before finishing, and keep it passing for examples too.
 - Keep implementation and docs concise.
 - Do not over-engineer.
 - Comment important lines in examples so readers can see the carton, export, and bundle boundaries at a glance.
@@ -38,6 +39,7 @@ Guidance and memory for agents working on this repo.
 ## Docs
 
 - Keep `README.md`, `docs/USAGE.md`, `docs/DESIGN.md`, `docs/TODO.md`, `docs/HOW_GEMS_WORK.md`, `docs/HOW_BOXES_WORK.md`, `docs/RUBYGEMS_UPSTREAM.md`, `docs/RUBY_UPSTREAM.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, findings, or upstream plans change.
+- Keep `CHANGELOG.md` up to date under the `Unreleased` section whenever user-facing behavior changes.
 - Keep the root `README.md` minimal; move detail into focused docs.
 - Put future work, open questions, and upstream ideas in `docs/TODO.md`.
 - Update `AGENTS.md` whenever the user gives durable project guidance or you discover stable context worth remembering.
@@ -50,4 +52,5 @@ Guidance and memory for agents working on this repo.
 - `RUBY_BOX=1 bundle exec rake example:minimal` - minimal example
 - `RUBY_BOX=1 bundle exec rake example:gems` - manual RubyGems example
 - `RUBY_BOX=1 bundle exec rake example:bundler` - bundled cartons example
+- `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code

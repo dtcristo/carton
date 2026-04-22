@@ -27,4 +27,4 @@ module Carton
 end
 
 # Inject only the Kernel patch module into Kernel.
-::Kernel.prepend(Carton::KernelPatch)
+Kernel.prepend(Carton::KernelPatch)

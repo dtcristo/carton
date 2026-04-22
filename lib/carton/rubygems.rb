@@ -106,8 +106,8 @@ module Carton
         specification_record.all_names
       end
 
-      def each(&block)
-        specification_record.each(&block)
+      def each(&)
+        specification_record.each(&)
       end
 
       def find_all_by_name(name, *requirements)
@@ -360,8 +360,6 @@ module Carton
         end
     end
 
-    def boxed_rubygems_state
-      @boxed_rubygems_state
-    end
+    attr_reader :boxed_rubygems_state
   end
 end

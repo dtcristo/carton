@@ -29,7 +29,6 @@ cartons_dir = File.expand_path('cartons', __dir__)
 # are available to `import 'name'`.
 Dir
   .glob(File.join(cartons_dir, '*/lib'))
-  .sort
   .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
 MathHelper = import 'math_helper'

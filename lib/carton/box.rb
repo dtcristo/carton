@@ -45,9 +45,7 @@ module Carton
     end
 
     def set_export(value)
-      if export_set?
-        raise RuntimeError, 'only one export is allowed per imported file'
-      end
+      raise 'only one export is allowed per imported file' if export_set?
 
       @export = value
     end
@@ -115,7 +113,9 @@ module Carton
 
     def lookup_method_entry(name)
       [true, eval(name)]
-    rescue NameError, NoMethodError
+    rescue NoMethodError
+      [false, nil]
+    rescue NameError
       begin
         [true, __send__(name)]
       rescue NoMethodError

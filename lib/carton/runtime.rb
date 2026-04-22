@@ -54,8 +54,7 @@ module Carton
       box = Ruby::Box.current
 
       unless box.respond_to?(:set_export, true)
-        raise RuntimeError,
-              'export/export_default must be called from inside Carton.import/import_relative'
+        raise 'export/export_default must be called from inside Carton.import/import_relative'
       end
 
       box

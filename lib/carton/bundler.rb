@@ -34,7 +34,7 @@ module Carton
         if raw_require_paths.all? { |path|
              File.directory?(File.join(root, path))
            }
-          return root
+          root
         end
       end
     end

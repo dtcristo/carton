@@ -66,6 +66,7 @@ MathTools.add(2, 3)
 ```sh
 bundle install                        # Install development deps
 RUBY_BOX=1 bundle exec rake           # Run all tests and examples
+bundle exec rake rubocop             # Lint code
 bundle exec rake format               # Format code
 ```
 

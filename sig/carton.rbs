@@ -1,0 +1,43 @@
+module Ruby
+  class Box < ::Module
+  end
+end
+
+module Kernel
+  private
+
+  def import: (::String path) -> untyped
+  def import_relative: (::String path) -> untyped
+  def export: (**untyped values) -> void
+  def export_default: (untyped value) -> void
+end
+
+module Carton
+  VERSION: ::String
+
+  def self.bootstrap_rubygems!: () -> void
+  def self.with_bundle: [T] (?::String gemfile) { () -> T } -> T
+end
+
+class Carton::GemfileNotFound < ::StandardError
+end
+
+class Carton::Box < ::Ruby::Box
+  def []: (::String | ::Symbol key) -> untyped
+  def deconstruct_keys: (::Array[::Symbol]? keys) -> ::Hash[::Symbol, untyped]
+  def fetch: (*untyped args) { (*untyped args) -> untyped } -> untyped
+  def fetch_values: (*untyped keys) -> ::Array[untyped]
+  def has_key?: (::String | ::Symbol key) -> bool
+  def key?: (::String | ::Symbol key) -> bool
+  def values_at: (*untyped keys) -> ::Array[untyped]
+end
+
+class Carton::Exports < ::Module
+  def []: (::String | ::Symbol key) -> untyped
+  def deconstruct_keys: (::Array[::Symbol]? keys) -> ::Hash[::Symbol, untyped]
+  def fetch: (*untyped args) { (*untyped args) -> untyped } -> untyped
+  def fetch_values: (*untyped keys) -> ::Array[untyped]
+  def has_key?: (::String | ::Symbol key) -> bool
+  def key?: (::String | ::Symbol key) -> bool
+  def values_at: (*untyped keys) -> ::Array[untyped]
+end
