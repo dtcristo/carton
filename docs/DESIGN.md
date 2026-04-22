@@ -65,6 +65,9 @@ Carton.with_bundle { require 'bundler/setup' }
 A top-level app that only needs its own bundle, like `examples/bundler/main.rb`,
 can stay lighter and use plain `Carton.with_bundle { require 'bundler/setup' }`.
 The explicit RubyGems bootstrap is for bundled cartons loaded into fresh boxes.
+`Carton.with_bundle` also installs a small current-box RubyGems path-gem patch so
+Bundler path gems resolve through real `lib/` directories and stay importable by
+name.
 
 This keeps one carton-local bundle isolated from the caller, but current limitations remain:
 

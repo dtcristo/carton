@@ -163,9 +163,9 @@ MathHelper = import 'math_helper'
 MathHelper.number_type
 ```
 
-If the top-level app only needs its own bundle, `Carton.with_bundle { require 'bundler/setup' }` is enough. `Carton.bootstrap_rubygems!` is the extra step for bundled cartons loaded inside fresh boxes.
+If the top-level app only needs its own bundle, `Carton.with_bundle { require 'bundler/setup' }` is enough. That setup also keeps Bundler path gems importable by name, so an app bundle can do `import 'my_path_gem'`. `Carton.bootstrap_rubygems!` is the extra step for bundled cartons loaded inside fresh boxes.
 
-`Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and then lets Bundler derive the matching lockfile itself. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
+`Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and patches RubyGems' path-gem load-path lookup in the current box so Bundler exposes real `lib/` directories under `Ruby::Box`. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
 
 Current limits:
 

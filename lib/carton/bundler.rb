@@ -5,6 +5,41 @@ module Carton
   class GemfileNotFound < StandardError
   end
 
+  module BundlerSupport
+    # RubyGems defines `full_require_paths` in the root box during boot. Under
+    # `Ruby::Box`, Bundler path gems can then keep a synthetic install path there
+    # even though `loaded_from` points at the real checkout. Recompute path-gem
+    # load paths from the live gemspec location in the current box.
+    module SpecificationLoadPaths
+      def full_require_paths
+        root = real_require_paths_root
+        return super unless root
+
+        paths = raw_require_paths.map { |path| File.join(root, path) }
+        paths << extension_dir if have_extensions?
+        paths
+      end
+
+      def load_paths
+        full_require_paths
+      end
+
+      private
+
+      def real_require_paths_root
+        return unless raw_require_paths.any?
+        return unless loaded_from && File.file?(loaded_from)
+
+        root = File.dirname(loaded_from)
+        if raw_require_paths.all? { |path|
+             File.directory?(File.join(root, path))
+           }
+          return root
+        end
+      end
+    end
+  end
+
   class << self
     # Scope Bundler's process-global file discovery to the current carton.
     #
@@ -15,6 +50,7 @@ module Carton
     def with_bundle(gemfile = nil)
       raise ArgumentError, 'with_bundle requires a block' unless block_given?
 
+      install_bundler_support!
       previous_gemfile = ENV['BUNDLE_GEMFILE']
       previous_lockfile = ENV['BUNDLE_LOCKFILE']
       ENV['BUNDLE_GEMFILE'] = resolve_bundle_gemfile(
@@ -38,6 +74,17 @@ module Carton
     end
 
     private
+
+    def install_bundler_support!
+      return unless defined?(Ruby::Box) && Ruby::Box.enabled?
+      if Gem::BasicSpecification.ancestors.include?(
+           BundlerSupport::SpecificationLoadPaths,
+         )
+        return
+      end
+
+      Gem::BasicSpecification.prepend(BundlerSupport::SpecificationLoadPaths)
+    end
 
     def resolve_bundle_gemfile(gemfile, call_site)
       caller_dir = caller_directory(call_site)

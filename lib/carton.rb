@@ -11,6 +11,7 @@ require_relative 'carton/kernel_patch'
 require_relative 'carton/rubygems'
 
 module Carton
+  private_constant :BundlerSupport
   private_constant :BoxedRubyGems
   private_constant :ExportMethods
   private_constant :KernelPatch

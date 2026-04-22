@@ -117,6 +117,38 @@ class IntegrationTest < Minitest::Test
     end
   end
 
+  def test_with_bundle_exposes_path_gems_to_name_based_imports
+    script = <<~'RUBY'
+      require 'json'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      gemfile = File.expand_path('examples/bundler/Gemfile', Dir.pwd)
+      Carton.with_bundle(gemfile) { require 'bundler/setup' }
+
+      cartoned_gem = import 'cartoned_gem'
+      resolved = $LOAD_PATH.resolve_feature_path('cartoned_gem')
+
+      puts JSON.generate(
+        version: cartoned_gem.fetch(:version),
+        label: cartoned_gem.fetch(:invoice_label).call('42'),
+        resolved: resolved&.last,
+      )
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+
+    payload = JSON.parse(output)
+    assert_equal '0.1.0', payload.fetch('version')
+    assert_equal 'INV-0042', payload.fetch('label')
+    assert_match %r{/examples/bundler/cartoned_gem/lib/cartoned_gem\.rb\z},
+                 payload.fetch('resolved')
+  end
+
   def test_imported_file_can_require_carton_by_name
     Dir.mktmpdir('carton-require') do |dir|
       entry = File.join(dir, 'requires_carton.rb')
@@ -151,16 +183,23 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    env = ENV.keys.grep(/\ABUNDLE_/).to_h { |key| [key, nil] }
-    env['RUBYOPT'] = nil
-    env['RUBYLIB'] = nil
-    env['RUBY_BOX'] = '1'
-    output, error, status = Open3.capture3(env, RbConfig.ruby, '-e', script)
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-e', script)
 
     assert status.success?, [output, error].reject(&:empty?).join("\n")
 
     payload = JSON.parse(output)
     assert_equal '4.1.1', payload.fetch('bigdecimal_version')
     assert_nil payload.fetch('root_bigdecimal')
+  end
+
+  private
+
+  def unbundled_env
+    ENV
+      .keys
+      .grep(/\ABUNDLER?_/)
+      .to_h { |key| [key, nil] }
+      .merge('RUBYOPT' => nil, 'RUBYLIB' => nil, 'RUBY_BOX' => '1')
   end
 end

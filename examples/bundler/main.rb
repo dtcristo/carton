@@ -2,8 +2,25 @@
 
 require_relative '../../lib/carton'
 
-# The app's own Gemfile is only here so Bundler can resolve the support gem.
-Carton.bootstrap_rubygems!
+at_exit do
+  status =
+    if $!.is_a?(SystemExit)
+      $!.status
+    elsif $!
+      1
+    else
+      0
+    end
+
+  # Ruby 4.0.2 still crashes on normal exit after boxed Bundler loads, so the
+  # runnable examples exit hard after printing or failing.
+  STDOUT.flush
+  STDERR.flush
+  Process.exit!(status)
+end
+
+# The top-level app only needs Bundler's normal setup. Bundled cartons loaded in
+# fresh boxes call `Carton.bootstrap_rubygems!` inside their own entrypoints.
 Carton.with_bundle { require 'bundler/setup' }
 
 cartons_dir = File.expand_path('cartons', __dir__)
@@ -15,22 +32,11 @@ Dir
   .sort
   .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
-cartoned_gem = Gem.loaded_specs.fetch('cartoned_gem')
-
-# Bundler found the support gem for us, so import its entry file directly from
-# the resolved gem path.
-cartoned_gem_entry =
-  File.join(
-    cartoned_gem.full_gem_path,
-    cartoned_gem.require_paths.fetch(0),
-    'cartoned_gem.rb',
-  )
-pp cartoned_gem_entry
-
 MathHelper = import 'math_helper'
 Billing = import 'billing'
-# CartonedGemExports = import 'cartoned_gem'
-CartonedGemExports = import cartoned_gem_entry
+# Bundler put the support gem on this box's load path, so it imports by name
+# just like any other carton feature.
+CartonedGemExports = import 'cartoned_gem'
 
 puts '-- Bundled require --'
 puts "math_helper bigdecimal version = #{MathHelper.version}"
@@ -44,10 +50,3 @@ puts '-- Cartoned gem --'
 puts "cartoned_gem version = #{CartonedGemExports.version}"
 puts "invoice label = #{CartonedGemExports.invoice_label('42')}"
 puts "INTERNAL_TEMPLATE defined? #{CartonedGemExports.const_defined?(:INTERNAL_TEMPLATE, false)}"
-
-# Ruby 4.0.2 still crashes on normal exit after Bundler has been loaded in
-# multiple boxes. Exit hard after printing so the example shows Carton's
-# behavior without tripping that runtime bug.
-STDOUT.flush
-STDERR.flush
-Process.exit!(0)

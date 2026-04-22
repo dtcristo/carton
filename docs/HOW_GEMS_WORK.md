@@ -149,6 +149,11 @@ Carton.with_bundle { require "bundler/setup" }
 
 This works for conflicting bundled cartons from an otherwise unbundled parent. It still does **not** make an already-bundled parent process a reliable place to activate another boxed bundle.
 
+At the top-level app boundary, `Carton.with_bundle { require "bundler/setup" }`
+also patches RubyGems' path-gem load-path lookup in the current box. That keeps
+Bundler path gems on real `lib/` directories so `import "my_path_gem"` works
+under `Ruby::Box`.
+
 ### What applications generally should touch
 
 For most applications:
@@ -616,7 +621,7 @@ These are the exact areas Carton and any upstream isolation work eventually need
 Carton's current design matches the runtime facts well:
 
 - `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
-- `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and clears stale `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
+- `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]`, clears stale `ENV["BUNDLE_LOCKFILE"]`, and redefines the path-gem load-path lookup in the current box because Bundler still discovers bundle files from process-global environment state and RubyGems path specs otherwise keep a root-box synthetic path under `Ruby::Box`.
 - `Carton.bootstrap_rubygems!` plus in-box `require "bundler/setup"` keeps Bundler load-path mutation inside the box.
 - `Carton::Runtime.import` snapshots/restores `Gem.loaded_specs` after a bootstrapped boxed import because that RubyGems registry still leaks across boxes in practice.
 
