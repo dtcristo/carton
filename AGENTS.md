@@ -54,3 +54,17 @@ Guidance and memory for agents working on this repo.
 - `RUBY_BOX=1 bundle exec rake example:bundler` - bundled cartons example
 - `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues (`gh` CLI); external PRs are also a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical names: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
