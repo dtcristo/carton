@@ -163,15 +163,23 @@ MathHelper = import 'math_helper'
 MathHelper.number_type
 ```
 
-If the top-level app only needs its own bundle, `Carton.with_bundle { require 'bundler/setup' }` is enough. That setup also keeps Bundler path gems importable by name, so an app bundle can do `import 'my_path_gem'`. `Carton.bootstrap_rubygems!` is the extra step for bundled cartons loaded inside fresh boxes.
+If the top-level app only needs its own non-path bundle,
+`Carton.with_bundle { require 'bundler/setup' }` is enough.
+`Carton.bootstrap_rubygems!` remains compatibility setup for bundled cartons
+loaded inside fresh boxes.
 
-`Carton.bootstrap_rubygems!` installs Carton's box-local RubyGems patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and patches RubyGems' path-gem load-path lookup in the current box so Bundler exposes real `lib/` directories under `Ruby::Box`. With no argument, `with_bundle` searches upward from the calling file for `gems.rb` or `Gemfile`.
+`Carton.bootstrap_rubygems!` installs Carton's temporary RubyGems compatibility
+patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears
+any stale `BUNDLE_LOCKFILE`, and installs a path-gem compatibility patch. With
+no argument, `with_bundle` searches upward from the calling file for `gems.rb`
+or `Gemfile`.
 
 Current limits:
 
-- bundled cartons work best from an unbundled parent process
-- treat `bundle exec` as unsupported when a box will activate its own bundle
-- `Gem.loaded_specs` is still shared enough that Carton snapshots/restores it at the import boundary after a bootstrapped boxed import
+- `RUBY_BOX=1 bundle exec` fails during prelude before application code starts,
+- boxed path-gem setup remains unsupported,
+- `Carton.bootstrap_rubygems!` and loaded-spec restoration are compatibility
+  code pending upstream path-bundle support.
 
 See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) for the minimal upstream plan.
 
@@ -179,12 +187,15 @@ See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEM
 
 ```sh
 RUBY_BOX=1 ruby examples/minimal/main.rb
-RUBY_BOX=1 bundle exec rake example:gems
-RUBY_BOX=1 bundle exec rake example:bundler
+RUBY_BOX=1 ruby examples/gems/main.rb
 ```
+
+The Bundler example remains an upstream path-gem regression and does not
+currently complete. The Rake example tasks also depend on Bundler, so run the
+working examples directly until boxed prelude setup is fixed.
 
 See the example READMEs for details:
 
-- [examples/minimal/README.md](examples/minimal/README.md)
-- [examples/gems/README.md](examples/gems/README.md)
-- [examples/bundler/README.md](examples/bundler/README.md)
+- [examples/minimal/README.md](../examples/minimal/README.md)
+- [examples/gems/README.md](../examples/gems/README.md)
+- [examples/bundler/README.md](../examples/bundler/README.md)

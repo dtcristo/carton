@@ -12,8 +12,5 @@ gem install bigdecimal -v 4.1.1
 RUBY_BOX=1 ruby examples/gems/main.rb
 ```
 
-Or let the repo task install any missing versions into your normal gem home:
-
-```sh
-RUBY_BOX=1 bundle exec rake example:gems
-```
+The Rake example task depends on Bundler. Run this example directly until boxed
+prelude setup is fixed.

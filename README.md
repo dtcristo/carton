@@ -64,11 +64,15 @@ MathTools.add(2, 3)
 ## Development
 
 ```sh
-bundle install                        # Install development deps
-RUBY_BOX=1 bundle exec rake           # Run all tests and examples
-bundle exec rake rubocop             # Lint code
-bundle exec rake format               # Format code
+bundle install                              # Install development deps
+bundle exec rake format                     # Format code
+bundle exec rake rubocop                    # Lint code
+RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
+RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 ```
+
+`RUBY_BOX=1 rake test` retains the boxed path-gem regression.
+`RUBY_BOX=1 bundle exec rake` retains the boxed Bundler prelude regression.
 
 ## License
 

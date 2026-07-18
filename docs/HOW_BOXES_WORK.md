@@ -1,6 +1,7 @@
 # How `Ruby::Box` works
 
-This guide is based on direct reading of the Ruby source tree at `/Users/dtcristo/Code/ruby/ruby`, especially:
+This guide is based on direct reading of the upstream Ruby source tree,
+especially:
 
 - `ruby/box.c`
 - `ruby/internal/box.h`
@@ -12,7 +13,8 @@ This guide is based on direct reading of the Ruby source tree at `/Users/dtcrist
 - `ruby/doc/language/box.md`
 - `ruby/test/ruby/test_box.rb`
 
-It also includes runtime probes run against Ruby `4.0.2` with `RUBY_BOX=1`.
+It also includes runtime probes against the versions pinned by this project,
+with `RUBY_BOX=1`.
 
 ## What `Ruby::Box` is trying to do
 
@@ -393,11 +395,10 @@ The most relevant one for gem/runtime work is:
 
 > Defined methods in a box may not be referred by built-in methods written in Ruby.
 
-That warning is easy to underestimate, but it matches what the gem/runtime probes found:
-
-- methods loaded in the root box do not automatically become a fresh box-local API surface,
-- simply changing box-local instance variables is sometimes not enough,
-- reopening or redefining methods inside the box can change the behavior back to being box-local.
+That warning is easy to underestimate, but it matches the remaining
+gem/runtime failures. Direct boxed method calls can work while dispatch through
+`Symbol#to_proc` selects the wrong method, and boxed `super` can select the
+wrong superclass implementation.
 
 This limitation is a big part of why RubyGems-in-box is hard even though `$LOAD_PATH` is already isolated.
 
@@ -407,9 +408,9 @@ Other documented or visible rough edges include:
 - some top-level method behavior still being incomplete,
 - incomplete guarantees around warnings and some other globally flavored facilities.
 
-## Observed Bundler edge under boxes
+## Current Bundler behavior under boxes
 
-One runtime probe was especially important:
+The supported stack handles the basic multi-box case:
 
 ```ruby
 box1 = Ruby::Box.new
@@ -419,17 +420,17 @@ box1.eval("require 'bundler'")
 box2.eval("require 'bundler'")
 ```
 
-On Ruby `4.0.2`, that succeeds during execution but crashes on normal process exit with a malloc/free abort.
+Both boxes load distinct `Bundler` modules and the process exits normally.
+Conflicting non-path bundles also keep their activation state separate from
+each other and the main box.
 
-Important details:
+Three boundaries remain incomplete:
 
-- requiring Bundler in only one box did **not** crash,
-- forcing `Process.exit!(0)` avoided teardown and preserved expected per-box behavior,
-- the crash happened even before trying conflicting Gemfiles.
-
-So there is a real `Ruby::Box` teardown/cleanup issue around multi-box Bundler loading.
-
-For Carton's goals, that makes this a Ruby runtime problem, not merely a Bundler API annoyance.
+- `RUBY_BOX=1 bundle exec` can evaluate a gemspec before
+  `Gem::Specification` is visible,
+- path-gem setup crosses method definitions loaded in different boxes,
+- boxed dispatch through `Symbol#to_proc` and `super` can select the wrong
+  method.
 
 ## What this means for Carton
 
@@ -450,9 +451,11 @@ Because new boxes copy the **root** box, not the current caller box. Carton ther
 
 Because `require` really does resolve against the loading box's local `$LOAD_PATH` and `$LOADED_FEATURES`.
 
-### Why that still is not enough for full gem isolation
+### Why that still is not enough for full Bundler support
 
-Because RubyGems was loaded in the root box during prelude, and some of its runtime methods and registries are not automatically fresh per box.
+RubyGems registry state is box-local on the supported stack. The remaining
+problems occur when startup and path-gem setup cross root-loaded and box-loaded
+method definitions.
 
 ### Why Carton should avoid unnecessary Ruby-core changes
 
@@ -463,10 +466,12 @@ Because most of the mechanics Carton wants are already present:
 - box-local constant/method tables,
 - box-local Bundler constants when Bundler is first required in the box.
 
-The real remaining blockers are narrower:
+The real remaining blockers are narrow:
 
-1. RubyGems/Bundler need a supported way to make their mutable registry state box-local.
-2. Ruby itself needs its multi-box Bundler teardown bug fixed.
+1. boxed symbol-proc dispatch must match direct dispatch,
+2. boxed `super` must find the correct superclass method,
+3. RubyGems/Bundler path-gem setup must complete inside each box,
+4. `RUBY_BOX=1 bundle exec` must survive prelude setup.
 
 That is a much smaller upstream target than "rebuild gem loading around boxes from scratch".
 
@@ -474,6 +479,8 @@ That is a much smaller upstream target than "rebuild gem loading around boxes fr
 
 If you want one sentence that stays accurate:
 
-> `Ruby::Box` already isolates file loading and most language-level definitions by attaching them to a per-box runtime record and per-box class extensions; the hard part is everything above that layer which was already loaded into the root box and still behaves like shared Ruby code.
+> `Ruby::Box` already isolates file loading, RubyGems activation state, and most
+> language definitions; the remaining Bundler work is correct method dispatch
+> and startup visibility across root and user boxes.
 
 That is the lens to keep while designing Carton.

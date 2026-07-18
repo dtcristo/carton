@@ -1,11 +1,10 @@
 # How Ruby gems, RubyGems, Bundler, and `Ruby::Box` fit together
 
-This guide is based on direct source reading in:
+This guide is based on direct reading of the upstream Ruby, RubyGems, and
+Bundler source trees.
 
-- `ruby` at `/Users/dtcristo/Code/ruby/ruby`
-- `rubygems` and Bundler at `/Users/dtcristo/Code/ruby/rubygems`
-
-It also uses runtime probes against Ruby `4.0.2` with `RUBY_BOX=1`.
+It also uses runtime probes against the versions pinned by this project, with
+`RUBY_BOX=1`.
 
 The guide has two layers:
 
@@ -118,7 +117,8 @@ Or in one sentence:
 
 That means file loading itself is already much more isolated than normal Ruby.
 
-But gems are only partly isolated, because RubyGems and Bundler are mostly Ruby code running on top of that runtime.
+RubyGems and Bundler are mostly Ruby code running on top of that runtime, so
+their behavior also depends on Ruby method lookup across boxes.
 
 The most important facts are:
 
@@ -126,7 +126,10 @@ The most important facts are:
 2. **New boxes are copied from the root box.**
 3. Therefore `require "rubygems"` is already satisfied in every new box.
 4. **Bundler is not preloaded that way.** If the first `require "bundler"` happens inside a box, that box gets its own `Bundler` constant and module state.
-5. The hard part is not Bundler's constant itself. The hard part is RubyGems state and RubyGems methods that were already loaded from the root box.
+5. On the supported stack, RubyGems activation/specification registries are
+   box-local enough for conflicting non-path bundles.
+6. The remaining hard parts are Bundler startup, path-gem setup, and method
+   dispatch across root-loaded and box-loaded definitions.
 
 That is why "just require `bundler/setup` inside each carton" feels like it should work, but does not fully work today.
 
@@ -134,10 +137,13 @@ That is why "just require `bundler/setup` inside each carton" feels like it shou
 
 The short version:
 
-- `$LOAD_PATH` changes from Bundler setup can stay box-local.
-- `Bundler` module state can be box-local if Bundler is first loaded inside that box.
-- but RubyGems state such as `Gem.loaded_specs` and `Gem::Specification`'s registries still need special handling,
-- and some RubyGems singleton methods loaded in the root box keep acting like root-defined behavior unless they are redefined inside the box.
+- `$LOAD_PATH`, `Gem.loaded_specs`, and `Gem::Specification` registry changes
+  can stay box-local.
+- `Bundler` module state can be box-local if Bundler is first loaded inside the
+  box.
+- conflicting non-path bundles work in separate boxes, including under an
+  already-bundled main box.
+- path gems still cross unsupported boxed method-dispatch paths.
 
 That is why Carton's current bundled-carton pattern is:
 
@@ -147,12 +153,13 @@ Carton.bootstrap_rubygems!
 Carton.with_bundle { require "bundler/setup" }
 ```
 
-This works for conflicting bundled cartons from an otherwise unbundled parent. It still does **not** make an already-bundled parent process a reliable place to activate another boxed bundle.
+Carton still carries this compatibility bootstrap, but the supported runtime no
+longer needs a broad RubyGems registry split for conflicting non-path bundles.
 
 At the top-level app boundary, `Carton.with_bundle { require "bundler/setup" }`
-also patches RubyGems' path-gem load-path lookup in the current box. That keeps
-Bundler path gems on real `lib/` directories so `import "my_path_gem"` works
-under `Ruby::Box`.
+also patches RubyGems' path-gem load-path lookup in the current box. Path-gem
+setup remains incomplete on the supported stack, so this is compatibility code,
+not a complete solution.
 
 ### What applications generally should touch
 
@@ -505,49 +512,7 @@ Observed result:
 
 So the statement "Bundler must be one global module for the whole process" is **not** the real blocker.
 
-### Shared or tricky today
-
-These are the hard parts:
-
-#### `Gem` is effectively shared
-
-`Gem.object_id` is the same in main and in fresh boxes because RubyGems was loaded from the root box during prelude.
-
-#### `Gem.loaded_specs` starts shared
-
-Fresh boxes begin with the same `Gem.loaded_specs` object.
-
-But there is an important nuance:
-
-```ruby
-Gem.instance_variable_set(:@loaded_specs, Gem.loaded_specs.dup)
-```
-
-inside a box gives that box its own `@loaded_specs`, and the reader starts returning the box-local hash.
-
-So `Gem.loaded_specs` is not blocked by the VM. It is only not automatically split.
-
-#### `Gem::Specification` is the deeper problem
-
-The biggest probe result was this:
-
-1. setting `Gem::Specification.@specification_record` inside a box was possible,
-2. setting `Gem::Specification.@unresolved_deps` inside a box was possible,
-3. but calling the already-defined root-loaded method `Gem::Specification.all = ...` still behaved like shared/root behavior,
-4. until those singleton methods were redefined inside the box.
-
-Once the box redefined methods such as:
-
-- `Gem::Specification.specification_record`
-- `Gem::Specification.all`
-- `Gem::Specification.all=`
-- `Gem::Specification.unresolved_deps`
-
-the mutations became box-local.
-
-That is the clearest current answer to **why per-box Bundler does not "just work" today**:
-
-> the runtime can hold box-local state, but RubyGems methods loaded from the root box do not automatically become a fresh box-local RubyGems API surface.
+### Remaining boundaries
 
 #### `ENV` is process-global
 
@@ -573,6 +538,25 @@ It is also why `Carton.with_bundle` scopes `BUNDLE_GEMFILE` and clears any
 stale `BUNDLE_LOCKFILE`: Bundler reads both from process-global `ENV`, and a
 leftover lockfile path would override the lockfile Bundler would otherwise
 derive from the selected Gemfile.
+
+#### Path-gem method dispatch
+
+Path-gem setup crosses RubyGems and Bundler classes loaded through different
+box contexts. The current integration prototype exposes two Ruby lookup bugs:
+
+- `flat_map(&:expanded_dependencies)` cannot see a method that direct dispatch
+  can see,
+- `Bundler::Dependency#initialize` resolves `super` to
+  `BasicObject#initialize` instead of boxed `Gem::Dependency#initialize`.
+
+These are Ruby dispatch problems. Rewriting the symbol proc as an explicit
+block is only diagnostic.
+
+#### `bundle exec` prelude
+
+With boxes enabled, `bundle exec` can evaluate the application gemspec before
+`Gem::Specification` is visible. This fails before Carton or application code
+can install a workaround.
 
 ## 8. Public APIs that matter for advanced gem/runtime work
 
@@ -618,34 +602,47 @@ These are the exact areas Carton and any upstream isolation work eventually need
 
 ## 9. Implications for Carton
 
-Carton's current design matches the runtime facts well:
+Carton's current design matches the runtime facts:
 
 - `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
 - `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]`, clears stale `ENV["BUNDLE_LOCKFILE"]`, and redefines the path-gem load-path lookup in the current box because Bundler still discovers bundle files from process-global environment state and RubyGems path specs otherwise keep a root-box synthetic path under `Ruby::Box`.
-- `Carton.bootstrap_rubygems!` plus in-box `require "bundler/setup"` keeps Bundler load-path mutation inside the box.
-- `Carton::Runtime.import` snapshots/restores `Gem.loaded_specs` after a bootstrapped boxed import because that RubyGems registry still leaks across boxes in practice.
+- `Carton.bootstrap_rubygems!` is retained as compatibility code while the
+  boxed Bundler path is experimental.
+- `Carton::Runtime.import` still snapshots/restores `Gem.loaded_specs` around a
+  bootstrapped import, though supported-stack probes show registry state is
+  already box-local.
 
-That is why conflicting bundled cartons can work today from an unbundled parent.
+Stock runtime probes show:
 
-But the current ceiling is also explained cleanly by the source:
+- two boxes activate conflicting non-path bundle versions,
+- the main box remains unactivated,
+- an already-bundled main box can activate a conflicting version in a child,
+- ordinary process exit succeeds.
 
-1. Ruby core already isolates the box's `$LOAD_PATH`.
-2. Bundler itself can already load per box.
-3. RubyGems was preloaded in the root box.
-4. Bundler rewrites RubyGems registries, not only `Gem.loaded_specs`.
-5. some of those RubyGems methods need box-local redefinition, not just box-local instance variables.
-6. `ENV` is still process-global.
-7. an already-bundled parent process can preload enough Bundler state to make boxed re-activation unreliable.
+Two gaps remain. Bundler path gems fail inside a stock box while assigning
+Bundler's `source` metadata, and `RUBY_BOX=1 bundle exec` can fail in prelude
+with `Gem::Specification` unavailable before application code runs.
+
+The current ceiling is explained cleanly:
+
+1. Ruby core isolates load state and RubyGems registry state.
+2. Bundler can load independently per box.
+3. `ENV` remains process-global and must be scoped explicitly.
+4. path-gem setup depends on method lookup that is not yet coherent across box
+   class extensions.
+5. `bundle exec` can fail before the main box sees a complete RubyGems API.
 
 So the long-term shape for Carton is:
 
 - keep using box-local `require "bundler/setup"` as the entry model,
-- keep the explicit `Carton.bootstrap_rubygems!` step before that setup,
-- split the small amount of RubyGems state that really must become per-box,
-- avoid unnecessary Ruby core changes unless the VM itself proves to be the blocker.
+- keep compatibility code explicit and removable,
+- fix the proven Ruby method-dispatch and prelude blockers upstream,
+- remove Carton's RubyGems registry patch once end-to-end path-bundle coverage
+  passes without it.
 
 That last point matters. The source reading and probes strongly suggest the first viable solution is **not** "give each box a brand new VM-level Bundler." The first viable solution is:
 
-> let each box keep its own Bundler module and box-local Ruby load state, then make the RubyGems runtime view that Bundler patches become box-local too.
+> let each box keep its own Bundler module and RubyGems state, then make method
+> dispatch across the root and user boxes coherent enough for path-gem setup.
 
 That is exactly the boundary Carton's upstream plan should target.

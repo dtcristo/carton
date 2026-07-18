@@ -1,8 +1,8 @@
-# Minimal Ruby upstream plan for boxed Bundler support
+# Ruby upstream plan for boxed Bundler support
 
-## High-level goal
+## Goal
 
-Keep Ruby changes as small as possible while making this reliable:
+Make ordinary Bundler setup reliable across `Ruby::Box` boundaries:
 
 ```ruby
 box1 = Ruby::Box.new
@@ -12,229 +12,79 @@ box1.eval("require 'bundler/setup'")
 box2.eval("require 'bundler/setup'")
 ```
 
-The desired end state is:
+Each box should keep its own load paths, loaded features, gem activation state,
+and Bundler module without changing the main box.
 
-- Ruby keeps providing box-local `$LOAD_PATH` and `$LOADED_FEATURES`,
-- RubyGems/Bundler make activation state box-local on top of that,
-- Ruby itself does not crash or corrupt teardown when multiple boxes load Bundler.
+## What already works
 
-## The key conclusion
+The supported runtime already provides:
 
-**No broad Ruby-core redesign is justified by the current evidence.**
+- box-local `$LOAD_PATH` and `$LOADED_FEATURES`,
+- box-local RubyGems activation and specification registries,
+- distinct Bundler modules in separate boxes,
+- conflicting non-path bundles in separate boxes,
+- a conflicting child bundle under an already-bundled main box,
+- clean ordinary process exit after Bundler loads in multiple boxes.
 
-The source reading and probes strongly suggest:
+No new VM-level gem registry or Bundler namespace is needed.
 
-1. Ruby already has the right loading model for this feature.
-2. The main remaining Ruby blocker is a real `Ruby::Box` crash when Bundler is required in multiple boxes.
-3. Ruby should not gain new box APIs or gem-loading APIs unless a RubyGems-only prototype proves they are truly necessary.
+## Current Ruby blockers
 
-So the Ruby upstream plan should be intentionally small.
+### Prelude visibility
 
-## What Ruby already gets right
+`RUBY_BOX=1 bundle exec` can load Bundler from `<internal:gem_prelude>` before
+`Gem::Specification` is visible where Bundler evaluates the application
+gemspec. The process fails before application code starts.
 
-These pieces are already in place:
+The regression should exercise ordinary `bundle exec` with boxes enabled and a
+Gemfile containing `gemspec`.
 
-### Box-local load state
+### Boxed method dispatch through `Symbol#to_proc`
 
-`ruby/load.c` and `ruby/vm.c` already make:
-
-- `$LOAD_PATH`
-- `$LOADED_FEATURES`
-- feature indexing
-- `require` resolution
-
-depend on `rb_loading_box()`.
-
-That is exactly the right foundation for boxed `bundler/setup`.
-
-### Root/main/user box model
-
-`ruby/box.c` and `ruby/internal/box.h` already provide:
-
-- a root box,
-- a main user box,
-- optional boxes created from the root box,
-- per-box load data,
-- per-box global-variable storage,
-- per-box class-extension copy-on-write.
-
-Again, that is already the model Carton wants.
-
-### Box-local Bundler constants are already possible
-
-Direct probes showed:
-
-- `Bundler` is not preloaded by Ruby prelude,
-- requiring `bundler` inside one box does not define `Bundler` in main,
-- two boxes can get distinct `Bundler` module objects.
-
-So Ruby does **not** need a new "per-box Bundler module" facility.
-
-## The one Ruby change that does look necessary
-
-## Fix the multi-box Bundler teardown crash
-
-This is the concrete blocker observed in runtime probes.
-
-### Reproduction
-
-With `RUBY_BOX=1`:
+In the boxed path-bundle integration prototype, direct dispatch to
+`spec.expanded_dependencies` works while:
 
 ```ruby
-box1 = Ruby::Box.new
-box2 = Ruby::Box.new
-
-box1.eval("require 'bundler'; Bundler::VERSION")
-box2.eval("require 'bundler'; Bundler::VERSION")
+specs.flat_map(&:expanded_dependencies)
 ```
 
-On Ruby `4.0.2`, execution succeeds, but the process aborts on normal exit with a malloc/free crash.
+does not see the boxed method. Replacing the symbol proc with an explicit block
+only moves the failure forward; it is diagnostic, not a Bundler fix.
 
-Important observations:
+Ruby needs a focused `test_box.rb` regression proving that symbol-proc dispatch
+uses the same boxed method lookup as a direct call.
 
-- one box requiring Bundler does not crash,
-- two boxes requiring Bundler do crash,
-- `Process.exit!(0)` avoids teardown and preserves expected per-box Bundler identity,
-- this happens before trying conflicting Gemfiles,
-- so this is a Ruby runtime issue even before RubyGems/Bundler activation isolation is solved.
+### Boxed `super` dispatch
 
-### Why this is a Ruby issue
+After the symbol-proc call is expanded, the second boxed bundle reaches
+`Bundler::Dependency#initialize`. Its `super` call resolves to
+`BasicObject#initialize` instead of boxed `Gem::Dependency#initialize`.
 
-The reproducer only asks Ruby to:
+Ruby needs a focused regression covering `super` from a box-loaded subclass to
+the correct superclass method across box class extensions.
 
-- create two boxes,
-- load the same large Ruby library into both,
-- shut down cleanly.
+## Recommended order
 
-If that crashes, Ruby::Box is not yet safe enough for the target design.
+1. Add the two minimal method-dispatch regressions to Ruby.
+2. Fix symbol-proc and `super` lookup independently.
+3. Fix the boxed `bundle exec` prelude regression independently.
+4. Rerun the RubyGems/Bundler path-bundle integration spec after each fix.
 
-RubyGems/Bundler upstream cannot solve this layer.
+Keep each change surgical. The integration failure does not justify changing
+Ruby boot order, making `ENV` box-local, or adding gem policy to the VM.
 
-## Implementation focus for the crash fix
+## Acceptance criteria
 
-The exact root cause is not proven yet, so the plan should stay evidence-based:
+Ruby-side work is complete when:
 
-### Areas most worth inspecting
+1. direct and symbol-proc method calls select the same boxed method,
+2. boxed `super` selects the correct superclass implementation,
+3. `RUBY_BOX=1 bundle exec` can evaluate an application gemspec,
+4. the RubyGems/Bundler boxed path-bundle integration reaches normal exit,
+5. non-box behavior remains unchanged.
 
-#### 1. Per-box class-extension lifetime and cleanup
+## Upstream stance
 
-Bundler loads a large amount of Ruby code and mutates many classes/modules.
-
-That means a lot of per-box class extensions are created.
-
-The most likely area is the machinery around:
-
-- `rb_class_duplicate_classext`
-- `rb_class_set_box_classext`
-- `rb_class_unlink_classext`
-- `rb_class_classext_free`
-- `box->classext_cow_classes`
-
-in `ruby/class.c` and `ruby/internal/class.h`.
-
-#### 2. Box teardown in `box.c`
-
-Because boxes track:
-
-- `loading_table`
-- `ruby_dln_libmap`
-- `gvar_tbl`
-- `classext_cow_classes`
-
-any double-free or use-after-free during box cleanup can surface late at process exit.
-
-#### 3. Native-extension bookkeeping as a secondary suspect
-
-Bundler itself is mostly Ruby, but loading it also pulls in support libraries such as `monitor`, and boxed loading has native-extension-specific code paths.
-
-So it is also worth checking:
-
-- `ruby_dln_libmap`
-- local-extension cleanup
-- extension-handle ownership assumptions across boxes
-
-This is a weaker hypothesis than class-extension cleanup, but still worth keeping in view.
-
-### What not to do while fixing the crash
-
-Do **not** use the crash as justification to:
-
-- redesign `Ruby::Box`,
-- move RubyGems out of prelude,
-- make `ENV` box-local,
-- add a VM-level gem registry,
-- change `require` semantics.
-
-The crash fix should be surgical.
-
-## Regression tests Ruby should gain
-
-At minimum, Ruby should add a `Ruby::Box` regression test that proves:
-
-1. two boxes can both `require "bundler"` without crashing on normal exit,
-2. a process that does so exits successfully,
-3. the test uses ordinary exit, not `exit!`.
-
-The best home is `ruby/test/ruby/test_box.rb` or a closely related box-specific test file.
-
-## What Ruby should explicitly avoid changing
-
-These changes are tempting, but not justified yet.
-
-### Do not move `ruby_init_prelude()` after main-box creation
-
-Yes, RubyGems being preloaded in the root box is part of why boxed gem isolation is tricky.
-
-But changing Ruby boot order would be a very wide semantic change with unclear fallout.
-
-Current evidence does not show that it is necessary.
-
-### Do not add a new VM-level per-box gem registry
-
-Ruby already provides per-box load state and per-box definition state.
-
-RubyGems can build on that itself. Ruby should not absorb RubyGems policy into the VM.
-
-### Do not add box-local `ENV`
-
-Bundler uses environment variables, and that is awkward. But `ENV` is process-global by nature, and changing that would be much larger than the actual activation-isolation problem.
-
-### Do not add new public APIs just to avoid Carton's current caller-side import resolution
-
-Carton now resolves imports in the caller box and only carries the matched load-path entry when a name-based import needs that feature root. That is still consistent with the current box model.
-
-Changing that model would be broader than the current need.
-
-## Contingency only if RubyGems-only isolation fails
-
-There is one possible fallback area, but it should stay explicitly out of scope unless the RubyGems prototype proves it necessary.
-
-Ruby's own `doc/language/box.md` warns:
-
-> Defined methods in a box may not be referred by built-in methods written in Ruby.
-
-If that limitation ultimately prevents RubyGems from installing a stable boxed runtime view from Ruby code alone, then Ruby may need a small semantic improvement around how root-defined Ruby methods interact with box-local redefinitions/state.
-
-But current evidence is **not** there yet, because:
-
-- box-local redefinition of RubyGems singleton methods already improved isolation in probes,
-- which suggests RubyGems likely can solve the main problem in user space.
-
-So this is a contingency, not part of the current upstream plan.
-
-## Acceptance criteria for Ruby upstream work
-
-Ruby-side upstream work is complete when all of these are true:
-
-1. two boxes can both require Bundler without crashing on normal exit,
-2. no new Ruby public API was needed to get there,
-3. the RubyGems/Bundler boxed-runtime prototype can run on top of existing box semantics,
-4. existing non-box Ruby behavior stays unchanged.
-
-## Recommended stance
-
-If this gets discussed upstream, the message should be:
-
-> Ruby already provides most of the right box semantics. We are not asking for new gem APIs in core. We are asking for one concrete `Ruby::Box` correctness fix so RubyGems/Bundler can safely build boxed activation isolation on top of the runtime that already exists.
-
-That keeps the Ruby ask narrow and defensible.
+Ruby already supplies the right isolation model. The remaining work is a small
+set of correctness fixes for method lookup and prelude loading across box
+boundaries, not a redesign of `Ruby::Box` or gem activation.

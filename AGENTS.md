@@ -12,10 +12,10 @@ Guidance and memory for agents working on this repo.
 - A package in this system is called a carton, though docs can still use "package" in plain English when it reads better.
 - Keep optional Bundler/RubyGems support clearly separated from the core import/export runtime.
 - Ruby::Box boxes start from root-box load paths/loaded features; prefer explicit caller-managed load-path setup over automatic inheritance.
-- `$LOAD_PATH` is box-local, but `Gem.loaded_specs` is shared across boxes in practice, so conflicting bundle activation still collides there.
-- Duplicating `Gem.loaded_specs` inside a box isolates a single bundled import from root state, but conflicting bundles still fail because Bundler also rewrites shared RubyGems entrypoints/spec state such as `Gem::Specification.all`.
-- Bundler itself can already load per box; the hard parts are root-loaded RubyGems methods/state and the Ruby 4.0.2 teardown crash when Bundler is required in multiple boxes.
-- Upstream changes must be strictly necessary; prototype a Carton-side monkey patch first and only upstream the smallest supportable RubyGems/Ruby changes afterward.
+- The supported stack gives each box distinct RubyGems registry state; conflicting non-path bundles work and exit normally.
+- Boxed path gems remain blocked by Ruby method dispatch through `Symbol#to_proc` and `super`.
+- `RUBY_BOX=1 bundle exec` fails during prelude before the app starts, so boxed Bundler support is incomplete.
+- Upstream changes must be strictly necessary; current evidence points to narrow Ruby dispatch/prelude fixes, not a RubyGems registry redesign.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules

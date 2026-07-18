@@ -2,23 +2,6 @@
 
 require_relative '../../lib/carton'
 
-at_exit do
-  status =
-    if $!.is_a?(SystemExit)
-      $!.status
-    elsif $!
-      1
-    else
-      0
-    end
-
-  # Ruby 4.0.2 still crashes on normal exit after boxed Bundler loads, so the
-  # runnable examples exit hard after printing or failing.
-  STDOUT.flush
-  STDERR.flush
-  Process.exit!(status)
-end
-
 # The top-level app only needs Bundler's normal setup. Bundled cartons loaded in
 # fresh boxes call `Carton.bootstrap_rubygems!` inside their own entrypoints.
 Carton.with_bundle { require 'bundler/setup' }

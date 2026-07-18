@@ -15,10 +15,12 @@ Small app-shaped example showing:
 | `rounding` | `3.3.1` | transient bundled carton, uses `import 'bigdecimal'` |
 | `cartoned_gem` | none | support gem resolved by the top-level bundle, then imported by name |
 
-`main.rb` keeps the carton `lib/` load-path setup explicit so `import 'math_helper'` and `import 'billing'` are easy to follow. The support gem comes from the app bundle instead: Bundler resolves the path gem, then `main.rb` imports it by name through the bundle-managed load path.
+`main.rb` keeps the carton `lib/` load-path setup explicit so
+`import 'math_helper'` and `import 'billing'` are easy to follow. The support
+gem exercises the unresolved boxed path-gem boundary.
 
-## Run
+## Current status
 
-```sh
-RUBY_BOX=1 bundle exec rake example:bundler
-```
+This example is the repository-level path-gem regression. It does not currently
+complete: boxed Bundler setup is blocked by Ruby method dispatch, and boxed
+`bundle exec` fails earlier during prelude.
