@@ -33,7 +33,7 @@ Guidance and memory for agents working on this repo.
 - Read `docs/RUBY_UPSTREAM.md` and `docs/RUBYGEMS_UPSTREAM.md` whenever upstream implications are relevant, and update them when plans or findings change.
 - Never bump the version or publish the gem.
 - When multiple implementation choices are viable, present a menu with your recommendation.
-- Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with commit messages that explain what changed and why, not terse one-liners, plus the required Co-authored-by trailer.
+- Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with commit messages that explain what changed and why, not terse one-liners.
 - Never push; the user will do that.
 
 ## Docs
