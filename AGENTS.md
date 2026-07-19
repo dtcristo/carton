@@ -29,8 +29,8 @@ Guidance and memory for agents working on this repo.
 - Comment important lines in examples so readers can see the carton, export, and bundle boundaries at a glance.
 - Never use thread local variables in implementation.
 - Always review https://docs.ruby-lang.org/en/4.0/Ruby/Box.html on how `Ruby::Box` works.
-- For box/gem/Bundler/RubyGems work, always re-read `docs/HOW_BOXES_WORK.md` and `docs/HOW_GEMS_WORK.md` before changing code.
-- Read `docs/RUBY_UPSTREAM.md` and `docs/RUBYGEMS_UPSTREAM.md` whenever upstream implications are relevant, and update them when plans or findings change.
+- For box/gem/Bundler/RubyGems work, always re-read `docs/how-boxes-work.md` and `docs/how-gems-work.md` before changing code.
+- Read `docs/ruby-upstream.md` and `docs/rubygems-upstream.md` whenever upstream implications are relevant, and update them when plans or findings change.
 - Never bump the version or publish the gem.
 - When multiple implementation choices are viable, present a menu with your recommendation.
 - Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with commit messages that explain what changed and why, not terse one-liners.
@@ -38,10 +38,10 @@ Guidance and memory for agents working on this repo.
 
 ## Docs
 
-- Keep `README.md`, `docs/USAGE.md`, `docs/DESIGN.md`, `docs/TODO.md`, `docs/HOW_GEMS_WORK.md`, `docs/HOW_BOXES_WORK.md`, `docs/RUBYGEMS_UPSTREAM.md`, `docs/RUBY_UPSTREAM.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, findings, or upstream plans change.
+- Keep `README.md`, `docs/usage.md`, `docs/design.md`, `docs/todo.md`, `docs/how-gems-work.md`, `docs/how-boxes-work.md`, `docs/rubygems-upstream.md`, `docs/ruby-upstream.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, findings, or upstream plans change.
 - Keep `CHANGELOG.md` up to date under the `Unreleased` section whenever user-facing behavior changes.
 - Keep the root `README.md` minimal; move detail into focused docs.
-- Put future work, open questions, and upstream ideas in `docs/TODO.md`.
+- Put future work, open questions, and upstream ideas in `docs/todo.md`.
 - Update `AGENTS.md` whenever the user gives durable project guidance or you discover stable context worth remembering.
 - Use `AGENTS.md` as a concise memory bank, not a changelog.
 

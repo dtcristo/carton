@@ -91,4 +91,4 @@ The remaining path-gem failures are method-lookup problems across box class
 extensions: symbol-proc dispatch misses a boxed method, and boxed `super` can
 select `BasicObject#initialize` instead of `Gem::Dependency#initialize`.
 
-See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) and [HOW_BOXES_WORK.md](HOW_BOXES_WORK.md) for the deeper runtime model, plus [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) and [RUBY_UPSTREAM.md](RUBY_UPSTREAM.md) for the minimal upstream work.
+See [how-gems-work.md](how-gems-work.md) and [how-boxes-work.md](how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](rubygems-upstream.md) and [ruby-upstream.md](ruby-upstream.md) for the minimal upstream work.

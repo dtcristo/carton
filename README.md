@@ -50,13 +50,13 @@ MathTools.add(2, 3)
 
 ## Docs
 
-- [USAGE.md](docs/USAGE.md) - detailed import/export, caller load path, and explicit Bundler bootstrap
-- [DESIGN.md](docs/DESIGN.md) - implementation overview and constraints
-- [HOW_GEMS_WORK.md](docs/HOW_GEMS_WORK.md) - deep guide to RubyGems, Bundler, activation, and boxes
-- [HOW_BOXES_WORK.md](docs/HOW_BOXES_WORK.md) - deep guide to `Ruby::Box` internals and sharp edges
-- [RUBYGEMS_UPSTREAM.md](docs/RUBYGEMS_UPSTREAM.md) - minimal RubyGems/Bundler upstream plan
-- [RUBY_UPSTREAM.md](docs/RUBY_UPSTREAM.md) - minimal Ruby upstream plan
-- [TODO.md](docs/TODO.md) - future library, docs, and tooling work
+- [usage.md](docs/usage.md) - detailed import/export, caller load path, and explicit Bundler bootstrap
+- [design.md](docs/design.md) - implementation overview and constraints
+- [how-gems-work.md](docs/how-gems-work.md) - deep guide to RubyGems, Bundler, activation, and boxes
+- [how-boxes-work.md](docs/how-boxes-work.md) - deep guide to `Ruby::Box` internals and sharp edges
+- [rubygems-upstream.md](docs/rubygems-upstream.md) - minimal RubyGems/Bundler upstream plan
+- [ruby-upstream.md](docs/ruby-upstream.md) - minimal Ruby upstream plan
+- [todo.md](docs/todo.md) - future library, docs, and tooling work
 - [examples/minimal/README.md](examples/minimal/README.md) - smallest example
 - [examples/gems/README.md](examples/gems/README.md) - manual RubyGems activation without Bundler
 - [examples/bundler/README.md](examples/bundler/README.md) - bundled cartons plus a support gem

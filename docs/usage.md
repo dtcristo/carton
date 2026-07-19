@@ -181,7 +181,7 @@ Current limits:
 - `Carton.bootstrap_rubygems!` and loaded-spec restoration are compatibility
   code pending upstream path-bundle support.
 
-See [HOW_GEMS_WORK.md](HOW_GEMS_WORK.md) for the runtime background and [RUBYGEMS_UPSTREAM.md](RUBYGEMS_UPSTREAM.md) for the minimal upstream plan.
+See [how-gems-work.md](how-gems-work.md) for the runtime background and [rubygems-upstream.md](rubygems-upstream.md) for the minimal upstream plan.
 
 ## Examples
 
