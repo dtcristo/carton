@@ -174,12 +174,14 @@ any stale `BUNDLE_LOCKFILE`, and installs a path-gem compatibility patch. With
 no argument, `with_bundle` searches upward from the calling file for `gems.rb`
 or `Gemfile`.
 
-Ruby 4.0.5 limits requiring 4.0.6 revalidation:
+Ruby 4.0.6 status:
 
-- `RUBY_BOX=1 bundle exec` failed during prelude before application code started,
-- boxed path-gem setup was unsupported,
-- `Carton.bootstrap_rubygems!` and loaded-spec restoration are compatibility
-  code pending upstream path-bundle support.
+- per-Carton Bundler setup and app-bundle path gems work through Carton's
+  ordinary API,
+- `RUBY_BOX=1 bundle exec` still fails during gemspec evaluation before
+  `Gem::Specification` is visible,
+- `Carton.bootstrap_rubygems!` and loaded-spec restoration remain compatibility
+  code that should shrink once upstream prelude support lands.
 
 See [how-gems-work.md](how-gems-work.md) for the runtime background and [rubygems-upstream.md](rubygems-upstream.md) for the minimal upstream plan.
 
@@ -188,10 +190,12 @@ See [how-gems-work.md](how-gems-work.md) for the runtime background and [rubygem
 ```sh
 RUBY_BOX=1 ruby examples/minimal/main.rb
 RUBY_BOX=1 ruby examples/gems/main.rb
+RUBY_BOX=1 ruby examples/bundler/main.rb
 ```
 
-The Bundler example remains the path-gem regression fixture. Its failure and
-the earlier boxed-prelude failure must be rechecked on Ruby 4.0.6.
+The Bundler example is the repository-level path-gem and nested-bundle
+regression. Boxed `bundle exec` with a gemspec remains an upstream prelude
+failure on Ruby 4.0.6.
 
 See the example READMEs for details:
 

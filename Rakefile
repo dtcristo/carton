@@ -64,7 +64,9 @@ task :test do
     *test_files.map { |file| Shellwords.escape(file) },
   ].join(' ')
 
-  sh(command, verbose: false)
+  # `bundle exec` leaves BUNDLER_SETUP set. A RUBY_BOX=1 child would re-enter
+  # bundler/setup during gem prelude and hit the gemspec visibility failure.
+  Bundler.with_unbundled_env { sh(command, verbose: false) }
 end
 
 namespace :example do

@@ -8,7 +8,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 
 | File | Role |
 | --- | --- |
-| `lib/carton.rb` | Entry point, version guard, and internal wiring |
+| `lib/carton.rb` | Entry point and internal wiring |
 | `lib/carton/bundler.rb` | `Carton.with_bundle` plus caller-file bundle discovery |
 | `lib/carton/rubygems.rb` | temporary compatibility patch behind `Carton.bootstrap_rubygems!` |
 | `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
@@ -67,14 +67,16 @@ A top-level app that only needs its own bundle, like `examples/bundler/main.rb`,
 can stay lighter and use plain `Carton.with_bundle { require 'bundler/setup' }`.
 The explicit RubyGems bootstrap is for Cartons that load Bundler inside fresh Boxes.
 `Carton.with_bundle` also installs a current-box RubyGems path-gem compatibility
-patch. The earlier boxed path-gem failure requires revalidation on Ruby 4.0.6.
+patch and leaves ordinary per-Carton Bundler setup as the supported shape.
 
-Ruby 4.0.5 limitations requiring 4.0.6 revalidation:
+Ruby 4.0.6 validation:
 
-- `RUBY_BOX=1 bundle exec` failed during prelude before application code started,
-- boxed path gems hit Ruby method-dispatch failures,
-- Carton still carries RubyGems compatibility code that current registry
-  isolation should eventually make unnecessary.
+- per-Carton Bundler setup, Imported Carton bundles, and app-bundle path gems work,
+- Main Box activation and load-path state stay unchanged across those imports,
+- `RUBY_BOX=1 bundle exec` still fails while evaluating a gemspec before
+  `Gem::Specification` is visible,
+- Carton clears process-global `BUNDLER_SETUP` around optional Box construction
+  so Master-based Boxes do not re-enter the caller's `bundler/setup`.
 
 The problem is not that Bundler has special C code mutating every box at once. Bundler and RubyGems do their activation work in Ruby:
 
@@ -82,13 +84,10 @@ The problem is not that Bundler has special C code mutating every box at once. B
 - `Bundler::SharedHelpers#default_lockfile` reads `ENV['BUNDLE_LOCKFILE']`
 - `Bundler::Runtime#setup` calls `clean_load_path`, `replace_entrypoints`, `mark_loaded`, and `Gem.add_to_load_path`
 - RubyGems activation checks and writes `Gem.loaded_specs`
+- RubyGems may re-require `ENV['BUNDLER_SETUP']` when Bundler is undefined in the loading Box
 
-Ruby 4.0.5 probes showed `$LOAD_PATH`, `Gem.loaded_specs`, and
-`Gem::Specification.specification_record` staying Box-local, with conflicting
-non-path bundles working beneath an already-bundled Main Box.
-
-Those probes also found path-gem method-lookup failures through symbol-proc and
-boxed `super` dispatch. Reproduce them on 4.0.6 before treating that diagnosis
-as current.
+Ruby 4.0.6 probes show `$LOAD_PATH`, `Gem.loaded_specs`, and conflicting
+non-path bundles staying Box-local beneath Carton's ordinary setup. The open
+upstream blocker is boxed `bundle exec` gemspec evaluation.
 
 See [how-gems-work.md](how-gems-work.md) and [how-boxes-work.md](how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](rubygems-upstream.md) and [ruby-upstream.md](ruby-upstream.md) for the minimal upstream work.

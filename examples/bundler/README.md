@@ -17,10 +17,11 @@ Small app-shaped example showing:
 
 `main.rb` keeps the carton `lib/` load-path setup explicit so
 `import 'math_helper'` and `import 'billing'` are easy to follow. The support
-gem exercises the unresolved boxed path-gem boundary.
+gem exercises the boxed path-gem boundary.
 
 ## Current status
 
-This example is the repository-level path-gem regression. Ruby 4.0.5 failed in
-boxed method dispatch and earlier during boxed `bundle exec` prelude; both
-failures require revalidation on Ruby 4.0.6.
+This example is the repository-level path-gem and nested-bundle regression. On
+Ruby 4.0.6 it passes: separate Cartons keep their gem versions, the app path
+gem imports cleanly, and Main Box activation state stays unchanged.
+`RUBY_BOX=1 bundle exec` with a gemspec remains an upstream prelude failure.

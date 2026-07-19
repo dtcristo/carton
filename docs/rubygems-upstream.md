@@ -5,60 +5,61 @@
 Keep ordinary Bundler setup isolated in separate `Ruby::Box` instances,
 including bundles that select conflicting versions of the same path gem.
 
-## What already works
+## What already works on Ruby 4.0.6
 
-Ruby 4.0.5 probes showed stock RubyGems/Bundler giving separate Boxes:
+Stock RubyGems/Bundler under Ruby 4.0.6, exercised through Carton's acceptance
+suite and Bundler example, gives separate Boxes:
 
 - distinct `Gem.loaded_specs`,
-- distinct `Gem::Specification.specification_record` state,
-- distinct Bundler modules,
 - isolated `$LOAD_PATH` mutation,
-- conflicting non-path bundle activation without main-box leakage.
+- conflicting non-path bundle activation without Main Box leakage,
+- app-bundle path gems importable as Cartons,
+- Imported Cartons with their own Gemfiles activating intended versions.
 
-An already-bundled Main Box could also activate a conflicting non-path version
-in an optional Box. Reproduce this on Ruby 4.0.6 before treating it as current;
-a broad RubyGems registry-localization patch is still not justified without a
-4.0.6 failure.
+Carton still scopes `BUNDLE_GEMFILE`, clears stale `BUNDLE_LOCKFILE`, installs a
+path-gem load-path compatibility patch, and clears `BUNDLER_SETUP` around
+optional Box construction so Master-based Boxes do not re-enter the caller's
+`bundler/setup` through RubyGems' process-global hook.
 
-## Ruby 4.0.5 integration failure
+## Ruby 4.0.6 startup failure
 
-The upstream prototype creates two path bundles containing different versions
-of the same gem, runs `bundler/setup` in separate Boxes, and checks that Main
-Box's activation state and load path remain unchanged.
+`RUBY_BOX=1 bundle exec` still fails when the Gemfile evaluates a gemspec:
 
-On Ruby 4.0.5, path-gem setup first failed while Bundler assigned
-`Gem::Specification#source=`. With the candidate caller-box runtime semantics,
-setup advances and exposes two Ruby dispatch bugs:
+```text
+Bundler::GemspecError: uninitialized constant Gem::Specification
+```
 
-1. `flat_map(&:expanded_dependencies)` cannot see a boxed method that a direct
-   call can see.
-2. `Bundler::Dependency#initialize` resolves `super` to
-   `BasicObject#initialize` instead of boxed `Gem::Dependency#initialize`.
+That failure is owned by Ruby prelude ordering under Boxes. Do not change
+Bundler to paper over missing `Gem::Specification` visibility.
 
-Changing Bundler's symbol proc to an explicit block is only a diagnostic. It
-does not solve the second failure and should not be proposed upstream.
+## Historical Ruby 4.0.5 path-gem notes
+
+Ruby 4.0.5 path-gem setup previously failed during boxed method dispatch
+(`Symbol#to_proc` / `super`). Those diagnoses are historical. On Ruby 4.0.6 the
+Carton path-gem acceptance boundary passes; do not propose Bundler changes for
+that older failure unless a current integration reproduces it.
 
 ## RubyGems/Bundler work
 
-Keep the path-bundle integration spec as the downstream acceptance test. Run it
-on Ruby 4.0.6 first, then fix any reproduced Ruby dispatch issue before
-proposing a RubyGems or Bundler change.
+Keep the path-bundle integration coverage as the downstream acceptance test.
+No RubyGems or Bundler patch is justified by the current 4.0.6 Carton suite.
 
-Only change RubyGems/Bundler if the integration still fails after the Ruby
-fixes. Any remaining patch must be limited to the failing path-gem behavior and
-must preserve normal non-box setup.
+Only revisit RubyGems/Bundler if, after the Ruby prelude fix, a residual
+path-gem or registry failure remains that cannot be solved at the Carton
+boundary without breaking ordinary non-box setup.
 
 Bundler still selects its Gemfile through process-global environment state.
-Carton may continue scoping `BUNDLE_GEMFILE` and clearing `BUNDLE_LOCKFILE`;
-that is separate from activation isolation.
+Carton may continue scoping `BUNDLE_GEMFILE`, clearing `BUNDLE_LOCKFILE`, and
+guarding `BUNDLER_SETUP` around Box creation; that is separate from activation
+isolation.
 
 ## Integration acceptance criteria
 
-### Two boxed path bundles
+### Two boxed path bundles / Imported Carton bundles
 
-- box A and box B each run ordinary `require "bundler/setup"`,
-- each activates its own path-gem version,
-- each can require that gem,
+- separate Boxes each run ordinary `require "bundler/setup"`,
+- each activates its own intended gem versions,
+- path gems resolve and import successfully,
 - main `Gem.loaded_specs` and `$LOAD_PATH` remain unchanged,
 - the process exits normally.
 
@@ -83,7 +84,7 @@ that is separate from activation isolation.
 
 ## Upstream stance
 
-The RubyGems/Bundler model is already sufficiently isolated for ordinary gems.
-Keep the end-to-end path-gem regression ready, fix the proven Ruby dispatch
-bugs first, then upstream only any residual RubyGems/Bundler change the passing
-Ruby semantics demonstrate is necessary.
+RubyGems/Bundler isolation is already sufficient for Carton's per-Carton bundle
+model on Ruby 4.0.6. Upstream priority stays on the Ruby prelude/`bundle exec`
+failure; do not open Bundler changes for historical 4.0.5 path-gem dispatch
+without a fresh failing integration.

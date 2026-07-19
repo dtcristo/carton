@@ -13,14 +13,15 @@ Guidance and memory for agents working on this repo.
 - Keep optional Bundler/RubyGems support clearly separated from the core import/export runtime.
 - Target Ruby 4.0.6 or later: Master Box is the immutable copy source, Root Box runs bootstrap/builtins, Main Box runs the application, and Cartons run in optional Boxes.
 - Optional Boxes do not inherit Root or Main state; resolve imports in the caller and carry only the required load-path entry forward.
-- Ruby 4.0.5 probes found distinct RubyGems registry state and working conflicting non-path bundles; revalidate both on 4.0.6.
-- Revalidate the earlier boxed path-gem dispatch and `bundle exec` prelude failures on Ruby 4.0.6 before carrying their upstream plans forward.
-- Upstream changes must be strictly necessary; do not promote Ruby 4.0.5 findings into the 4.0.6 plan without reproducing them.
+- Ruby 4.0.6 confirms distinct RubyGems activation state, conflicting non-path bundles, and path-gem Carton imports under ordinary per-Carton Bundler setup.
+- `RUBY_BOX=1 bundle exec` still fails on Ruby 4.0.6 when a Gemfile evaluates a gemspec before `Gem::Specification` is visible; keep that as upstream prelude work.
+- Carton clears process-global `BUNDLER_SETUP` around optional Box construction so Master-based Boxes do not re-enter the caller's `bundler/setup`.
+- Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules
 
-- Everything should have tests. Write tests for new behaviour, run targeted tests as you go, and `RUBY_BOX=1 bundle exec rake` before finishing.
+- Everything should have tests. Write tests for new behaviour, run targeted tests as you go, and `bundle exec rake` before finishing. The test and example tasks set `RUBY_BOX=1` themselves; do not wrap the outer `bundle exec` in `RUBY_BOX=1` until the gemspec prelude failure is fixed upstream.
 - If you only changed an example, run that example during iteration and the full suite before finishing.
 - Run `bundle exec rake format` after every change.
 - Run `bundle exec rake rubocop` before finishing, and keep it passing for examples too.
@@ -48,13 +49,14 @@ Guidance and memory for agents working on this repo.
 
 ## Commands
 
-- `RUBY_BOX=1 bundle exec rake` - full suite
-- `RUBY_BOX=1 bundle exec rake test` - unit tests only
-- `RUBY_BOX=1 bundle exec rake example:minimal` - minimal example
-- `RUBY_BOX=1 bundle exec rake example:gems` - manual RubyGems example
-- `RUBY_BOX=1 bundle exec rake example:bundler` - per-Carton Bundler example
+- `bundle exec rake` - full suite (tests/examples set `RUBY_BOX=1`)
+- `bundle exec rake test` - unit tests only
+- `bundle exec rake example:minimal` - minimal example
+- `bundle exec rake example:gems` - manual RubyGems example
+- `bundle exec rake example:bundler` - per-Carton Bundler example
 - `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code
+- Prefer `mise x ruby@4.0.6 -- ...` when the shell default Ruby is older than the package baseline.
 
 ## Agent skills
 
