@@ -39,6 +39,9 @@ end
 
 def test_runner
   <<~RUBY
+    $stdout.sync = true
+    $stderr.sync = true
+
     at_exit do
       status =
         if $!.is_a?(SystemExit)
@@ -66,7 +69,14 @@ task :test do
 
   # `bundle exec` leaves BUNDLER_SETUP set. A RUBY_BOX=1 child would re-enter
   # bundler/setup during gem prelude and hit the gemspec visibility failure.
-  Bundler.with_unbundled_env { sh(command, verbose: false) }
+  # Install the Bundler-example deps the integration suite exercises.
+  Bundler.with_unbundled_env do
+    install_example_bigdecimals
+    Dir
+      .glob(File.join('examples', 'bundler', '**/Gemfile'))
+      .each { |gemfile| install_example_bundle(gemfile) }
+    sh(command, verbose: false)
+  end
 end
 
 namespace :example do

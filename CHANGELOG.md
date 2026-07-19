@@ -25,7 +25,8 @@
   Master-based Boxes do not re-enter the caller's `bundler/setup` through
   RubyGems' load hook.
 - The test rake task now clears Bundler env when spawning `RUBY_BOX=1` Ruby so
-  inherited `BUNDLER_SETUP` cannot trip the gemspec prelude failure.
+  inherited `BUNDLER_SETUP` cannot trip the gemspec prelude failure, and installs
+  the Bundler-example dependencies the integration suite exercises.
 - Bootstrapped boxed imports now restore the caller's `Gem.loaded_specs` view after RubyGems activation.
 
 ## [0.1.0] - 2026-04-16
