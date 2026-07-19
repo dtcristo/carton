@@ -10,7 +10,7 @@
   </p>
 </div>
 
-Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
+Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4.0.6+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
 
 ## Minimal usage
 
@@ -59,7 +59,7 @@ MathTools.add(2, 3)
 - [todo.md](docs/todo.md) - future library, docs, and tooling work
 - [examples/minimal/README.md](examples/minimal/README.md) - smallest example
 - [examples/gems/README.md](examples/gems/README.md) - manual RubyGems activation without Bundler
-- [examples/bundler/README.md](examples/bundler/README.md) - bundled cartons plus a support gem
+- [examples/bundler/README.md](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
 
 ## Development
 
@@ -71,8 +71,7 @@ RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
 RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 ```
 
-`RUBY_BOX=1 rake test` retains the boxed path-gem regression.
-`RUBY_BOX=1 bundle exec rake` retains the boxed Bundler prelude regression.
+The boxed path-gem and Bundler prelude regressions require revalidation on Ruby 4.0.6.
 
 ## License
 

@@ -2,7 +2,7 @@
 
 require_relative '../../lib/carton'
 
-# The top-level app only needs Bundler's normal setup. Bundled cartons loaded in
+# The top-level app only needs Bundler's normal setup. Cartons that load Bundler in
 # fresh boxes call `Carton.bootstrap_rubygems!` inside their own entrypoints.
 Carton.with_bundle { require 'bundler/setup' }
 

@@ -1,4 +1,4 @@
-# Ruby upstream plan for boxed Bundler support
+# Ruby 4.0.6 upstream validation plan for boxed Bundler support
 
 ## Goal
 
@@ -13,35 +13,37 @@ box2.eval("require 'bundler/setup'")
 ```
 
 Each box should keep its own load paths, loaded features, gem activation state,
-and Bundler module without changing the main box.
+and Bundler module without changing Main Box.
 
-## What already works
+## Runtime baseline
 
-The supported runtime already provides:
+Ruby 4.0.6 provides the Master-based Box model Carton targets:
 
+- Root, Main, and optional Boxes copy immutable Master state,
+- Main owns the top-level application,
+- optional Boxes do not inherit Root or Main mutations,
 - box-local `$LOAD_PATH` and `$LOADED_FEATURES`,
 - box-local RubyGems activation and specification registries,
 - distinct Bundler modules in separate boxes,
-- conflicting non-path bundles in separate boxes,
-- a conflicting child bundle under an already-bundled main box,
-- clean ordinary process exit after Bundler loads in multiple boxes.
+- independently loaded prelude helpers in user Boxes.
 
-No new VM-level gem registry or Bundler namespace is needed.
+The remaining behavior claims below came from Ruby 4.0.5 and require fresh
+4.0.6 reproduction before any upstream patch is proposed.
 
-## Current Ruby blockers
+## Ruby 4.0.5 candidate blockers
 
 ### Prelude visibility
 
-`RUBY_BOX=1 bundle exec` can load Bundler from `<internal:gem_prelude>` before
+On Ruby 4.0.5, `RUBY_BOX=1 bundle exec` could load Bundler from `<internal:gem_prelude>` before
 `Gem::Specification` is visible where Bundler evaluates the application
 gemspec. The process fails before application code starts.
 
-The regression should exercise ordinary `bundle exec` with boxes enabled and a
-Gemfile containing `gemspec`.
+First rerun the regression on 4.0.6 using ordinary `bundle exec` with Boxes
+enabled and a Gemfile containing `gemspec`.
 
 ### Boxed method dispatch through `Symbol#to_proc`
 
-In the boxed path-bundle integration prototype, direct dispatch to
+In the Ruby 4.0.5 boxed path-bundle integration prototype, direct dispatch to
 `spec.expanded_dependencies` works while:
 
 ```ruby
@@ -51,8 +53,7 @@ specs.flat_map(&:expanded_dependencies)
 does not see the boxed method. Replacing the symbol proc with an explicit block
 only moves the failure forward; it is diagnostic, not a Bundler fix.
 
-Ruby needs a focused `test_box.rb` regression proving that symbol-proc dispatch
-uses the same boxed method lookup as a direct call.
+If this reproduces on 4.0.6, Ruby needs a focused `test_box.rb` regression.
 
 ### Boxed `super` dispatch
 
@@ -60,15 +61,15 @@ After the symbol-proc call is expanded, the second boxed bundle reaches
 `Bundler::Dependency#initialize`. Its `super` call resolves to
 `BasicObject#initialize` instead of boxed `Gem::Dependency#initialize`.
 
-Ruby needs a focused regression covering `super` from a box-loaded subclass to
-the correct superclass method across box class extensions.
+If this reproduces on 4.0.6, Ruby needs a focused regression covering `super`
+from a Box-loaded subclass to the correct superclass method.
 
 ## Recommended order
 
-1. Add the two minimal method-dispatch regressions to Ruby.
-2. Fix symbol-proc and `super` lookup independently.
-3. Fix the boxed `bundle exec` prelude regression independently.
-4. Rerun the RubyGems/Bundler path-bundle integration spec after each fix.
+1. Run the full path-bundle and `bundle exec` regressions on Ruby 4.0.6.
+2. Add minimal regressions only for failures that reproduce.
+3. Fix symbol-proc, `super`, and prelude failures independently if present.
+4. Rerun the integration spec after each fix.
 
 Keep each change surgical. The integration failure does not justify changing
 Ruby boot order, making `ENV` box-local, or adding gem policy to the VM.
@@ -85,6 +86,6 @@ Ruby-side work is complete when:
 
 ## Upstream stance
 
-Ruby already supplies the right isolation model. The remaining work is a small
-set of correctness fixes for method lookup and prelude loading across box
-boundaries, not a redesign of `Ruby::Box` or gem activation.
+Ruby 4.0.6 supplies the intended isolation model. Establish current failures
+against that model before proposing correctness fixes; do not carry 4.0.5 boot
+or inheritance assumptions into upstream work.

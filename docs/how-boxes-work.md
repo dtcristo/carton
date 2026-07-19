@@ -13,8 +13,10 @@ especially:
 - `ruby/doc/language/box.md`
 - `ruby/test/ruby/test_box.rb`
 
-It also includes runtime probes against the versions pinned by this project,
-with `RUBY_BOX=1`.
+The canonical model is tagged Ruby 4.0.6 source. Historical runtime probes are
+labelled Ruby 4.0.5 where they still await 4.0.6 reproduction.
+See [root-box-vs-main-box.md](root-box-vs-main-box.md) for the tagged sources
+and version split.
 
 ## What `Ruby::Box` is trying to do
 
@@ -76,51 +78,32 @@ box::MY_CONST
 
 The box object is how code defined in the box is reached from the outside.
 
-## The three box kinds
+## The four box roles
 
-Ruby's own docs and `box.c` make an important distinction:
+Ruby 4.0.6 distinguishes these roles:
 
-| Box kind | What it is |
+| Box role | What it is |
 | --- | --- |
-| root box | created during Ruby bootstrap |
-| main box | the user box that runs the main script |
-| optional box | every extra `Ruby::Box.new` box |
+| Master Box | internal immutable template; no code runs there |
+| Root Box | runs Ruby bootstrap and builtin code |
+| Main Box | user Box that runs the command-line program and `-r` loads |
+| optional Box | extra user Box created by `Ruby::Box.new` |
 
-The root box is special:
+Main and optional Boxes are both user Boxes. Carton runs each imported Carton
+inside an optional Box; the application that imports them runs in Main.
 
-- Ruby bootstrap runs there,
-- builtin classes/modules are originally defined there,
-- RubyGems is loaded there during prelude,
-- new user boxes are copied from it.
+## Boot sequence and the Master Box
 
-The main box is also special:
+Ruby 4.0.6 initializes Root and Main from Master before prelude loading. Root,
+Main, and later optional Boxes all start from Master rather than copying one
+another.
 
-- it is created automatically after prelude,
-- it is the default user world,
-- top-level user code runs there.
+Prelude helpers such as RubyGems are then loaded into each user Box's own
+environment. A new optional Box therefore does not inherit application state
+from Main or bootstrap mutations from Root.
 
-Every later `Ruby::Box.new` is an optional user box.
-
-## Boot sequence: the root box matters more than you think
-
-The startup ordering in `ruby/ruby.c` is the first key fact:
-
-1. initialize Ruby runtime,
-2. run `ruby_init_prelude()`,
-3. only then call `rb_initialize_main_box()`.
-
-That means code loaded during prelude becomes part of root-box state before the main user box exists.
-
-`ruby/gem_prelude.rb` is especially important because it loads RubyGems:
-
-```ruby
-require "rubygems"
-require "bundled_gems"
-```
-
-So when the main box and later user boxes are created, they are created from a root box that already knows about RubyGems.
-
-This is the single most important `Ruby::Box` fact for Carton's gem story.
+This makes Box contents independent of creation time and prevents Root from
+acting as a mutable template for later Boxes.
 
 ## The actual box data structure
 
@@ -158,30 +141,31 @@ It does **not** imply a brand new VM or brand new copies of every object.
 
 ## How a new box is created
 
-`box_entry_initialize` in `ruby/box.c` is the key constructor for user boxes.
+`box_entry_initialize` in `ruby/box.c` is the key constructor for Boxes.
 
-It duplicates root-box state:
+It duplicates Master Box state:
 
-- `rb_ary_dup(root->load_path)`
-- `rb_ary_dup(root->loaded_features)`
-- `rb_hash_dup(root->loaded_features_realpaths)`
+- `rb_ary_dup(master->load_path)`
+- `rb_ary_dup(master->loaded_features)`
+- `rb_hash_dup(master->loaded_features_realpaths)`
 - new empty `loading_table`
 - new empty `gvar_tbl`
 - new empty `classext_cow_classes`
 
 Two consequences matter a lot:
 
-### 1. New boxes are copied from the root box, not from the caller
+### 1. New Boxes are copied from Master, not from the caller
 
 This is why a box created deep inside another box does **not** automatically inherit the caller's custom `$LOAD_PATH`.
 
-Carton works around that by manually copying forward only the non-gem parent paths it wants to preserve.
+Carton handles that by carrying forward only the caller load-path entry that
+resolved the imported feature.
 
-### 2. A box starts with whatever the root box had already loaded
+### 2. Root and Main state are not inherited
 
-That includes prelude-loaded libraries such as RubyGems.
-
-So a fresh box is not "blank". It is "root snapshot plus per-box copy-on-write state".
+Mutating `$LOAD_PATH` or loading application code in Root or Main does not
+change the Master template used by a later optional Box. Any state Carton wants
+to carry across the boundary must be propagated explicitly.
 
 ## `current box` vs `loading box`
 
@@ -373,19 +357,14 @@ This explains why boxes can do things normal Ruby cannot easily do with one shar
 
 It also explains why teardown and cleanup bugs in `Ruby::Box` can be subtle.
 
-## The main box is created late on purpose
+## Main Box owns the user program
 
-`rb_initialize_main_box` in `ruby/box.c` creates the main user box after prelude.
+Ruby 4.0.6 creates Main from Master before prelude loading. The command-line
+program and `-r` features run in Main, not Root. Root remains the environment
+for bootstrap and builtin code.
 
-It also eagerly creates a writable class-extension for `Object` in the main box:
-
-```c
-RCLASS_EXT_WRITABLE_IN_BOX(rb_cObject, box);
-```
-
-The comment says this finalizes the set of visible top-level constants.
-
-That is a good clue about how much of `Ruby::Box` is really about "what `Object` means in this box" rather than just file loading.
+This distinction is semantic, not merely boot ordering: Carton's top-level
+application is hosted by Main, while imported Cartons run in optional Boxes.
 
 ## Known sharp edges from Ruby's own docs
 
@@ -395,10 +374,10 @@ The most relevant one for gem/runtime work is:
 
 > Defined methods in a box may not be referred by built-in methods written in Ruby.
 
-That warning is easy to underestimate, but it matches the remaining
-gem/runtime failures. Direct boxed method calls can work while dispatch through
-`Symbol#to_proc` selects the wrong method, and boxed `super` can select the
-wrong superclass implementation.
+That warning is easy to underestimate, and it matched the Ruby 4.0.5
+gem/runtime failures. Direct boxed method calls worked while dispatch through
+`Symbol#to_proc` selected the wrong method, and boxed `super` selected the
+wrong superclass implementation. Revalidate both on 4.0.6.
 
 This limitation is a big part of why RubyGems-in-box is hard even though `$LOAD_PATH` is already isolated.
 
@@ -408,9 +387,9 @@ Other documented or visible rough edges include:
 - some top-level method behavior still being incomplete,
 - incomplete guarantees around warnings and some other globally flavored facilities.
 
-## Current Bundler behavior under boxes
+## Ruby 4.0.5 Bundler observations
 
-The supported stack handles the basic multi-box case:
+Ruby 4.0.5 probes handled the basic multi-Box case:
 
 ```ruby
 box1 = Ruby::Box.new
@@ -422,9 +401,10 @@ box2.eval("require 'bundler'")
 
 Both boxes load distinct `Bundler` modules and the process exits normally.
 Conflicting non-path bundles also keep their activation state separate from
-each other and the main box.
+each other and Main Box.
 
-Three boundaries remain incomplete:
+Ruby 4.0.5 exposed three incomplete boundaries that require reproduction on
+4.0.6:
 
 - `RUBY_BOX=1 bundle exec` can evaluate a gemspec before
   `Gem::Specification` is visible,
@@ -445,7 +425,7 @@ But the internals also explain Carton's current constraints:
 
 ### Why Carton resolves imports in the caller box first
 
-Because new boxes copy the **root** box, not the current caller box. Carton therefore asks the caller box to resolve the feature name, then carries only the matched load-path entry into the imported box when that feature needs its own load-path root.
+Because new Boxes copy **Master**, not the current caller Box. Carton therefore asks the caller Box to resolve the feature name, then carries only the matched load-path entry into the imported Box when that feature needs its own load-path root.
 
 ### Why `require "bundler/setup"` inside the box is the right shape
 
@@ -453,9 +433,9 @@ Because `require` really does resolve against the loading box's local `$LOAD_PAT
 
 ### Why that still is not enough for full Bundler support
 
-RubyGems registry state is box-local on the supported stack. The remaining
-problems occur when startup and path-gem setup cross root-loaded and box-loaded
-method definitions.
+RubyGems registry state is Box-local. The earlier startup and path-gem failures
+crossed definitions loaded in different Box contexts; reproduce them on 4.0.6
+before carrying that diagnosis forward.
 
 ### Why Carton should avoid unnecessary Ruby-core changes
 
@@ -466,12 +446,12 @@ Because most of the mechanics Carton wants are already present:
 - box-local constant/method tables,
 - box-local Bundler constants when Bundler is first required in the box.
 
-The real remaining blockers are narrow:
+The next upstream checks are narrow:
 
-1. boxed symbol-proc dispatch must match direct dispatch,
-2. boxed `super` must find the correct superclass method,
-3. RubyGems/Bundler path-gem setup must complete inside each box,
-4. `RUBY_BOX=1 bundle exec` must survive prelude setup.
+1. reproduce the earlier failures on Ruby 4.0.6,
+2. fix only any symbol-proc or `super` dispatch bugs that remain,
+3. complete RubyGems/Bundler path-gem setup inside each Box,
+4. verify `RUBY_BOX=1 bundle exec` under the 4.0.6 prelude model.
 
 That is a much smaller upstream target than "rebuild gem loading around boxes from scratch".
 
@@ -480,7 +460,7 @@ That is a much smaller upstream target than "rebuild gem loading around boxes fr
 If you want one sentence that stays accurate:
 
 > `Ruby::Box` already isolates file loading, RubyGems activation state, and most
-> language definitions; the remaining Bundler work is correct method dispatch
-> and startup visibility across root and user boxes.
+> language definitions; remaining Bundler work must be established against the
+> Ruby 4.0.6 Master-based model.
 
 That is the lens to keep while designing Carton.

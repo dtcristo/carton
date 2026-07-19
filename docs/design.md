@@ -48,15 +48,15 @@ There are three return shapes:
 
 ## Load path model
 
-Ruby::Box creates new user boxes from the root box, not from the current caller box. In `box.c`, each new box starts by duplicating the root box's `load_path` and `loaded_features`, and `require` resolves against the loading box's local `$LOAD_PATH` / `$LOADED_FEATURES`.
+Ruby 4.0.6 creates Root, Main, and optional user Boxes from an immutable internal Master Box, not from the current caller Box. `require` resolves against the loading Box's local `$LOAD_PATH` / `$LOADED_FEATURES`.
 
-Carton therefore does not copy the caller's whole load path forward anymore. Instead it resolves the feature name in the caller box first, then carries only the matching load-path entry into the new box if the imported feature needs that root for its own nested `require` calls.
+Carton therefore does not copy the caller's whole load path forward. It resolves the feature name in the caller Box first, then carries only the matching load-path entry into the new Box if the imported feature needs that path for its own nested `require` calls.
 
 This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicitly before using `import 'name'`.
 
 ## Bundler model
 
-The current bundled-carton model is explicit inside the carton entry file:
+Bundler setup is explicit inside the Carton entry file:
 
 ```ruby
 Carton.bootstrap_rubygems!
@@ -65,13 +65,13 @@ Carton.with_bundle { require 'bundler/setup' }
 
 A top-level app that only needs its own bundle, like `examples/bundler/main.rb`,
 can stay lighter and use plain `Carton.with_bundle { require 'bundler/setup' }`.
-The explicit RubyGems bootstrap is for bundled cartons loaded into fresh boxes.
+The explicit RubyGems bootstrap is for Cartons that load Bundler inside fresh Boxes.
 `Carton.with_bundle` also installs a current-box RubyGems path-gem compatibility
-patch. Boxed path-gem setup remains incomplete upstream.
+patch. The earlier boxed path-gem failure requires revalidation on Ruby 4.0.6.
 
-Current limitations:
+Ruby 4.0.5 limitations requiring 4.0.6 revalidation:
 
-- `RUBY_BOX=1 bundle exec` fails during prelude before application code starts,
+- `RUBY_BOX=1 bundle exec` failed during prelude before application code started,
 - boxed path gems hit Ruby method-dispatch failures,
 - Carton still carries RubyGems compatibility code that current registry
   isolation should eventually make unnecessary.
@@ -83,12 +83,12 @@ The problem is not that Bundler has special C code mutating every box at once. B
 - `Bundler::Runtime#setup` calls `clean_load_path`, `replace_entrypoints`, `mark_loaded`, and `Gem.add_to_load_path`
 - RubyGems activation checks and writes `Gem.loaded_specs`
 
-On the supported stack, `$LOAD_PATH`, `Gem.loaded_specs`, and
-`Gem::Specification.specification_record` stay box-local. Conflicting non-path
-bundles work in separate boxes, including beneath an already-bundled main box.
+Ruby 4.0.5 probes showed `$LOAD_PATH`, `Gem.loaded_specs`, and
+`Gem::Specification.specification_record` staying Box-local, with conflicting
+non-path bundles working beneath an already-bundled Main Box.
 
-The remaining path-gem failures are method-lookup problems across box class
-extensions: symbol-proc dispatch misses a boxed method, and boxed `super` can
-select `BasicObject#initialize` instead of `Gem::Dependency#initialize`.
+Those probes also found path-gem method-lookup failures through symbol-proc and
+boxed `super` dispatch. Reproduce them on 4.0.6 before treating that diagnosis
+as current.
 
 See [how-gems-work.md](how-gems-work.md) and [how-boxes-work.md](how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](rubygems-upstream.md) and [ruby-upstream.md](ruby-upstream.md) for the minimal upstream work.

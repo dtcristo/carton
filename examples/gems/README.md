@@ -12,5 +12,5 @@ gem install bigdecimal -v 4.1.1
 RUBY_BOX=1 ruby examples/gems/main.rb
 ```
 
-The Rake example task depends on Bundler. Run this example directly until boxed
-prelude setup is fixed.
+The Rake example task depends on Bundler. Its earlier boxed-prelude failure
+requires revalidation on Ruby 4.0.6.

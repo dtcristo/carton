@@ -7,7 +7,7 @@ including bundles that select conflicting versions of the same path gem.
 
 ## What already works
 
-On the supported stack, stock RubyGems/Bundler already gives separate boxes:
+Ruby 4.0.5 probes showed stock RubyGems/Bundler giving separate Boxes:
 
 - distinct `Gem.loaded_specs`,
 - distinct `Gem::Specification.specification_record` state,
@@ -15,17 +15,18 @@ On the supported stack, stock RubyGems/Bundler already gives separate boxes:
 - isolated `$LOAD_PATH` mutation,
 - conflicting non-path bundle activation without main-box leakage.
 
-An already-bundled main box can also activate a conflicting non-path version in
-a child box. A broad RubyGems registry-localization patch is therefore not an
-upstream target.
+An already-bundled Main Box could also activate a conflicting non-path version
+in an optional Box. Reproduce this on Ruby 4.0.6 before treating it as current;
+a broad RubyGems registry-localization patch is still not justified without a
+4.0.6 failure.
 
-## Current integration failure
+## Ruby 4.0.5 integration failure
 
 The upstream prototype creates two path bundles containing different versions
-of the same gem, runs `bundler/setup` in separate boxes, and checks that the main
-box's activation state and load path remain unchanged.
+of the same gem, runs `bundler/setup` in separate Boxes, and checks that Main
+Box's activation state and load path remain unchanged.
 
-On the supported runtime, path-gem setup first fails while Bundler assigns
+On Ruby 4.0.5, path-gem setup first failed while Bundler assigned
 `Gem::Specification#source=`. With the candidate caller-box runtime semantics,
 setup advances and exposes two Ruby dispatch bugs:
 
@@ -39,9 +40,9 @@ does not solve the second failure and should not be proposed upstream.
 
 ## RubyGems/Bundler work
 
-Keep the path-bundle integration spec as the downstream acceptance test. Once
-Ruby fixes boxed method dispatch, rerun it before proposing any RubyGems or
-Bundler change.
+Keep the path-bundle integration spec as the downstream acceptance test. Run it
+on Ruby 4.0.6 first, then fix any reproduced Ruby dispatch issue before
+proposing a RubyGems or Bundler change.
 
 Only change RubyGems/Bundler if the integration still fails after the Ruby
 fixes. Any remaining patch must be limited to the failing path-gem behavior and

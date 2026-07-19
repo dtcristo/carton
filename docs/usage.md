@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Ruby 4.0+
+- Ruby 4.0.6+
 - `RUBY_BOX=1`
 - `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
 
@@ -143,7 +143,7 @@ Toolbox.fetch(:helper)
 
 ## Bundler inside cartons
 
-The library works with or without Bundler. Plain cartons need no extra setup. For a bundled carton, do the RubyGems/Bundler setup inside that carton's entry file.
+The library works with or without Bundler. A Carton that needs Bundler performs RubyGems/Bundler setup inside its Entrypoint; other Cartons need no setup.
 
 ```ruby
 # cartons/math_helper/lib/math_helper.rb
@@ -165,8 +165,8 @@ MathHelper.number_type
 
 If the top-level app only needs its own non-path bundle,
 `Carton.with_bundle { require 'bundler/setup' }` is enough.
-`Carton.bootstrap_rubygems!` remains compatibility setup for bundled cartons
-loaded inside fresh boxes.
+`Carton.bootstrap_rubygems!` remains compatibility setup for Cartons that load
+Bundler inside fresh Boxes.
 
 `Carton.bootstrap_rubygems!` installs Carton's temporary RubyGems compatibility
 patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears
@@ -174,10 +174,10 @@ any stale `BUNDLE_LOCKFILE`, and installs a path-gem compatibility patch. With
 no argument, `with_bundle` searches upward from the calling file for `gems.rb`
 or `Gemfile`.
 
-Current limits:
+Ruby 4.0.5 limits requiring 4.0.6 revalidation:
 
-- `RUBY_BOX=1 bundle exec` fails during prelude before application code starts,
-- boxed path-gem setup remains unsupported,
+- `RUBY_BOX=1 bundle exec` failed during prelude before application code started,
+- boxed path-gem setup was unsupported,
 - `Carton.bootstrap_rubygems!` and loaded-spec restoration are compatibility
   code pending upstream path-bundle support.
 
@@ -190,9 +190,8 @@ RUBY_BOX=1 ruby examples/minimal/main.rb
 RUBY_BOX=1 ruby examples/gems/main.rb
 ```
 
-The Bundler example remains an upstream path-gem regression and does not
-currently complete. The Rake example tasks also depend on Bundler, so run the
-working examples directly until boxed prelude setup is fixed.
+The Bundler example remains the path-gem regression fixture. Its failure and
+the earlier boxed-prelude failure must be rechecked on Ruby 4.0.6.
 
 See the example READMEs for details:
 

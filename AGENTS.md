@@ -11,11 +11,11 @@ Guidance and memory for agents working on this repo.
 - The project should work with or without Bundler.
 - A package in this system is called a carton, though docs can still use "package" in plain English when it reads better.
 - Keep optional Bundler/RubyGems support clearly separated from the core import/export runtime.
-- Ruby::Box boxes start from root-box load paths/loaded features; prefer explicit caller-managed load-path setup over automatic inheritance.
-- The supported stack gives each box distinct RubyGems registry state; conflicting non-path bundles work and exit normally.
-- Boxed path gems remain blocked by Ruby method dispatch through `Symbol#to_proc` and `super`.
-- `RUBY_BOX=1 bundle exec` fails during prelude before the app starts, so boxed Bundler support is incomplete.
-- Upstream changes must be strictly necessary; current evidence points to narrow Ruby dispatch/prelude fixes, not a RubyGems registry redesign.
+- Target Ruby 4.0.6 or later: Master Box is the immutable copy source, Root Box runs bootstrap/builtins, Main Box runs the application, and Cartons run in optional Boxes.
+- Optional Boxes do not inherit Root or Main state; resolve imports in the caller and carry only the required load-path entry forward.
+- Ruby 4.0.5 probes found distinct RubyGems registry state and working conflicting non-path bundles; revalidate both on 4.0.6.
+- Revalidate the earlier boxed path-gem dispatch and `bundle exec` prelude failures on Ruby 4.0.6 before carrying their upstream plans forward.
+- Upstream changes must be strictly necessary; do not promote Ruby 4.0.5 findings into the 4.0.6 plan without reproducing them.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules
@@ -33,6 +33,7 @@ Guidance and memory for agents working on this repo.
 - Read `docs/ruby-upstream.md` and `docs/rubygems-upstream.md` whenever upstream implications are relevant, and update them when plans or findings change.
 - Never bump the version or publish the gem.
 - When multiple implementation choices are viable, present a menu with your recommendation.
+- When grilling, name the proposed new domain term before asking each question.
 - Tackle each prompt systematically, keep logical changes separate, and commit each logical step independently with commit messages that explain what changed and why, not terse one-liners.
 - Never push; the user will do that.
 
@@ -51,7 +52,7 @@ Guidance and memory for agents working on this repo.
 - `RUBY_BOX=1 bundle exec rake test` - unit tests only
 - `RUBY_BOX=1 bundle exec rake example:minimal` - minimal example
 - `RUBY_BOX=1 bundle exec rake example:gems` - manual RubyGems example
-- `RUBY_BOX=1 bundle exec rake example:bundler` - bundled cartons example
+- `RUBY_BOX=1 bundle exec rake example:bundler` - per-Carton Bundler example
 - `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code
 

@@ -2,8 +2,8 @@
 
 Small app-shaped example showing:
 
-- a bundled carton that `require`s `bigdecimal`
-- a plain carton that forwards to a transient bundled carton
+- a Carton that runs Bundler setup before requiring `bigdecimal`
+- a Carton that forwards to an Imported Carton with its own Bundler setup
 - a support gem resolved by the app bundle and imported as a carton
 
 ## Cartons
@@ -11,8 +11,8 @@ Small app-shaped example showing:
 | Carton | `bigdecimal` | How it loads |
 | --- | --- | --- |
 | `math_helper` | `4.1.1` | imported by name from `main.rb`, uses `require 'bigdecimal'` |
-| `billing` | none directly | imported by name from `main.rb`, plain carton that `import_relative`s `rounding` |
-| `rounding` | `3.3.1` | transient bundled carton, uses `import 'bigdecimal'` |
+| `billing` | none directly | imported by name from `main.rb`; `import_relative`s `rounding` |
+| `rounding` | `3.3.1` | Imported Carton with its own Bundler setup; uses `import 'bigdecimal'` |
 | `cartoned_gem` | none | support gem resolved by the top-level bundle, then imported by name |
 
 `main.rb` keeps the carton `lib/` load-path setup explicit so
@@ -21,6 +21,6 @@ gem exercises the unresolved boxed path-gem boundary.
 
 ## Current status
 
-This example is the repository-level path-gem regression. It does not currently
-complete: boxed Bundler setup is blocked by Ruby method dispatch, and boxed
-`bundle exec` fails earlier during prelude.
+This example is the repository-level path-gem regression. Ruby 4.0.5 failed in
+boxed method dispatch and earlier during boxed `bundle exec` prelude; both
+failures require revalidation on Ruby 4.0.6.
