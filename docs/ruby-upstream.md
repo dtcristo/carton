@@ -27,65 +27,63 @@ Ruby 4.0.6 provides the Master-based Box model Carton targets:
 - distinct Bundler modules in separate boxes,
 - independently loaded prelude helpers in user Boxes.
 
-The remaining behavior claims below came from Ruby 4.0.5 and require fresh
-4.0.6 reproduction before any upstream patch is proposed.
+## Ruby 4.0.6 reproduction results
 
-## Ruby 4.0.5 candidate blockers
+### Prelude visibility — still failing
 
-### Prelude visibility
+On Ruby 4.0.6 with Bundler 4.0.16, `RUBY_BOX=1 bundle exec` still fails when the
+Gemfile evaluates a gemspec:
 
-On Ruby 4.0.5, `RUBY_BOX=1 bundle exec` could load Bundler from `<internal:gem_prelude>` before
-`Gem::Specification` is visible where Bundler evaluates the application
-gemspec. The process fails before application code starts.
-
-First rerun the regression on 4.0.6 using ordinary `bundle exec` with Boxes
-enabled and a Gemfile containing `gemspec`.
-
-### Boxed method dispatch through `Symbol#to_proc`
-
-In the Ruby 4.0.5 boxed path-bundle integration prototype, direct dispatch to
-`spec.expanded_dependencies` works while:
-
-```ruby
-specs.flat_map(&:expanded_dependencies)
+```text
+Bundler::GemspecError: uninitialized constant Gem::Specification
 ```
 
-does not see the boxed method. Replacing the symbol proc with an explicit block
-only moves the failure forward; it is diagnostic, not a Bundler fix.
+Bundler is loaded from `<internal:gem_prelude>` before `Gem::Specification` is
+visible where the application gemspec is evaluated. Application code never
+starts. This remains a Ruby/prelude correctness issue, not a Carton API gap.
 
-If this reproduces on 4.0.6, Ruby needs a focused `test_box.rb` regression.
+### Path-gem Carton boundary — passing
 
-### Boxed `super` dispatch
+The repository Bundler example and integration tests pass on Ruby 4.0.6:
 
-After the symbol-proc call is expanded, the second boxed bundle reaches
-`Bundler::Dependency#initialize`. Its `super` call resolves to
-`BasicObject#initialize` instead of boxed `Gem::Dependency#initialize`.
+- an app bundle path gem is importable as a Carton,
+- separate Cartons activate their intended gem versions,
+- Main Box activation and load-path state remain unchanged.
 
-If this reproduces on 4.0.6, Ruby needs a focused regression covering `super`
-from a Box-loaded subclass to the correct superclass method.
+Carton clears process-global `BUNDLER_SETUP` around optional Box construction so
+a fresh Master-based Box does not re-enter the caller's `bundler/setup` through
+RubyGems' load hook. That is Carton adaptation to process-global Bundler ENV,
+not an upstream Ruby patch.
+
+### Historical dispatch probes
+
+Simple same-Box `Symbol#to_proc` and `super` probes succeed on Ruby 4.0.6. The
+older Ruby 4.0.5 path-bundle failure that pointed at those dispatch paths is no
+longer blocking Carton's acceptance suite. Do not reopen upstream dispatch work
+unless a current failing integration reproduces it.
 
 ## Recommended order
 
-1. Run the full path-bundle and `bundle exec` regressions on Ruby 4.0.6.
-2. Add minimal regressions only for failures that reproduce.
-3. Fix symbol-proc, `super`, and prelude failures independently if present.
-4. Rerun the integration spec after each fix.
+1. Keep Carton's path-gem and nested-bundle acceptance coverage green on 4.0.6.
+2. Fix `RUBY_BOX=1 bundle exec` gemspec evaluation under Boxes so `Gem::Specification`
+   is visible before Bundler evaluates the application gemspec.
+3. Add a focused Ruby regression for that prelude ordering failure.
+4. Only revisit symbol-proc or `super` upstream work if a current integration fails.
 
-Keep each change surgical. The integration failure does not justify changing
-Ruby boot order, making `ENV` box-local, or adding gem policy to the VM.
+Keep each change surgical. The remaining startup failure does not justify
+changing Ruby boot order broadly, making `ENV` box-local, or adding gem policy
+to the VM.
 
 ## Acceptance criteria
 
-Ruby-side work is complete when:
+Ruby-side work for Carton's current needs is complete when:
 
-1. direct and symbol-proc method calls select the same boxed method,
-2. boxed `super` selects the correct superclass implementation,
-3. `RUBY_BOX=1 bundle exec` can evaluate an application gemspec,
-4. the RubyGems/Bundler boxed path-bundle integration reaches normal exit,
-5. non-box behavior remains unchanged.
+1. `RUBY_BOX=1 bundle exec` can evaluate an application gemspec and start app code,
+2. Carton's path-gem and nested-bundle acceptance suite remains green,
+3. non-box behavior remains unchanged.
 
 ## Upstream stance
 
-Ruby 4.0.6 supplies the intended isolation model. Establish current failures
-against that model before proposing correctness fixes; do not carry 4.0.5 boot
-or inheritance assumptions into upstream work.
+Ruby 4.0.6 supplies the intended isolation model for per-Carton Bundler setup.
+The remaining upstream blocker confirmed on 4.0.6 is boxed `bundle exec`
+prelude/gemspec evaluation.

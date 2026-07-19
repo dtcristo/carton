@@ -3,8 +3,8 @@
 This guide is based on direct reading of the upstream Ruby, RubyGems, and
 Bundler source trees.
 
-The canonical Box model is tagged Ruby 4.0.6 source. Historical runtime probes
-are labelled Ruby 4.0.5 where they still await 4.0.6 reproduction.
+The canonical Box model is tagged Ruby 4.0.6 source. Historical Ruby 4.0.5
+probes are labelled where they differ from confirmed 4.0.6 behavior.
 
 The guide has two layers:
 
@@ -128,23 +128,23 @@ The most important Ruby 4.0.6 facts are:
 4. Therefore `require "rubygems"` is already satisfied in a fresh optional Box without inheriting Main or Root state.
 5. **Bundler is not preloaded that way.** If the first `require "bundler"` happens inside a Box, that Box gets its own `Bundler` constant and module state.
 6. RubyGems definitions and activation state belong to each user Box.
-7. Earlier Bundler startup, path-gem, and method-dispatch failures must be reproduced on 4.0.6 before their diagnoses are treated as current.
+7. Per-Carton Bundler setup and path-gem imports work on 4.0.6; boxed
+   `bundle exec` gemspec evaluation still fails.
 
-That is why requiring `bundler/setup` inside each Carton remains the right isolation shape, subject to 4.0.6 verification.
+That is why requiring `bundler/setup` inside each Carton remains the right isolation shape.
 
-### Ruby 4.0.5 findings awaiting revalidation
+### Ruby 4.0.6 confirmed behavior
 
-The Ruby 4.0.5 findings were:
+On Ruby 4.0.6:
 
-- `$LOAD_PATH`, `Gem.loaded_specs`, and `Gem::Specification` registry changes
-  can stay box-local.
-- `Bundler` module state can be box-local if Bundler is first loaded inside the
-  box.
+- `$LOAD_PATH`, `Gem.loaded_specs`, and RubyGems registry changes stay box-local.
+- `Bundler` module state is box-local if Bundler is first loaded inside the box.
 - conflicting non-path bundles work in separate boxes, including under an
   already-bundled Main Box.
-- path gems crossed unsupported boxed method-dispatch paths.
-
-Reproduce these findings on Ruby 4.0.6 before treating them as current limits.
+- app-bundle path gems import as Cartons; Imported Carton Gemfiles keep their
+  intended versions without mutating Main Box.
+- Carton clears process-global `BUNDLER_SETUP` around optional Box construction
+  so Master-based Boxes do not re-enter the caller's `bundler/setup`.
 
 That is why Carton's current per-Carton Bundler pattern is:
 
@@ -154,13 +154,12 @@ Carton.bootstrap_rubygems!
 Carton.with_bundle { require "bundler/setup" }
 ```
 
-Carton still carries this compatibility bootstrap, although Ruby 4.0.5 probes
-showed no need for a broad RubyGems registry split for conflicting non-path bundles.
+Carton still carries this compatibility bootstrap even though current probes
+show no need for a broad RubyGems registry split for conflicting non-path bundles.
 
 At the top-level app boundary, `Carton.with_bundle { require "bundler/setup" }`
-also patches RubyGems' path-gem load-path lookup in the current Box. Path-gem
-setup was incomplete on Ruby 4.0.5, so this remains compatibility code pending
-4.0.6 verification.
+also patches RubyGems' path-gem load-path lookup in the current Box. Keep that
+compatibility code until the suite proves it unnecessary.
 
 ### What applications generally should touch
 
@@ -589,44 +588,43 @@ Carton's current design matches the runtime facts:
 
 - `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
 - `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]`, clears stale `ENV["BUNDLE_LOCKFILE"]`, and redefines the path-gem load-path lookup in the current Box because Bundler still discovers bundle files from process-global environment state.
+- `Carton::Box` clears process-global `ENV["BUNDLER_SETUP"]` around optional Box
+  construction so Master-based Boxes do not re-enter the caller's
+  `bundler/setup` through RubyGems' load hook.
 - `Carton.bootstrap_rubygems!` is retained as compatibility code while the
   boxed Bundler path is experimental.
 - `Carton::Runtime.import` still snapshots/restores `Gem.loaded_specs` around a
-  bootstrapped import, though Ruby 4.0.5 probes showed registry state was
+  bootstrapped import, though Ruby 4.0.6 probes showed registry state was
   already Box-local.
 
-Ruby 4.0.5 runtime probes showed:
+Ruby 4.0.6 runtime probes and Carton's acceptance suite show:
 
 - two boxes activate conflicting non-path bundle versions,
 - Main Box remains unactivated,
-- an already-bundled Main Box can activate a conflicting version in an optional Box,
-- ordinary process exit succeeds.
+- Imported Carton Gemfiles and app-bundle path gems work without Main leakage,
+- ordinary process exit succeeds,
+- `RUBY_BOX=1 bundle exec` still fails in prelude with `Gem::Specification`
+  unavailable before application code runs.
 
-On Ruby 4.0.5, two gaps remained: Bundler path gems failed inside a stock Box
-while assigning Bundler's `source` metadata, and `RUBY_BOX=1 bundle exec`
-failed in prelude with `Gem::Specification` unavailable before application
-code ran. Both require reproduction on Ruby 4.0.6.
-
-The Ruby 4.0.5 ceiling was explained cleanly:
+The current ceiling is explained cleanly:
 
 1. Ruby core isolates load state and RubyGems registry state.
 2. Bundler can load independently per box.
 3. `ENV` remains process-global and must be scoped explicitly.
-4. earlier path-gem failures implicated method lookup across Box class extensions,
-5. the 4.0.6 prelude model must be tested before retaining the earlier `bundle exec` diagnosis.
+4. Carton must guard `BUNDLER_SETUP` when creating Master-based optional Boxes.
+5. boxed `bundle exec` gemspec evaluation remains an upstream prelude failure.
 
 So the long-term shape for Carton is:
 
 - keep using box-local `require "bundler/setup"` as the entry model,
 - keep compatibility code explicit and removable,
-- reproduce the earlier Ruby method-dispatch and prelude blockers on 4.0.6,
-- fix only the blockers that remain,
+- leave the remaining `bundle exec` prelude failure to upstream Ruby,
 - remove Carton's RubyGems registry patch once end-to-end path-bundle coverage
   passes without it.
 
 That last point matters. The source reading and probes strongly suggest the first viable solution is **not** "give each box a brand new VM-level Bundler." The first viable solution is:
 
 > let each Box keep its own Bundler module and RubyGems state, then fix only
-> method-dispatch paths that still fail under Ruby 4.0.6.
+> the remaining boxed `bundle exec` prelude gap on Ruby 4.0.6.
 
 That is exactly the boundary Carton's upstream plan should target.

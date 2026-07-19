@@ -13,8 +13,8 @@ especially:
 - `ruby/doc/language/box.md`
 - `ruby/test/ruby/test_box.rb`
 
-The canonical model is tagged Ruby 4.0.6 source. Historical runtime probes are
-labelled Ruby 4.0.5 where they still await 4.0.6 reproduction.
+The canonical model is tagged Ruby 4.0.6 source. Historical Ruby 4.0.5 probes
+are labelled where they differ from confirmed 4.0.6 behavior.
 See [root-box-vs-main-box.md](root-box-vs-main-box.md) for the tagged sources
 and version split.
 
@@ -374,10 +374,12 @@ The most relevant one for gem/runtime work is:
 
 > Defined methods in a box may not be referred by built-in methods written in Ruby.
 
-That warning is easy to underestimate, and it matched the Ruby 4.0.5
-gem/runtime failures. Direct boxed method calls worked while dispatch through
-`Symbol#to_proc` selected the wrong method, and boxed `super` selected the
-wrong superclass implementation. Revalidate both on 4.0.6.
+That warning is easy to underestimate. Ruby 4.0.5 gem/runtime failures matched
+it: direct boxed method calls worked while dispatch through `Symbol#to_proc`
+selected the wrong method, and boxed `super` selected the wrong superclass
+implementation. On Ruby 4.0.6, Carton's path-gem acceptance suite passes and
+simple same-Box probes succeed; keep those historical dispatch notes only as
+context for the earlier failure, not as current blockers.
 
 This limitation is a big part of why RubyGems-in-box is hard even though `$LOAD_PATH` is already isolated.
 
@@ -387,9 +389,9 @@ Other documented or visible rough edges include:
 - some top-level method behavior still being incomplete,
 - incomplete guarantees around warnings and some other globally flavored facilities.
 
-## Ruby 4.0.5 Bundler observations
+## Ruby 4.0.6 Bundler observations
 
-Ruby 4.0.5 probes handled the basic multi-Box case:
+Ruby 4.0.6 handles the basic multi-Box case and Carton's acceptance boundaries:
 
 ```ruby
 box1 = Ruby::Box.new
@@ -400,17 +402,14 @@ box2.eval("require 'bundler'")
 ```
 
 Both boxes load distinct `Bundler` modules and the process exits normally.
-Conflicting non-path bundles also keep their activation state separate from
-each other and Main Box.
+Conflicting non-path bundles, Imported Carton Gemfiles, and app-bundle path gems
+also keep activation state separate from Main Box when Carton clears
+`BUNDLER_SETUP` around optional Box construction.
 
-Ruby 4.0.5 exposed three incomplete boundaries that require reproduction on
-4.0.6:
+One incomplete boundary remains on 4.0.6:
 
 - `RUBY_BOX=1 bundle exec` can evaluate a gemspec before
-  `Gem::Specification` is visible,
-- path-gem setup crosses method definitions loaded in different boxes,
-- boxed dispatch through `Symbol#to_proc` and `super` can select the wrong
-  method.
+  `Gem::Specification` is visible.
 
 ## What this means for Carton
 
@@ -433,9 +432,9 @@ Because `require` really does resolve against the loading box's local `$LOAD_PAT
 
 ### Why that still is not enough for full Bundler support
 
-RubyGems registry state is Box-local. The earlier startup and path-gem failures
-crossed definitions loaded in different Box contexts; reproduce them on 4.0.6
-before carrying that diagnosis forward.
+RubyGems registry state is Box-local and Carton's path-gem acceptance suite
+passes on Ruby 4.0.6. The remaining startup failure is boxed `bundle exec`
+gemspec evaluation before `Gem::Specification` is visible.
 
 ### Why Carton should avoid unnecessary Ruby-core changes
 
@@ -446,12 +445,11 @@ Because most of the mechanics Carton wants are already present:
 - box-local constant/method tables,
 - box-local Bundler constants when Bundler is first required in the box.
 
-The next upstream checks are narrow:
+The next upstream check is narrow:
 
-1. reproduce the earlier failures on Ruby 4.0.6,
-2. fix only any symbol-proc or `super` dispatch bugs that remain,
-3. complete RubyGems/Bundler path-gem setup inside each Box,
-4. verify `RUBY_BOX=1 bundle exec` under the 4.0.6 prelude model.
+1. fix `RUBY_BOX=1 bundle exec` under the 4.0.6 prelude model so gemspec
+   evaluation sees `Gem::Specification`,
+2. keep Carton's path-gem and nested-bundle acceptance coverage green.
 
 That is a much smaller upstream target than "rebuild gem loading around boxes from scratch".
 
@@ -460,7 +458,7 @@ That is a much smaller upstream target than "rebuild gem loading around boxes fr
 If you want one sentence that stays accurate:
 
 > `Ruby::Box` already isolates file loading, RubyGems activation state, and most
-> language definitions; remaining Bundler work must be established against the
-> Ruby 4.0.6 Master-based model.
+> language definitions; the remaining Bundler startup gap on Ruby 4.0.6 is boxed
+> `bundle exec` gemspec evaluation.
 
 That is the lens to keep while designing Carton.

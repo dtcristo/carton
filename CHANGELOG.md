@@ -11,12 +11,22 @@
 
 ### Changed
 
+- Raised the package Ruby requirement to `>= 4.0.6` and aligned the gem
+  description, example metadata, and CI matrix with that baseline.
+- Removed the load-time Ruby version guard so package metadata alone enforces
+  the supported runtime.
 - `import` now resolves named imports in the caller box and carries only the matching load-path root into the imported box instead of copying the whole caller `$LOAD_PATH`.
 - `Carton.with_bundle` now auto-discovers caller `Gemfile`/`gems.rb`, clears stale `BUNDLE_LOCKFILE`, and installs the current path-gem compatibility patch.
 - Bundler and RubyGems support now live in separate files, and the bundled example now reflects a small app-style structure plus a support gem.
 
 ### Fixed
 
+- Optional Box construction now clears process-global `BUNDLER_SETUP` so
+  Master-based Boxes do not re-enter the caller's `bundler/setup` through
+  RubyGems' load hook.
+- The test rake task now clears Bundler env when spawning `RUBY_BOX=1` Ruby so
+  inherited `BUNDLER_SETUP` cannot trip the gemspec prelude failure, and installs
+  the Bundler-example dependencies the integration suite exercises.
 - Bootstrapped boxed imports now restore the caller's `Gem.loaded_specs` view after RubyGems activation.
 
 ## [0.1.0] - 2026-04-16

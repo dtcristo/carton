@@ -125,6 +125,9 @@ class IntegrationTest < Minitest::Test
       gemfile = File.expand_path('examples/bundler/Gemfile', Dir.pwd)
       Carton.with_bundle(gemfile) { require 'bundler/setup' }
 
+      before_loaded = Gem.loaded_specs.keys.sort
+      before_load_path = $LOAD_PATH.to_a
+
       cartoned_gem = import 'cartoned_gem'
       resolved = $LOAD_PATH.resolve_feature_path('cartoned_gem')
 
@@ -132,6 +135,8 @@ class IntegrationTest < Minitest::Test
         version: cartoned_gem.fetch(:version),
         label: cartoned_gem.fetch(:invoice_label).call('42'),
         resolved: resolved&.last,
+        main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
+        main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
       )
       STDOUT.flush
       Process.exit!(0)
@@ -147,6 +152,54 @@ class IntegrationTest < Minitest::Test
     assert_equal 'INV-0042', payload.fetch('label')
     assert_match %r{/examples/bundler/cartoned_gem/lib/cartoned_gem\.rb\z},
                  payload.fetch('resolved')
+    assert payload.fetch('main_loaded_unchanged')
+    assert payload.fetch('main_load_path_unchanged')
+  end
+
+  def test_bundler_example_imported_cartons_keep_separate_gem_versions
+    script = <<~'RUBY'
+      require 'json'
+
+      examples = File.expand_path('examples/bundler', Dir.pwd)
+      require File.expand_path('../../lib/carton', examples)
+
+      Carton.with_bundle(File.join(examples, 'Gemfile')) { require 'bundler/setup' }
+
+      Dir
+        .glob(File.join(examples, 'cartons/*/lib'))
+        .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+
+      before_loaded = Gem.loaded_specs.keys.sort
+      before_load_path = $LOAD_PATH.to_a
+
+      math_helper = import 'math_helper'
+      billing = import 'billing'
+      cartoned_gem = import 'cartoned_gem'
+
+      puts JSON.generate(
+        math_helper_version: math_helper.fetch(:version),
+        billing_rounding_version: billing.fetch(:rounding_version),
+        cartoned_gem_version: cartoned_gem.fetch(:version),
+        main_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
+        main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
+        main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
+      )
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+
+    payload = JSON.parse(output)
+    assert_equal '4.1.1', payload.fetch('math_helper_version')
+    assert_equal '3.3.1', payload.fetch('billing_rounding_version')
+    assert_equal '0.1.0', payload.fetch('cartoned_gem_version')
+    assert_nil payload.fetch('main_bigdecimal')
+    assert payload.fetch('main_loaded_unchanged')
+    assert payload.fetch('main_load_path_unchanged')
   end
 
   def test_imported_file_can_require_carton_by_name

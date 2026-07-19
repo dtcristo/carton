@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-raise 'Ruby 4.0+ is required for Carton' if RUBY_VERSION.to_f < 4.0
-
 require_relative 'carton/bundler'
 require_relative 'carton/export_methods'
 require_relative 'carton/exports'

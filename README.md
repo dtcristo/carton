@@ -71,7 +71,8 @@ RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
 RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 ```
 
-The boxed path-gem and Bundler prelude regressions require revalidation on Ruby 4.0.6.
+Per-Carton Bundler setup and path-gem imports work on Ruby 4.0.6.
+`RUBY_BOX=1 bundle exec` still fails when a Gemfile evaluates a gemspec.
 
 ## License
 

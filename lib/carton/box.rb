@@ -8,7 +8,16 @@ module Carton
     private_constant :UNSET_EXPORT
 
     def initialize
-      super
+      # `require "bundler/setup"` leaves process-global `BUNDLER_SETUP` set so a
+      # later RubyGems load can re-enter setup. Optional Boxes copy Master, so
+      # Bundler is undefined there and that hook would re-run the caller's
+      # bundle. Clear it only around box construction.
+      previous_bundler_setup = ENV.delete('BUNDLER_SETUP')
+      begin
+        super
+      ensure
+        ENV['BUNDLER_SETUP'] = previous_bundler_setup if previous_bundler_setup
+      end
       @rubygems_bootstrapped = false
       reset_export
     end

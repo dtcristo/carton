@@ -2,10 +2,8 @@
 
 ## Upstream
 
-- Reproduce the earlier boxed path-gem dispatch and `bundle exec` prelude failures on Ruby 4.0.6 before carrying their upstream plans forward.
-- If reproduced on 4.0.6, fix boxed `Symbol#to_proc` and `super` dispatch, then rerun the upstream path-bundle integration spec.
-- If reproduced on 4.0.6, fix `RUBY_BOX=1 bundle exec` prelude setup where gemspec evaluation runs before `Gem::Specification` is visible.
-- Upstream only residual RubyGems/Bundler changes proven necessary after the Ruby fixes.
+- Fix `RUBY_BOX=1 bundle exec` prelude setup on Ruby 4.0.6 where gemspec evaluation runs before `Gem::Specification` is visible.
+- Only reopen boxed `Symbol#to_proc` / `super` upstream work if a current integration reproduces those dispatch failures.
 
 ## Library
 
@@ -19,7 +17,7 @@
 ## Examples / docs
 
 - Keep the root README intentionally short and push detail into focused docs.
-- Keep documenting current Bundler constraints plainly until the runtime or Bundler story improves.
+- Keep documenting the remaining `RUBY_BOX=1 bundle exec` gemspec failure plainly until the runtime prelude story improves.
 
 ## Tooling ideas
 

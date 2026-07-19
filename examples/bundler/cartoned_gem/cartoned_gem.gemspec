@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.authors = ['Carton']
   spec.files = ['lib/cartoned_gem.rb']
   spec.require_paths = ['lib']
-  spec.required_ruby_version = '>= 4.0.2'
+  spec.required_ruby_version = '>= 4.0.6'
 
   spec.add_dependency 'carton'
   spec.metadata['rubygems_mfa_required'] = 'true'
