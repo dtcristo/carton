@@ -12,6 +12,25 @@ class ExportTest < Minitest::Test
     assert_equal 'Hello, Alice!', user.greet
   end
 
+  def test_default_hash_export_returns_hash
+    result = import "#{FIXTURES}/default_hash_export"
+
+    assert_instance_of Hash, result
+    assert_equal 42, result[:answer]
+    assert_same result, result[:itself]
+  end
+
+  def test_default_nil_and_false_are_exports
+    assert_nil import("#{FIXTURES}/default_nil_export")
+    assert_equal false, import("#{FIXTURES}/default_false_export")
+  end
+
+  def test_export_namespace_does_not_expose_its_stored_values
+    result = import "#{FIXTURES}/export_return"
+
+    assert_equal '1.0.0', result.version
+  end
+
   def test_hash_export_returns_module_with_methods
     result = import "#{FIXTURES}/hash_export"
     assert_kind_of Carton::Exports, result

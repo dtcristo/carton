@@ -21,6 +21,8 @@
 
 ### Fixed
 
+- `export_default` now preserves Hash, `nil`, and `false` values as Default
+  Exports instead of inferring an Export Namespace from the value's class.
 - Optional Box construction now clears process-global `BUNDLER_SETUP` so
   Master-based Boxes do not re-enter the caller's `bundler/setup` through
   RubyGems' load hook.

@@ -13,7 +13,8 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | `lib/carton/rubygems.rb` | temporary compatibility patch behind `Carton.bootstrap_rubygems!` |
 | `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
 | `lib/carton/runtime.rb` | Builds boxes, resolves targets, runs imports, and extracts exports |
-| `lib/carton/box.rb` | Box-specific helpers for requiring files, managing export state, seeding an imported feature's load path, and keeping the RubyGems cleanup hack out of the generic runtime path |
+| `lib/carton/box.rb` | Box-specific helpers for requiring files, holding and resetting the current Export Declaration, seeding an imported feature's load path, and keeping the RubyGems cleanup hack out of the generic runtime path |
+| `lib/carton/export_declaration.rb` | Owns absence, uniqueness, kind, snapshotting, and Public Surface conversion for an Export Declaration |
 | `lib/carton/exports.rb` | Wraps named exports in a module-like namespace |
 | `lib/carton/export_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring support |
 
@@ -25,8 +26,8 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 4. The target file is resolved either from the caller's base directory or from the caller box's `$LOAD_PATH`.
 5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
 6. The target file is required inside the box.
-7. If the file called `export_default` or `export`, the exported value is returned.
-8. If the export was a hash, it is wrapped in `Carton::Exports`.
+7. If the file called `export_default`, its value is returned directly.
+8. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
 9. If there was no export, the box itself is returned.
 
 If the imported file bootstrapped RubyGems, `Carton::Box` restores the caller's
@@ -40,11 +41,17 @@ Every import creates a fresh box. There is no module cache at the Carton layer.
 
 There are three return shapes:
 
-- single export: the exported object itself
-- named exports: `Carton::Exports`
-- no export: `Carton::Box`
+- Default Export: the exported object itself
+- Export Namespace: `Carton::Exports`
+- Bare Carton: `Carton::Box`
 
-`export_default` is the explicit single-export form. `export` is the named-export form and only accepts keyword arguments. `Carton::Exports` exposes capitalized keys as constants and lowercase keys as singleton methods. Both `Carton::Exports` and `Carton::Box` share the same small fetch/deconstruction API through `ExportMethods`.
+`export_default` is the explicit Default Export form and preserves any value,
+including a Hash, `nil`, or `false`. `export` is the Export Namespace form and
+only accepts keyword arguments. Carton records the form as an immutable Export
+Declaration instead of inferring it from the value's class. `Carton::Exports`
+exposes capitalized keys as constants and lowercase keys as singleton methods.
+Both `Carton::Exports` and `Carton::Box` share the same small
+fetch/deconstruction API through `ExportMethods`.
 
 ## Load path model
 
