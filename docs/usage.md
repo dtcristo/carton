@@ -141,6 +141,10 @@ Toolbox::SomeConstant
 Toolbox.fetch(:helper)
 ```
 
+Bare lookup includes only top-level constants and helpers introduced by the
+Carton's Entrypoint. It excludes inherited runtime constants and Box methods.
+Keys are names, not Ruby expressions, and `key?` never invokes a helper.
+
 ## Bundler inside cartons
 
 The library works with or without Bundler. A Carton that needs Bundler performs RubyGems/Bundler setup inside its Entrypoint; other Cartons need no setup.

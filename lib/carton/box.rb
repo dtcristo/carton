@@ -22,6 +22,12 @@ module Carton
       reset_export
     end
 
+    def key?(key)
+      find_public_entry(key).first
+    end
+
+    alias has_key? key?
+
     private
 
     # Fresh boxes inherit root-box gem paths and loaded features. Strip those
@@ -33,6 +39,7 @@ module Carton
       reset_export
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
+      snapshot_import_support
       self
     end
 
@@ -42,7 +49,9 @@ module Carton
     def load_import(feature, load_path: nil)
       add_import_load_path(load_path) if load_path
 
-      preserve_loaded_specs { require_in_box(feature) }
+      result = preserve_loaded_specs { require_in_box(feature) }
+      discover_public_entries
+      result
     end
 
     def require_in_box(feature)
@@ -105,31 +114,37 @@ module Carton
     end
 
     def lookup_entry(key)
+      found, entry = find_public_entry(key)
+      return false, nil unless found
+
+      entry.is_a?(Method) ? [true, entry.call] : [true, const_get(entry, false)]
+    end
+
+    def find_public_entry(key)
+      return false, nil unless key.is_a?(String) || key.is_a?(Symbol)
+
       name = key.to_s
+      return true, name if @public_constant_names.include?(name)
 
-      if name.match?(/\A[A-Z]/)
-        lookup_constant_entry(name)
-      else
-        lookup_method_entry(name)
-      end
+      method_entry = @public_method_entries[name]
+      method_entry ? [true, method_entry] : [false, nil]
     end
 
-    def lookup_constant_entry(name)
-      [true, const_get(name)]
-    rescue NameError
-      [false, nil]
+    def snapshot_import_support
+      @import_constant_names = constants(false).map(&:to_s)
+      @import_method_names = top_level_methods.keys
     end
 
-    def lookup_method_entry(name)
-      [true, eval(name)]
-    rescue NoMethodError
-      [false, nil]
-    rescue NameError
-      begin
-        [true, __send__(name)]
-      rescue NoMethodError
-        [false, nil]
-      end
+    def discover_public_entries
+      @public_constant_names =
+        constants(false).map(&:to_s) - @import_constant_names
+      @public_method_entries = top_level_methods.except(*@import_method_names)
+    end
+
+    def top_level_methods
+      eval(
+        'Object.private_instance_methods(false).to_h { |name| [name.to_s, method(name)] }',
+      )
     end
   end
 end
