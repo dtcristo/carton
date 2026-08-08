@@ -66,6 +66,50 @@ class ExportTest < Minitest::Test
     assert_nil result[:missing]
   end
 
+  def test_bare_export_does_not_evaluate_expressions
+    result = import "#{FIXTURES}/bare"
+
+    assert_nil result['1 + 1']
+    assert_nil result['nil']
+    refute result.key?('1 + 1')
+    refute result.key?('nil')
+  end
+
+  def test_bare_export_key_query_does_not_invoke_helpers
+    result = import "#{FIXTURES}/bare"
+
+    assert result.key?(:effectful_helper)
+    assert_empty result.fetch(:lookup_calls)
+  end
+
+  def test_bare_export_preserves_nil_and_false_values
+    result = import "#{FIXTURES}/bare"
+
+    assert result.key?(:NIL_VALUE)
+    assert_nil result.fetch(:NIL_VALUE)
+    assert result.key?(:FALSE_VALUE)
+    assert_equal false, result.fetch(:FALSE_VALUE)
+  end
+
+  def test_bare_export_propagates_helper_name_errors
+    result = import "#{FIXTURES}/bare"
+
+    name_error = assert_raises(NameError) { result.fetch(:raises_name_error) }
+    assert_equal :MISSING_FROM_HELPER, name_error.name
+
+    method_error =
+      assert_raises(NoMethodError) { result.fetch(:raises_no_method_error) }
+    assert_equal :missing_from_helper, method_error.name
+  end
+
+  def test_bare_export_excludes_runtime_constants_and_box_methods
+    result = import "#{FIXTURES}/bare"
+
+    refute result.key?(:Object)
+    refute result.key?(:load_path)
+    refute result.key?(:require_in_box)
+  end
+
   def test_export_raises_when_called_more_than_once
     error = assert_raises(RuntimeError) { import "#{FIXTURES}/double_export" }
     assert_equal 'only one export is allowed per imported file', error.message

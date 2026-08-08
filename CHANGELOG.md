@@ -30,6 +30,9 @@
   inherited `BUNDLER_SETUP` cannot trip the gemspec prelude failure, and installs
   the Bundler-example dependencies the integration suite exercises.
 - Bootstrapped boxed imports now restore the caller's `Gem.loaded_specs` view after RubyGems activation.
+- Bare Carton lookup now discovers Entrypoint-defined constants and helpers
+  before reading them, so keys cannot evaluate arbitrary expressions, `key?`
+  cannot invoke helpers, and helper lookup errors propagate unchanged.
 
 ## [0.1.0] - 2026-04-16
 

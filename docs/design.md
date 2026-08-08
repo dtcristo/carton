@@ -53,6 +53,12 @@ exposes capitalized keys as constants and lowercase keys as singleton methods.
 Both `Carton::Exports` and `Carton::Box` share the same small
 fetch/deconstruction API through `ExportMethods`.
 
+Bare Carton lookup records the constants and top-level helpers introduced by
+the Entrypoint. Membership checks inspect that recorded surface without
+invoking helpers; value reads invoke a discovered helper and propagate its
+errors. Runtime constants present before the Entrypoint loads are not part of
+the Bare Carton's Public Surface.
+
 ## Load path model
 
 Ruby 4.0.6 creates Root, Main, and optional user Boxes from an immutable internal Master Box, not from the current caller Box. `require` resolves against the loading Box's local `$LOAD_PATH` / `$LOADED_FEATURES`.

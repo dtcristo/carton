@@ -13,6 +13,7 @@ Guidance and memory for agents working on this repo.
 - Keep optional Bundler/RubyGems support clearly separated from the core import/export runtime.
 - Target Ruby 4.0.6 or later: Master Box is the immutable copy source, Root Box runs bootstrap/builtins, Main Box runs the application, and Cartons run in optional Boxes.
 - Optional Boxes do not inherit Root or Main state; resolve imports in the caller and carry only the required load-path entry forward.
+- A Bare Carton's Public Surface includes only constants and top-level helpers introduced by its Entrypoint; inherited runtime constants and Box methods are excluded.
 - Ruby 4.0.6 confirms distinct RubyGems activation state, conflicting non-path bundles, and path-gem Carton imports under ordinary per-Carton Bundler setup.
 - `RUBY_BOX=1 bundle exec` still fails on Ruby 4.0.6 when a Gemfile evaluates a gemspec before `Gem::Specification` is visible; keep that as upstream prelude work.
 - Carton clears process-global `BUNDLER_SETUP` around optional Box construction so Master-based Boxes do not re-enter the caller's `bundler/setup`.
