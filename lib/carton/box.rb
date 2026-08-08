@@ -4,9 +4,6 @@ module Carton
   class Box < Ruby::Box
     include ExportMethods
 
-    UNSET_EXPORT = Object.new.freeze
-    private_constant :UNSET_EXPORT
-
     def initialize
       # `require "bundler/setup"` leaves process-global `BUNDLER_SETUP` set so a
       # later RubyGems load can re-enter setup. Optional Boxes copy Master, so
@@ -19,7 +16,7 @@ module Carton
         ENV['BUNDLER_SETUP'] = previous_bundler_setup if previous_bundler_setup
       end
       @rubygems_bootstrapped = false
-      reset_export
+      reset_export_declaration
     end
 
     private
@@ -30,7 +27,7 @@ module Carton
     def configure_for_import(entrypoint:)
       purge_gem_load_path
       purge_gem_loaded_features
-      reset_export
+      reset_export_declaration
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
       self
@@ -53,22 +50,16 @@ module Carton
       load_path.unshift(path) unless load_path.include?(path)
     end
 
-    def set_export(value)
-      raise 'only one export is allowed per imported file' if export_set?
-
-      @export = value
+    def declare_export(declaration)
+      @export_declaration = @export_declaration.declare(declaration)
     end
 
-    def export_set?
-      !@export.equal?(UNSET_EXPORT)
+    def export_public_surface(&)
+      @export_declaration.public_surface(bare: self, &)
     end
 
-    def export_value
-      @export
-    end
-
-    def reset_export
-      @export = UNSET_EXPORT
+    def reset_export_declaration
+      @export_declaration = ExportDeclaration.absent
     end
 
     def mark_rubygems_bootstrapped

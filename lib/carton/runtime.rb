@@ -18,19 +18,27 @@ module Carton
       extract_export(box)
     end
 
-    # Export a small named surface from the current carton.
+    # Declare an Export Namespace for the current carton.
     def export(args, kwargs)
       if args.any? || kwargs.empty?
         raise ArgumentError,
               'export takes keyword arguments; use export_default for a single export'
       end
 
-      current_import_box.__send__(:set_export, kwargs)
+      current_import_box.__send__(
+        :declare_export,
+        ExportDeclaration.namespace(kwargs),
+      )
+      kwargs
     end
 
     # Export a single value from the current carton.
     def export_default(value)
-      current_import_box.__send__(:set_export, value)
+      current_import_box.__send__(
+        :declare_export,
+        ExportDeclaration.default(value),
+      )
+      value
     end
 
     def build_import_box
@@ -41,10 +49,9 @@ module Carton
     private_class_method :build_import_box
 
     def extract_export(box)
-      return box unless box.__send__(:export_set?)
-
-      value = box.__send__(:export_value)
-      value.is_a?(Hash) ? Carton::Exports.new(value) : value
+      box.__send__(:export_public_surface) do |values|
+        Carton::Exports.new(values)
+      end
     end
     private_class_method :extract_export
 
@@ -53,7 +60,7 @@ module Carton
     def current_import_box
       box = Ruby::Box.current
 
-      unless box.respond_to?(:set_export, true)
+      unless box.respond_to?(:declare_export, true)
         raise 'export/export_default must be called from inside Carton.import/import_relative'
       end
 

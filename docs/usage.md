@@ -32,6 +32,10 @@ User = import_relative 'user'
 User.new('Alice').greet
 ```
 
+The Default Export may be any object, including a Hash, `nil`, or `false`.
+A Hash remains the Default Export itself; only `export` creates an Export
+Namespace.
+
 ### Named exports
 
 Use keyword arguments when the file exports a small namespace.
