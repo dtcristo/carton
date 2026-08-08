@@ -59,6 +59,11 @@ invoking helpers; value reads invoke a discovered helper and propagate its
 errors. Runtime constants present before the Entrypoint loads are not part of
 the Bare Carton's Public Surface.
 
+Each adapter owns full deconstruction: an Export Namespace enumerates every
+Named Export, while a Bare Carton enumerates its discovered Public Surface.
+Full Bare Carton deconstruction reads every discovered helper, preserving its
+side effects and propagating its errors like other value reads.
+
 ## Load path model
 
 Ruby 4.0.6 creates Root, Main, and optional user Boxes from an immutable internal Master Box, not from the current caller Box. `require` resolves against the loading Box's local `$LOAD_PATH` / `$LOADED_FEATURES`.

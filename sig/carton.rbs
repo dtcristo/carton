@@ -19,7 +19,8 @@ end
 
 class Carton::Box < ::Ruby::Box
   def []: (::String | ::Symbol key) -> untyped
-  def deconstruct_keys: (::Array[::Symbol]? keys) -> ::Hash[::Symbol, untyped]
+  def deconstruct_keys: (nil keys) -> ::Hash[::Symbol, untyped]
+                      | (::Array[::Symbol] keys) -> ::Hash[::Symbol, untyped]
   def fetch: (*untyped args) { (*untyped args) -> untyped } -> untyped
   def fetch_values: (*untyped keys) -> ::Array[untyped]
   def has_key?: (::String | ::Symbol key) -> bool
@@ -29,7 +30,8 @@ end
 
 class Carton::Exports < ::Module
   def []: (::String | ::Symbol key) -> untyped
-  def deconstruct_keys: (::Array[::Symbol]? keys) -> ::Hash[::Symbol, untyped]
+  def deconstruct_keys: (nil keys) -> ::Hash[::Symbol, untyped]
+                      | (::Array[::Symbol] keys) -> ::Hash[::Symbol, untyped]
   def fetch: (*untyped args) { (*untyped args) -> untyped } -> untyped
   def fetch_values: (*untyped keys) -> ::Array[untyped]
   def has_key?: (::String | ::Symbol key) -> bool

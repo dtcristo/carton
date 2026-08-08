@@ -110,6 +110,23 @@ class ExportTest < Minitest::Test
     refute result.key?(:require_in_box)
   end
 
+  def test_bare_export_destructuring_enumerates_its_public_surface
+    import("#{FIXTURES}/bare_deconstruct") => {
+      BARE_LABEL: label, effectful_helper:, **rest
+    }
+
+    assert_equal 'bare', label
+    assert_equal :effect, effectful_helper
+    assert_equal({ DECONSTRUCTION_CALLS: [:called], helper: 42 }, rest)
+  end
+
+  def test_bare_export_destructuring_propagates_helper_errors
+    result = import "#{FIXTURES}/bare_deconstruct_error"
+
+    error = assert_raises(NameError) { result.deconstruct_keys(nil) }
+    assert_equal :MISSING_FROM_DECONSTRUCTION, error.name
+  end
+
   def test_export_raises_when_called_more_than_once
     error = assert_raises(RuntimeError) { import "#{FIXTURES}/double_export" }
     assert_equal 'only one export is allowed per imported file', error.message
