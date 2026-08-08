@@ -59,6 +59,28 @@ class ImportTest < Minitest::Test
     assert_equal '1.0.0', version
   end
 
+  def test_import_destructuring_collects_remaining_named_exports
+    import("#{FIXTURES_DIR}/hash_export") => { version:, **rest }
+
+    assert_equal '1.0.0', version
+    assert_equal %i[PI add nothing subtract], rest.keys.sort
+    assert_in_delta 3.14159, rest.fetch(:PI)
+  end
+
+  def test_import_destructuring_can_collect_an_empty_rest
+    import("#{FIXTURES_DIR}/hash_export") => {
+      add:, subtract:, PI: pi, nothing:, version:, **rest
+    }
+
+    assert_empty rest
+  end
+
+  def test_import_destructuring_rejects_an_unknown_key
+    result = import "#{FIXTURES_DIR}/hash_export"
+
+    assert_raises(NoMatchingPatternKeyError) { result => { missing: } }
+  end
+
   def test_import_index_lookup
     result = import "#{FIXTURES_DIR}/hash_export"
     assert_equal '1.0.0', result[:version]

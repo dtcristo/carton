@@ -5,8 +5,6 @@ module Carton
   module ExportMethods
     # Support destructuring like `import('math') => { add: }`.
     def deconstruct_keys(keys)
-      return {} unless keys
-
       keys.each_with_object({}) do |key, hash|
         found, value = lookup_entry(key)
         hash[key] = value if found

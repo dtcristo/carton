@@ -31,6 +31,8 @@
 - Bare Carton lookup now discovers Entrypoint-defined constants and helpers
   before reading them, so keys cannot evaluate arbitrary expressions, `key?`
   cannot invoke helpers, and helper lookup errors propagate unchanged.
+- Hash-rest patterns now enumerate every Named Export or the Bare Carton's
+  discovered Public Surface instead of returning an empty hash.
 
 ## [0.1.0] - 2026-04-16
 

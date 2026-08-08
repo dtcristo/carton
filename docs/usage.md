@@ -95,7 +95,8 @@ The bundler example keeps that setup explicit in `examples/bundler/main.rb`.
 
 ## Destructuring
 
-Named exports support pattern matching through `deconstruct_keys`.
+Export Namespaces and Bare Cartons support pattern matching through
+`deconstruct_keys`.
 
 ```ruby
 import('math') => { add:, version: }
@@ -109,6 +110,14 @@ You can rename during destructuring:
 ```ruby
 import('math') => { add: sum }
 sum.(10, 10)
+```
+
+Hash-rest patterns enumerate the entire public surface. For an Export Namespace,
+that is every Named Export.
+
+```ruby
+import('math') => { version:, **rest }
+rest.keys # => [:PI, :add, :nothing, :subtract]
 ```
 
 ## Constants
@@ -144,6 +153,9 @@ Toolbox.fetch(:helper)
 Bare lookup includes only top-level constants and helpers introduced by the
 Carton's Entrypoint. It excludes inherited runtime constants and Box methods.
 Keys are names, not Ruby expressions, and `key?` never invokes a helper.
+Bare Carton hash-rest patterns enumerate that same Public Surface.
+Full enumeration reads every helper, so helper side effects occur and helper
+errors propagate.
 
 ## Bundler inside cartons
 

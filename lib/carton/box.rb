@@ -28,6 +28,18 @@ module Carton
 
     alias has_key? key?
 
+    def deconstruct_keys(keys)
+      return super if keys
+
+      helpers =
+        @public_method_entries.to_h { |name, entry| [name.to_sym, entry.call] }
+      constants =
+        @public_constant_names.to_h do |name|
+          [name.to_sym, const_get(name, false)]
+        end
+      helpers.merge(constants)
+    end
+
     private
 
     # Fresh boxes inherit root-box gem paths and loaded features. Strip those

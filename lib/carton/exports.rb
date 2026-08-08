@@ -15,6 +15,12 @@ module Carton
       define_exports
     end
 
+    def deconstruct_keys(keys)
+      return super if keys
+
+      @lookup.to_h { |key, value| [key.to_sym, value] }
+    end
+
     private
 
     def define_exports
