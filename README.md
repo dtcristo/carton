@@ -1,8 +1,8 @@
 <div align="center">
+  <img src="images/carton.png" alt="Carton logo" width="200" />
   <h1>
     Carton
   </h1>
-  <img src="images/carton.png" alt="Carton logo" width="200" />
   <p>
     <strong>
       Easily box your Ruby
