@@ -2,7 +2,7 @@
 
 require_relative '../test_helper'
 
-# `export` and `export_default` only declare a Carton's surface from the
+# `export` only declares a Carton's surface from the
 # Entrypoint being imported, so Carton-aware files still work under `require`.
 class PlainRequireTest < Minitest::Test
   CARTON = File.expand_path('../../lib/carton', __dir__)
@@ -12,7 +12,8 @@ class PlainRequireTest < Minitest::Test
     box = plain_box
 
     assert_equal 'hi', box.eval("require #{"#{DUAL}/named".inspect}; shout")
-    assert_equal :value, box.eval('export_default :value')
+    assert_nil box.eval('export value: :v')
+    assert_equal :whisper, box.eval('export def whisper = "hi"')
   end
 
   def test_export_still_validates_arguments_under_plain_require

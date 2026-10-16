@@ -2,7 +2,7 @@
 
 require_relative '../../lib/carton'
 
-# Single import — Foo exports one default value.
+# Default import — Foo exports itself as `default:`.
 Foo = import_relative 'foo'
 
 # Namespace import — Bar exports named methods and constants.

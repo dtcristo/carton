@@ -5,7 +5,7 @@
 - Ruby 4.0.7+
 - Bundler 4.0.23+ if you use Bundler
 - `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
-- `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
+- `require 'carton'` before using `import`, `import_relative`, or `export`
 
 An importable Ruby file and everything it loads is called a carton. Each
 carton runs in its own `Ruby::Box`, so its constants, gems, and monkey patches
@@ -14,73 +14,109 @@ stay inside, and only what it exports crosses the boundary. See
 
 ## Exporting
 
-### Single export
+`export` adds names to the Carton's Export Namespace. Call it as often as
+you like; each name may be exported once.
 
-Use a single export when the file represents one main thing.
+```ruby
+# pricing.rb
+class Money
+end
+export :Money                     # a capitalized Symbol names a constant
+
+export def add(a, b) = a + b      # `def` returns :add, like `private def`
+
+export PI: 3.14159, version: '1.0.0'
+```
+
+- A capitalized Symbol exports the top-level constant of that name; any other
+  Symbol exports the top-level method. Both are looked up when `export`
+  runs, so export after defining, as with `private` or `private_constant`.
+- Keyword arguments export plain values. Capitalized keys become constants
+  and lowercase keys become readers. Values are never invoked:
+  `export handler: -> {}` makes `handler` return the lambda itself.
+- A missing method or constant raises `NameError`, and a repeated name
+  raises `ArgumentError`, at the `export` call.
+- `export def name ...` returns `:name`, so it composes like `private def`.
+
+Without a Default Export, importing returns a `Carton::Exports` namespace:
+
+```ruby
+Pricing = import_relative 'pricing'
+
+Pricing::Money.new
+Pricing.add(2, 3)
+Pricing::PI
+Pricing[:add] # => #<Method: ...add(a, b)>
+```
+
+`Pricing.add(...)` forwards arguments, keywords, and blocks. `[]`, `fetch`,
+`fetch_values`, `values_at`, `key?`, and destructuring return the `Method`
+object without calling it.
+
+### Default Export
+
+`default` is a reserved export name, as in ES modules. When a file exports
+`default:`, importing it returns that value itself:
 
 ```ruby
 # user.rb
 class User
   def initialize(name) = @name = name
-
-  def greet = "Hello, #{@name}!"
 end
 
-export_default User
+export default: User
 ```
-
-Importing that file returns the exported object itself:
 
 ```ruby
 User = import_relative 'user'
-User.new('Alice').greet
+User.new('Alice')
 ```
 
-The Default Export may be any object, including a Hash, `nil`, or `false`.
-A Hash remains the Default Export itself; only `export` creates an Export
-Namespace.
+- The Default Export may be any value, including a Hash, `nil`, or `false`.
+- It combines with named exports in the same file: `export default: User`
+  plus `export VERSION: '1.0'` is allowed. For now `import` returns only the
+  Default Export; reaching the other names is part of the import redesign
+  (see [todo.md](todo.md)).
+- `export :default` raises `ArgumentError`, since it would export a method
+  named `default`.
 
-### Named exports
+### Exporting a gem's root module
 
-Use `export` when the file exports a small namespace. Symbols name top-level
-methods; keyword arguments are plain values.
+Make the root module the Default Export and keep internals private with
+Ruby's own `private_constant`, which holds across Boxes:
 
 ```ruby
-# math.rb
-def add(a, b) = a + b
+# lib/pricing.rb
+module Pricing
+  class Calculator
+  end
 
-export :add, PI: 3.14159, version: '1.0.0'
+  module Internal
+  end
+  private_constant :Internal
+end
+
+export default: Pricing
 ```
-
-Importing named exports returns a `Carton::Exports` object, which behaves like a namespace module.
 
 ```ruby
-$LOAD_PATH.unshift(__dir__)
-MathTools = import 'math'
-
-MathTools::PI
-MathTools.version
-MathTools.add(2, 3)
-MathTools[:add] # => #<Method: ...add(a, b)>
+Pricing = import 'pricing'
+Pricing::Calculator # public
+Pricing::Internal   # NameError: private constant Pricing::Internal referenced
 ```
 
-- `MathTools.add(...)` forwards arguments, keywords, and blocks to the method.
-- `[]`, `fetch`, and destructuring return the `Method` object.
-- Keyword values are never invoked: `export handler: -> {}` makes
-  `handler` return the lambda itself.
-- A symbol naming a missing method raises `NameError` at export time.
-- A name given both as a symbol and as a keyword raises `ArgumentError`.
+To publish a facade instead, export chosen inner constants by keyword:
+`export Calculator: Pricing::Calculator`. Importers then see only those, as
+`import('pricing')::Calculator`.
 
-`Carton::Exports` has a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
+### Exports under plain `require`
 
-Only one export call is allowed per imported file. Use `export_default value` for single exports or `export :name, key: value` for named exports.
-
-`export` and `export_default` only declare exports from the file being
-imported. Anywhere else they still check their arguments, then do nothing and
-return the value. A file loaded with `require`, whether by an app that never
-imports or by another Carton, ignores its own `export` line. A gem can add
-`export_default MyGem` and keep working for apps that just `require 'my_gem'`
-(it needs `require 'carton'` first so `export_default` exists).
+`export` only declares exports from the file being imported. Anywhere else
+it still checks its arguments, then does nothing. A file loaded with
+`require`, whether by an app that never imports or by another Carton,
+ignores its own `export` lines. A gem can add `export default: MyGem` and keep
+working for apps that just `require 'my_gem'` (it needs `require 'carton'`
+first so `export` exists).
 
 ## Importing
 

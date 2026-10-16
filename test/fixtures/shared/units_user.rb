@@ -2,4 +2,4 @@
 
 Units = import_relative 'units'
 
-export_default Units
+export default: Units

@@ -28,35 +28,40 @@ module Carton
       import_cache.import(target)
     end
 
-    # Declare an Export Namespace for the current carton. Symbols name
-    # top-level methods; keyword arguments are plain values.
+    # Add to the current carton's Export Namespace. A capitalized Symbol names
+    # a top-level constant, any other Symbol a top-level method; keyword
+    # arguments are plain values, and `default:` names the Default Export.
+    # Like `private`, a single Symbol is returned so `export def name ...`
+    # works.
     def export(names, values, owner:, file:)
       if (names.empty? && values.empty?) ||
            names.any? { |name| !name.is_a?(Symbol) }
         raise ArgumentError,
-              'export takes method names and keyword arguments; use export_default for a single export'
+              'export takes Symbols naming methods or constants, and keyword values'
       end
 
-      duplicate = names.find { |name| values.key?(name) }
+      if names.include?(:default)
+        raise ArgumentError,
+              'export :default would export a method; use export default: value'
+      end
+
+      duplicate = (names + values.keys).tally.find { |_, count| count > 1 }
       if duplicate
-        raise ArgumentError, "export name given more than once: #{duplicate}"
+        raise ArgumentError,
+              "export name given more than once: #{duplicate.first}"
       end
 
-      methods = names.to_h { |name| [name, owner.method(name)] }
+      constants, method_names =
+        names.partition { |name| name.match?(/\A[A-Z]/) }
+      methods = method_names.to_h { |name| [name, owner.method(name)] }
+      constants =
+        constants.to_h { |name| [name, Object.const_get(name, false)] }
       entrypoint_box(file)&.__send__(
         :declare_export,
-        ExportDeclaration.namespace(methods, values),
+        methods,
+        values.merge(constants),
       )
-      values
-    end
-
-    # Export a single value from the current carton.
-    def export_default(value, file:)
-      entrypoint_box(file)&.__send__(
-        :declare_export,
-        ExportDeclaration.default(value),
-      )
-      value
+      names.first if names.size == 1 && values.empty?
     end
 
     def load_import(target)
@@ -93,8 +98,8 @@ module Carton
     private_class_method :extract_export
 
     # The Carton Box whose Entrypoint is `file`, or nil. Outside that file,
-    # such as under a plain `require`, `export` and `export_default` are
-    # inert, so Carton-aware files and gems still load the ordinary way.
+    # such as under a plain `require`, `export` is inert, so Carton-aware
+    # files and gems still load the ordinary way.
     def entrypoint_box(file)
       box = Ruby::Box.current
       return unless box.respond_to?(:entrypoint?, true)

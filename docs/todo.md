@@ -4,6 +4,7 @@ Ordered by priority within each section.
 
 ## Library
 
+- Redesign `import` so a Carton with a Default Export can also expose its Named Exports (ESM's `import * as ns` / `import { name }`). Today `import` returns only the Default Export when one exists.
 - Raise a Carton error explaining `RUBY_BOX=1` when boxes are disabled, instead of the raw `Ruby::Box` error from `Carton::Box#initialize`.
 - Add `Carton::Error` with `ImportError` and `ExportError` subclasses, and make `GemfileNotFound` a subclass. Replace the plain `RuntimeError`s for exporting twice, circular imports, and gem version mismatches, and include the paths Carton tried in missing-Import messages.
 - Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.

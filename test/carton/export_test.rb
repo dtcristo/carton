@@ -88,7 +88,7 @@ class ExportTest < Minitest::Test
 
   def test_export_requires_names_or_values
     error = assert_raises(ArgumentError) { import "#{FIXTURES}/empty_export" }
-    assert_equal 'export takes method names and keyword arguments; use export_default for a single export',
+    assert_equal 'export takes Symbols naming methods or constants, and keyword values',
                  error.message
   end
 
@@ -206,15 +206,63 @@ class ExportTest < Minitest::Test
     assert_equal :MISSING_FROM_DECONSTRUCTION, error.name
   end
 
-  def test_export_raises_when_called_more_than_once
-    error = assert_raises(RuntimeError) { import "#{FIXTURES}/double_export" }
-    assert_equal 'only one export is allowed per imported file', error.message
+  def test_default_export_coexists_with_named_exports
+    widget = import "#{FIXTURES}/default_and_named_export"
+
+    assert_instance_of Class, widget
+    assert_equal 'Widget', widget.name
   end
 
-  def test_single_export_requires_export_default
+  def test_export_rejects_a_default_symbol
+    error =
+      assert_raises(ArgumentError) do
+        import "#{FIXTURES}/default_symbol_export"
+      end
+    assert_equal 'export :default would export a method; use export default: value',
+                 error.message
+  end
+
+  def test_constant_symbol_exports_the_class_itself
+    result = import "#{FIXTURES}/multiple_export"
+
+    assert_equal 'Widget', result::Widget.name
+  end
+
+  def test_export_calls_accumulate_into_one_namespace
+    result = import "#{FIXTURES}/multiple_export"
+
+    assert_equal 9, result.area(3)
+    assert_equal '1.0.0', result::VERSION
+    assert_equal 'widgets', result.label
+    assert_equal %i[VERSION Widget area label],
+                 result.deconstruct_keys(nil).keys.sort
+  end
+
+  def test_export_rejects_a_name_repeated_across_calls
+    error =
+      assert_raises(ArgumentError) { import "#{FIXTURES}/repeated_name_export" }
+    assert_equal 'export name given more than once: add', error.message
+  end
+
+  def test_constant_symbol_export_missing_constant_raises_name_error
+    error =
+      assert_raises(NameError) { import "#{FIXTURES}/missing_constant_export" }
+    assert_equal :Missing, error.name
+  end
+
+  def test_root_module_export_keeps_private_constants_private
+    pricing = import "#{FIXTURES}/root_module_export"
+
+    assert_in_delta 1.01, pricing::Calculator.new.total
+    assert_equal [:Calculator], pricing.constants
+    error = assert_raises(NameError) { pricing::Internal }
+    assert_match(/private constant/, error.message)
+  end
+
+  def test_export_rejects_a_module_argument
     error =
       assert_raises(ArgumentError) { import "#{FIXTURES}/legacy_single_export" }
-    assert_equal 'export takes method names and keyword arguments; use export_default for a single export',
+    assert_equal 'export takes Symbols naming methods or constants, and keyword values',
                  error.message
   end
 end

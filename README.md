@@ -32,7 +32,7 @@ class User
   def initialize(name) = @name = name
 end
 
-export_default User
+export default: User
 ```
 
 ```ruby
@@ -43,18 +43,17 @@ User = import_relative 'user'
 alice = User.new('Alice')
 ```
 
-Named exports return a namespace-like module:
+Without a `default:`, importing returns a namespace-like module. `export`
+can be called many times: capitalized Symbols export constants, other
+Symbols export methods, and keywords export plain values.
 
 ```ruby
 # math.rb
-def add(a, b) = a + b
-
-export :add, PI: 3.14159
+export def add(a, b) = a + b
+export PI: 3.14159
 ```
 
 ```ruby
-require 'carton'
-
 MathTools = import_relative 'math'
 MathTools::PI
 MathTools.add(2, 3)

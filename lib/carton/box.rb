@@ -69,8 +69,8 @@ module Carton
       File.realpath(path)
     end
 
-    def declare_export(declaration)
-      @export_declaration = @export_declaration.declare(declaration)
+    def declare_export(methods, values)
+      @export_declaration = @export_declaration.add(methods, values)
     end
 
     # A Bare Carton's surface is the constants and top-level helpers its

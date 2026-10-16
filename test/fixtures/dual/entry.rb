@@ -4,4 +4,4 @@
 # should count.
 require_relative 'library'
 
-export_default [:entry, Library.name]
+export default: [:entry, Library.name]

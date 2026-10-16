@@ -4,5 +4,5 @@ module Foo
   def self.hello = 'Hello from Foo!'
 end
 
-# export_default returns the object itself from `import_relative 'foo'`.
-export_default Foo
+# `default:` is the Default Export: `import_relative 'foo'` returns Foo itself.
+export default: Foo
