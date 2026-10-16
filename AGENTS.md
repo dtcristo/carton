@@ -60,7 +60,7 @@ Guidance and memory for agents working on this repo.
 - `bundle exec rake example:bundler` - per-Carton Bundler example
 - `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code
-- Prefer `mise x ruby@4.0.6 -- ...` when the shell default Ruby is older than the package baseline.
+- Prefer `mise x ruby@4.0.7 -- ...` when the shell default Ruby is older than the package baseline.
 
 ## Agent skills
 
