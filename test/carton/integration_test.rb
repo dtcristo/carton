@@ -59,12 +59,12 @@ class IntegrationTest < Minitest::Test
     Dir.mktmpdir('carton-hidden-export') do |dir|
       entry = File.join(dir, 'hidden_export.rb')
       File.write(entry, <<~RUBY)
-          # frozen_string_literal: true
+        # frozen_string_literal: true
 
-          INTERNAL_TEMPLATE = 'draft-only'
+        INTERNAL_TEMPLATE = 'draft-only'
 
-          export public_label: 'invoice'
-        RUBY
+        export public_label: 'invoice'
+      RUBY
 
       result = import entry
 
@@ -101,7 +101,7 @@ class IntegrationTest < Minitest::Test
   end
 
   def test_setup_bundle_leaves_process_env_unchanged
-    script = <<~'RUBY'
+    script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
@@ -114,10 +114,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
     assert_empty JSON.parse(output)
   end
 
@@ -135,10 +132,10 @@ class IntegrationTest < Minitest::Test
     Dir.mktmpdir('carton-setup-bundle') do |dir|
       entry = File.join(dir, 'missing_gemfile.rb')
       File.write(entry, <<~RUBY)
-          # frozen_string_literal: true
+        # frozen_string_literal: true
 
-          Carton.setup_bundle(gemfile: 'Gemfile')
-        RUBY
+        Carton.setup_bundle(gemfile: 'Gemfile')
+      RUBY
 
       error = assert_raises(StandardError) { import entry }
       assert_equal 'Carton::GemfileNotFound', error.class.name
@@ -146,7 +143,7 @@ class IntegrationTest < Minitest::Test
   end
 
   def test_setup_bundle_exposes_path_gems_to_name_based_imports
-    script = <<~'RUBY'
+    script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
@@ -170,10 +167,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
 
     payload = JSON.parse(output)
     assert_equal '0.1.0', payload.fetch('version')
@@ -187,7 +181,7 @@ class IntegrationTest < Minitest::Test
   # bigdecimal 4.1.1 is also installed, so without sharing the gem Carton's
   # Box would auto-activate the newest version instead of the locked 3.3.1.
   def test_gem_carton_uses_caller_locked_dependency_versions
-    script = <<~'RUBY'
+    script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
@@ -209,10 +203,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
 
     payload = JSON.parse(output)
     assert_equal '3.3.1', payload.fetch('bigdecimal_version')
@@ -226,7 +217,7 @@ class IntegrationTest < Minitest::Test
   # `Bundler.setup` does for Main: undeclared locked gems load at their
   # locked version and unlocked gems fail.
   def test_gem_carton_of_bundled_caller_only_sees_locked_gems
-    script = <<~'RUBY'
+    script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
@@ -243,10 +234,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
 
     payload = JSON.parse(output)
     assert_equal '3.3.1', payload.fetch('locked')
@@ -266,15 +254,12 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
     assert_equal '4.1.1 ok', output.strip
   end
 
   def test_gem_carton_rejects_importer_locking_a_different_version
-    script = <<~'RUBY'
+    script = <<~RUBY
       require File.expand_path('lib/carton', Dir.pwd)
 
       fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
@@ -291,10 +276,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
     assert_match(
       /priced_gem\.rb was imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
       output,
@@ -302,7 +284,7 @@ class IntegrationTest < Minitest::Test
   end
 
   def test_bundler_example_imported_cartons_keep_separate_gem_versions
-    script = <<~'RUBY'
+    script = <<~RUBY
       require 'json'
 
       examples = File.expand_path('examples/bundler', Dir.pwd)
@@ -333,10 +315,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
 
     payload = JSON.parse(output)
     assert_equal '4.1.1', payload.fetch('math_helper_version')
@@ -351,12 +330,12 @@ class IntegrationTest < Minitest::Test
     Dir.mktmpdir('carton-require') do |dir|
       entry = File.join(dir, 'requires_carton.rb')
       File.write(entry, <<~RUBY)
-          # frozen_string_literal: true
+        # frozen_string_literal: true
 
-          require 'carton'
+        require 'carton'
 
-          export sets_up_bundles: Carton.respond_to?(:setup_bundle)
-        RUBY
+        export sets_up_bundles: Carton.respond_to?(:setup_bundle)
+      RUBY
 
       result = import entry
       assert_equal true, result.fetch(:sets_up_bundles)
@@ -364,7 +343,7 @@ class IntegrationTest < Minitest::Test
   end
 
   def test_bundled_import_activates_inside_box_only
-    script = <<~'RUBY'
+    script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
@@ -381,10 +360,7 @@ class IntegrationTest < Minitest::Test
       Process.exit!(0)
     RUBY
 
-    output, error, status =
-      Open3.capture3(unbundled_env, RbConfig.ruby, '-e', script)
-
-    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output = run_boxed(script)
 
     payload = JSON.parse(output)
     assert_equal '4.1.1', payload.fetch('bigdecimal_version')
@@ -392,6 +368,16 @@ class IntegrationTest < Minitest::Test
   end
 
   private
+
+  # Runs `script` in a fresh `RUBY_BOX=1` Ruby outside the dev bundle, as a
+  # real process so native extensions and process exit are exercised, asserts
+  # it succeeded, and returns its stdout.
+  def run_boxed(script)
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output
+  end
 
   def unbundled_env
     ENV
