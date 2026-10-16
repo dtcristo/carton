@@ -120,6 +120,8 @@ Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say
   Box.
 - Methods defined in Master run in Master, so their constant lookups and lazy
   `require`s use Master's `Object` and load path, not the caller's.
+- Classes defined in Master are boxable, unlike classes defined in a user box,
+  which is why a later Box's reopens of them stay in that Box.
 
 Loading all of Active Support's core extensions into Master once made them
 available in every later Box at no per-Box cost; requiring them in each Box
@@ -326,6 +328,29 @@ That is how this can be true at once:
 
 This is also why top-level constants and top-level methods can be box-local even though `Object` itself is a builtin class.
 
+### Which classes get per-box copies (Ruby 4.0.7)
+
+- **Only classes created while Master is the current box.** `class_alloc`
+  marks a class "boxable" only when `BOX_MASTER_P(rb_current_box())`
+  ([class.c](https://github.com/ruby/ruby/blob/v4.0.7/class.c#L649-L700)). In practice that means builtins.
+- **Classes created in any user box have only prime, and it is writable.**
+  They are shared objects with one method table and one constant table, so
+  reopening such a class from another box changes it for every box holding
+  a reference. Patching `String` is box-local; patching a class another
+  Carton defined is not.
+- **Reads fall through to prime until the first write.** A box that never
+  writes `Rational` keeps seeing Master's current `Rational`
+  ([`RCLASS_EXT_READABLE_IN_BOX`](https://github.com/ruby/ruby/blob/v4.0.7/internal/class.h#L352-L370),
+  [`RCLASS_EXT_WRITABLE_LOOKUP`](https://github.com/ruby/ruby/blob/v4.0.7/internal/class.h#L387-L410)). Each
+  new box's gem prelude writes to `String`, `Array`, and others, so those
+  get an early per-box copy, which can look like a snapshot.
+- **Box creation itself copies only `load_path`, `loaded_features`, and
+  `Object`'s constant table**
+  ([`box_entry_initialize`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L157-L185),
+  [`box_initialize`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L389-L427)). Master never copies-on-write; it
+  reads and writes prime directly
+  ([`initialize_master_box`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L876-L897)).
+
 ## Why a box is also a namespace
 
 `Ruby::Box` subclasses `Module`, and top-level constants defined in a box become constants of `Object` in that box.
@@ -433,7 +458,7 @@ Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
 1. each Carton file loads once into its own box, and later imports share it,
 2. `$LOAD_PATH` inside that box is isolated,
-3. constants and monkey patches defined in the imported carton stay inside that box,
+3. top-level constants and builtin-class monkey patches defined in the imported carton stay inside that box; classes the carton defines are shared objects, so another Box that reopens them changes them everywhere,
 4. the returned box or export object becomes the carton boundary.
 
 But the internals also explain Carton's current constraints:
