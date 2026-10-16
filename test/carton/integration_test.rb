@@ -209,11 +209,11 @@ class IntegrationTest < Minitest::Test
 
           require 'carton'
 
-          export bootstraps_rubygems: Carton.respond_to?(:bootstrap_rubygems!)
+          export scopes_bundles: Carton.respond_to?(:with_bundle)
         RUBY
 
       result = import entry
-      assert_equal true, result.fetch(:bootstraps_rubygems)
+      assert_equal true, result.fetch(:scopes_bundles)
     end
   end
 

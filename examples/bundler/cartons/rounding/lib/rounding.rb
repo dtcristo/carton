@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-# This carton has its own Gemfile, so it bootstraps boxed RubyGems before
-# asking Bundler for the gems in that bundle.
-Carton.bootstrap_rubygems!
+# This carton has its own Gemfile; activation stays inside this Box.
 Carton.with_bundle { require 'bundler/setup' }
 
 # `import 'bigdecimal'` treats the gem entry file like another carton. The gem's

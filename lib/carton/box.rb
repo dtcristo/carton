@@ -15,7 +15,6 @@ module Carton
       ensure
         ENV['BUNDLER_SETUP'] = previous_bundler_setup if previous_bundler_setup
       end
-      @rubygems_bootstrapped = false
       reset_export_declaration
     end
 
@@ -53,13 +52,11 @@ module Carton
       self
     end
 
-    # Load the target feature inside the box. If the target bootstrapped
-    # RubyGems, restore the caller's loaded-spec view after the import. This is
-    # a temporary RubyGems isolation hack, not part of Carton's core box model.
+    # Load the target feature inside the box.
     def load_import(feature, load_path: nil)
       add_import_load_path(load_path) if load_path
 
-      result = preserve_loaded_specs { require_in_box(feature) }
+      result = require_in_box(feature)
       discover_public_entries
       result
     end
@@ -84,23 +81,6 @@ module Carton
 
     def reset_export_declaration
       @export_declaration = ExportDeclaration.absent
-    end
-
-    def mark_rubygems_bootstrapped
-      @rubygems_bootstrapped = true
-    end
-
-    def rubygems_bootstrapped?
-      @rubygems_bootstrapped
-    end
-
-    def preserve_loaded_specs
-      previous_loaded_specs = Gem.loaded_specs.dup
-      yield
-    ensure
-      if previous_loaded_specs && rubygems_bootstrapped?
-        Gem.loaded_specs.replace(previous_loaded_specs)
-      end
     end
 
     def purge_gem_load_path

@@ -10,7 +10,6 @@ end
 module Carton
   VERSION: ::String
 
-  def self.bootstrap_rubygems!: () -> void
   def self.with_bundle: [T] (?::String gemfile) { () -> T } -> T
 end
 

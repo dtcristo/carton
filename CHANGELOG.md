@@ -20,7 +20,6 @@
 
 ### Added
 
-- `Carton.bootstrap_rubygems!` sets up RubyGems inside a Carton's Box so the Carton can activate gems or load Bundler.
 - `Carton.with_bundle` takes an optional Gemfile path. Without one, it searches upward from the calling file for `gems.rb` or `Gemfile`.
 - `Carton::GemfileNotFound` is raised when `with_bundle` cannot find a Gemfile.
 - Public RBS signatures in `sig/carton.rbs`.
@@ -35,7 +34,6 @@
 ### Fixed
 
 - Creating a Carton's Box no longer re-runs the caller's `bundler/setup` through the process-global `BUNDLER_SETUP` variable.
-- Imports that bootstrap RubyGems restore the caller's `Gem.loaded_specs` afterwards.
 - `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
 - Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, and `key?` no longer calls helpers.
 - Hash-rest patterns (`=> { **rest }`) return every Named Export, or every member of a Bare Carton's Public Surface, instead of an empty hash.

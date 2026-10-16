@@ -2,7 +2,7 @@
 
 Flat, non-Bundler example showing two cartons manually activating different `bigdecimal` versions with RubyGems.
 
-`main.rb`, `bigdecimal3.rb`, and `bigdecimal4.rb` all live at the same level. Each carton calls `Carton.bootstrap_rubygems!`, activates one `bigdecimal` version with `gem`, then requires it and exports `BigDecimal::VERSION`.
+`main.rb`, `bigdecimal3.rb`, and `bigdecimal4.rb` all live at the same level. Each carton activates one `bigdecimal` version with `gem`, then requires it and exports `BigDecimal::VERSION`.
 
 ## Run
 
