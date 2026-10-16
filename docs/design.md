@@ -108,4 +108,4 @@ Ruby 4.0.6 probes show `$LOAD_PATH`, `Gem.loaded_specs`, and conflicting
 non-path bundles staying Box-local beneath Carton's ordinary setup. The open
 upstream blocker is boxed `bundle exec` gemspec evaluation.
 
-See [how-gems-work.md](how-gems-work.md) and [how-boxes-work.md](how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](rubygems-upstream.md) and [ruby-upstream.md](ruby-upstream.md) for the minimal upstream work.
+See [how-gems-work.md](internals/how-gems-work.md) and [how-boxes-work.md](internals/how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](internals/rubygems-upstream.md) and [ruby-upstream.md](internals/ruby-upstream.md) for the minimal upstream work.
