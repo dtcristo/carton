@@ -29,7 +29,7 @@
 - `import`, `import_relative`, `export`, and `export_default` are now private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them.
 - Carton now requires Ruby `>= 4.0.6`, enforced by the gemspec instead of a load-time version check.
 - `import 'name'` resolves the feature in the caller's Box and carries only the matching load-path entry into the imported Box, instead of copying the caller's whole `$LOAD_PATH`.
-- `Carton.with_bundle` clears a stale `BUNDLE_LOCKFILE` and patches path-gem load paths for the current Box.
+- `Carton.with_bundle` clears a stale `BUNDLE_LOCKFILE`.
 
 ### Fixed
 

@@ -10,7 +10,6 @@ require_relative 'carton/runtime'
 require_relative 'carton/kernel_patch'
 
 module Carton
-  private_constant :BundlerSupport
   private_constant :ExportDeclaration
   private_constant :ExportMethods
   private_constant :ImportCache
