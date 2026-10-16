@@ -184,6 +184,44 @@ class IntegrationTest < Minitest::Test
     assert payload.fetch('main_load_path_unchanged')
   end
 
+  # bigdecimal 4.1.1 is also installed, so without sharing the gem Carton's
+  # Box would auto-activate the newest version instead of the locked 3.3.1.
+  def test_gem_carton_uses_caller_locked_dependency_versions
+    script = <<~'RUBY'
+      require 'json'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      Carton.setup_bundle(gemfile: File.expand_path('test/fixtures/shared_gems/Gemfile', Dir.pwd))
+
+      before_loaded = Gem.loaded_specs.keys.sort
+      before_load_path = $LOAD_PATH.to_a
+
+      priced_gem = import 'priced_gem'
+
+      puts JSON.generate(
+        bigdecimal_version: priced_gem.bigdecimal_version,
+        activated: priced_gem.activated,
+        main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
+        main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
+        main_bigdecimal_required: $LOADED_FEATURES.any? { _1.end_with?('/bigdecimal.rb') },
+      )
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+
+    payload = JSON.parse(output)
+    assert_equal '3.3.1', payload.fetch('bigdecimal_version')
+    assert_equal '3.3.1', payload.fetch('activated')
+    assert payload.fetch('main_loaded_unchanged')
+    assert payload.fetch('main_load_path_unchanged')
+    refute payload.fetch('main_bigdecimal_required')
+  end
+
   def test_bundler_example_imported_cartons_keep_separate_gem_versions
     script = <<~'RUBY'
       require 'json'

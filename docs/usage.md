@@ -248,6 +248,24 @@ ones the Carton starts itself. Wrap a subprocess that needs the bundle in
 `RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
 evaluates a gemspec.
 
+### Gem cartons
+
+Importing a file that belongs to a gem the caller has activated, such as a
+path gem in the app's Gemfile, activates that gem and its runtime dependencies
+in the Carton's Box at the caller's versions. The gem needs no Gemfile of its
+own:
+
+```ruby
+# Gemfile: gem 'bigdecimal', '3.3.1'; gem 'pricing', path: 'pricing'
+Carton.setup_bundle
+Pricing = import 'pricing' # pricing's `require 'bigdecimal'` gets 3.3.1
+```
+
+Only dependencies the gemspec declares are shared. A gem that requires an
+undeclared gem gets whatever RubyGems finds in its Box. If the gem Carton
+also calls `setup_bundle`, its Gemfile must agree with the caller's versions,
+or Bundler raises `Gem::LoadError`.
+
 See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [upstream.md](internals/upstream.md) for upstream status.
 
 ## Examples

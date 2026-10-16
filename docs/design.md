@@ -12,6 +12,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` plus caller-file bundle discovery |
 | `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
+| `lib/carton/gem_activation.rb` | Finds the activated gem that owns an Import and activates its dependency closure in the new Box |
 | `lib/carton/resolver.rb` | Maps an Import path to a file without evaluating code, given a load path |
 | `lib/carton/runtime.rb` | Builds boxes, runs imports, and extracts exports |
 | `lib/carton/box.rb` | Box-specific helpers for requiring files, holding and resetting the current Export Declaration, and seeding an imported feature's load path |
@@ -26,10 +27,11 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 3. If the target file has already been imported, the cached value is returned. Otherwise a new `Carton::Box` is created for that import.
 4. The carton entrypoint (`lib/carton.rb`) is required inside the box so the box has `export`, `import`, and `import_relative`.
 5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
-6. The target file is required inside the box.
-7. If the file called `export_default`, its value is returned directly.
-8. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
-9. If there was no export, the box itself is returned.
+6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new box at the caller's versions, dependencies first.
+7. The target file is required inside the box.
+8. If the file called `export_default`, its value is returned directly.
+9. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
+10. If there was no export, the box itself is returned.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
 

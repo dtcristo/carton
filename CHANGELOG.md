@@ -40,6 +40,7 @@
 
 ### Fixed
 
+- Importing a file from an activated gem now activates that gem and its runtime dependencies in the Carton's Box at the caller's versions. Before, the Box auto-activated the newest installed version of each dependency, ignoring the caller's lockfile.
 - `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
 - Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, and `key?` no longer calls helpers.
 - Hash-rest patterns (`=> { **rest }`) return every Named Export, or every member of a Bare Carton's Public Surface, instead of an empty hash.

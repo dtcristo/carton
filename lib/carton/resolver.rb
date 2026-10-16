@@ -6,8 +6,9 @@ module Carton
   # `$LOAD_PATH`; a static analyzer can pass any load path it has computed.
   module Resolver
     # `feature` is what the new Box requires. `load_path` is the single caller
-    # load-path entry that matched a name-based Import, if any.
-    Target = Struct.new(:feature, :load_path, keyword_init: true)
+    # load-path entry that matched a name-based Import, if any. The runtime
+    # fills `gems` with the caller specs to activate in the new Box.
+    Target = Struct.new(:feature, :load_path, :gems, keyword_init: true)
 
     EXTENSIONS = ['.rb', ".#{RbConfig::CONFIG['DLEXT']}"].freeze
     private_constant :EXTENSIONS

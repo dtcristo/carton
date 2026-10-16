@@ -17,8 +17,15 @@ module Carton
     # `base_dir` is given for `import_relative`; plain `import` searches the
     # caller Box's `$LOAD_PATH`.
     def import(path, base_dir: nil)
-      load_path = Ruby::Box.current.eval('$LOAD_PATH.to_a')
-      import_cache.import(Resolver.resolve(path, load_path:, base_dir:))
+      caller_box = Ruby::Box.current
+      load_path = caller_box.eval('$LOAD_PATH.to_a')
+      target = Resolver.resolve(path, load_path:, base_dir:)
+      target.gems =
+        GemActivation.closure(
+          target.feature,
+          caller_box.eval('defined?(Gem) ? Gem.loaded_specs : {}'),
+        )
+      import_cache.import(target)
     end
 
     # Declare an Export Namespace for the current carton. Symbols name
@@ -60,7 +67,12 @@ module Carton
         entrypoint: ENTRYPOINT,
         import_cache: IMPORT_CACHE,
       )
-      box.__send__(:load_import, target.feature, load_path: target.load_path)
+      box.__send__(
+        :load_import,
+        target.feature,
+        load_path: target.load_path,
+        gems: target.gems,
+      )
       extract_export(box)
     end
     private_class_method :load_import
