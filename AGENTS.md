@@ -17,6 +17,7 @@ Guidance and memory for agents working on this repo.
 - Full pattern deconstruction enumerates every Named Export or the Bare Carton's discovered Public Surface.
 - Ruby 4.0.7 gives each Box its own RubyGems state and clean gem paths; Carton patches nothing in RubyGems or Bundler and only scopes `BUNDLE_GEMFILE`/`BUNDLE_LOCKFILE`. Re-add a gem workaround only with a failing test on the current release.
 - `RUBY_BOX=1 bundle exec` works on Ruby 4.0.7 with Bundler 4.0.23.
+- `Carton.setup_bundle(*groups, gemfile:)` mirrors `Bundler.setup` and restores `ENV` afterwards; check `Bundler.root` (memoized), not `Bundler.default_gemfile` (rereads `ENV`), when testing which Gemfile was selected.
 - Imports are shared process-wide, keyed by Entrypoint real path; the Main Box's `ImportCache` and loader build every Carton (user decision; replaces the earlier avoid-a-global-cache note).
 - `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
 - Prefer raising the minimum Ruby/RubyGems/Bundler version over carrying workarounds for older releases (user decision).

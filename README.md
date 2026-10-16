@@ -75,14 +75,17 @@ Research notes on `Ruby::Box`, RubyGems, Bundler, and upstream plans live in [do
 
 ```sh
 bundle install                              # Install development deps
+bundle exec rake                            # Run tests, lint, and examples
 bundle exec rake format                     # Format code
 bundle exec rake rubocop                    # Lint code
 RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
 RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
+RUBY_BOX=1 ruby examples/bundler/main.rb     # Run the Bundler example
 ```
 
-Per-Carton Bundler setup, path-gem imports, and `RUBY_BOX=1 bundle exec` work
-on Ruby 4.0.7 with Bundler 4.0.23.
+A carton with its own Gemfile calls `Carton.setup_bundle`; see
+[usage.md](docs/usage.md#bundler-inside-cartons). Bundler support needs
+Bundler 4.0.23+, and `RUBY_BOX=1 bundle exec` works.
 
 ## License
 
