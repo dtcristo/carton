@@ -428,6 +428,17 @@ Because `require` really does resolve against the loading box's local `$LOAD_PAT
 RubyGems registry state is Box-local, but `ENV` is process-global. Bundler
 reads its Gemfile from `ENV` and writes subprocess variables back to it.
 
+### Subclassing a class from another Box
+
+A Box can subclass a class object imported from another Box. The subclass's
+own methods run in its Box; inherited methods run in the Box that defined
+them, with that Box's constants and monkey patches. On 4.0.7 this is enough
+to define Active Record models and Action Controller controllers in domain
+Cartons while Rails loads once in a framework Carton
+([examples/rails_cartons](../../examples/rails_cartons/README.md)). Lookups by
+constant *name* inside the defining Box (Rails' `constantize`) still need the
+subclass defined there too.
+
 ### Why Carton should avoid unnecessary Ruby-core changes
 
 Because most of the mechanics Carton wants are already present:
