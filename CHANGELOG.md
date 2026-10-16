@@ -33,6 +33,7 @@
 
 ### Changed
 
+- When the caller ran Bundler setup, a gem Carton's Box is restricted to the caller's bundle: every locked gem loads at its locked version, including undeclared dependencies, and gems outside the lockfile raise `LoadError`.
 - `import`, `import_relative`, `export`, and `export_default` are now private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them.
 - Carton now requires Ruby `>= 4.0.7`, enforced by the gemspec instead of a load-time version check.
 - Bundler support needs Bundler 4.0.23 or later. With it, `RUBY_BOX=1 bundle exec` works, including Gemfiles that evaluate a gemspec. Carton no longer patches RubyGems or Bundler.
@@ -40,6 +41,7 @@
 
 ### Fixed
 
+- A gem Carton imported from another Carton's Box now gets its dependencies. Gem activation wrote to the importing Carton's `$LOAD_PATH`, so the gem's `require` of a dependency raised `LoadError`.
 - Importing a file from an activated gem now activates that gem and its runtime dependencies in the Carton's Box at the caller's versions. Before, the Box auto-activated the newest installed version of each dependency, ignoring the caller's lockfile. A later import whose caller activates different versions raises instead of reusing the cached Carton.
 - `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
 - Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, and `key?` no longer calls helpers.

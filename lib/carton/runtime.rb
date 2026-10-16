@@ -20,11 +20,11 @@ module Carton
       caller_box = Ruby::Box.current
       load_path = caller_box.eval('$LOAD_PATH.to_a')
       target = Resolver.resolve(path, load_path:, base_dir:)
-      target.gems =
-        GemActivation.closure(
-          target.feature,
-          caller_box.eval('defined?(Gem) ? Gem.loaded_specs : {}'),
-        )
+      loaded_specs = caller_box.eval('defined?(Gem) ? Gem.loaded_specs : {}')
+      target.gems = GemActivation.closure(target.feature, loaded_specs)
+      unless target.gems.empty?
+        target.locked_gems = GemActivation.locked(caller_box, loaded_specs)
+      end
       import_cache.import(target)
     end
 
@@ -72,6 +72,7 @@ module Carton
         target.feature,
         load_path: target.load_path,
         gems: target.gems,
+        locked_gems: target.locked_gems,
       )
       extract_export(box)
     end

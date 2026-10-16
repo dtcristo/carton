@@ -222,6 +222,57 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_bigdecimal_required')
   end
 
+  # A bundled caller's lockfile bounds what a gem Carton can load, as
+  # `Bundler.setup` does for Main: undeclared locked gems load at their
+  # locked version and unlocked gems fail.
+  def test_gem_carton_of_bundled_caller_only_sees_locked_gems
+    script = <<~'RUBY'
+      require 'json'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      Carton.setup_bundle(gemfile: File.expand_path('test/fixtures/shared_gems/Gemfile', Dir.pwd))
+
+      sloppy_gem = import 'sloppy_gem'
+
+      puts JSON.generate(
+        locked: sloppy_gem.locked,
+        unlocked: sloppy_gem.unlocked,
+        main_minitest: Gem.loaded_specs.key?('minitest'),
+      )
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+
+    payload = JSON.parse(output)
+    assert_equal '3.3.1', payload.fetch('locked')
+    assert_equal 'LoadError', payload.fetch('unlocked')
+    refute payload.fetch('main_minitest')
+  end
+
+  def test_gem_carton_imported_from_a_bundled_carton
+    script = <<~'RUBY'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      # entry.rb sets up its own bundle and imports priced_gem from its Box.
+      entry = import File.expand_path('test/fixtures/shared_gems/newer/entry', Dir.pwd)
+      gem 'minitest' # not in any Carton's lockfile
+      puts "#{entry.priced_gem.bigdecimal_version} #{Gem.loaded_specs['minitest'] ? 'ok' : 'missing'}"
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    assert_equal '4.1.1 ok', output.strip
+  end
+
   def test_gem_carton_rejects_importer_locking_a_different_version
     script = <<~'RUBY'
       require File.expand_path('lib/carton', Dir.pwd)

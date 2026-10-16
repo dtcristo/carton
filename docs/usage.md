@@ -268,12 +268,15 @@ a Carton built against another version. If the gem Carton also calls
 `setup_bundle`, its Gemfile must agree with the caller's versions, or Bundler
 raises `Gem::LoadError`.
 
-Two cases still fall back to RubyGems picking the newest installed version
-inside the Box:
+When the caller ran Bundler setup (`Carton.setup_bundle`, `bundler/setup`, or
+`bundle exec`), the gem Carton's Box is restricted to the caller's bundle, as
+`Bundler.setup` restricts Main. Every locked gem loads at its locked version,
+even one the gemspec forgot to declare, and a gem outside the lockfile raises
+`LoadError`.
 
-- a gem the gemspec does not declare as a runtime dependency, and
-- a declared dependency the caller has not activated, such as one in a
-  Bundler group the caller did not set up.
+Without Bundler, only declared dependencies the caller activated are shared,
+and anything else falls back to RubyGems picking the newest installed version
+inside the Box.
 
 See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [upstream.md](internals/upstream.md) for upstream status.
 
