@@ -100,11 +100,11 @@ with every importer, so reopening one changes it everywhere; see
 
 ## Docs
 
-- [Usage](docs/usage.md): exports, imports, Bundler, gem Cartons, and testing
-- [Design](docs/design.md): how an import runs
-- [TODO](docs/todo.md): planned work and open questions
-- [Internals](docs/internals/): how `Ruby::Box`, RubyGems, and Bundler work, and upstream plans
-- [Glossary](CONTEXT.md)
+- [usage.md](docs/usage.md): exports, imports, Bundler, gem Cartons, and testing
+- [design.md](docs/design.md): how an import runs
+- [todo.md](docs/todo.md): planned work and open questions
+- [internals/](docs/internals/): how `Ruby::Box`, RubyGems, and Bundler work, and upstream plans
+- [CONTEXT.md](CONTEXT.md): the glossary
 
 Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 
