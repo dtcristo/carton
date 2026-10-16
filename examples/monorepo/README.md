@@ -30,12 +30,6 @@ packages/
     lib/shipping.rb
 ```
 
-Run it with:
-
-```sh
-RUBY_BOX=1 ruby examples/monorepo/main.rb
-```
-
 A package can leave the monorepo as a published gem without changes, since it
 already is one.
 
@@ -46,3 +40,9 @@ sees the app's whole lockfile, as `Bundler.setup` gives the Main Box, so
 `import 'shipping'` inside `billing` would work even though `billing.gemspec`
 does not declare it. Reporting that from a static `carton check` is proposed
 in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
+
+## Run
+
+```sh
+RUBY_BOX=1 ruby examples/monorepo/main.rb
+```

@@ -19,8 +19,12 @@ Small app-shaped example showing:
 `import 'math_helper'` and `import 'billing'` are easy to follow. The support
 gem exercises the boxed path-gem boundary.
 
-## Current status
+## Run
 
-This example is the repository-level path-gem and nested-bundle regression. On
-Ruby 4.0.7 it passes: separate Cartons keep their gem versions, the app path
-gem imports cleanly, and Main Box activation state stays unchanged.
+```sh
+RUBY_BOX=1 ruby examples/bundler/main.rb
+```
+
+The integration suite also uses this example as its path-gem and nested-bundle
+regression: separate Cartons keep their gem versions, the path gem imports
+cleanly, and the Main Box's activated gems stay unchanged.

@@ -1,13 +1,13 @@
 # Minimal example
 
-Smallest working example of the library with no gems or Bundler involved.
+The smallest working example, with no gems or Bundler.
 
 ## What it shows
 
-- default export with `export_default` (`foo.rb`, `baz.rb`)
-- named exports (`bar.rb`)
+- a Default Export with `export_default` (`foo.rb`, `baz.rb`)
+- Named Exports with `export` (`bar.rb`)
 - `import_relative`
-- one Carton importing another Carton internally
+- one Carton importing another (`bar.rb` imports `baz.rb`)
 
 ## Run
 
