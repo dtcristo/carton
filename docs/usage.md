@@ -324,6 +324,10 @@ no Gemfile, and Bundler errors raise instead of exiting.
 all of `ENV` when setup finishes. Bundler keeps the Gemfile it selected, so a
 later `Bundler.require` in the same Carton still uses it.
 
+While `setup_bundle` runs, other threads can see the Carton's `BUNDLE_GEMFILE`
+and Bundler's exported variables; Carton cannot make `ENV` thread-local. Call
+`setup_bundle` while booting, before starting threads that read `ENV`.
+
 Restoring `ENV` means subprocesses never inherit a Carton's bundle, including
 ones the Carton starts itself. Wrap a subprocess that needs the bundle in
 `bundle exec`, or pass it `BUNDLE_GEMFILE`.
