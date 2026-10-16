@@ -66,20 +66,14 @@ module Carton
     end
 
     def load_import(target)
-      box = Box.new
-      box.__send__(
-        :configure_for_import,
-        entrypoint: ENTRYPOINT,
-        import_cache: IMPORT_CACHE,
-      )
-      box.__send__(
-        :load_import,
-        target.feature,
-        load_path: target.load_path,
-        gems: target.gems,
-        locked_gems: target.locked_gems,
-      )
-      extract_export(box)
+      Box
+        .new
+        .__send__(
+          :import_target,
+          target,
+          carton_entrypoint: ENTRYPOINT,
+          import_cache: IMPORT_CACHE,
+        ) { |methods, values| Exports.new(methods, values) }
     end
     private_class_method :load_import
 
@@ -90,13 +84,6 @@ module Carton
       box.__send__(:import_cache)
     end
     private_class_method :import_cache
-
-    def extract_export(box)
-      box.__send__(:export_public_surface) do |methods, values|
-        Exports.new(methods, values)
-      end
-    end
-    private_class_method :extract_export
 
     # The Carton Box whose Entrypoint is `file`, or nil. Outside that file,
     # such as under a plain `require`, `export` is inert, so Carton-aware
