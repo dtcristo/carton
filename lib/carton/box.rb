@@ -5,16 +5,7 @@ module Carton
     include ExportMethods
 
     def initialize
-      # `require "bundler/setup"` leaves process-global `BUNDLER_SETUP` set so a
-      # later RubyGems load can re-enter setup. Optional Boxes copy Master, so
-      # Bundler is undefined there and that hook would re-run the caller's
-      # bundle. Clear it only around box construction.
-      previous_bundler_setup = ENV.delete('BUNDLER_SETUP')
-      begin
-        super
-      ensure
-        ENV['BUNDLER_SETUP'] = previous_bundler_setup if previous_bundler_setup
-      end
+      super
       reset_export_declaration
     end
 
@@ -37,14 +28,12 @@ module Carton
 
     private
 
-    # Fresh boxes inherit root-box gem paths and loaded features. Strip those
-    # inherited gem entries, then load Carton's own entrypoint so the imported
-    # file gets `import`, `import_relative`, and `export`. Nested imports reuse
-    # the caller's process-wide import cache.
+    # Fresh boxes copy Master, so they start without the caller's gems. Load
+    # Carton's own entrypoint so the imported file gets `import`,
+    # `import_relative`, and `export`. Nested imports reuse the caller's
+    # process-wide import cache.
     def configure_for_import(entrypoint:, import_cache:)
       @import_cache = import_cache
-      purge_gem_load_path
-      purge_gem_loaded_features
       reset_export_declaration
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
@@ -81,22 +70,6 @@ module Carton
 
     def reset_export_declaration
       @export_declaration = ExportDeclaration.absent
-    end
-
-    def purge_gem_load_path
-      load_path.reject! { |path| gem_path?(File.expand_path(path)) }
-    end
-
-    def purge_gem_loaded_features
-      eval('$LOADED_FEATURES').reject! do |feature|
-        gem_path?(File.expand_path(feature))
-      end
-    end
-
-    def gem_path?(path)
-      gem_roots = Gem.path.map { |root| File.expand_path(root) }
-      gem_roots.any? { |root| path == root || path.start_with?("#{root}/") } ||
-        path.include?('/vendor/bundle/') || path.include?('/bundler/gems/')
     end
 
     def lookup_entry(key)
