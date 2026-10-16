@@ -4,37 +4,24 @@
 
 ### Added
 
-- Added `export_default` for explicit single-value exports.
-- Added lookup helpers on named exports and bare imports: `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, `has_key?`, and destructuring through `deconstruct_keys`.
-- Replaced the old example set with focused `minimal`, `gems`, and `bundler` tracks, plus focused example READMEs and deeper runtime/design docs.
-- Added public RBS signatures, RuboCop, and GitHub Actions CI for the supported development workflow.
+- `Carton.bootstrap_rubygems!` sets up RubyGems inside a Carton's Box so the Carton can activate gems or load Bundler.
+- `Carton.with_bundle` takes an optional Gemfile path. Without one, it searches upward from the calling file for `gems.rb` or `Gemfile`.
+- `Carton::GemfileNotFound` is raised when `with_bundle` cannot find a Gemfile.
+- Public RBS signatures in `sig/carton.rbs`.
 
 ### Changed
 
-- Raised the package Ruby requirement to `>= 4.0.6` and aligned the gem
-  description, example metadata, and CI matrix with that baseline.
-- Removed the load-time Ruby version guard so package metadata alone enforces
-  the supported runtime.
-- `import` now resolves named imports in the caller box and carries only the matching load-path root into the imported box instead of copying the whole caller `$LOAD_PATH`.
-- `Carton.with_bundle` now auto-discovers caller `Gemfile`/`gems.rb`, clears stale `BUNDLE_LOCKFILE`, and installs the current path-gem compatibility patch.
-- Bundler and RubyGems support now live in separate files, and the bundled example now reflects a small app-style structure plus a support gem.
+- Carton now requires Ruby `>= 4.0.6`, enforced by the gemspec instead of a load-time version check.
+- `import 'name'` resolves the feature in the caller's Box and carries only the matching load-path entry into the imported Box, instead of copying the caller's whole `$LOAD_PATH`.
+- `Carton.with_bundle` clears a stale `BUNDLE_LOCKFILE` and patches path-gem load paths for the current Box.
 
 ### Fixed
 
-- `export_default` now preserves Hash, `nil`, and `false` values as Default
-  Exports instead of inferring an Export Namespace from the value's class.
-- Optional Box construction now clears process-global `BUNDLER_SETUP` so
-  Master-based Boxes do not re-enter the caller's `bundler/setup` through
-  RubyGems' load hook.
-- The test rake task now clears Bundler env when spawning `RUBY_BOX=1` Ruby so
-  inherited `BUNDLER_SETUP` cannot trip the gemspec prelude failure, and installs
-  the Bundler-example dependencies the integration suite exercises.
-- Bootstrapped boxed imports now restore the caller's `Gem.loaded_specs` view after RubyGems activation.
-- Bare Carton lookup now discovers Entrypoint-defined constants and helpers
-  before reading them, so keys cannot evaluate arbitrary expressions, `key?`
-  cannot invoke helpers, and helper lookup errors propagate unchanged.
-- Hash-rest patterns now enumerate every Named Export or the Bare Carton's
-  discovered Public Surface instead of returning an empty hash.
+- Creating a Carton's Box no longer re-runs the caller's `bundler/setup` through the process-global `BUNDLER_SETUP` variable.
+- Imports that bootstrap RubyGems restore the caller's `Gem.loaded_specs` afterwards.
+- `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
+- Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, `key?` no longer calls helpers, and helper errors propagate unchanged.
+- Hash-rest patterns (`=> { **rest }`) return every Named Export, or every member of a Bare Carton's Public Surface, instead of an empty hash.
 
 ## [0.1.0] - 2026-04-16
 

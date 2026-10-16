@@ -12,6 +12,18 @@
 
 Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4.0.6+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
 
+## Install
+
+```sh
+gem install carton   # or add `gem 'carton'` to your Gemfile
+```
+
+Carton needs Ruby 4.0.6+ with boxes enabled, so run your app with `RUBY_BOX=1`:
+
+```sh
+RUBY_BOX=1 ruby main.rb
+```
+
 ## Minimal usage
 
 ```ruby
@@ -50,16 +62,14 @@ MathTools.add(2, 3)
 
 ## Docs
 
-- [usage.md](docs/usage.md) - detailed import/export, caller load path, and explicit Bundler bootstrap
+- [usage.md](docs/usage.md) - imports, exports, load paths, Bundler, and testing
 - [design.md](docs/design.md) - implementation overview and constraints
-- [how-gems-work.md](docs/how-gems-work.md) - deep guide to RubyGems, Bundler, activation, and boxes
-- [how-boxes-work.md](docs/how-boxes-work.md) - deep guide to `Ruby::Box` internals and sharp edges
-- [rubygems-upstream.md](docs/rubygems-upstream.md) - minimal RubyGems/Bundler upstream plan
-- [ruby-upstream.md](docs/ruby-upstream.md) - minimal Ruby upstream plan
-- [todo.md](docs/todo.md) - future library, docs, and tooling work
-- [examples/minimal/README.md](examples/minimal/README.md) - smallest example
-- [examples/gems/README.md](examples/gems/README.md) - manual RubyGems activation without Bundler
-- [examples/bundler/README.md](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
+- [todo.md](docs/todo.md) - planned library, docs, and tooling work
+- [examples/minimal](examples/minimal/README.md) - smallest example
+- [examples/gems](examples/gems/README.md) - manual RubyGems activation without Bundler
+- [examples/bundler](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
+
+Research notes on `Ruby::Box`, RubyGems, Bundler, and upstream plans live in [docs/internals](docs/internals/).
 
 ## Development
 

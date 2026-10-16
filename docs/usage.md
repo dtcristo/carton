@@ -3,7 +3,7 @@
 ## Requirements
 
 - Ruby 4.0.6+
-- `RUBY_BOX=1`
+- `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
 - `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
 
 In Carton, an importable package is called a carton. This guide still says "package" sometimes in plain English, but "carton" is the project term.
@@ -97,6 +97,14 @@ end
 
 The bundler example keeps that setup explicit in `examples/bundler/main.rb`.
 
+### Rakefiles
+
+Rake defines its own `import` on the Rakefile's top-level object, which shadows Carton's. Use `import_relative` in a Rakefile, or call `import` from inside a class or method.
+
+### Fresh Boxes and identity
+
+Every import builds a new Box and loads the carton again. Two cartons that import the same carton get separate copies, so a class from one copy is not the same object as the class from the other, and `is_a?` checks between them fail. Pass plain data between sibling cartons rather than instances of a shared carton's classes.
+
 ## Destructuring
 
 Export Namespaces and Bare Cartons support pattern matching through
@@ -161,6 +169,29 @@ Bare Carton hash-rest patterns enumerate that same Public Surface.
 Full enumeration reads every helper, so helper side effects occur and helper
 errors propagate.
 
+## Testing cartons
+
+Tests run in the Main Box, so a test imports a carton the same way an app does. Run them with `RUBY_BOX=1`.
+
+```ruby
+require 'minitest/autorun'
+require 'carton'
+
+class MathTest < Minitest::Test
+  def setup
+    @math = import_relative '../lib/math'
+  end
+
+  def test_add
+    assert_equal 5, @math.add(2, 3)
+  end
+end
+```
+
+Each import builds a fresh Box, so importing in `setup` gives every test its own carton state.
+
+A test sees only the carton's public surface. A bare carton exposes its top-level constants and helpers, so a test can reach those. To test internals of a carton that exports, move them into their own carton file and import that file directly.
+
 ## Bundler inside cartons
 
 The library works with or without Bundler. A Carton that needs Bundler performs RubyGems/Bundler setup inside its Entrypoint; other Cartons need no setup.
@@ -203,7 +234,7 @@ Ruby 4.0.6 status:
 - `Carton.bootstrap_rubygems!` and loaded-spec restoration remain compatibility
   code that should shrink once upstream prelude support lands.
 
-See [how-gems-work.md](how-gems-work.md) for the runtime background and [rubygems-upstream.md](rubygems-upstream.md) for the minimal upstream plan.
+See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [rubygems-upstream.md](internals/rubygems-upstream.md) for the minimal upstream plan.
 
 ## Examples
 
