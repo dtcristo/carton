@@ -17,12 +17,17 @@ class Carton::GemfileNotFound < ::StandardError
 end
 
 class Carton::Exports < ::Module
-  def []: (::String | ::Symbol key) -> untyped
+  type key = ::String | ::Symbol
+
+  # Exported methods come back as Method objects; values as exported.
+  def []: (key key) -> untyped
   def deconstruct_keys: (nil keys) -> ::Hash[::Symbol, untyped]
                       | (::Array[::Symbol] keys) -> ::Hash[::Symbol, untyped]
-  def fetch: (*untyped args) { (*untyped args) -> untyped } -> untyped
-  def fetch_values: (*untyped keys) -> ::Array[untyped]
-  def has_key?: (::String | ::Symbol key) -> bool
-  def key?: (::String | ::Symbol key) -> bool
-  def values_at: (*untyped keys) -> ::Array[untyped]
+  def fetch: (key key) -> untyped
+           | (key key, untyped default) -> untyped
+           | [T] (key key) { (key key) -> T } -> (untyped | T)
+  def fetch_values: (*key keys) -> ::Array[untyped]
+  def has_key?: (key key) -> bool
+  def key?: (key key) -> bool
+  def values_at: (*key keys) -> ::Array[untyped]
 end
