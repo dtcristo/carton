@@ -17,6 +17,7 @@ Guidance and memory for agents working on this repo.
 - Full pattern deconstruction enumerates every Named Export or the Bare Carton's discovered Public Surface.
 - Ruby 4.0.6 confirms distinct RubyGems activation state, conflicting non-path bundles, and path-gem Carton imports under ordinary per-Carton Bundler setup.
 - `RUBY_BOX=1 bundle exec` still fails on Ruby 4.0.6 when a Gemfile evaluates a gemspec before `Gem::Specification` is visible; keep that as upstream prelude work.
+- Imports are shared process-wide, keyed by Entrypoint real path; the Main Box's `ImportCache` and loader build every Carton (user decision; replaces the earlier avoid-a-global-cache note).
 - Carton clears process-global `BUNDLER_SETUP` around optional Box construction so Master-based Boxes do not re-enter the caller's `bundler/setup`.
 - `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.

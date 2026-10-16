@@ -11,7 +11,7 @@
 - Remove the RubyGems compatibility bootstrap and loaded-spec restoration once boxed path-bundle coverage passes without them.
 - Remove the targeted Minitest `object_id` warning suppression once Ruby::Box or Minitest no longer emits it under Ruby 4.0.
 - Revisit whether `import` should always return a `Carton::Exports` wrapper with a `default` accessor, or whether the current duck-typed return values are the better long-term fit.
-- Decide on Import caching. Every Import builds a fresh Box, so two Cartons importing the same Carton get distinct classes and `is_a?` fails when they exchange its values. Candidate: cache per importing Box with a `fresh: true` escape hatch. Define cache scope, isolation, invalidation, and failure behavior first; avoid a process-global cache.
+- Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
 - Stop `import 'name'` checking `Dir.pwd` before `$LOAD_PATH`. `require` has no cwd step, so results depend on where the app was started. Keep absolute paths and `$LOAD_PATH` only.
 - Add `Carton::Error` with `ImportError` and `ExportError` subclasses, and make `GemfileNotFound` a subclass. Replace the plain `RuntimeError`s for exporting outside an Import and exporting twice, and include the paths Carton tried in missing-Import messages.
 - Replace the `Carton.bootstrap_rubygems!` plus `Carton.with_bundle { require 'bundler/setup' }` pair with one call such as `Carton.bundle!`, so user code stays the same when the RubyGems workaround goes away.

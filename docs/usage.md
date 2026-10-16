@@ -106,9 +106,16 @@ The bundler example keeps that setup explicit in `examples/bundler/main.rb`.
 
 Rake defines its own `import` on the Rakefile's top-level object, which shadows Carton's. Use `import_relative` in a Rakefile, or call `import` from inside a class or method.
 
-### Fresh Boxes and identity
+### Shared imports
 
-Every import builds a new Box and loads the carton again. Two cartons that import the same carton get separate copies, so a class from one copy is not the same object as the class from the other, and `is_a?` checks between them fail. Pass plain data between sibling cartons rather than instances of a shared carton's classes.
+Each carton file loads once per process. Later imports of the same file return the same value, whether they come from the app or from another carton, and whether they use `import`, `import_relative`, or an absolute path. Sibling cartons that import the same carton therefore share its classes, so `is_a?` checks work across them.
+
+```ruby
+Money = import 'money'
+Money.equal?(import('money')) # => true
+```
+
+If a carton fails to load, Carton does not cache the failure, so a later import tries again. A carton that imports itself, directly or through other cartons, raises `circular import`.
 
 ## Destructuring
 
@@ -192,7 +199,7 @@ class MathTest < Minitest::Test
 end
 ```
 
-Each import builds a fresh Box, so importing in `setup` gives every test its own carton state.
+Imports are shared across the process, so carton state persists from one test to the next. Keep cartons stateless, or reset their state through their public surface.
 
 A test sees only the carton's public surface. A bare carton exposes its top-level constants and helpers, so a test can reach those. To test internals of a carton that exports, move them into their own carton file and import that file directly.
 

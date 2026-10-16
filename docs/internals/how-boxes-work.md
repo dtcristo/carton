@@ -415,7 +415,7 @@ One incomplete boundary remains on 4.0.6:
 
 Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
-1. each import gets a fresh box,
+1. each Carton file loads once into its own box, and later imports share it,
 2. `$LOAD_PATH` inside that box is isolated,
 3. constants and monkey patches defined in the imported carton stay inside that box,
 4. the returned box or export object becomes the carton boundary.
