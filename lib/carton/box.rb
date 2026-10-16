@@ -40,8 +40,10 @@ module Carton
 
     # Fresh boxes inherit root-box gem paths and loaded features. Strip those
     # inherited gem entries, then load Carton's own entrypoint so the imported
-    # file gets `import`, `import_relative`, and `export`.
-    def configure_for_import(entrypoint:)
+    # file gets `import`, `import_relative`, and `export`. Nested imports reuse
+    # the caller's process-wide import cache.
+    def configure_for_import(entrypoint:, import_cache:)
+      @import_cache = import_cache
       purge_gem_load_path
       purge_gem_loaded_features
       reset_export_declaration
@@ -61,6 +63,8 @@ module Carton
       discover_public_entries
       result
     end
+
+    attr_reader :import_cache
 
     def require_in_box(feature)
       eval("require #{feature.inspect}")
