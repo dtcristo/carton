@@ -4,6 +4,7 @@ module Kernel
   def import: (::String path) -> untyped
   def import_relative: (::String path) -> untyped
   def export: (*::Symbol names, **untyped values) -> ::Symbol?
+  def export_default: [T] (T value) -> T
 end
 
 module Carton

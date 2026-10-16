@@ -4,7 +4,6 @@ Ordered by priority within each section.
 
 ## Library
 
-- Revisit a Default Export if `import(...)::Name` proves too noisy. The ESM-style option is a reserved `default:` name that sits alongside Named Exports, paired with an import design that can still reach the other names.
 - Raise a Carton error explaining `RUBY_BOX=1` when boxes are disabled, instead of the raw `Ruby::Box` error from `Carton::Box#initialize`.
 - Add `Carton::Error` with `ImportError` and `ExportError` subclasses, and make `GemfileNotFound` a subclass. Replace the plain `RuntimeError`s for exporting twice, circular imports, and gem version mismatches, and include the paths Carton tried in missing-Import messages.
 - Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.
@@ -20,6 +19,7 @@ Ordered by priority within each section.
 
 See [upstream.md](internals/upstream.md) for detail.
 
+- Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals (#18408); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
 
 ## Docs

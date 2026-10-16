@@ -5,7 +5,7 @@
 - Ruby 4.0.7+
 - Bundler 4.0.23+ if you use Bundler
 - `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
-- `require 'carton'` before using `import`, `import_relative`, or `export`
+- `require 'carton'` before using `import`, `import_relative`, `export`, or `export_default`
 
 An importable Ruby file and everything it loads is called a carton. Each
 carton runs in its own `Ruby::Box`, so its constants, gems, and monkey patches
@@ -53,10 +53,37 @@ Pricing[:add] # => #<Method: ...add(a, b)>
 `fetch_values`, `values_at`, `key?`, and destructuring return the `Method`
 object without calling it.
 
+### Default Export
+
+Use `export_default` when a file represents one main thing, typically a
+class or a root namespace module. Importing the file returns that value
+itself:
+
+```ruby
+# user.rb
+class User
+  def initialize(name) = @name = name
+end
+
+export_default User
+```
+
+```ruby
+User = import_relative 'user'
+User.new('Alice')
+```
+
+- The value may be anything, including a Hash, `nil`, or `false`.
+- Call it once per file, and do not combine it with `export`; both raise.
+  Put other names inside the default value instead, e.g. `User::VERSION`.
+- Bind it to its own name (`User = import 'user'`). Rename only to resolve
+  a clash between Cartons: `Module#name`, `inspect`, and backtraces keep
+  the original name.
+
 ### Exporting a gem's root module
 
-Export the root module and keep internals private with Ruby's own
-`private_constant`, which holds across Boxes:
+Make the root module the Default Export and keep internals private with
+Ruby's own `private_constant`, which holds across Boxes:
 
 ```ruby
 # lib/pricing.rb
@@ -69,11 +96,11 @@ module Pricing
   private_constant :Internal
 end
 
-export :Pricing
+export_default Pricing
 ```
 
 ```ruby
-Pricing = import('pricing')::Pricing
+Pricing = import 'pricing'
 Pricing::Calculator # public
 Pricing::Internal   # NameError: private constant Pricing::Internal referenced
 ```
@@ -87,9 +114,9 @@ To publish a facade instead, export chosen inner constants by keyword:
 `export` only declares exports from the file being imported. Anywhere else
 it still checks its arguments, then does nothing. A file loaded with
 `require`, whether by an app that never imports or by another Carton,
-ignores its own `export` lines. A gem can add `export :MyGem` and keep
-working for apps that just `require 'my_gem'` (it needs `require 'carton'`
-first so `export` exists).
+ignores its own `export` and `export_default` lines. A gem can add
+`export_default MyGem` and keep working for apps that just
+`require 'my_gem'` (it needs `require 'carton'` first so the methods exist).
 
 ## Importing
 

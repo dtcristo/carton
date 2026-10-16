@@ -88,6 +88,14 @@ that. Propose only with a failing multi-threaded reproduction.
 - **Ruby 4.0.5.** Boxed `Symbol#to_proc` and `super` dispatch failures do not
   reproduce on 4.0.6 or later.
 
+## Ideas not pursued
+
+- **Constant binding in patterns** (`import(path) => { Name: }`). The syntax is
+  free today, but Matz keeps pattern targets to locals and `{ X: }` already
+  reads a constant. Carton uses `export_default` and plain constant assignment
+  instead. See
+  [constant-binding-patterns.md](constant-binding-patterns.md).
+
 ## Non-goals
 
 - process-local `ENV`,

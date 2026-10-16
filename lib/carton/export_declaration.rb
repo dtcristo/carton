@@ -1,21 +1,32 @@
 # frozen_string_literal: true
 
 module Carton
-  # The Export Namespace an Entrypoint builds from one or more `export` calls.
-  # Each call adds names; a name may be exported only once.
+  # What an Entrypoint exports: an Export Namespace built from one or more
+  # `export` calls, or a single Default Export from `export_default`. The two
+  # forms are exclusive, and a name may be exported only once.
   class ExportDeclaration
+    COMBINED =
+      'export_default cannot be combined with export; ' \
+        'put the other names inside the default value'
+    private_constant :COMBINED
+
+    NO_DEFAULT = Object.new.freeze
+    private_constant :NO_DEFAULT
+
     def self.absent
-      new({}, {}, declared: false)
+      new({}, {}, NO_DEFAULT)
     end
 
-    def initialize(methods, values, declared:)
+    def initialize(methods, values, default)
       @methods = methods.freeze
       @values = values.freeze
-      @declared = declared
+      @default = default
       freeze
     end
 
     def add(methods, values)
+      raise COMBINED if default?
+
       duplicate =
         (methods.keys + values.keys).find do |name|
           @methods.key?(name) || @values.key?(name)
@@ -28,17 +39,32 @@ module Carton
         :new,
         @methods.merge(methods),
         @values.merge(values),
-        declared: true,
+        NO_DEFAULT,
       )
     end
 
-    # Yields methods and values for the Export Namespace, or for a Bare
-    # Carton's surface, which `bare` computes lazily, when nothing was
-    # exported.
+    def default(value)
+      raise 'export_default may be called only once per file' if default?
+      raise COMBINED if namespace?
+
+      self.class.__send__(:new, @methods, @values, value)
+    end
+
+    # The Default Export, or yields methods and values for the Export
+    # Namespace, or for a Bare Carton's surface, which `bare` computes lazily,
+    # when nothing was exported.
     def public_surface(bare:)
-      @declared ? yield(@methods, @values) : yield(*bare.call)
+      return @default if default?
+
+      namespace? ? yield(@methods, @values) : yield(*bare.call)
     end
 
     private_class_method :new
+
+    private
+
+    def default? = !NO_DEFAULT.equal?(@default)
+
+    def namespace? = !(@methods.empty? && @values.empty?)
   end
 end

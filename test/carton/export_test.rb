@@ -5,6 +5,44 @@ require_relative '../test_helper'
 FIXTURES = File.expand_path('../fixtures', __dir__)
 
 class ExportTest < Minitest::Test
+  def test_default_export_returns_the_value_itself
+    pricing = import "#{FIXTURES}/root_module_export"
+
+    assert_instance_of Module, pricing
+    assert_equal 'Pricing', pricing.name
+  end
+
+  def test_default_hash_export_returns_hash
+    result = import "#{FIXTURES}/default_hash_export"
+
+    assert_instance_of Hash, result
+    assert_equal 42, result[:answer]
+    assert_same result, result[:itself]
+  end
+
+  def test_default_nil_and_false_are_exports
+    assert_nil import("#{FIXTURES}/default_nil_export")
+    assert_equal false, import("#{FIXTURES}/default_false_export")
+  end
+
+  def test_export_default_may_be_called_once
+    error =
+      assert_raises(RuntimeError) do
+        import "#{FIXTURES}/repeated_default_export"
+      end
+    assert_equal 'export_default may be called only once per file',
+                 error.message
+  end
+
+  def test_export_default_cannot_be_combined_with_export
+    %w[default_then_export export_then_default].each do |fixture|
+      error = assert_raises(RuntimeError) { import "#{FIXTURES}/#{fixture}" }
+      assert_equal 'export_default cannot be combined with export; ' \
+                     'put the other names inside the default value',
+                   error.message
+    end
+  end
+
   def test_constant_symbol_exports_the_class_itself
     result = import "#{FIXTURES}/single_export"
 
@@ -14,7 +52,7 @@ class ExportTest < Minitest::Test
   end
 
   def test_root_module_export_keeps_private_constants_private
-    pricing = import("#{FIXTURES}/root_module_export")::Pricing
+    pricing = import "#{FIXTURES}/root_module_export"
 
     assert_in_delta 1.01, pricing::Calculator.new.total
     assert_equal [:Calculator], pricing.constants

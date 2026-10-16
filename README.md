@@ -31,25 +31,33 @@ RUBY_BOX=1 ruby main.rb
 class User
   def initialize(name) = @name = name
 end
-export :User
 
-export def greet(user) = "Hello!"
-export VERSION: '1.0'
+export_default User
 ```
 
 ```ruby
 # main.rb
 require 'carton'
 
-Users = import_relative 'user'
-alice = Users::User.new('Alice')
-Users.greet(alice)
-Users::VERSION
+User = import_relative 'user'
+alice = User.new('Alice')
 ```
 
-`export` can be called many times. Capitalized Symbols export constants,
-other Symbols export methods, and keywords export plain values. Importing
-returns a `Carton::Exports` namespace.
+Without a default, `export` builds a namespace-like module. Call it as often
+as you like: capitalized Symbols export constants, other Symbols export
+methods, and keywords export plain values.
+
+```ruby
+# math.rb
+export def add(a, b) = a + b
+export PI: 3.14159
+```
+
+```ruby
+MathTools = import_relative 'math'
+MathTools::PI
+MathTools.add(2, 3)
+```
 
 ## Docs
 

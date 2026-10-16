@@ -58,6 +58,13 @@ module Carton
       names.first if names.size == 1 && values.empty?
     end
 
+    # Make `value` the current carton's Default Export, which `import`
+    # returns as is. It cannot be combined with `export`.
+    def export_default(value, file:)
+      entrypoint_box(file)&.__send__(:declare_default, value)
+      value
+    end
+
     def load_import(target)
       box = Box.new
       box.__send__(

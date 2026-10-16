@@ -13,6 +13,7 @@ class PlainRequireTest < Minitest::Test
 
     assert_equal 'hi', box.eval("require #{"#{DUAL}/named".inspect}; shout")
     assert_nil box.eval('export value: :v')
+    assert_equal :value, box.eval('export_default :value')
     assert_equal :whisper, box.eval('export def whisper = "hi"')
   end
 
