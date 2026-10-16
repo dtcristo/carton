@@ -19,7 +19,7 @@ Ordered by priority within each section.
 
 See [upstream.md](internals/upstream.md) for detail.
 
-- Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: either bless preparing `Ruby::Box.master` before Boxes exist, or add an API such as `Ruby::Box.new(from: template)`.
+- Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: an official template Box API such as `Ruby::Box.new(from: template)`, leaving Master clean.
 - Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals (#18408); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
 

@@ -95,8 +95,8 @@ that. Propose only with a failing multi-threaded reproduction.
 Sharing monkey patches across Cartons costs a full load per Box (about 830ms
 for Active Support's core extensions). Requiring them into `Ruby::Box.master`
 once works on 4.0.7 and later Boxes inherit them, but Ruby documents that no
-code runs in Master. Ask whether preparing Master before Boxes exist is
-supported, or for an explicit API such as `Ruby::Box.new(template: box)`, with
+code runs in Master, and Master should stay clean. Ask for an official
+template Box API instead, such as `Ruby::Box.new(from: template)`, with
 shared-object semantics documented. See
 [how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407) and
 [examples/master_prelude](../../examples/master_prelude/README.md). Draft
