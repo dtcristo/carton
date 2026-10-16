@@ -15,7 +15,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | `lib/carton/gem_activation.rb` | Finds the activated gem that owns an Import, activates its dependency closure in the new Box, and restricts the Box to a bundled caller's locked gems; the only place Carton calls Bundler internals |
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
 | `lib/carton/resolver.rb` | Maps an Import path to a file without evaluating code, given a load path |
-| `lib/carton/runtime.rb` | Builds boxes, runs imports, and extracts exports |
+| `lib/carton/runtime.rb` | Builds Boxes, runs imports, and extracts exports |
 | `lib/carton/box.rb` | Box-specific helpers for requiring files, holding and resetting the current Export Declaration, and seeding an imported feature's load path |
 | `lib/carton/export_declaration.rb` | Owns absence, uniqueness, kind, snapshotting, and Public Surface conversion for an Export Declaration |
 | `lib/carton/exports.rb` | Wraps named exports in a module-like namespace |
@@ -24,14 +24,14 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 ## Import flow
 
 1. `import` or `import_relative` delegates to `Carton::Runtime.import`.
-2. `Carton::Resolver` resolves the target: `import_relative` from the calling file's directory, `import` from an absolute path or the caller box's `$LOAD_PATH`. It never checks the current directory and reads no Box state, so static tools can reuse it.
+2. `Carton::Resolver` resolves the target: `import_relative` from the calling file's directory, `import` from an absolute path or the caller Box's `$LOAD_PATH`. It never checks the current directory and reads no Box state, so static tools can reuse it.
 3. If the target file has already been imported, the cached value is returned. Otherwise a new `Carton::Box` is created for that import.
-4. The carton entrypoint (`lib/carton.rb`) is required inside the box so the box has `export`, `import`, and `import_relative`.
-5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
-6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new box at the caller's versions, dependencies first. If the caller ran Bundler setup, the box is first restricted to the caller's locked gems and all of them are activated, as `Bundler.setup` does.
-7. The target file is required inside the box.
+4. The Carton entrypoint (`lib/carton.rb`) is required inside the Box so the Box has `export`, `import`, and `import_relative`.
+5. If the target was found by name, Carton seeds only that matching load-path entry into the new Box.
+6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new Box at the caller's versions, dependencies first. If the caller ran Bundler setup, the Box is first restricted to the caller's locked gems and all of them are activated, as `Bundler.setup` does.
+7. The target file is required inside the Box.
 8. If the file called `export_default`, its value is returned directly. If it called `export`, its Named Exports are wrapped in `Carton::Exports`.
-9. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The box itself never leaves Carton.
+9. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The Box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
 
@@ -53,7 +53,7 @@ author's choice of form decides the shape and no name becomes unreachable.
 `export` accepts positional Symbols plus keyword values. A capitalized Symbol
 names a top-level constant, read with `Object.const_get(name, false)`; any
 other Symbol names a top-level method, captured with `method(name)` on the
-carton's top-level object. Both are looked up at the call, so a missing name
+Carton's top-level object. Both are looked up at the call, so a missing name
 raises `NameError` there. Each call adds to an immutable Export Declaration,
 which rejects a name exported twice. `KernelPatch#export` passes the calling
 file to `Runtime`, which declares only when that file is the importing Box's

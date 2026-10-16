@@ -108,17 +108,17 @@ Or in one sentence:
 
 ### What changes under `Ruby::Box`
 
-`Ruby::Box` makes key Ruby runtime structures box-local, especially:
+`Ruby::Box` makes key Ruby runtime structures Box-local, especially:
 
 - `$LOAD_PATH`
 - `$LOADED_FEATURES`
-- global variables that Ruby marks box-ready
+- global variables that Ruby marks Box-ready
 - class/module constant tables and method tables through class-extension copy-on-write
 
 That means file loading itself is already much more isolated than normal Ruby.
 
 RubyGems and Bundler are mostly Ruby code running on top of that runtime, so
-their behavior also depends on Ruby method lookup across boxes.
+their behavior also depends on Ruby method lookup across Boxes.
 
 The most important Ruby 4.0.7 facts are:
 
@@ -137,9 +137,9 @@ That is why running Bundler setup inside each Carton remains the right isolation
 
 On Ruby 4.0.7 with Bundler 4.0.23:
 
-- `$LOAD_PATH`, `Gem.loaded_specs`, and RubyGems registry changes stay box-local.
-- `Bundler` module state is box-local if Bundler is first loaded inside the box.
-- conflicting non-path bundles work in separate boxes, including under an
+- `$LOAD_PATH`, `Gem.loaded_specs`, and RubyGems registry changes stay Box-local.
+- `Bundler` module state is Box-local if Bundler is first loaded inside the Box.
+- conflicting non-path bundles work in separate Boxes, including under an
   already-bundled Main Box.
 - app-bundle path gems import as Cartons; Imported Carton Gemfiles keep their
   intended versions without mutating Main Box.
@@ -207,14 +207,14 @@ If you are doing complex gem runtime work, the two most important warnings are:
 
 The key file is `ruby/load.c`.
 
-Ruby wires `$LOAD_PATH` and `$LOADED_FEATURES` through box-aware getters:
+Ruby wires `$LOAD_PATH` and `$LOADED_FEATURES` through Box-aware getters:
 
 - `load_path_getter` returns `rb_loading_box()->load_path`
 - `get_LOADED_FEATURES` returns `rb_loading_box()->loaded_features`
 - `rb_gvar_box_ready("$LOAD_PATH")`
 - `rb_gvar_box_ready("$LOADED_FEATURES")`
 
-That is the first crucial point: **load state is attached to the loading box, not just to the current lexical context.**
+That is the first crucial point: **load state is attached to the loading Box, not just to the current lexical context.**
 
 The actual `require` path is:
 
@@ -230,9 +230,9 @@ The actual `require` path is:
 const rb_box_t *box = rb_loading_box();
 ```
 
-and then uses that box for feature lookup and feature registration.
+and then uses that Box for feature lookup and feature registration.
 
-So from Ruby core's point of view, the important state is already box-local:
+So from Ruby core's point of view, the important state is already Box-local:
 
 - load path
 - loaded features
@@ -240,11 +240,11 @@ So from Ruby core's point of view, the important state is already box-local:
 - loading table
 - extension handle map
 
-## 2. `Ruby::Box`: what a box actually contains
+## 2. `Ruby::Box`: what a Box actually contains
 
 The key structure is `rb_box_t` in `ruby/internal/box.h`.
 
-Each box carries its own:
+Each Box carries its own:
 
 - `load_path`
 - `expanded_load_path`
@@ -263,7 +263,7 @@ Since Ruby 4.0.6, `box_entry_initialize` creates each Box by duplicating state f
 
 That means a new Box does **not** start from the caller, Main, or Root. It starts from Master.
 
-This is why Carton resolves feature names in the caller box and only carries the matching load-path entry into the imported box when that feature root is needed.
+This is why Carton resolves feature names in the caller Box and only carries the matching load-path entry into the imported Box when that feature root is needed.
 
 ## 3. Ruby boot order: why RubyGems is local to each user Box
 
@@ -484,16 +484,16 @@ Typical failure modes:
 - wrong spec in `Gem.loaded_specs` -> "already activated" conflict
 - wrong `Gem::Specification.all` / spec registry -> Bundler and RubyGems disagree about what exists
 
-## 7. What is already box-local, and what is not
+## 7. What is already Box-local, and what is not
 
 ### Box-local today
 
 These are the encouraging parts:
 
-1. `$LOAD_PATH` is box-local.
-2. `$LOADED_FEATURES` is box-local.
-3. `require` works against the loading box.
-4. `Bundler` itself can be box-local if first required inside the box.
+1. `$LOAD_PATH` is Box-local.
+2. `$LOADED_FEATURES` is Box-local.
+3. `require` works against the loading Box.
+4. `Bundler` itself can be Box-local if first required inside the Box.
 
 Runtime probe:
 
@@ -508,8 +508,8 @@ box2.eval("require 'bundler'; Bundler.instance_variable_set(:@setup, :box2)")
 Observed result:
 
 - `Bundler` remained undefined in main,
-- each box got a different `Bundler.object_id`,
-- each box had its own `@setup` value.
+- each Box got a different `Bundler.object_id`,
+- each Box had its own `@setup` value.
 
 So the statement "Bundler must be one global module for the whole process" is **not** the real blocker.
 
@@ -552,7 +552,7 @@ after setup.
 | --- | --- | --- |
 | `require` | loading features | always the starting point |
 | `load` | force reload of a file | lower-level than `require` |
-| `$LOAD_PATH` | inspecting or adjusting search paths | box-local under `Ruby::Box` |
+| `$LOAD_PATH` | inspecting or adjusting search paths | Box-local under `Ruby::Box` |
 | `$LOADED_FEATURES` | seeing which files actually loaded | file-level, not gem-level |
 | `$LOAD_PATH.resolve_feature_path(feature)` | asking Ruby how it would resolve a feature | useful for embedders like Carton |
 
@@ -588,8 +588,8 @@ These are the exact areas Carton and any upstream isolation work eventually need
 
 ## 9. Implications for Carton
 
-- `Carton::Runtime.import` resolves names in the caller box and only carries
-  the matching load-path entry into the imported box.
+- `Carton::Runtime.import` resolves names in the caller Box and only carries
+  the matching load-path entry into the imported Box.
 - Each Carton runs `Bundler.setup` in its own Box, so activation stays there;
   Carton adds no RubyGems or Bundler patches.
 - `Carton.setup_bundle` manages the process-global `ENV` that Bundler reads.

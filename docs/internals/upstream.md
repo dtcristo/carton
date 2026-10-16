@@ -31,7 +31,7 @@ list of confirmed behavior.
 
 ### Ruby docs describe old Main Box creation
 
-`doc/language/box.md` still says the main box is created "at the end of
+`doc/language/box.md` still says the Main Box is created "at the end of
 Ruby's bootstrap", on both v4.0.7 and master. Since 4.0.6, Ruby initializes
 Root and Main from Master before the prelude. The fix is one sentence, and
 [root-box-vs-main-box.md](root-box-vs-main-box.md) has the sources.
@@ -107,7 +107,7 @@ blocking.
 
 ## Ideas not pursued
 
-- **Per-box copies for every class.** Classes created in user Boxes have one
+- **Per-Box copies for every class.** Classes created in user Boxes have one
   shared definition, so reopening a Carton's class from another Box changes
   it everywhere. Giving them per-Box copies like builtins would isolate
   reopens, but the same object would then behave differently depending on the

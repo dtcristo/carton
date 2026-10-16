@@ -7,7 +7,7 @@ Smallest working example of the library with no gems or Bundler involved.
 - default export with `export_default` (`foo.rb`, `baz.rb`)
 - named exports (`bar.rb`)
 - `import_relative`
-- one carton importing another carton internally
+- one Carton importing another Carton internally
 
 ## Run
 

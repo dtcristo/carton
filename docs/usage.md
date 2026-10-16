@@ -7,8 +7,8 @@
 - `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
 - `require 'carton'` before using `import`, `import_relative`, `export`, or `export_default`
 
-An importable Ruby file and everything it loads is called a carton. Each
-carton runs in its own `Ruby::Box`, so its constants, gems, and monkey patches
+An importable Ruby file and everything it loads is called a Carton. Each
+Carton runs in its own `Ruby::Box`, so its constants, gems, and monkey patches
 stay inside, and only what it exports crosses the boundary. See
 [CONTEXT.md](../CONTEXT.md) for the full glossary.
 
@@ -130,14 +130,14 @@ User = import_relative 'user'
 
 ### `import`
 
-`import path` resolves an absolute path, or searches the current box's `$LOAD_PATH` like `require`. It does not check the current directory. A missing absolute path or name raises `LoadError`.
+`import path` resolves an absolute path, or searches the current Box's `$LOAD_PATH` like `require`. It does not check the current directory. A missing absolute path or name raises `LoadError`.
 
 ```ruby
 MathTools = import 'math_tools'
 Widget = import '/absolute/path/to/widget.rb'
 ```
 
-When you want `import 'name'` to work across local cartons, add their `lib/` directories to `$LOAD_PATH` first.
+When you want `import 'name'` to work across local Cartons, add their `lib/` directories to `$LOAD_PATH` first.
 
 ```ruby
 cartons_dir = File.expand_path('cartons', __dir__)
@@ -155,14 +155,14 @@ Rake defines its own `import` on the Rakefile's top-level object, which shadows 
 
 ### Shared imports
 
-Each carton file loads once per process. Later imports of the same file return the same value, whether they come from the app or from another carton, and whether they use `import`, `import_relative`, or an absolute path. Sibling cartons that import the same carton therefore share its classes, so `is_a?` checks work across them.
+Each Carton file loads once per process. Later imports of the same file return the same value, whether they come from the app or from another Carton, and whether they use `import`, `import_relative`, or an absolute path. Sibling Cartons that import the same Carton therefore share its classes, so `is_a?` checks work across them.
 
 ```ruby
 Money = import 'money'
 Money.equal?(import('money')) # => true
 ```
 
-If a carton fails to load, Carton does not cache the failure, so a later import tries again. A carton that imports itself, directly or through other cartons, raises `circular import`.
+If a Carton fails to load, Carton does not cache the failure, so a later import tries again. A Carton that imports itself, directly or through other Cartons, raises `circular import`.
 
 ## Destructuring
 
@@ -234,42 +234,42 @@ Keys are names, not Ruby expressions. Helper lookups return the `Method`
 object, so `[]`, `fetch`, `key?`, and destructuring never invoke a helper.
 Bare Carton hash-rest patterns enumerate that same Public Surface.
 
-## Sharing classes across cartons
+## Sharing classes across Cartons
 
 Boxes isolate monkey patches to builtin classes: patching `String` in one
-carton does not change `String` anywhere else. Classes a carton defines are
+Carton does not change `String` anywhere else. Classes a Carton defines are
 different. An exported class is one object with one definition, shared by
-every importer, as in ordinary Ruby. Reopening it from another carton,
-including `class Customer` in a box where `Customer` names the imported
-class, changes it for every carton.
+every importer, as in ordinary Ruby. Reopening it from another Carton,
+including `class Customer` in a Box where `Customer` names the imported
+class, changes it for every Carton.
 
 Box is not a security boundary, so this cannot be prevented outright. These
 habits avoid it by accident:
 
-- **Subclass instead of reopening.** Give each carton its own base classes
+- **Subclass instead of reopening.** Give each Carton its own base classes
   rather than binding a shared one to a bare name:
 
   ```ruby
   # customers/lib/customers.rb
-  class ApplicationRecord < Framework::ApplicationRecord # this carton's own class
+  class ApplicationRecord < Framework::ApplicationRecord # this Carton's own class
     self.abstract_class = true
   end
   ```
 
   Changes to a subclass never reach its parent.
-- **Refine to extend another carton's class.** A refinement applies only to
-  files that `using` it, so the owning carton never sees it.
+- **Refine to extend another Carton's class.** A refinement applies only to
+  files that `using` it, so the owning Carton never sees it.
 - **Freeze plain-Ruby exports.** `export_default Pricing.freeze` makes any
   reopen raise `FrozenError` while still allowing subclasses. Do not freeze
   Active Record models or their base classes: Rails writes class-level state
   at runtime, so even `create!` raises once a model's class is frozen.
 
 See [how-boxes-work.md](internals/how-boxes-work.md#which-classes-get-per-box-copies-ruby-407)
-for why only builtins get per-box copies.
+for why only builtins get per-Box copies.
 
-## Testing cartons
+## Testing Cartons
 
-Tests run in the Main Box, so a test imports a carton the same way an app does. Run them with `RUBY_BOX=1`.
+Tests run in the Main Box, so a test imports a Carton the same way an app does. Run them with `RUBY_BOX=1`.
 
 ```ruby
 require 'minitest/autorun'
@@ -286,11 +286,11 @@ class MathTest < Minitest::Test
 end
 ```
 
-Imports are shared across the process, so carton state persists from one test to the next. Keep cartons stateless, or reset their state through their public surface.
+Imports are shared across the process, so Carton state persists from one test to the next. Keep Cartons stateless, or reset their state through their public surface.
 
-A test sees only the carton's public surface. A bare carton exposes its top-level constants and helpers, so a test can reach those. To test internals of a carton that exports, move them into their own carton file and import that file directly.
+A test sees only the Carton's public surface. A bare Carton exposes its top-level constants and helpers, so a test can reach those. To test internals of a Carton that exports, move them into their own Carton file and import that file directly.
 
-## Bundler inside cartons
+## Bundler inside Cartons
 
 The library works with or without Bundler. A Carton that needs Bundler sets up its own bundle inside its Entrypoint; other Cartons need no setup. Each Box has its own RubyGems state, so a Carton's gems never leak into its caller.
 
@@ -304,7 +304,7 @@ require 'bigdecimal'
 export version: BigDecimal::VERSION, number_type: BigDecimal.name
 ```
 
-Then import the carton normally:
+Then import the Carton normally:
 
 ```ruby
 MathHelper = import 'math_helper'
@@ -335,7 +335,7 @@ ones the Carton starts itself. Wrap a subprocess that needs the bundle in
 `RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
 evaluates a gemspec.
 
-### Gem cartons
+### Gem Cartons
 
 Importing a file that belongs to a gem the caller has activated, such as a
 path gem in the app's Gemfile, activates that gem and its runtime dependencies
