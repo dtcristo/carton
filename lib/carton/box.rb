@@ -45,8 +45,8 @@ module Carton
     end
 
     # Activate the caller's gems for the target, then load it inside the box.
-    def load_import(feature, load_path: nil, gems: [])
-      activate_gems(gems) unless gems.empty?
+    def load_import(feature, load_path: nil, gems: [], locked_gems: nil)
+      activate_gems(gems, locked_gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
 
       result = require_in_box(feature)
@@ -64,8 +64,8 @@ module Carton
     # Carton activates gems in this Box's RubyGems. `$LOAD_PATH` resolves to
     # the Box of the file being loaded, which during a nested Import is the
     # importing Carton, so activation runs from a file required here.
-    def activate_gems(gems)
-      @pending_gems = [gems]
+    def activate_gems(gems, locked_gems)
+      @pending_gems = [gems, locked_gems]
       require_in_box(ACTIVATE_GEMS)
     ensure
       @pending_gems = nil

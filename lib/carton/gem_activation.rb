@@ -8,6 +8,10 @@ module Carton
   # an Import resolves inside an activated gem, Carton activates that gem and
   # its runtime dependencies in the new Box at the caller's versions, so the
   # caller's lockfile (or plain `gem` calls) decides what the Carton sees.
+  #
+  # When the caller ran Bundler setup, the Box is also restricted to the
+  # caller's locked gems, as `Bundler.setup` restricts Main: every locked gem
+  # is activated at its locked version and anything else fails to load.
   module GemActivation
     module_function
 
@@ -21,22 +25,58 @@ module Carton
       visit(owner, loaded_specs, [], {})
     end
 
-    # Rebuild each spec in the current Box and activate it. Spec objects come
-    # from another Box, so their own `activate` would update that Box; a YAML
-    # round trip builds this Box's `Gem::Specification` without re-evaluating
-    # gemspec files.
-    def activate(specs)
-      specs.each do |source|
-        # Versions from another Box are a different class, so compare text.
-        loaded = Gem.loaded_specs[source.name]
-        next if loaded && loaded.version.to_s == source.version.to_s
+    # The caller's locked gems when `box` ran Bundler setup, otherwise nil.
+    # Bundler marks every locked spec as loaded, so these are the non-default
+    # entries of its `Gem.loaded_specs`.
+    def locked(box, loaded_specs)
+      return unless bundled?(box)
 
-        spec = Gem::Specification.from_yaml(source.to_spec.to_yaml)
-        spec.loaded_from = source.loaded_from
-        spec.full_gem_path = source.full_gem_path
-        spec.activate
+      loaded_specs.values.reject(&:default_gem?)
+    end
+
+    # Rebuild specs in the current Box and activate them. With `locked`, the
+    # Box is restricted to those specs and all of them are activated, as
+    # `Bundler.setup` does, since RubyGems does not auto-activate under
+    # Bundler's restricted view. Spec objects come from another Box, so their
+    # own `activate` would update that Box; a YAML round trip builds this Box's
+    # `Gem::Specification` without re-evaluating gemspec files.
+    def activate(specs, locked = nil)
+      rebuilt = (locked || specs).map { |source| rebuild(source) }
+      restrict_to(rebuilt) if locked
+
+      rebuilt.each do |spec|
+        loaded = Gem.loaded_specs[spec.name]
+        spec.activate unless loaded && loaded.version == spec.version
       end
     end
+
+    def rebuild(source)
+      spec = Gem::Specification.from_yaml(source.to_spec.to_yaml)
+      spec.loaded_from = source.loaded_from
+      spec.full_gem_path = source.full_gem_path
+      spec
+    end
+    private_class_method :rebuild
+
+    # Bundler has no public API for "restrict this Box to these specs", so the
+    # two Bundler internals Carton relies on live here. `@replaced_methods`
+    # is non-empty once `Bundler.setup` has replaced RubyGems entrypoints.
+    # `replace_entrypoints` is the strict half of `Bundler::Runtime#setup`,
+    # without resolution, `ENV` exports, or lockfile writes. See
+    # docs/internals/upstream.md.
+    def bundled?(box)
+      box.eval(
+        'defined?(Bundler.rubygems) && ' \
+          'Bundler.rubygems.instance_variable_get(:@replaced_methods)&.any?',
+      )
+    end
+    private_class_method :bundled?
+
+    def restrict_to(specs)
+      require 'bundler'
+      Bundler.rubygems.replace_entrypoints(specs)
+    end
+    private_class_method :restrict_to
 
     def owner_of(feature, specs)
       specs

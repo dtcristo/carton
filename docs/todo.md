@@ -11,7 +11,8 @@ Ordered by priority within each section.
 - Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
 - Revisit whether `import` should always return a `Carton::Exports` wrapper with a `default` accessor, or whether the current duck-typed return values are the better long-term fit.
 - Decide whether gem Cartons should key Imports by gem instead of Entrypoint path, so `import 'gem'` and `import 'gem/sub'` share one Box.
-- Consider strict gem activation in Carton Boxes, rejecting gems outside the caller's set. Restricting `Gem::Specification.all` to locked specs breaks default gems such as `optparse`, so it would need Bundler's default-gem handling.
+- Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
+- Propose the Bundler activation API from [upstream.md](internals/upstream.md) and comment on Ruby #22275 with Carton's use case.
 - Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
 
 ## Upstream

@@ -22,7 +22,8 @@ Each Box keeps its own load path, loaded features, gem activation, and
 ## Status on Ruby 4.0.7 with Bundler 4.0.23
 
 Nothing blocks Carton. Carton patches nothing in RubyGems or Bundler, and its
-path-gem and nested-bundle tests pass. See
+path-gem and nested-bundle tests pass; strict gem Cartons call two Bundler
+internals (below). See
 [how-gems-work.md](how-gems-work.md#ruby-407-confirmed-behavior) for the full
 list of confirmed behavior.
 
@@ -37,12 +38,33 @@ Root and Main from Master before the prelude. The fix is one sentence, and
 
 ### Resolve once, activate in many Boxes
 
-Carton already does this without RubyGems or Bundler changes: it reads the
-caller's `Gem.loaded_specs`, rebuilds each spec in the new Box, and activates
-it. A public RubyGems API to activate a given spec set in a Box would remove
-the YAML round trip. [Ruby #22275](https://bugs.ruby-lang.org/issues/22275)
-tracks RubyGems/Bundler Box support; Carton is a concrete use case for it.
-Not blocking.
+Carton does this today: it reads the caller's `Gem.loaded_specs`, rebuilds
+each spec in the new Box from YAML, and activates it. When the caller is
+bundled, it also restricts the Box to the caller's locked specs. Bundler has
+no public API for that, so `lib/carton/gem_activation.rb` calls two
+internals:
+
+- `Bundler.rubygems.instance_variable_get(:@replaced_methods)` to detect that
+  the caller ran Bundler setup, and
+- `Bundler.rubygems.replace_entrypoints(specs)`, the strict half of
+  `Bundler::Runtime#setup`.
+
+`Runtime#setup` cannot be reused for this because it also resolves, writes
+`RUBYOPT`/`RUBYLIB`/`PATH`/`BUNDLER_*` into `ENV`, and may rewrite the
+lockfile. Proposal for Bundler: a public way to apply an already-resolved
+spec set to the current Box without those side effects, e.g.
+`Bundler.activate(specs, strict: true)`, plus `Bundler.setup?` or similar to
+ask whether setup ran. Carton's integration tests are the reproduction. This
+fits the second milestone of
+[Ruby #22275](https://bugs.ruby-lang.org/issues/22275). Not blocking.
+
+### `Bundler.setup` selects its Gemfile through `ENV`
+
+`Bundler.setup` takes no Gemfile argument; `default_gemfile` reads
+`BUNDLE_GEMFILE`. `Carton.setup_bundle` sets it and restores all of `ENV`
+afterwards, so other threads can see a Carton's values during setup. A
+`Bundler.setup(gemfile:, lockfile:)` that leaves `ENV` alone would remove
+that. Propose only with a failing multi-threaded reproduction.
 
 ## Resolved
 

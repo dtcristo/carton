@@ -153,6 +153,11 @@ On Ruby 4.0.7 with Bundler 4.0.23:
   on them updates the wrong Box. Carton rebuilds each spec with
   `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores
   `loaded_from` and `full_gem_path`, which also avoids re-evaluating gemspecs.
+- a bundled caller's restriction carries into a Carton Box through
+  `Bundler.rubygems.replace_entrypoints(specs)` on the rebuilt specs: locked
+  gems load at their versions, default gems still load, and unlocked gems
+  raise `LoadError`. Under that restriction RubyGems does not auto-activate,
+  so every locked spec must be activated, as `Bundler.setup` does.
 - activation costs well under a millisecond per gem; `Ruby::Box.new` itself
   is about 70ms.
 
@@ -164,7 +169,7 @@ top-level app's:
 Carton.setup_bundle
 ```
 
-Carton patches nothing in RubyGems or Bundler.
+Carton patches nothing in RubyGems or Bundler. Strict gem Cartons call two Bundler internals; see [upstream.md](upstream.md#resolve-once-activate-in-many-boxes).
 
 
 ### What applications generally should touch

@@ -4,6 +4,11 @@ PATH
     priced_gem (0.1.0)
       bigdecimal
 
+PATH
+  remote: sloppy_gem
+  specs:
+    sloppy_gem (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -16,10 +21,12 @@ PLATFORMS
 DEPENDENCIES
   bigdecimal (= 3.3.1)
   priced_gem!
+  sloppy_gem!
 
 CHECKSUMS
   bigdecimal (3.3.1) sha256=eaa01e228be54c4f9f53bf3cc34fe3d5e845c31963e7fcc5bedb05a4e7d52218
   priced_gem (0.1.0)
+  sloppy_gem (0.1.0)
 
 BUNDLED WITH
   4.0.23
