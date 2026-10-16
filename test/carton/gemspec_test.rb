@@ -11,7 +11,7 @@ class GemspecTest < Minitest::Test
     assert requirement.satisfied_by?(Gem::Version.new('4.1.0'))
   end
 
-  def test_required_ruby_version_rejects_ruby_older_than_4_0_7
+  def test_required_ruby_version_rejects_older_rubies
     requirement = carton_specification.required_ruby_version
 
     refute requirement.satisfied_by?(Gem::Version.new('4.0.6'))

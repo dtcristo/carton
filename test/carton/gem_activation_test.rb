@@ -7,7 +7,7 @@ class GemActivationTest < Minitest::Test
   Dependency = Struct.new(:name)
   Spec =
     Struct.new(:name, :deps, :root, :default, keyword_init: true) do
-      def runtime_dependencies = deps.map { Dependency.new(_1) }
+      def runtime_dependencies = deps.map { Dependency.new(it) }
       def full_require_paths = ["#{root}/lib"]
       def default_gem? = default
     end
@@ -48,7 +48,8 @@ class GemActivationTest < Minitest::Test
   # different version than the caller's, so Bundler itself is never shared.
   def test_locked_and_closure_leave_out_bundler
     specs = loaded(app: %w[bundler money], money: [], bundler: [])
-    bundled_box = Object.new.tap { |box| def box.eval(_) = true }
+    bundled_box =
+      Object.new.tap { |box| box.define_singleton_method(:eval) { |_| true } }
 
     assert_equal %w[app money],
                  GemActivation.locked(bundled_box, specs).map(&:name).sort
