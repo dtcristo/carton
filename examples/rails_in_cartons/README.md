@@ -51,6 +51,11 @@ components/
   the framework Box. A domain that wants some can `require` them, for example
   `require 'active_support/core_ext/object/blank'`, which loads just that part
   in its Box.
+- **Shared classes are shared definitions.** `ApplicationRecord` and every
+  domain class are ordinary classes created in a Carton Box, so they have one
+  definition. A Carton that reopens `ApplicationRecord` (or another domain's
+  model) changes it for every Carton. Only patches to builtin classes such as
+  `String` stay in the Box that makes them.
 - **Everything Rails needs by name must be registered.** That includes
   controllers, models, and anything else Rails constantizes, such as
   serializers or polymorphic types.
