@@ -122,7 +122,7 @@ ignores its own `export` and `export_default` lines. A gem can add
 
 ### `import_relative`
 
-`import_relative path` resolves relative to the calling file, like `require_relative`.
+`import_relative path` resolves relative to the calling file, like `require_relative`. A missing file raises `LoadError`; it never falls back to a same-named feature on `$LOAD_PATH`.
 
 ```ruby
 User = import_relative 'user'
@@ -130,7 +130,7 @@ User = import_relative 'user'
 
 ### `import`
 
-`import path` resolves an absolute path, or searches the current box's `$LOAD_PATH` like `require`. It does not check the current directory.
+`import path` resolves an absolute path, or searches the current box's `$LOAD_PATH` like `require`. It does not check the current directory. A missing absolute path or name raises `LoadError`.
 
 ```ruby
 MathTools = import 'math_tools'

@@ -29,6 +29,30 @@ class ResolverTest < Minitest::Test
     assert_equal FIXTURES, target.load_path
   end
 
+  # Like `require_relative`, a missing relative or absolute target never falls
+  # back to a same-named feature elsewhere, such as the stdlib `json`.
+  def test_missing_relative_path_raises_load_error
+    error = assert_raises(LoadError) { resolve('json', base_dir: FIXTURES) }
+    assert_equal "cannot load such file -- #{FIXTURES}/json", error.message
+  end
+
+  def test_missing_absolute_path_raises_load_error
+    error = assert_raises(LoadError) { resolve("#{FIXTURES}/nope.rb") }
+    assert_equal "cannot load such file -- #{FIXTURES}/nope.rb", error.message
+  end
+
+  def test_symlinked_load_path_entry_is_carried_as_given
+    Dir.mktmpdir do |dir|
+      link = File.join(dir, 'linked')
+      File.symlink(FIXTURES, link)
+
+      target = resolve('single_export', load_path: [link])
+
+      assert_equal "#{link}/single_export.rb", target.feature
+      assert_equal link, target.load_path
+    end
+  end
+
   def test_does_not_resolve_name_from_current_directory
     Dir.chdir(FIXTURES) do
       assert_equal 'single_export', resolve('single_export').feature

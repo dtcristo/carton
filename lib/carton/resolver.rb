@@ -19,22 +19,23 @@ module Carton
 
     # Resolve `path` like `require_relative` when `base_dir` is given, like
     # `require` with an absolute path, or by searching `load_path` in order.
-    # Only Ruby source files resolve to an absolute feature; anything else,
-    # such as a native extension, comes back as the bare `path`.
+    # A missing relative or absolute target raises LoadError, as
+    # `require_relative` does. A name that matches no Ruby source file, such
+    # as a native extension, comes back as the bare `path`.
     def resolve(path, load_path:, base_dir: nil)
       path = path.to_s
       if base_dir || File.absolute_path?(path)
         resolve_file(File.expand_path(path, base_dir))
       else
-        resolve_name(path, load_path)
-      end || Target.new(feature: path)
+        resolve_name(path, load_path) || Target.new(feature: path)
+      end
     end
 
     def resolve_file(expanded)
       [expanded, "#{expanded}.rb"].each do |candidate|
         return Target.new(feature: candidate) if File.file?(candidate)
       end
-      nil
+      raise LoadError, "cannot load such file -- #{expanded}"
     end
     private_class_method :resolve_file
 

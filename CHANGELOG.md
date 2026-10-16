@@ -57,6 +57,7 @@
 
 ### Fixed
 
+- A missing `import_relative` target raises `LoadError` instead of loading a same-named feature from the Box's load path (such as the stdlib `json`), and a missing absolute `import` raises `LoadError` instead of `Errno::ENOENT`.
 - `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
 - A gem Carton imported from another Carton's Box now gets its dependencies. Gem activation wrote to the importing Carton's `$LOAD_PATH`, so the gem's `require` of a dependency raised `LoadError`.
 - Importing a file from an activated gem now activates that gem and its runtime dependencies in the Carton's Box at the caller's versions. Before, the Box auto-activated the newest installed version of each dependency, ignoring the caller's lockfile. A later import whose caller activates different versions raises instead of reusing the cached Carton.
