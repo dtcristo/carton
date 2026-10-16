@@ -44,6 +44,18 @@ class GemActivationTest < Minitest::Test
     assert_equal %w[a app], closure('/gems/app/lib/app.rb', specs).map(&:name)
   end
 
+  # Each Box loads its own Bundler to apply the restriction, which may be a
+  # different version than the caller's, so Bundler itself is never shared.
+  def test_locked_and_closure_leave_out_bundler
+    specs = loaded(app: %w[bundler money], money: [], bundler: [])
+    bundled_box = Object.new.tap { |box| def box.eval(_) = true }
+
+    assert_equal %w[app money],
+                 GemActivation.locked(bundled_box, specs).map(&:name).sort
+    assert_equal %w[money app],
+                 closure('/gems/app/lib/app.rb', specs).map(&:name)
+  end
+
   private
 
   def closure(feature, specs)

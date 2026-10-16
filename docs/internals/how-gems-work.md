@@ -158,6 +158,9 @@ On Ruby 4.0.7 with Bundler 4.0.23:
   gems load at their versions, default gems still load, and unlocked gems
   raise `LoadError`. Under that restriction RubyGems does not auto-activate,
   so every locked spec must be activated, as `Bundler.setup` does.
+- the `bundler` spec is never shared: the Box loads its own Bundler to apply
+  the restriction, which can be the Ruby default (4.0.20 on CI) while the
+  caller runs the locked 4.0.23, and activating both raises `Gem::LoadError`.
 - activation costs well under a millisecond per gem; `Ruby::Box.new` itself
   is about 70ms.
 

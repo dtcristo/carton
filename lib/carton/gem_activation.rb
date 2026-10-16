@@ -26,12 +26,12 @@ module Carton
     end
 
     # The caller's locked gems when `box` ran Bundler setup, otherwise nil.
-    # Bundler marks every locked spec as loaded, so these are the non-default
+    # Bundler marks every locked spec as loaded, so these are the shareable
     # entries of its `Gem.loaded_specs`.
     def locked(box, loaded_specs)
       return unless bundled?(box)
 
-      loaded_specs.values.reject(&:default_gem?)
+      loaded_specs.values.select { |spec| shareable?(spec) }
     end
 
     # Rebuild specs in the current Box and activate them. With `locked`, the
@@ -80,7 +80,7 @@ module Carton
 
     def owner_of(feature, specs)
       specs
-        .reject(&:default_gem?)
+        .select { |spec| shareable?(spec) }
         .filter_map do |spec|
           dir =
             spec.full_require_paths.find do |path|
@@ -94,7 +94,7 @@ module Carton
     private_class_method :owner_of
 
     def visit(spec, loaded_specs, ordered, seen)
-      return ordered if seen[spec.name] || spec.default_gem?
+      return ordered if seen[spec.name] || !shareable?(spec)
 
       seen[spec.name] = true
       spec.runtime_dependencies.each do |dependency|
@@ -104,5 +104,14 @@ module Carton
       ordered << spec
     end
     private_class_method :visit
+
+    # Default gems already load in every Box. Bundler is left out too: each
+    # Box loads its own copy to apply the restriction, possibly a different
+    # version than the caller's, and activating the caller's on top of it
+    # raises Gem::LoadError.
+    def shareable?(spec)
+      !spec.default_gem? && spec.name != 'bundler'
+    end
+    private_class_method :shareable?
   end
 end
