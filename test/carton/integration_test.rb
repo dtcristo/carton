@@ -326,6 +326,17 @@ class IntegrationTest < Minitest::Test
     assert payload.fetch('main_load_path_unchanged')
   end
 
+  def test_monorepo_example_imports_path_gem_packages_by_name
+    output =
+      run_boxed("load #{File.join(EXAMPLES, 'monorepo/main.rb').inspect}")
+
+    assert_includes output, 'Invoice 42: 25.0'
+    assert_includes output, 'Pricing uses bigdecimal 4.1.1'
+    assert_includes output, 'Billing and the app share one pricing Carton: true'
+    assert_includes output, 'Pricing::Rounding is private'
+    assert_includes output, 'bigdecimal loaded in the Main Box: false'
+  end
+
   def test_imported_file_can_require_carton_by_name
     Dir.mktmpdir('carton-require') do |dir|
       entry = File.join(dir, 'requires_carton.rb')
