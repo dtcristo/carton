@@ -7,7 +7,7 @@ module Carton
   # object, so each Entrypoint loads once no matter which Carton imports it.
   # Ruby objects are shared across Boxes; only definitions are Box-local, so
   # the Main Box's loader builds every Carton. A cached value is then a
-  # `Carton::Exports` or `Carton::Box` from the Main Box regardless of which
+  # value or `Carton::Exports` from the Main Box regardless of which
   # Carton imported it first.
   class ImportCache
     def initialize(&loader)

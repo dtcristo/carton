@@ -39,7 +39,7 @@ class ImportRelativeTest < Minitest::Test
 
   def test_import_relative_bare
     result = import_relative '../fixtures/bare'
-    assert_kind_of Carton::Box, result
+    assert_kind_of Carton::Exports, result
     assert_equal 'hello from bare', result.fetch(:GREETING)
   end
 end

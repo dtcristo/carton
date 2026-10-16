@@ -71,7 +71,7 @@ MathTools[:add] # => #<Method: ...add(a, b)>
 - A symbol naming a missing method raises `NameError` at export time.
 - A name given both as a symbol and as a keyword raises `ArgumentError`.
 
-`Carton::Exports` and bare `Carton::Box` imports share a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
+`Carton::Exports` has a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
 
 Only one export call is allowed per imported file. Use `export_default value` for single exports or `export :name, key: value` for named exports.
 
@@ -169,14 +169,21 @@ PI, version = import('math').fetch_values(:PI, :version)
 
 ## Bare imports
 
-If a file does not call `export`, importing it returns the `Carton::Box` itself.
+If a file does not call `export`, importing it returns a `Carton::Exports`
+holding the constants and top-level helpers the file defines, as if it had
+exported them all. The Carton's Box stays private, so an importer cannot
+`eval` or `require` inside it.
 
 ```ruby
 Toolbox = import 'some_script'
 
 Toolbox::SomeConstant
+Toolbox.helper
 Toolbox.fetch(:helper).call
 ```
+
+Constants are read when the import finishes, so an autoloaded top-level
+constant loads then rather than on first use.
 
 Bare lookup includes only top-level constants and helpers introduced by the
 Carton's Entrypoint. It excludes inherited runtime constants and Box methods.

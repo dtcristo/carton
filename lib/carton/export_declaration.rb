@@ -29,10 +29,12 @@ module Carton
       declaration
     end
 
+    # Yields methods and values for an Export Namespace or a Bare Carton,
+    # whose surface `bare` computes lazily; returns a Default Export as is.
     def public_surface(bare:)
       case @kind
       when :absent
-        bare
+        yield(*bare.call)
       when :default
         @value
       when :namespace

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Carton
-  # Shared lookup helpers for `Carton::Exports` and bare `Carton::Box` imports.
+  # Hash-like lookup helpers for `Carton::Exports`.
   module ExportMethods
     # Support destructuring like `import('math') => { add: }`.
     def deconstruct_keys(keys)

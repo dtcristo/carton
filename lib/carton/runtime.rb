@@ -61,7 +61,7 @@ module Carton
     end
 
     def load_import(target)
-      box = Carton::Box.new
+      box = Box.new
       box.__send__(
         :configure_for_import,
         entrypoint: ENTRYPOINT,
@@ -88,7 +88,7 @@ module Carton
 
     def extract_export(box)
       box.__send__(:export_public_surface) do |methods, values|
-        Carton::Exports.new(methods, values)
+        Exports.new(methods, values)
       end
     end
     private_class_method :extract_export

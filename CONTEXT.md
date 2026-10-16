@@ -45,7 +45,7 @@ The values a Carton deliberately makes available across its boundary, including 
 _Avoid_: Only the directly declared values
 
 **Bare Carton**:
-A Carton without declared exports. Its Box is its public surface.
+A Carton without declared exports. The constants and top-level helpers its Entrypoint defines are its public surface, returned as a `Carton::Exports` like an Export Namespace; importers never receive its Box.
 _Avoid_: Unexported carton
 
 **Export Declaration**:
