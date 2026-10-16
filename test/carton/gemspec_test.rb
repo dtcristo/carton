@@ -24,6 +24,17 @@ class GemspecTest < Minitest::Test
     assert_includes carton_specification.description, 'Ruby 4.0.7'
   end
 
+  # The gem ships the library, its signatures, and top-level docs only, and
+  # the list does not depend on git, so it also builds from a source archive.
+  def test_packages_only_library_signatures_and_docs
+    root = File.expand_path('../..', __dir__)
+    expected =
+      Dir.glob(%w[lib/**/*.rb sig/**/*.rbs], base: root) +
+        %w[CHANGELOG.md LICENSE.txt README.md]
+
+    assert_equal expected.sort, carton_specification.files.sort
+  end
+
   private
 
   def carton_specification
