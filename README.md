@@ -67,6 +67,7 @@ MathTools.add(2, 3)
 - [examples/minimal](examples/minimal/README.md) - smallest example
 - [examples/gems](examples/gems/README.md) - manual RubyGems activation without Bundler
 - [examples/bundler](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
+- [examples/rails](examples/rails/README.md) - Rails app with domain logic in a Zeitwerk Carton
 
 Research notes on `Ruby::Box`, RubyGems, Bundler, and upstream plans live in [docs/internals](docs/internals/).
 
@@ -80,6 +81,7 @@ bundle exec rake rubocop                    # Lint code
 RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
 RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 RUBY_BOX=1 ruby examples/bundler/main.rb     # Run the Bundler example
+RUBY_BOX=1 ruby examples/rails/main.rb       # Run the Rails example
 ```
 
 A carton with its own Gemfile calls `Carton.setup_bundle`; see

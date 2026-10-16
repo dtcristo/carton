@@ -24,7 +24,7 @@ See [upstream.md](internals/upstream.md) for detail.
 
 ## Docs
 
-- Write a guide to using Cartons alongside Rails and Zeitwerk autoloading, after checking what actually works.
+- Expand the Rails example into a guide: passing records into Cartons, testing Cartons in a Rails app, and reloading (Cartons are process-lifetime today).
 
 ## Tooling ideas
 

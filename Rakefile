@@ -12,7 +12,7 @@ RUBOCOP_FILES = %w[
   examples/**/*.rb
   examples/**/Gemfile
 ].freeze
-EXAMPLES = %w[minimal gems bundler].freeze
+EXAMPLES = %w[minimal gems bundler rails].freeze
 GEMS_EXAMPLE_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze
 
 def install_example_bundle(gemfile)

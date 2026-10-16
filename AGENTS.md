@@ -26,6 +26,7 @@ Guidance and memory for agents working on this repo.
 - `export` may be called many times per Entrypoint (user decision). Capitalized Symbols name top-level constants, other Symbols top-level methods, keywords plain values; names resolve at the call, like `private`. Lookups return `Method` objects and never invoke values or bare helpers.
 - `export_default value` is exclusive: once per file, never with `export` (user decision; ESM-style `default:` slots and import name selection were tried and dropped). Bind a default to its own name; rename only for clashes.
 - Gems export their root module with `export_default` and hide internals with Ruby's `private_constant`, which holds across Boxes; Carton adds no visibility mechanism of its own.
+- Rails runs in the Main Box; controllers and models cannot live in Cartons without loading Rails per Box (core extensions are Box-local, and Root-loaded code is not inherited on 4.0.7). Cartons hold domain logic, and Zeitwerk works inside a Carton Box.
 - Prefer raising the minimum Ruby/RubyGems/Bundler version over carrying workarounds for older releases (user decision).
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.
 - Never push. Make local commits only; the user handles pushes.
@@ -65,6 +66,7 @@ Guidance and memory for agents working on this repo.
 - `bundle exec rake example:minimal` - minimal example
 - `bundle exec rake example:gems` - manual RubyGems example
 - `bundle exec rake example:bundler` - per-Carton Bundler example
+- `bundle exec rake example:rails` - Rails app with a Zeitwerk Carton component
 - `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code
 - Prefer `mise x ruby@4.0.7 -- ...` when the shell default Ruby is older than the package baseline.
