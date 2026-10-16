@@ -169,7 +169,7 @@ to carry across the boundary must be propagated explicitly.
 This includes `Ruby::Box.root.eval`: on 4.0.7, a constant or monkey patch
 defined there is not visible in a Box created afterwards. Loading a framework
 such as Rails into Root so every Box inherits it, which worked before the Master
-Box in 4.0.6, no longer does. See [examples/rails](../../examples/rails/README.md).
+Box in 4.0.6, no longer does. See [examples/rails_in_main](../../examples/rails_in_main/README.md).
 
 ## `current box` vs `loading box`
 
@@ -435,7 +435,7 @@ own methods run in its Box; inherited methods run in the Box that defined
 them, with that Box's constants and monkey patches. On 4.0.7 this is enough
 to define Active Record models and Action Controller controllers in domain
 Cartons while Rails loads once in a framework Carton
-([examples/rails_cartons](../../examples/rails_cartons/README.md)). Lookups by
+([examples/rails_in_cartons](../../examples/rails_in_cartons/README.md)). Lookups by
 constant *name* inside the defining Box (Rails' `constantize`) still need the
 subclass defined there too.
 
