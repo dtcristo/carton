@@ -18,6 +18,7 @@ EXAMPLES = %w[
   minimal
   gems
   bundler
+  monorepo
   rails_in_main
   rails_in_cartons
   master_prelude
@@ -81,7 +82,7 @@ task :test do
   Bundler.with_unbundled_env do
     install_example_bigdecimals
     Dir
-      .glob(File.join('examples', 'bundler', '**/Gemfile'))
+      .glob(File.join('examples', '{bundler,monorepo}', '**/Gemfile'))
       .each { |gemfile| install_example_bundle(gemfile) }
     sh(command, verbose: false)
   end

@@ -1,0 +1,14 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'carton', path: '../..'
+
+# Each package is a path gem. Its gemspec is its manifest: name, version, and
+# the dependencies it may import.
+gem 'billing', path: 'packages/billing'
+gem 'pricing', path: 'packages/pricing'
+gem 'shipping', path: 'packages/shipping'
+
+# The app's lockfile pins third-party versions for every package.
+gem 'bigdecimal', '4.1.1'

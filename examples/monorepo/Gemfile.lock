@@ -1,0 +1,47 @@
+PATH
+  remote: ../..
+  specs:
+    carton (0.1.0)
+
+PATH
+  remote: packages/billing
+  specs:
+    billing (0.1.0)
+      pricing
+
+PATH
+  remote: packages/pricing
+  specs:
+    pricing (0.1.0)
+      bigdecimal
+
+PATH
+  remote: packages/shipping
+  specs:
+    shipping (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bigdecimal (4.1.1)
+
+PLATFORMS
+  arm64-darwin-27
+  ruby
+
+DEPENDENCIES
+  bigdecimal (= 4.1.1)
+  billing!
+  carton!
+  pricing!
+  shipping!
+
+CHECKSUMS
+  bigdecimal (4.1.1) sha256=1c09efab961da45203c8316b0cdaec0ff391dfadb952dd459584b63ebf8054ca
+  billing (0.1.0)
+  carton (0.1.0)
+  pricing (0.1.0)
+  shipping (0.1.0)
+
+BUNDLED WITH
+  4.0.23
