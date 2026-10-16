@@ -11,8 +11,8 @@ module Carton
       new(:default, value)
     end
 
-    def self.namespace(values)
-      new(:namespace, values.dup.freeze)
+    def self.namespace(methods, values)
+      new(:namespace, [methods.dup.freeze, values.dup.freeze].freeze)
     end
 
     def initialize(kind, value)
@@ -36,7 +36,7 @@ module Carton
       when :default
         @value
       when :namespace
-        yield(@value)
+        yield(*@value)
       end
     end
 

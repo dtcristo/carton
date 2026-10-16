@@ -3,16 +3,18 @@
 module Carton
   # Module-like wrapper returned from named exports.
   #
-  # Capitalized keys become constants. Lowercase keys become singleton methods
-  # or values addressable through the shared lookup helpers in `ExportMethods`.
+  # Exported methods become singleton methods that forward to the carton's
+  # method. Capitalized value keys become constants; lowercase value keys become
+  # readers that return the value as-is. Lookup helpers return the `Method`
+  # object or the value.
   class Exports < ::Module
     include ExportMethods
 
-    def initialize(values = {})
+    def initialize(methods = {}, values = {})
       super()
-      @values = values
       @lookup = {}
-      define_exports
+      define_methods(methods)
+      define_values(values)
     end
 
     def deconstruct_keys(keys)
@@ -23,16 +25,23 @@ module Carton
 
     private
 
-    def define_exports
-      @values.each do |key, value|
+    def define_methods(methods)
+      methods.each do |name, method|
+        @lookup[name.to_s] = method
+        define_singleton_method(name) do |*args, **kwargs, &block|
+          method.call(*args, **kwargs, &block)
+        end
+      end
+    end
+
+    def define_values(values)
+      values.each do |key, value|
         @lookup[key.to_s] = value
 
         if key.to_s.match?(/\A[A-Z]/)
           const_set(key, value)
         else
-          define_singleton_method(
-            key,
-          ) { |*args, **kwargs, &block| value.respond_to?(:call) ? value.call(*args, **kwargs, &block) : value }
+          define_singleton_method(key) { value }
         end
       end
     end

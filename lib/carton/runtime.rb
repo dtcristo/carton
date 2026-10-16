@@ -18,18 +18,27 @@ module Carton
       extract_export(box)
     end
 
-    # Declare an Export Namespace for the current carton.
-    def export(args, kwargs)
-      if args.any? || kwargs.empty?
+    # Declare an Export Namespace for the current carton. Symbols name
+    # top-level methods; keyword arguments are plain values.
+    def export(names, values, owner:)
+      if (names.empty? && values.empty?) ||
+           names.any? { |name| !name.is_a?(Symbol) }
         raise ArgumentError,
-              'export takes keyword arguments; use export_default for a single export'
+              'export takes method names and keyword arguments; use export_default for a single export'
       end
 
-      current_import_box.__send__(
+      duplicate = names.find { |name| values.key?(name) }
+      if duplicate
+        raise ArgumentError, "export name given more than once: #{duplicate}"
+      end
+
+      box = current_import_box
+      methods = names.to_h { |name| [name, owner.method(name)] }
+      box.__send__(
         :declare_export,
-        ExportDeclaration.namespace(kwargs),
+        ExportDeclaration.namespace(methods, values),
       )
-      kwargs
+      values
     end
 
     # Export a single value from the current carton.
@@ -49,8 +58,8 @@ module Carton
     private_class_method :build_import_box
 
     def extract_export(box)
-      box.__send__(:export_public_surface) do |values|
-        Carton::Exports.new(values)
+      box.__send__(:export_public_surface) do |methods, values|
+        Carton::Exports.new(methods, values)
       end
     end
     private_class_method :extract_export

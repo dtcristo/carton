@@ -16,9 +16,10 @@ module Carton
       Runtime.import(path, base_dir: caller_dir)
     end
 
-    # Export a small named API from the current carton.
-    def export(*args, **kwargs)
-      Runtime.export(args, kwargs)
+    # Export top-level methods by name plus keyword values from the current
+    # carton. `self` is the carton's top-level object, which owns its methods.
+    def export(*names, **values)
+      Runtime.export(names, values, owner: self)
     end
 
     # Export a single default value from the current carton.
