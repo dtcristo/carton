@@ -49,7 +49,7 @@ Named exports return a namespace-like module:
 # math.rb
 def add(a, b) = a + b
 
-export PI: 3.14159, add: method(:add)
+export :add, PI: 3.14159
 ```
 
 ```ruby

@@ -18,6 +18,7 @@ Guidance and memory for agents working on this repo.
 - Ruby 4.0.6 confirms distinct RubyGems activation state, conflicting non-path bundles, and path-gem Carton imports under ordinary per-Carton Bundler setup.
 - `RUBY_BOX=1 bundle exec` still fails on Ruby 4.0.6 when a Gemfile evaluates a gemspec before `Gem::Specification` is visible; keep that as upstream prelude work.
 - Carton clears process-global `BUNDLER_SETUP` around optional Box construction so Master-based Boxes do not re-enter the caller's `bundler/setup`.
+- `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.
 - Never push. Make local commits only; the user handles pushes.
 

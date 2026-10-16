@@ -38,17 +38,14 @@ Namespace.
 
 ### Named exports
 
-Use keyword arguments when the file exports a small namespace.
+Use `export` when the file exports a small namespace. Symbols name top-level
+methods; keyword arguments are plain values.
 
 ```ruby
 # math.rb
 def add(a, b) = a + b
 
-export(
-  PI: 3.14159,
-  version: '1.0.0',
-  add: method(:add)
-)
+export :add, PI: 3.14159, version: '1.0.0'
 ```
 
 Importing named exports returns a `Carton::Exports` object, which behaves like a namespace module.
@@ -60,11 +57,19 @@ MathTools = import 'math'
 MathTools::PI
 MathTools.version
 MathTools.add(2, 3)
+MathTools[:add] # => #<Method: ...add(a, b)>
 ```
+
+- `MathTools.add(...)` forwards arguments, keywords, and blocks to the method.
+- `[]`, `fetch`, and destructuring return the `Method` object.
+- Keyword values are never invoked: `export handler: -> {}` makes
+  `handler` return the lambda itself.
+- A symbol naming a missing method raises `NameError` at export time.
+- A name given both as a symbol and as a keyword raises `ArgumentError`.
 
 `Carton::Exports` and bare `Carton::Box` imports share a small lookup API: `[]`, `fetch`, `fetch_values`, `values_at`, and `key?`.
 
-Only one export call is allowed per imported file. Use `export_default value` for single exports or `export foo:, bar:` for named exports.
+Only one export call is allowed per imported file. Use `export_default value` for single exports or `export :name, key: value` for named exports.
 
 ## Importing
 
@@ -159,15 +164,14 @@ If a file does not call `export`, importing it returns the `Carton::Box` itself.
 Toolbox = import 'some_script'
 
 Toolbox::SomeConstant
-Toolbox.fetch(:helper)
+Toolbox.fetch(:helper).call
 ```
 
 Bare lookup includes only top-level constants and helpers introduced by the
 Carton's Entrypoint. It excludes inherited runtime constants and Box methods.
-Keys are names, not Ruby expressions, and `key?` never invokes a helper.
+Keys are names, not Ruby expressions. Helper lookups return the `Method`
+object, so `[]`, `fetch`, `key?`, and destructuring never invoke a helper.
 Bare Carton hash-rest patterns enumerate that same Public Surface.
-Full enumeration reads every helper, so helper side effects occur and helper
-errors propagate.
 
 ## Testing cartons
 
