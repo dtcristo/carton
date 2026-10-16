@@ -2,4 +2,4 @@
 
 Carton.setup_bundle(:default)
 
-export_default true
+export restored: true

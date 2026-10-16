@@ -2,8 +2,8 @@
 
 require_relative '../../lib/carton'
 
-# Single import — Foo exports one default value.
-Foo = import_relative 'foo'
+# Foo exports its module as a constant; take it from the namespace.
+Foo = import_relative('foo')::Foo
 
 # Namespace import — Bar exports named methods and constants.
 Bar = import_relative 'bar'

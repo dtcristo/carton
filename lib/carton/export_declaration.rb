@@ -1,45 +1,42 @@
 # frozen_string_literal: true
 
 module Carton
-  # The tagged declaration made by one of Carton's two export forms.
+  # The Export Namespace an Entrypoint builds from one or more `export` calls.
+  # Each call adds names; a name may be exported only once.
   class ExportDeclaration
     def self.absent
-      new(:absent, nil)
+      new({}, {}, declared: false)
     end
 
-    def self.default(value)
-      new(:default, value)
-    end
-
-    def self.namespace(methods, values)
-      new(:namespace, [methods.dup.freeze, values.dup.freeze].freeze)
-    end
-
-    def initialize(kind, value)
-      @kind = kind
-      @value = value
+    def initialize(methods, values, declared:)
+      @methods = methods.freeze
+      @values = values.freeze
+      @declared = declared
       freeze
     end
 
-    def declare(declaration)
-      unless @kind == :absent
-        raise 'only one export is allowed per imported file'
+    def add(methods, values)
+      duplicate =
+        (methods.keys + values.keys).find do |name|
+          @methods.key?(name) || @values.key?(name)
+        end
+      if duplicate
+        raise ArgumentError, "export name given more than once: #{duplicate}"
       end
 
-      declaration
+      self.class.__send__(
+        :new,
+        @methods.merge(methods),
+        @values.merge(values),
+        declared: true,
+      )
     end
 
-    # Yields methods and values for an Export Namespace or a Bare Carton,
-    # whose surface `bare` computes lazily; returns a Default Export as is.
+    # Yields methods and values for the Export Namespace, or for a Bare
+    # Carton's surface, which `bare` computes lazily, when nothing was
+    # exported.
     def public_surface(bare:)
-      case @kind
-      when :absent
-        yield(*bare.call)
-      when :default
-        @value
-      when :namespace
-        yield(*@value)
-      end
+      @declared ? yield(@methods, @values) : yield(*bare.call)
     end
 
     private_class_method :new

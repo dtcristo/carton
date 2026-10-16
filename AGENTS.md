@@ -23,7 +23,8 @@ Guidance and memory for agents working on this repo.
 - `Carton.setup_bundle(*groups, gemfile:)` mirrors `Bundler.setup` and restores `ENV` afterwards; check `Bundler.root` (memoized), not `Bundler.default_gemfile` (rereads `ENV`), when testing which Gemfile was selected.
 - Imports are shared process-wide, keyed by Entrypoint real path; the Main Box's `ImportCache` and loader build every Carton (user decision; replaces the earlier avoid-a-global-cache note).
 - Only the imported Entrypoint declares exports; `export` elsewhere (plain `require`, files a Carton requires) validates and is inert, so Carton-aware gems still work via `require`.
-- `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
+- `export` may be called many times per Entrypoint (user decision; `export_default` and an ESM-style `export default:` slot were both dropped; revisit only if needed). Capitalized Symbols name top-level constants, other Symbols top-level methods, keywords plain values; names resolve at the call, like `private`. Lookups return `Method` objects and never invoke values or bare helpers.
+- Gems publish a subset of their root module with Ruby's `private_constant`, which holds across Boxes; Carton adds no visibility mechanism of its own.
 - Prefer raising the minimum Ruby/RubyGems/Bundler version over carrying workarounds for older releases (user decision).
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.
 - Never push. Make local commits only; the user handles pushes.

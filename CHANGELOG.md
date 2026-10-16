@@ -4,6 +4,12 @@
 
 ### Breaking
 
+- `export_default` is removed. `export` can be called many times per file and
+  each call adds to one Export Namespace. A capitalized Symbol exports a
+  constant (`export :User`), other Symbols export methods, and
+  `export def name ...` works like `private def`. Replace `export_default User`
+  with `export :User` and import it as `import('user')::User`. Exporting a
+  name twice raises `ArgumentError`.
 - Importing a file with no export (a Bare Carton) returns a `Carton::Exports`
   of the constants and top-level helpers it defines, instead of its
   `Carton::Box`. Importers can no longer `eval`, `require`, or read
@@ -39,9 +45,9 @@
 
 ### Changed
 
-- `export` and `export_default` only declare exports from the imported Entrypoint. Under plain `require`, or in other files a Carton requires, they validate their arguments and return without declaring, instead of raising or adding a second export. Carton-aware files and gems now load with `require` too.
+- `export` only declares exports from the imported Entrypoint. Under plain `require`, or in other files a Carton requires, it validates its arguments and returns without declaring, instead of raising or adding a second export. Carton-aware files and gems now load with `require` too.
 - When the caller ran Bundler setup, a gem Carton's Box is restricted to the caller's bundle: every locked gem loads at its locked version, including undeclared dependencies, and gems outside the lockfile raise `LoadError`.
-- `import`, `import_relative`, `export`, and `export_default` are now private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them.
+- `import`, `import_relative`, and `export` are now private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them.
 - Carton now requires Ruby `>= 4.0.7`, enforced by the gemspec instead of a load-time version check.
 - Bundler support needs Bundler 4.0.23 or later. With it, `RUBY_BOX=1 bundle exec` works, including Gemfiles that evaluate a gemspec. Carton no longer patches RubyGems or Bundler.
 - `import 'name'` resolves the feature in the caller's Box and carries only the matching load-path entry into the imported Box, instead of copying the caller's whole `$LOAD_PATH`.
@@ -50,7 +56,6 @@
 
 - A gem Carton imported from another Carton's Box now gets its dependencies. Gem activation wrote to the importing Carton's `$LOAD_PATH`, so the gem's `require` of a dependency raised `LoadError`.
 - Importing a file from an activated gem now activates that gem and its runtime dependencies in the Carton's Box at the caller's versions. Before, the Box auto-activated the newest installed version of each dependency, ignoring the caller's lockfile. A later import whose caller activates different versions raises instead of reusing the cached Carton.
-- `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
 - Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, and `key?` no longer calls helpers.
 - Hash-rest patterns (`=> { **rest }`) return every Named Export, or every member of a Bare Carton's Public Surface, instead of an empty hash.
 

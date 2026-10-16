@@ -31,34 +31,25 @@ RUBY_BOX=1 ruby main.rb
 class User
   def initialize(name) = @name = name
 end
+export :User
 
-export_default User
+export def greet(user) = "Hello!"
+export VERSION: '1.0'
 ```
 
 ```ruby
 # main.rb
 require 'carton'
 
-User = import_relative 'user'
-alice = User.new('Alice')
+Users = import_relative 'user'
+alice = Users::User.new('Alice')
+Users.greet(alice)
+Users::VERSION
 ```
 
-Named exports return a namespace-like module:
-
-```ruby
-# math.rb
-def add(a, b) = a + b
-
-export :add, PI: 3.14159
-```
-
-```ruby
-require 'carton'
-
-MathTools = import_relative 'math'
-MathTools::PI
-MathTools.add(2, 3)
-```
+`export` can be called many times. Capitalized Symbols export constants,
+other Symbols export methods, and keywords export plain values. Importing
+returns a `Carton::Exports` namespace.
 
 ## Docs
 

@@ -4,5 +4,5 @@ module Baz
   def self.hello = 'Hello from Baz!'
 end
 
-# Baz is another single default export.
-export_default Baz
+# Baz exports its module the same way.
+export :Baz

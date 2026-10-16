@@ -2,4 +2,4 @@
 
 Money = Struct.new(:cents)
 
-export_default Money
+export :Money

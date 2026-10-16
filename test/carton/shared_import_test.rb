@@ -33,7 +33,7 @@ class SharedImportTest < Minitest::Test
     from_carton = import "#{SHARED_DIR}/units_user"
     units = import "#{SHARED_DIR}/units"
 
-    assert_same from_carton, units
+    assert_same from_carton::Units, units
     assert_kind_of Carton::Exports, units
   end
 
@@ -47,7 +47,7 @@ class SharedImportTest < Minitest::Test
     assert_raises(RuntimeError) { import "#{SHARED_DIR}/flaky" }
 
     ENV.delete('CARTON_FLAKY_FAIL')
-    assert_equal :loaded, import("#{SHARED_DIR}/flaky")
+    assert_equal :loaded, import("#{SHARED_DIR}/flaky").status
   ensure
     ENV.delete('CARTON_FLAKY_FAIL')
   end

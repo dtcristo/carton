@@ -22,12 +22,6 @@ module Carton
       file = caller_locations(1, 1).first.absolute_path
       Runtime.export(names, values, owner: self, file:)
     end
-
-    # Export a single default value from the current carton.
-    def export_default(value)
-      file = caller_locations(1, 1).first.absolute_path
-      Runtime.export_default(value, file:)
-    end
   end
 end
 

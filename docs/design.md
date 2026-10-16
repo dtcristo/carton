@@ -10,7 +10,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | --- | --- |
 | `lib/carton.rb` | Entry point and internal wiring |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` plus caller-file bundle discovery |
-| `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
+| `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, and `export` |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
 | `lib/carton/gem_activation.rb` | Finds the activated gem that owns an Import, activates its dependency closure in the new Box, and restricts the Box to a bundled caller's locked gems; the only place Carton calls Bundler internals |
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
@@ -30,9 +30,8 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
 6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new box at the caller's versions, dependencies first. If the caller ran Bundler setup, the box is first restricted to the caller's locked gems and all of them are activated, as `Bundler.setup` does.
 7. The target file is required inside the box.
-8. If the file called `export_default`, its value is returned directly.
-9. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
-10. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The box itself never leaves Carton.
+8. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
+9. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
 
@@ -42,22 +41,19 @@ A mutex serialises imports across threads; nested imports on the thread that hol
 
 ## Export model
 
-There are three return shapes:
+There are two return shapes, both `Carton::Exports`:
 
-- Default Export: the exported object itself
-- Export Namespace: `Carton::Exports`
-- Bare Carton: `Carton::Exports` built from the discovered Public Surface
+- Export Namespace: the Named Exports from every `export` call
+- Bare Carton: the discovered Public Surface
 
-`export_default` is the explicit Default Export form and preserves any value,
-including a Hash, `nil`, or `false`. `export` is the Export Namespace form and
-accepts positional Symbols naming top-level methods plus keyword values.
-`KernelPatch#export` passes the calling file to `Runtime`, which declares the
-export only when that file is the importing Box's Entrypoint; elsewhere both
-forms are inert after validating their arguments.
-`KernelPatch#export` resolves each Symbol with `method(name)` on the carton's
-top-level object, so a missing method raises `NameError` at export time.
-Carton records the form as an immutable Export Declaration instead of
-inferring it from the value's class.
+`export` accepts positional Symbols plus keyword values. A capitalized Symbol
+names a top-level constant, read with `Object.const_get(name, false)`; any
+other Symbol names a top-level method, captured with `method(name)` on the
+carton's top-level object. Both are looked up at the call, so a missing name
+raises `NameError` there. Each call adds to an immutable Export Declaration,
+which rejects a name exported twice. `KernelPatch#export` passes the calling
+file to `Runtime`, which declares only when that file is the importing Box's
+Entrypoint; elsewhere `export` is inert after validating its arguments.
 
 `Carton::Exports` defines a forwarding singleton method for each exported
 method, exposes capitalized value keys as constants, and exposes lowercase

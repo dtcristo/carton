@@ -4,5 +4,5 @@ module Foo
   def self.hello = 'Hello from Foo!'
 end
 
-# export_default returns the object itself from `import_relative 'foo'`.
-export_default Foo
+# A capitalized Symbol exports a constant; importers read it as `foo::Foo`.
+export :Foo
