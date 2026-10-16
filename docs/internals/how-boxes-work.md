@@ -83,7 +83,7 @@ Ruby 4.0.7 distinguishes these roles:
 
 | Box role | What it is |
 | --- | --- |
-| Master Box | internal immutable template; no code runs there |
+| Master Box | internal template every Box is copied from; Ruby's docs say no code runs there |
 | Root Box | runs Ruby bootstrap and builtin code |
 | Main Box | user Box that runs the command-line program and `-r` loads |
 | optional Box | extra user Box created by `Ruby::Box.new` |
@@ -116,12 +116,13 @@ Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say
 - Objects and modules defined there are shared, not copied: a mutable
   constant or a module's instance variables changed in one Box are seen in
   every other.
-- Reopening a Master class or adding monkey patches in a Box stays in that
-  Box.
+- Monkey patches a Box adds to builtins such as `String` stay in that Box.
+- Classes defined this way are not boxable, unlike builtins. Like classes
+  defined in a user Box, they have one shared definition: reopening one in
+  any Box, with `class` or `class_eval`, changes it in Master and every other
+  Box. This holds for both `eval` and `require` into Master.
 - Methods defined in Master run in Master, so their constant lookups and lazy
   `require`s use Master's `Object` and load path, not the caller's.
-- Classes defined in Master are boxable, unlike classes defined in a user Box,
-  which is why a later Box's reopens of them stay in that Box.
 
 Loading all of Active Support's core extensions into Master once made them
 available in every later Box at no per-Box cost; requiring them in each Box
@@ -317,7 +318,7 @@ The important helpers are:
 
 The model is copy-on-write:
 
-1. Boxes initially read the prime/root definition state,
+1. Boxes initially read the prime definition state,
 2. the first write in a Box duplicates the class-extension data,
 3. later reads/writes in that Box use the Box's extension tables.
 
@@ -332,7 +333,9 @@ This is also why top-level constants and top-level methods can be Box-local even
 
 - **Only classes created while Master is the current Box.** `class_alloc`
   marks a class "boxable" only when `BOX_MASTER_P(rb_current_box())`
-  ([class.c](https://github.com/ruby/ruby/blob/v4.0.7/class.c#L649-L700)). In practice that means builtins.
+  ([class.c](https://github.com/ruby/ruby/blob/v4.0.7/class.c#L649-L700)). In practice that means builtins defined during
+  bootstrap. Classes defined later through `Ruby::Box.master.eval` or
+  `require` are not boxable; verified on 4.0.7.
 - **Classes created in any user Box have only prime, and it is writable.**
   They are shared objects with one method table and one constant table, so
   reopening such a class from another Box changes it for every Box holding
@@ -459,7 +462,7 @@ Carton is aligned with the parts of `Ruby::Box` that are already strong:
 1. each Carton file loads once into its own Box, and later imports share it,
 2. `$LOAD_PATH` inside that Box is isolated,
 3. top-level constants and builtin-class monkey patches defined in the imported Carton stay inside that Box; classes the Carton defines are shared objects, so another Box that reopens them changes them everywhere,
-4. the returned Box or export object becomes the Carton boundary.
+4. only the export value or `Carton::Exports` leaves the Box; the Box itself never does.
 
 But the internals also explain Carton's current constraints:
 
@@ -502,7 +505,9 @@ Carton needs no upstream change today. [upstream.md](upstream.md) tracks the sma
 
 If you want one sentence that stays accurate:
 
-> `Ruby::Box` already isolates file loading, RubyGems activation state, and most
-> language definitions. Carton only has to manage the process-global `ENV`.
+> `Ruby::Box` already isolates file loading, RubyGems activation state, and
+> monkey patches to builtins. Carton manages the process-global `ENV`, carries
+> a gem Carton's dependencies into its Box, and leaves classes it defines
+> shared.
 
 That is the lens to keep while designing Carton.

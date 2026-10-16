@@ -45,9 +45,11 @@ Sources:
 
 ### Ruby 4.0.6
 
-Ruby added an internal **Master Box** as the immutable copy source. Root, Main,
-and optional Boxes copy Master; Root and Main are initialized before the prelude
-and load prelude state in their own environments. Master runs no code.
+Ruby added an internal **Master Box** as the copy source. Root, Main, and
+optional Boxes copy Master; Root and Main are initialized before the prelude
+and load prelude state in their own environments. Ruby intends no code to run
+in Master, though on 4.0.7 it can; see
+[how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407).
 
 This was explicitly intended to stop Box contents depending on when a Box was
 created. It does not change which Box owns the user's main program: Main Box.

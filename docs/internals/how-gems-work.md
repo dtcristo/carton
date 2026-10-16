@@ -122,7 +122,7 @@ their behavior also depends on Ruby method lookup across Boxes.
 
 The most important Ruby 4.0.7 facts are:
 
-1. **Master Box is the immutable source copied into Root, Main, and optional Boxes.**
+1. **Master Box is the copy source for Root, Main, and optional Boxes.**
 2. **Root runs bootstrap/builtins; Main runs the application.**
 3. **Prelude helpers such as RubyGems are loaded into user Boxes independently.**
 4. Therefore `require "rubygems"` is already satisfied in a fresh optional Box without inheriting Main or Root state.
@@ -173,7 +173,6 @@ Carton.setup_bundle
 ```
 
 Carton patches nothing in RubyGems or Bundler. Strict gem Cartons call two Bundler internals; see [upstream.md](upstream.md#resolve-once-activate-in-many-boxes).
-
 
 ### What applications generally should touch
 
@@ -255,7 +254,7 @@ Each Box carries its own:
 - `gvar_tbl`
 - `classext_cow_classes`
 
-Since Ruby 4.0.6, `box_entry_initialize` creates each Box by duplicating state from the immutable **Master Box**:
+Since Ruby 4.0.6, `box_entry_initialize` creates each Box by duplicating state from the **Master Box**:
 
 - `box->load_path = rb_ary_dup(master->load_path)`
 - `box->loaded_features = rb_ary_dup(master->loaded_features)`
@@ -593,6 +592,10 @@ These are the exact areas Carton and any upstream isolation work eventually need
 - Each Carton runs `Bundler.setup` in its own Box, so activation stays there;
   Carton adds no RubyGems or Bundler patches.
 - `Carton.setup_bundle` manages the process-global `ENV` that Bundler reads.
+- A gem Carton gets the caller's activated versions: Carton rebuilds the specs
+  in the new Box and activates them there, restricted to the caller's lockfile
+  when the caller is bundled.
 
-> Let each Box keep its own Bundler module and RubyGems state, and manage only
-> the process-global `ENV` that Bundler reads and writes.
+> Let each Box keep its own Bundler module and RubyGems state, manage the
+> process-global `ENV` that Bundler reads and writes, and carry the caller's
+> gem versions into gem Cartons.
