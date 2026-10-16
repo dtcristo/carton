@@ -7,5 +7,6 @@ def hello
   "Hello from Bar! (#{Baz.hello})"
 end
 
-# Named exports return a Carton::Exports namespace.
-export hello: method(:hello), MAGIC: 42
+# Named exports return a Carton::Exports namespace: `:hello` exports the
+# top-level method, and `MAGIC:` exports a plain value as a constant.
+export :hello, MAGIC: 42
