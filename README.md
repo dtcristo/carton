@@ -67,6 +67,7 @@ MathTools.add(2, 3)
 - [examples/minimal](examples/minimal/README.md) - smallest example
 - [examples/gems](examples/gems/README.md) - manual RubyGems activation without Bundler
 - [examples/bundler](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
+- [examples/monorepo](examples/monorepo/README.md) - packages as path gems in one Gemfile, imported by gem name
 - [examples/rails_in_main](examples/rails_in_main/README.md) - Rails in the Main Box; plain-Ruby domain logic in a Zeitwerk Carton
 - [examples/rails_in_cartons](examples/rails_in_cartons/README.md) - Rails loaded once in a Carton; models and controllers across domain Cartons
 - [examples/master_prelude](examples/master_prelude/README.md) - optional, unsupported hack: share Active Support with every Carton via Ruby's Master Box
@@ -83,6 +84,7 @@ bundle exec rake rubocop                    # Lint code
 RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
 RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 RUBY_BOX=1 ruby examples/bundler/main.rb     # Run the Bundler example
+RUBY_BOX=1 ruby examples/monorepo/main.rb    # Run the monorepo example
 RUBY_BOX=1 ruby examples/rails_in_main/main.rb     # Run the Rails-in-Main example
 RUBY_BOX=1 ruby examples/rails_in_cartons/main.rb  # Run the Rails-in-Cartons example
 RUBY_BOX=1 ruby examples/master_prelude/main.rb    # Run the Master prelude example

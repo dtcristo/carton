@@ -33,3 +33,4 @@ See [upstream.md](internals/upstream.md) for detail.
 
 - Explore a Prism-based strict mode/linter that enforces `import`/`export` calls at file root and can build a static dependency graph without evaluating code.
 - If that exists, add graph validation ideas such as cycle detection, missing import targets, dead imports, and unused exports.
+- Report imports a gem Carton's gemspec does not declare (`examples/monorepo`). At runtime a gem Carton sees the caller's whole lockfile, so this is the cheapest way to enforce package dependencies; see [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).

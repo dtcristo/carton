@@ -365,6 +365,10 @@ Without Bundler, only declared dependencies the caller activated are shared,
 and anything else falls back to RubyGems picking the newest installed version
 inside the Box.
 
+To split an app into packages, make each package a path gem in one Gemfile
+and import it by gem name; see
+[examples/monorepo](../examples/monorepo/README.md).
+
 See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [upstream.md](internals/upstream.md) for upstream status.
 
 ## Examples
@@ -373,6 +377,7 @@ See [how-gems-work.md](internals/how-gems-work.md) for the runtime background an
 RUBY_BOX=1 ruby examples/minimal/main.rb
 RUBY_BOX=1 ruby examples/gems/main.rb
 RUBY_BOX=1 ruby examples/bundler/main.rb
+RUBY_BOX=1 ruby examples/monorepo/main.rb
 ```
 
 The Bundler example is the repository-level path-gem and nested-bundle
@@ -383,3 +388,4 @@ See the example READMEs for details:
 - [examples/minimal/README.md](../examples/minimal/README.md)
 - [examples/gems/README.md](../examples/gems/README.md)
 - [examples/bundler/README.md](../examples/bundler/README.md)
+- [examples/monorepo/README.md](../examples/monorepo/README.md)
