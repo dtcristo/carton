@@ -4,6 +4,9 @@
 
 ### Breaking
 
+- `import 'name'` no longer checks the current directory before `$LOAD_PATH`,
+  so results no longer depend on where the app was started. Use an absolute
+  path, `import_relative`, or add the directory to `$LOAD_PATH`.
 - `export` now exports methods by name: `export :add, PI: 3.14159`.
   `exports.add(...)` forwards to the method, while `[]`, `fetch`, and
   destructuring return the `Method` object. A missing method raises

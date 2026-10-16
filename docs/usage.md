@@ -87,7 +87,7 @@ User = import_relative 'user'
 
 ### `import`
 
-`import path` resolves using the current box's `$LOAD_PATH` or an absolute path.
+`import path` resolves an absolute path, or searches the current box's `$LOAD_PATH` like `require`. It does not check the current directory.
 
 ```ruby
 MathTools = import 'math_tools'
