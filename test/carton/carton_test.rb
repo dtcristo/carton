@@ -4,7 +4,9 @@ require_relative '../test_helper'
 
 class CartonTest < Minitest::Test
   def test_export_default_is_available_globally
-    assert_respond_to TOPLEVEL_BINDING.receiver, :export_default
+    assert_respond_to TOPLEVEL_BINDING.receiver,
+                      :export_default,
+                      include_all: true
   end
 
   def test_with_bundle_sets_bundle_gemfile_and_clears_stale_lockfile

@@ -2,6 +2,8 @@
 
 module Carton
   module KernelPatch
+    private # like `require` and `require_relative`
+
     # Import a carton by absolute path or by feature name from the caller box's
     # current `$LOAD_PATH`.
     def import(path)
