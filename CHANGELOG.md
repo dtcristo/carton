@@ -39,6 +39,7 @@
 
 ### Changed
 
+- `export` and `export_default` only declare exports from the imported Entrypoint. Under plain `require`, or in other files a Carton requires, they validate their arguments and return without declaring, instead of raising or adding a second export. Carton-aware files and gems now load with `require` too.
 - When the caller ran Bundler setup, a gem Carton's Box is restricted to the caller's bundle: every locked gem loads at its locked version, including undeclared dependencies, and gems outside the lockfile raise `LoadError`.
 - `import`, `import_relative`, `export`, and `export_default` are now private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them.
 - Carton now requires Ruby `>= 4.0.7`, enforced by the gemspec instead of a load-time version check.

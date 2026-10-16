@@ -22,6 +22,7 @@ Guidance and memory for agents working on this repo.
 - Code run by `box.eval` sees the loading Box's `$LOAD_PATH` (the importing Carton during a nested Import); mutate a Box's load state from a file `require`d in it.
 - `Carton.setup_bundle(*groups, gemfile:)` mirrors `Bundler.setup` and restores `ENV` afterwards; check `Bundler.root` (memoized), not `Bundler.default_gemfile` (rereads `ENV`), when testing which Gemfile was selected.
 - Imports are shared process-wide, keyed by Entrypoint real path; the Main Box's `ImportCache` and loader build every Carton (user decision; replaces the earlier avoid-a-global-cache note).
+- Only the imported Entrypoint declares exports; `export` elsewhere (plain `require`, files a Carton requires) validates and is inert, so Carton-aware gems still work via `require`.
 - `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
 - Prefer raising the minimum Ruby/RubyGems/Bundler version over carrying workarounds for older releases (user decision).
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.

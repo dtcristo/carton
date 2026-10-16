@@ -49,7 +49,7 @@ A Carton without declared exports. The constants and top-level helpers its Entry
 _Avoid_: Unexported carton
 
 **Export Declaration**:
-A Carton's single declaration of its public surface, as either a Default Export or an Export Namespace. A Bare Carton has none.
+A Carton's single declaration of its public surface, as either a Default Export or an Export Namespace, made by its Entrypoint. `export` calls in any other file, including files loaded by plain `require`, declare nothing. A Bare Carton has none.
 _Avoid_: Multiple or incremental export declarations
 
 **Default Export**:
