@@ -18,18 +18,17 @@ class IntegrationTest < Minitest::Test
     assert_equal '2.0.0', result.version
   end
 
-  def test_single_export_isolation
-    # Each import creates a fresh box — no leaking between imports
+  def test_single_export_is_shared
+    # Each Entrypoint loads once per process, so repeat imports share it.
     a = import "#{FIXTURES}/single_export"
     b = import "#{FIXTURES}/single_export"
-    refute_same a, b
-    assert_equal a.name, b.name
+    assert_same a, b
   end
 
-  def test_hash_export_isolation
+  def test_hash_export_is_shared
     a = import "#{FIXTURES}/hash_export"
     b = import "#{FIXTURES}/hash_export"
-    refute_same a, b
+    assert_same a, b
   end
 
   def test_mixed_import_styles

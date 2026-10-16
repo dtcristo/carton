@@ -6,16 +6,18 @@ module Carton
     private_constant :ENTRYPOINT
     ImportTarget = Struct.new(:feature, :load_path, keyword_init: true)
     private_constant :ImportTarget
+    # Used only when this Box is the Main Box. Carton Boxes reuse the Main
+    # Box cache, so every Carton is built by the Main Box loader.
+    IMPORT_CACHE = ImportCache.new { |target| load_import(target) }
+    private_constant :IMPORT_CACHE
 
     module_function
 
-    # Build a fresh box, load the target feature inside it, and return the
-    # exported value. If the target does not export anything, return the box.
+    # Load the target feature in a new box and return the exported value, or
+    # the box itself if the target does not export anything. Each Entrypoint
+    # loads once per process; later imports return the same value.
     def import(path, base_dir:)
-      target = resolve_import_target(path, base_dir:)
-      box = build_import_box
-      box.__send__(:load_import, target.feature, load_path: target.load_path)
-      extract_export(box)
+      import_cache.import(resolve_import_target(path, base_dir:))
     end
 
     # Declare an Export Namespace for the current carton. Symbols name
@@ -50,12 +52,25 @@ module Carton
       value
     end
 
-    def build_import_box
+    def load_import(target)
       box = Carton::Box.new
-      box.__send__(:configure_for_import, entrypoint: ENTRYPOINT)
-      box
+      box.__send__(
+        :configure_for_import,
+        entrypoint: ENTRYPOINT,
+        import_cache: IMPORT_CACHE,
+      )
+      box.__send__(:load_import, target.feature, load_path: target.load_path)
+      extract_export(box)
     end
-    private_class_method :build_import_box
+    private_class_method :load_import
+
+    def import_cache
+      box = Ruby::Box.current
+      return IMPORT_CACHE unless box.respond_to?(:import_cache, true)
+
+      box.__send__(:import_cache)
+    end
+    private_class_method :import_cache
 
     def extract_export(box)
       box.__send__(:export_public_surface) do |methods, values|

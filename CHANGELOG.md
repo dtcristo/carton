@@ -13,6 +13,10 @@
   makes `exports.handler` return the lambda instead of calling it.
 - Bare Carton lookups (`[]`, `fetch`, destructuring) now return the helper's
   `Method` object instead of calling it. Use `box.fetch(:helper).call`.
+- Imports are now shared across the process. Each Carton file loads once,
+  and every later `import` or `import_relative` of that file returns the same
+  value, so sibling Cartons share classes. Carton state no longer resets per
+  import. A Carton that imports itself raises `circular import`.
 
 ### Added
 

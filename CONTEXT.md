@@ -28,6 +28,10 @@ _Avoid_: Carton box, child box
 Loading a Carton into a Box and receiving its public surface. Only an Import crosses a Carton boundary; code loaded without one remains inside the current Carton.
 _Avoid_: Require
 
+**Shared Import**:
+An Import of a Carton already loaded in the process. It returns the same public surface as the first Import of that Entrypoint, whichever Box asked first.
+_Avoid_: Cached carton, singleton carton
+
 **Imported Carton**:
 A Carton imported directly by another Carton. It remains a separate boundary and exposes only its public surface to the importer.
 _Avoid_: Child carton, nested carton
