@@ -12,6 +12,7 @@ require_relative 'carton/runtime'
 require_relative 'carton/kernel_patch'
 
 module Carton
+  private_constant :Box
   private_constant :ExportDeclaration
   private_constant :ExportMethods
   private_constant :GemActivation

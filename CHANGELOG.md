@@ -4,6 +4,12 @@
 
 ### Breaking
 
+- Importing a file with no export (a Bare Carton) returns a `Carton::Exports`
+  of the constants and top-level helpers it defines, instead of its
+  `Carton::Box`. Importers can no longer `eval`, `require`, or read
+  `load_path` inside another Carton. Helpers are now callable directly
+  (`toolbox.helper`), and constants are read when the import finishes.
+  `Carton::Box` is now a private constant.
 - `import 'name'` no longer checks the current directory before `$LOAD_PATH`,
   so results no longer depend on where the app was started. Use an absolute
   path, `import_relative`, or add the directory to `$LOAD_PATH`.

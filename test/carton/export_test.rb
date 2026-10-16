@@ -92,9 +92,21 @@ class ExportTest < Minitest::Test
                  error.message
   end
 
-  def test_bare_export_returns_box
+  def test_bare_export_returns_exports_not_its_box
     result = import "#{FIXTURES}/bare"
-    assert_kind_of Carton::Box, result
+
+    assert_kind_of Carton::Exports, result
+    refute_kind_of Ruby::Box, result
+    refute_respond_to result, :eval
+    refute_respond_to result, :require
+  end
+
+  def test_bare_export_exposes_constants_and_callable_helpers
+    result = import "#{FIXTURES}/bare"
+
+    assert_equal 'hello from bare', result::GREETING
+    assert_equal 42, result.helper
+    assert_empty result.lookup_calls
   end
 
   def test_bare_export_fetch_constant

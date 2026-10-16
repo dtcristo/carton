@@ -32,7 +32,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 7. The target file is required inside the box.
 8. If the file called `export_default`, its value is returned directly.
 9. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
-10. If there was no export, the box itself is returned.
+10. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
 
@@ -46,7 +46,7 @@ There are three return shapes:
 
 - Default Export: the exported object itself
 - Export Namespace: `Carton::Exports`
-- Bare Carton: `Carton::Box`
+- Bare Carton: `Carton::Exports` built from the discovered Public Surface
 
 `export_default` is the explicit Default Export form and preserves any value,
 including a Hash, `nil`, or `false`. `export` is the Export Namespace form and
@@ -59,17 +59,18 @@ inferring it from the value's class.
 `Carton::Exports` defines a forwarding singleton method for each exported
 method, exposes capitalized value keys as constants, and exposes lowercase
 value keys as readers that return the value unchanged, even when it responds
-to `call`. Lookups return the `Method` object for method exports. Both
-`Carton::Exports` and `Carton::Box` share the same small fetch/deconstruction
-API through `ExportMethods`.
+to `call`. Lookups return the `Method` object for method exports, through the
+small fetch/deconstruction API in `ExportMethods`.
 
 Bare Carton lookup records the constants and top-level helpers introduced by
 the Entrypoint. Helper reads return the recorded `Method` object without
 invoking it, matching method exports. Runtime constants present before the
-Entrypoint loads are not part of the Bare Carton's Public Surface.
+Entrypoint loads are not part of the Bare Carton's Public Surface. Carton reads
+the discovered constants when the import finishes and builds the same
+`Carton::Exports` an Export Namespace uses.
 
-Each adapter owns full deconstruction: an Export Namespace enumerates every
-Named Export, while a Bare Carton enumerates its discovered Public Surface.
+Full deconstruction enumerates every Named Export, or every member of a Bare
+Carton's discovered Public Surface.
 Neither invokes exported or discovered methods.
 
 ## Load path model

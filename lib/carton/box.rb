@@ -5,28 +5,9 @@ module Carton
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
 
-    include ExportMethods
-
     def initialize
       super
       reset_export_declaration
-    end
-
-    def key?(key)
-      find_public_entry(key).first
-    end
-
-    alias has_key? key?
-
-    def deconstruct_keys(keys)
-      return super if keys
-
-      helpers = @public_method_entries.transform_keys(&:to_sym)
-      constants =
-        @public_constant_names.to_h do |name|
-          [name.to_sym, const_get(name, false)]
-        end
-      helpers.merge(constants)
     end
 
     private
@@ -79,29 +60,20 @@ module Carton
       @export_declaration = @export_declaration.declare(declaration)
     end
 
+    # A Bare Carton's surface is the constants and top-level helpers its
+    # Entrypoint defined, so importers never receive the Box itself.
     def export_public_surface(&)
-      @export_declaration.public_surface(bare: self, &)
+      @export_declaration.public_surface(bare: method(:bare_surface), &)
+    end
+
+    def bare_surface
+      constants =
+        @public_constant_names.to_h { |name| [name, const_get(name, false)] }
+      [@public_method_entries, constants]
     end
 
     def reset_export_declaration
       @export_declaration = ExportDeclaration.absent
-    end
-
-    def lookup_entry(key)
-      found, entry = find_public_entry(key)
-      return false, nil unless found
-
-      entry.is_a?(Method) ? [true, entry] : [true, const_get(entry, false)]
-    end
-
-    def find_public_entry(key)
-      return false, nil unless key.is_a?(String) || key.is_a?(Symbol)
-
-      name = key.to_s
-      return true, name if @public_constant_names.include?(name)
-
-      method_entry = @public_method_entries[name]
-      method_entry ? [true, method_entry] : [false, nil]
     end
 
     def snapshot_import_support

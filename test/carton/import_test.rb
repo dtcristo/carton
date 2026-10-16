@@ -45,8 +45,8 @@ class ImportTest < Minitest::Test
     added = !$LOAD_PATH.include?(GEM_LIKE_DIR)
     $LOAD_PATH.unshift(GEM_LIKE_DIR) if added
 
-    result = import "#{FIXTURES_DIR}/bare"
-    refute_includes result.load_path, GEM_LIKE_DIR
+    result = import "#{FIXTURES_DIR}/load_path_probe"
+    refute_includes result::LOAD_PATH_AT_LOAD, GEM_LIKE_DIR
     assert_equal :visible, import('leaked_feature').status
   ensure
     $LOAD_PATH.delete(GEM_LIKE_DIR) if added
