@@ -88,6 +88,18 @@ that. Propose only with a failing multi-threaded reproduction.
 - **Ruby 4.0.5.** Boxed `Symbol#to_proc` and `super` dispatch failures do not
   reproduce on 4.0.6 or later.
 
+### Template Boxes
+
+Sharing monkey patches across Cartons costs a full load per Box (about 830ms
+for Active Support's core extensions). Requiring them into `Ruby::Box.master`
+once works on 4.0.7 and later Boxes inherit them, but Ruby documents that no
+code runs in Master. Ask whether preparing Master before Boxes exist is
+supported, or for an explicit API such as `Ruby::Box.new(template: box)`, with
+shared-object semantics documented. See
+[how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407) and
+[examples/master_prelude](../../examples/master_prelude/README.md). Not
+blocking.
+
 ## Ideas not pursued
 
 - **Constant binding in patterns** (`import(path) => { Name: }`). The syntax is

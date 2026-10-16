@@ -19,6 +19,7 @@ Ordered by priority within each section.
 
 See [upstream.md](internals/upstream.md) for detail.
 
+- Ask Ruby to support template Boxes: either bless preparing `Ruby::Box.master` before Boxes exist, or add an API such as `Ruby::Box.new(template: box)`. Evidence: `examples/master_prelude` and the per-Box cost of shared monkey patches.
 - Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals (#18408); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
 

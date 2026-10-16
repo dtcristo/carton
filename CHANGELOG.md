@@ -39,6 +39,7 @@
 
 ### Added
 
+- `examples/master_prelude`: an optional, unsupported hack that loads a shared prelude (Active Support core extensions) into Ruby's Master Box so every Carton inherits it.
 - `examples/rails_in_cartons`: Rails loaded once in a framework Carton, with Active Record models and controllers spread across domain Cartons and a composition-root Carton that defines the application. The Main Box runs only Rack.
 - `examples/rails_in_main`: a Rails API app whose domain logic is a Zeitwerk-loaded path-gem Carton.
 - `Carton.setup_bundle(*groups, gemfile: nil)` sets up a Carton's own bundle. Without `gemfile:`, it searches upward from the calling file for `gems.rb` or `Gemfile`, clears any stale `BUNDLE_LOCKFILE`, and restores all of `ENV` after setup, so a Carton's bundle variables never reach the rest of the process.

@@ -69,6 +69,7 @@ MathTools.add(2, 3)
 - [examples/bundler](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
 - [examples/rails_in_main](examples/rails_in_main/README.md) - Rails in the Main Box; plain-Ruby domain logic in a Zeitwerk Carton
 - [examples/rails_in_cartons](examples/rails_in_cartons/README.md) - Rails loaded once in a Carton; models and controllers across domain Cartons
+- [examples/master_prelude](examples/master_prelude/README.md) - optional, unsupported hack: share Active Support with every Carton via Ruby's Master Box
 
 Research notes on `Ruby::Box`, RubyGems, Bundler, and upstream plans live in [docs/internals](docs/internals/).
 
@@ -84,6 +85,7 @@ RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 RUBY_BOX=1 ruby examples/bundler/main.rb     # Run the Bundler example
 RUBY_BOX=1 ruby examples/rails_in_main/main.rb     # Run the Rails-in-Main example
 RUBY_BOX=1 ruby examples/rails_in_cartons/main.rb  # Run the Rails-in-Cartons example
+RUBY_BOX=1 ruby examples/master_prelude/main.rb    # Run the Master prelude example
 ```
 
 A carton with its own Gemfile calls `Carton.setup_bundle`; see
