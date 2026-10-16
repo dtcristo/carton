@@ -9,6 +9,8 @@ RUBOCOP_FILES = %w[
   Rakefile
   *.gemspec
   lib/**/*.rb
+  test/*.rb
+  test/carton/**/*.rb
   examples/**/*.rb
   examples/**/Gemfile
 ].freeze

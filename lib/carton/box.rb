@@ -12,6 +12,20 @@ module Carton
 
     private
 
+    # The whole Import lifecycle, in order: boot Carton in this Box, load the
+    # target, then build its public surface with `build`. Runtime calls only
+    # this, so the ordering lives here.
+    def import_target(target, carton_entrypoint:, import_cache:, &build)
+      configure_for_import(entrypoint: carton_entrypoint, import_cache:)
+      load_import(
+        target.feature,
+        load_path: target.load_path,
+        gems: target.gems || [],
+        locked_gems: target.locked_gems,
+      )
+      export_public_surface(&build)
+    end
+
     # Fresh boxes copy Master, so they start without the caller's gems. Load
     # Carton's own entrypoint so the imported file gets `import`,
     # `import_relative`, and `export`. Nested imports reuse the caller's

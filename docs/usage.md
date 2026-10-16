@@ -122,7 +122,7 @@ ignores its own `export` and `export_default` lines. A gem can add
 
 ### `import_relative`
 
-`import_relative path` resolves relative to the calling file, like `require_relative`.
+`import_relative path` resolves relative to the calling file, like `require_relative`. A missing file raises `LoadError`; it never falls back to a same-named feature on `$LOAD_PATH`.
 
 ```ruby
 User = import_relative 'user'
@@ -130,7 +130,7 @@ User = import_relative 'user'
 
 ### `import`
 
-`import path` resolves an absolute path, or searches the current box's `$LOAD_PATH` like `require`. It does not check the current directory.
+`import path` resolves an absolute path, or searches the current box's `$LOAD_PATH` like `require`. It does not check the current directory. A missing absolute path or name raises `LoadError`.
 
 ```ruby
 MathTools = import 'math_tools'
@@ -323,6 +323,10 @@ no Gemfile, and Bundler errors raise instead of exiting.
 `setup_bundle` points `BUNDLE_GEMFILE` at the Carton's Gemfile, then restores
 all of `ENV` when setup finishes. Bundler keeps the Gemfile it selected, so a
 later `Bundler.require` in the same Carton still uses it.
+
+While `setup_bundle` runs, other threads can see the Carton's `BUNDLE_GEMFILE`
+and Bundler's exported variables; Carton cannot make `ENV` thread-local. Call
+`setup_bundle` while booting, before starting threads that read `ENV`.
 
 Restoring `ENV` means subprocesses never inherit a Carton's bundle, including
 ones the Carton starts itself. Wrap a subprocess that needs the bundle in

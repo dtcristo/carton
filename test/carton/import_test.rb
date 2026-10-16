@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'tmpdir'
 
 FIXTURES_DIR = File.expand_path('../fixtures', __dir__)
 GEM_LIKE_DIR =
@@ -128,5 +129,47 @@ class ImportTest < Minitest::Test
     refute result.key?(:missing)
     assert_equal [3.14159, '1.0.0', nil],
                  result.values_at(:PI, :version, :missing)
+  end
+
+  def test_import_missing_absolute_path_raises_load_error
+    error = assert_raises(LoadError) { import "#{FIXTURES_DIR}/nope" }
+    assert_equal "cannot load such file -- #{FIXTURES_DIR}/nope", error.message
+  end
+
+  def test_import_missing_name_raises_load_error
+    assert_raises(LoadError) { import 'carton_missing_feature_name' }
+  end
+
+  # Nested `require` inside the Imported Carton uses the load-path entry it
+  # was found through, even when that entry is a symlink or relative.
+  def test_import_through_symlinked_and_relative_load_path_entries
+    Dir.mktmpdir do |dir|
+      real = File.join(dir, 'real')
+      Dir.mkdir(real)
+      File.write(
+        "#{real}/needs_dep.rb",
+        "require 'nested_dep'\nexport value: NestedDep\n",
+      )
+      File.write("#{real}/nested_dep.rb", "NestedDep = :nested\n")
+      File.symlink(real, File.join(dir, 'linked'))
+
+      with_load_path(File.join(dir, 'linked')) do
+        assert_equal :nested, import('needs_dep').value
+      end
+      Dir.chdir(dir) do
+        with_load_path('real') do
+          assert_equal :nested, import("#{real}/needs_dep").value
+        end
+      end
+    end
+  end
+
+  private
+
+  def with_load_path(entry)
+    $LOAD_PATH.unshift(entry)
+    yield
+  ensure
+    $LOAD_PATH.delete(entry)
   end
 end

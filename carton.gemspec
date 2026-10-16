@@ -27,28 +27,9 @@ Gem::Specification.new do |spec|
     'changelog_uri'
   ] = 'https://github.com/dtcristo/carton/blob/main/CHANGELOG.md'
 
-  gemspec = File.basename(__FILE__)
+  # An explicit list, so packaging does not depend on git or ship examples.
   spec.files =
-    IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
-      ls
-        .readlines("\x0", chomp: true)
-        .reject do |f|
-          (f == gemspec) ||
-            f.start_with?(
-              *%w[
-                .github/
-                bin/
-                test/
-                .gitignore
-                .mise.toml
-                .rubocop.yml
-                .streerc
-                Gemfile
-              ],
-            )
-        end
-    end
-  spec.bindir = 'exe'
-  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
+    Dir.glob(%w[lib/**/*.rb sig/**/*.rbs], base: __dir__) +
+      %w[CHANGELOG.md LICENSE.txt README.md]
   spec.require_paths = ['lib']
 end

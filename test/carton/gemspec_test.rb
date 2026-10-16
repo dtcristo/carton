@@ -11,7 +11,7 @@ class GemspecTest < Minitest::Test
     assert requirement.satisfied_by?(Gem::Version.new('4.1.0'))
   end
 
-  def test_required_ruby_version_rejects_ruby_older_than_4_0_7
+  def test_required_ruby_version_rejects_older_rubies
     requirement = carton_specification.required_ruby_version
 
     refute requirement.satisfied_by?(Gem::Version.new('4.0.6'))
@@ -22,6 +22,17 @@ class GemspecTest < Minitest::Test
 
   def test_description_names_ruby_4_0_7_baseline
     assert_includes carton_specification.description, 'Ruby 4.0.7'
+  end
+
+  # The gem ships the library, its signatures, and top-level docs only, and
+  # the list does not depend on git, so it also builds from a source archive.
+  def test_packages_only_library_signatures_and_docs
+    root = File.expand_path('../..', __dir__)
+    expected =
+      Dir.glob(%w[lib/**/*.rb sig/**/*.rbs], base: root) +
+        %w[CHANGELOG.md LICENSE.txt README.md]
+
+    assert_equal expected.sort, carton_specification.files.sort
   end
 
   private
