@@ -1,0 +1,20 @@
+PATH
+  remote: tool_gem
+  specs:
+    tool_gem (0.1.0)
+
+GEM
+  specs:
+
+PLATFORMS
+  arm64-darwin-27
+  ruby
+
+DEPENDENCIES
+  tool_gem!
+
+CHECKSUMS
+  tool_gem (0.1.0)
+
+BUNDLED WITH
+  4.0.23

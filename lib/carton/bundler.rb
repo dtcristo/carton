@@ -1,43 +1,39 @@
 # frozen_string_literal: true
 
 module Carton
-  # Raised when Carton cannot find the bundle file for `with_bundle`.
+  # Raised when Carton cannot find the bundle file for `setup_bundle`.
   class GemfileNotFound < StandardError
   end
 
   class << self
-    # Scope Bundler's process-global file discovery to the current carton.
+    # Set up the current carton's bundle, like `Bundler.setup(*groups)`.
     #
-    # Bundler still looks for its Gemfile through `ENV["BUNDLE_GEMFILE"]` or the
-    # real process cwd. Carton resolves the bundle path from the calling file,
-    # sets `BUNDLE_GEMFILE`, and clears any stale `BUNDLE_LOCKFILE` so Bundler
-    # can derive the matching lockfile itself.
-    def with_bundle(gemfile = nil)
-      raise ArgumentError, 'with_bundle requires a block' unless block_given?
+    # Bundler finds its Gemfile through process-global `ENV["BUNDLE_GEMFILE"]`
+    # or the real process cwd. Carton resolves the Gemfile from the calling
+    # file (or `gemfile:`, relative to it), points Bundler at it, and clears any
+    # stale `BUNDLE_LOCKFILE` so Bundler derives the matching lockfile. Both
+    # variables are restored afterwards; Bundler keeps the selected Gemfile.
+    def setup_bundle(*groups, gemfile: nil)
+      path = resolve_bundle_gemfile(gemfile, caller_locations(1, 1).first)
 
-      previous_gemfile = ENV['BUNDLE_GEMFILE']
-      previous_lockfile = ENV['BUNDLE_LOCKFILE']
-      ENV['BUNDLE_GEMFILE'] = resolve_bundle_gemfile(
-        gemfile,
-        caller_locations(1, 1).first,
-      )
-      ENV.delete 'BUNDLE_LOCKFILE'
-      yield
-    ensure
-      if previous_gemfile
-        ENV['BUNDLE_GEMFILE'] = previous_gemfile
-      else
-        ENV.delete 'BUNDLE_GEMFILE'
-      end
-
-      if previous_lockfile
-        ENV['BUNDLE_LOCKFILE'] = previous_lockfile
-      else
-        ENV.delete 'BUNDLE_LOCKFILE'
+      with_bundle_env(path) do
+        require 'bundler'
+        Bundler.ui.silence { Bundler.setup(*groups) }
       end
     end
 
     private
+
+    def with_bundle_env(gemfile)
+      previous_gemfile = ENV['BUNDLE_GEMFILE']
+      previous_lockfile = ENV['BUNDLE_LOCKFILE']
+      ENV['BUNDLE_GEMFILE'] = gemfile
+      ENV.delete 'BUNDLE_LOCKFILE'
+      yield
+    ensure
+      ENV['BUNDLE_GEMFILE'] = previous_gemfile
+      ENV['BUNDLE_LOCKFILE'] = previous_lockfile
+    end
 
     def resolve_bundle_gemfile(gemfile, call_site)
       caller_dir = caller_directory(call_site)

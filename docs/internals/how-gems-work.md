@@ -131,7 +131,7 @@ The most important Ruby 4.0.7 facts are:
 7. Per-Carton Bundler setup, path-gem imports, and boxed `bundle exec` work on
    4.0.7 with Bundler 4.0.23.
 
-That is why requiring `bundler/setup` inside each Carton remains the right isolation shape.
+That is why running Bundler setup inside each Carton remains the right isolation shape.
 
 ### Ruby 4.0.7 confirmed behavior
 
@@ -152,7 +152,7 @@ top-level app's:
 
 ```ruby
 # cartons/my_carton/lib/my_carton.rb
-Carton.with_bundle { require "bundler/setup" }
+Carton.setup_bundle
 ```
 
 Carton patches nothing in RubyGems or Bundler.
@@ -518,7 +518,7 @@ That matters because Bundler still uses process-global environment discovery:
 
 This is separate from the activation-isolation problem, but still relevant.
 
-It is also why `Carton.with_bundle` scopes `BUNDLE_GEMFILE` and clears any
+It is also why `Carton.setup_bundle` scopes `BUNDLE_GEMFILE` and clears any
 stale `BUNDLE_LOCKFILE`: Bundler reads both from process-global `ENV`, and a
 leftover lockfile path would override the lockfile Bundler would otherwise
 derive from the selected Gemfile.
@@ -577,7 +577,7 @@ These are the exact areas Carton and any upstream isolation work eventually need
 Carton's current design matches the runtime facts:
 
 - `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
-- `Carton.with_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and clears stale `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
+- `Carton.setup_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and clears stale `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
 
 Ruby 4.0.7 runtime probes and Carton's acceptance suite show:
 
@@ -593,7 +593,7 @@ So:
 2. Bundler can load independently per box.
 3. `ENV` remains process-global and must be scoped explicitly.
 
-The long-term shape for Carton is to keep box-local `require "bundler/setup"`
+The long-term shape for Carton is to keep box-local Bundler setup
 as the entry model and add no RubyGems or Bundler patches unless a current
 integration fails without one.
 

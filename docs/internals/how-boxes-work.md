@@ -430,14 +430,14 @@ But the internals also explain Carton's current constraints:
 
 Because new Boxes copy **Master**, not the current caller Box. Carton therefore asks the caller Box to resolve the feature name, then carries only the matched load-path entry into the imported Box when that feature needs its own load-path root.
 
-### Why `require "bundler/setup"` inside the box is the right shape
+### Why Bundler setup inside the box is the right shape
 
 Because `require` really does resolve against the loading box's local `$LOAD_PATH` and `$LOADED_FEATURES`.
 
-### Why `with_bundle` still exists
+### Why `setup_bundle` scopes `ENV`
 
 RubyGems registry state is Box-local, but Bundler finds its Gemfile through
-process-global `ENV`. `with_bundle` only scopes `BUNDLE_GEMFILE` and
+process-global `ENV`. `setup_bundle` scopes `BUNDLE_GEMFILE` and
 `BUNDLE_LOCKFILE` around setup.
 
 ### Why Carton should avoid unnecessary Ruby-core changes

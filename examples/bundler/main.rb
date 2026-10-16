@@ -3,8 +3,8 @@
 require_relative '../../lib/carton'
 
 # The top-level app uses Bundler's normal setup. Cartons with their own Gemfile
-# call `Carton.with_bundle` inside their own entrypoints.
-Carton.with_bundle { require 'bundler/setup' }
+# call `Carton.setup_bundle` inside their own entrypoints.
+Carton.setup_bundle
 
 cartons_dir = File.expand_path('cartons', __dir__)
 

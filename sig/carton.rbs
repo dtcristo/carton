@@ -10,7 +10,7 @@ end
 module Carton
   VERSION: ::String
 
-  def self.with_bundle: [T] (?::String gemfile) { () -> T } -> T
+  def self.setup_bundle: (*::Symbol groups, ?gemfile: ::String?) -> untyped
 end
 
 class Carton::GemfileNotFound < ::StandardError

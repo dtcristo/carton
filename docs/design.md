@@ -9,7 +9,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | File | Role |
 | --- | --- |
 | `lib/carton.rb` | Entry point and internal wiring |
-| `lib/carton/bundler.rb` | `Carton.with_bundle` plus caller-file bundle discovery |
+| `lib/carton/bundler.rb` | `Carton.setup_bundle` plus caller-file bundle discovery |
 | `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
 | `lib/carton/runtime.rb` | Builds boxes, resolves targets, runs imports, and extracts exports |
@@ -79,12 +79,12 @@ This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicit
 Bundler setup is explicit inside the Carton entry file:
 
 ```ruby
-Carton.with_bundle { require 'bundler/setup' }
+Carton.setup_bundle
 ```
 
 The same line works in the top-level app and inside a Carton. Carton patches
-nothing in RubyGems or Bundler; `with_bundle` only scopes `BUNDLE_GEMFILE` and
-`BUNDLE_LOCKFILE`.
+nothing in RubyGems or Bundler; `setup_bundle` scopes `BUNDLE_GEMFILE` and
+`BUNDLE_LOCKFILE` around `Bundler.setup(*groups)`.
 
 Ruby 4.0.7 with Bundler 4.0.23 validation:
 
@@ -102,6 +102,6 @@ The problem is not that Bundler has special C code mutating every box at once. B
 
 Each Box has its own `$LOAD_PATH` and RubyGems registries, so that work stays
 Box-local. Only the `ENV` reads are process-global, which is what
-`with_bundle` scopes.
+`setup_bundle` scopes.
 
 See [how-gems-work.md](internals/how-gems-work.md) and [how-boxes-work.md](internals/how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](internals/rubygems-upstream.md) and [ruby-upstream.md](internals/ruby-upstream.md) for the minimal upstream work.

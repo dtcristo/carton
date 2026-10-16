@@ -17,11 +17,15 @@
   and every later `import` or `import_relative` of that file returns the same
   value, so sibling Cartons share classes. Carton state no longer resets per
   import. A Carton that imports itself raises `circular import`.
+- `Carton.with_bundle { require 'bundler/setup' }` is replaced by
+  `Carton.setup_bundle`. Pass groups like `Bundler.setup`
+  (`Carton.setup_bundle(:default, :test)`) and an explicit Gemfile with
+  `gemfile:`. Bundler errors now raise instead of exiting the process.
 
 ### Added
 
-- `Carton.with_bundle` takes an optional Gemfile path. Without one, it searches upward from the calling file for `gems.rb` or `Gemfile`.
-- `Carton::GemfileNotFound` is raised when `with_bundle` cannot find a Gemfile.
+- `Carton.setup_bundle(*groups, gemfile: nil)` sets up a Carton's own bundle. Without `gemfile:`, it searches upward from the calling file for `gems.rb` or `Gemfile`, and it clears any stale `BUNDLE_LOCKFILE`.
+- `Carton::GemfileNotFound` is raised when `setup_bundle` cannot find a Gemfile.
 - Public RBS signatures in `sig/carton.rbs`.
 
 ### Changed
@@ -29,7 +33,6 @@
 - `import`, `import_relative`, `export`, and `export_default` are now private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them.
 - Carton now requires Ruby `>= 4.0.7`, enforced by the gemspec instead of a load-time version check.
 - `import 'name'` resolves the feature in the caller's Box and carries only the matching load-path entry into the imported Box, instead of copying the caller's whole `$LOAD_PATH`.
-- `Carton.with_bundle` clears a stale `BUNDLE_LOCKFILE`.
 
 ### Fixed
 

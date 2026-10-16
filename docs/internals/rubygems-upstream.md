@@ -21,7 +21,7 @@ normalizer, and a path-gem `full_require_paths` patch. All three are gone; the
 suite passes without them.
 
 Bundler still selects its Gemfile through process-global `ENV`. Carton scopes
-`BUNDLE_GEMFILE` and clears `BUNDLE_LOCKFILE` in `with_bundle`; that is
+`BUNDLE_GEMFILE` and clears `BUNDLE_LOCKFILE` in `setup_bundle`; that is
 separate from activation isolation and needs no upstream change.
 
 ## Upstream stance

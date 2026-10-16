@@ -210,7 +210,7 @@ The library works with or without Bundler. A Carton that needs Bundler sets up i
 
 ```ruby
 # cartons/math_helper/lib/math_helper.rb
-Carton.with_bundle { require 'bundler/setup' }
+Carton.setup_bundle
 
 # `require` exposes BigDecimal directly in this carton.
 require 'bigdecimal'
@@ -225,10 +225,17 @@ MathHelper = import 'math_helper'
 MathHelper.number_type
 ```
 
-The top-level app uses the same line. `Carton.with_bundle` scopes
-`BUNDLE_GEMFILE` and clears any stale `BUNDLE_LOCKFILE`, because Bundler finds
-its Gemfile through process-global `ENV`. With no argument, it searches upward
-from the calling file for `gems.rb` or `Gemfile`.
+The top-level app uses the same line. `Carton.setup_bundle` works like
+`Bundler.setup`: pass groups to set up only those, e.g.
+`Carton.setup_bundle(:default, :test)`. By default it searches upward from the
+calling file for `gems.rb` or `Gemfile`; pass `gemfile:` (relative to the
+calling file) to choose one. It raises `Carton::GemfileNotFound` when there is
+no Gemfile, and Bundler errors raise instead of exiting.
+
+Bundler finds its Gemfile through process-global `ENV`, so `setup_bundle` sets
+`BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and restores both
+afterwards. Bundler keeps the Gemfile it selected, so a later
+`Bundler.require` in the same Carton still uses it.
 
 `RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
 evaluates a gemspec.
