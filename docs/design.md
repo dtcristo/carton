@@ -12,7 +12,8 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` plus caller-file bundle discovery |
 | `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
-| `lib/carton/runtime.rb` | Builds boxes, resolves targets, runs imports, and extracts exports |
+| `lib/carton/resolver.rb` | Maps an Import path to a file without evaluating code, given a load path |
+| `lib/carton/runtime.rb` | Builds boxes, runs imports, and extracts exports |
 | `lib/carton/box.rb` | Box-specific helpers for requiring files, holding and resetting the current Export Declaration, and seeding an imported feature's load path |
 | `lib/carton/export_declaration.rb` | Owns absence, uniqueness, kind, snapshotting, and Public Surface conversion for an Export Declaration |
 | `lib/carton/exports.rb` | Wraps named exports in a module-like namespace |
@@ -21,9 +22,9 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 ## Import flow
 
 1. `import` or `import_relative` delegates to `Carton::Runtime.import`.
-2. If the target file has already been imported, the cached value is returned. Otherwise a new `Carton::Box` is created for that import.
-3. The carton entrypoint (`lib/carton.rb`) is required inside the box so the box has `export`, `import`, and `import_relative`.
-4. The target file is resolved either from the caller's base directory or from the caller box's `$LOAD_PATH`.
+2. `Carton::Resolver` resolves the target: `import_relative` from the calling file's directory, `import` from an absolute path or the caller box's `$LOAD_PATH`. It never checks the current directory and reads no Box state, so static tools can reuse it.
+3. If the target file has already been imported, the cached value is returned. Otherwise a new `Carton::Box` is created for that import.
+4. The carton entrypoint (`lib/carton.rb`) is required inside the box so the box has `export`, `import`, and `import_relative`.
 5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
 6. The target file is required inside the box.
 7. If the file called `export_default`, its value is returned directly.
