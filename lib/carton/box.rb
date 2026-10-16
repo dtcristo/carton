@@ -28,8 +28,7 @@ module Carton
     def deconstruct_keys(keys)
       return super if keys
 
-      helpers =
-        @public_method_entries.to_h { |name, entry| [name.to_sym, entry.call] }
+      helpers = @public_method_entries.transform_keys(&:to_sym)
       constants =
         @public_constant_names.to_h do |name|
           [name.to_sym, const_get(name, false)]
@@ -120,7 +119,7 @@ module Carton
       found, entry = find_public_entry(key)
       return false, nil unless found
 
-      entry.is_a?(Method) ? [true, entry.call] : [true, const_get(entry, false)]
+      entry.is_a?(Method) ? [true, entry] : [true, const_get(entry, false)]
     end
 
     def find_public_entry(key)

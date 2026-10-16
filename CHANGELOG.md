@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Breaking
+
+- `export` now exports methods by name: `export :add, PI: 3.14159`.
+  `exports.add(...)` forwards to the method, while `[]`, `fetch`, and
+  destructuring return the `Method` object. A missing method raises
+  `NameError`, and a name given both positionally and as a keyword raises
+  `ArgumentError`. Replace `export add: method(:add)` with `export :add`.
+- Keyword export values are no longer invoked. `export handler: -> {}` now
+  makes `exports.handler` return the lambda instead of calling it.
+- Bare Carton lookups (`[]`, `fetch`, destructuring) now return the helper's
+  `Method` object instead of calling it. Use `box.fetch(:helper).call`.
+
 ### Added
 
 - `Carton.bootstrap_rubygems!` sets up RubyGems inside a Carton's Box so the Carton can activate gems or load Bundler.
@@ -21,7 +33,7 @@
 - Creating a Carton's Box no longer re-runs the caller's `bundler/setup` through the process-global `BUNDLER_SETUP` variable.
 - Imports that bootstrap RubyGems restore the caller's `Gem.loaded_specs` afterwards.
 - `export_default` keeps Hash, `nil`, and `false` values as Default Exports instead of treating a Hash as an Export Namespace.
-- Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, `key?` no longer calls helpers, and helper errors propagate unchanged.
+- Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, and `key?` no longer calls helpers.
 - Hash-rest patterns (`=> { **rest }`) return every Named Export, or every member of a Bare Carton's Public Surface, instead of an empty hash.
 
 ## [0.1.0] - 2026-04-16

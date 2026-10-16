@@ -3,7 +3,7 @@ module Kernel
 
   def import: (::String path) -> untyped
   def import_relative: (::String path) -> untyped
-  def export: (**untyped values) -> void
+  def export: (*::Symbol names, **untyped values) -> void
   def export_default: (untyped value) -> void
 end
 

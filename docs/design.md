@@ -47,22 +47,27 @@ There are three return shapes:
 
 `export_default` is the explicit Default Export form and preserves any value,
 including a Hash, `nil`, or `false`. `export` is the Export Namespace form and
-only accepts keyword arguments. Carton records the form as an immutable Export
-Declaration instead of inferring it from the value's class. `Carton::Exports`
-exposes capitalized keys as constants and lowercase keys as singleton methods.
-Both `Carton::Exports` and `Carton::Box` share the same small
-fetch/deconstruction API through `ExportMethods`.
+accepts positional Symbols naming top-level methods plus keyword values.
+`KernelPatch#export` resolves each Symbol with `method(name)` on the carton's
+top-level object, so a missing method raises `NameError` at export time.
+Carton records the form as an immutable Export Declaration instead of
+inferring it from the value's class.
+
+`Carton::Exports` defines a forwarding singleton method for each exported
+method, exposes capitalized value keys as constants, and exposes lowercase
+value keys as readers that return the value unchanged, even when it responds
+to `call`. Lookups return the `Method` object for method exports. Both
+`Carton::Exports` and `Carton::Box` share the same small fetch/deconstruction
+API through `ExportMethods`.
 
 Bare Carton lookup records the constants and top-level helpers introduced by
-the Entrypoint. Membership checks inspect that recorded surface without
-invoking helpers; value reads invoke a discovered helper and propagate its
-errors. Runtime constants present before the Entrypoint loads are not part of
-the Bare Carton's Public Surface.
+the Entrypoint. Helper reads return the recorded `Method` object without
+invoking it, matching method exports. Runtime constants present before the
+Entrypoint loads are not part of the Bare Carton's Public Surface.
 
 Each adapter owns full deconstruction: an Export Namespace enumerates every
 Named Export, while a Bare Carton enumerates its discovered Public Surface.
-Full Bare Carton deconstruction reads every discovered helper, preserving its
-side effects and propagating its errors like other value reads.
+Neither invokes exported or discovered methods.
 
 ## Load path model
 
