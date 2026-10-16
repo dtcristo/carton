@@ -12,14 +12,14 @@ Ordered by priority within each section.
 - Revisit whether `import` should always return a `Carton::Exports` wrapper with a `default` accessor, or whether the current duck-typed return values are the better long-term fit.
 - Decide whether gem Cartons should key Imports by gem instead of Entrypoint path, so `import 'gem'` and `import 'gem/sub'` share one Box.
 - Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
-- Propose the Bundler activation API from [upstream.md](internals/upstream.md) and comment on Ruby #22275 with Carton's use case.
+- Post the Bundler activation API proposal ([dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16)) upstream and comment on Ruby #22275 with Carton's use case.
 - Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
 
 ## Upstream
 
 See [upstream.md](internals/upstream.md) for detail.
 
-- Ask Ruby to support template Boxes: either bless preparing `Ruby::Box.master` before Boxes exist, or add an API such as `Ruby::Box.new(template: box)`. Evidence: `examples/master_prelude` and the per-Box cost of shared monkey patches.
+- Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: either bless preparing `Ruby::Box.master` before Boxes exist, or add an API such as `Ruby::Box.new(from: template)`.
 - Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals (#18408); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
 

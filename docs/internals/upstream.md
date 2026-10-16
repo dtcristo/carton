@@ -56,7 +56,9 @@ spec set to the current Box without those side effects, e.g.
 `Bundler.activate(specs, strict: true)`, plus `Bundler.setup?` or similar to
 ask whether setup ran. Carton's integration tests are the reproduction. This
 fits the second milestone of
-[Ruby #22275](https://bugs.ruby-lang.org/issues/22275). Not blocking.
+[Ruby #22275](https://bugs.ruby-lang.org/issues/22275). Draft proposal:
+[dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16). Not
+blocking.
 
 ### `Bundler.setup` selects its Gemfile through `ENV`
 
@@ -97,7 +99,9 @@ code runs in Master. Ask whether preparing Master before Boxes exist is
 supported, or for an explicit API such as `Ruby::Box.new(template: box)`, with
 shared-object semantics documented. See
 [how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407) and
-[examples/master_prelude](../../examples/master_prelude/README.md). Not
+[examples/master_prelude](../../examples/master_prelude/README.md). Draft
+proposal with a standalone reproduction:
+[dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25). Not
 blocking.
 
 ## Ideas not pursued
