@@ -35,6 +35,15 @@ Ruby's bootstrap", on both v4.0.7 and master. Since 4.0.6, Ruby initializes
 Root and Main from Master before the prelude. The fix is one sentence, and
 [root-box-vs-main-box.md](root-box-vs-main-box.md) has the sources.
 
+### Resolve once, activate in many Boxes
+
+Carton already does this without RubyGems or Bundler changes: it reads the
+caller's `Gem.loaded_specs`, rebuilds each spec in the new Box, and activates
+it. A public RubyGems API to activate a given spec set in a Box would remove
+the YAML round trip. [Ruby #22275](https://bugs.ruby-lang.org/issues/22275)
+tracks RubyGems/Bundler Box support; Carton is a concrete use case for it.
+Not blocking.
+
 ## Resolved
 
 - **Bundler setup writes subprocess `ENV`.** `Bundler::Runtime#setup` exports

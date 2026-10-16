@@ -10,7 +10,9 @@ Ordered by priority within each section.
 - Ship `exe/carton` that sets `RUBY_BOX=1` and execs Ruby, so `carton main.rb` just works.
 - Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
 - Revisit whether `import` should always return a `Carton::Exports` wrapper with a `default` accessor, or whether the current duck-typed return values are the better long-term fit.
-- Explore an optional Shared Bundle made explicitly available from the Main Box to Cartons. Optional Boxes copy Master, not Main, so define propagation, isolation, and precedence relative to per-Carton Bundler setup before committing to semantics.
+- Decide whether gem Cartons should key Imports by gem instead of Entrypoint path, so `import 'gem'` and `import 'gem/sub'` share one Box.
+- Consider strict gem activation in Carton Boxes, rejecting gems outside the caller's set. Restricting `Gem::Specification.all` to locked specs breaks default gems such as `optparse`, so it would need Bundler's default-gem handling.
+- Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
 
 ## Upstream
 

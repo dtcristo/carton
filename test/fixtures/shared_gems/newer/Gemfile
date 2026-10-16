@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'bigdecimal', '4.1.1'
+gem 'priced_gem', path: '../priced_gem'

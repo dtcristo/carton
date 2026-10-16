@@ -41,8 +41,9 @@ module Carton
       self
     end
 
-    # Load the target feature inside the box.
-    def load_import(feature, load_path: nil)
+    # Activate the caller's gems for the target, then load it inside the box.
+    def load_import(feature, load_path: nil, gems: [])
+      activate_gems(gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
 
       result = require_in_box(feature)
@@ -54,6 +55,12 @@ module Carton
 
     def require_in_box(feature)
       eval("require #{feature.inspect}")
+    end
+
+    # Box methods run in the Box that defined them, so call this Box's own
+    # copy of Carton to activate gems in this Box's RubyGems.
+    def activate_gems(gems)
+      eval('Carton.const_get(:GemActivation)').activate(gems)
     end
 
     def add_import_load_path(path)
