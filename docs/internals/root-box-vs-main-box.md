@@ -59,15 +59,25 @@ Sources:
 - [Ruby 4.0.6 Root/Main initialization](https://github.com/ruby/ruby/blob/v4.0.6/box.c#L961-L989)
 - [Ruby 4.0.6 boot order](https://github.com/ruby/ruby/blob/v4.0.6/ruby.c#L1846-L1879)
 
-The generated Ruby 4.0 prose still says Main is created at bootstrap's end,
-which reflects the older implementation. For boot-order and inheritance claims,
-the tagged source is authoritative.
+### Ruby 4.0.7
+
+The copy model is unchanged. The gem prelude now skips `ENV["BUNDLER_SETUP"]`
+outside Main Box, so creating an optional Box under `bundle exec` no longer
+runs Bundler setup in it. See [Bug #22123](https://bugs.ruby-lang.org/issues/22123)
+and [the commit](https://github.com/ruby/ruby/commit/e9bccf88c1).
+
+### Stale upstream prose
+
+`doc/language/box.md` still says Main is "created at the end of Ruby's
+bootstrap" on v4.0.7 and master. That describes 4.0.5. For boot-order and
+inheritance claims, the tagged source is authoritative. Fixing that sentence is
+listed in [upstream.md](upstream.md).
 
 ## Carton terminology
 
 Define **Main Box** as the host environment that imports Cartons. Do not call it
 the Root Box: upstream Ruby reserves that term for bootstrap and builtin code.
-This recommendation survives the 4.0.5-to-4.0.6 implementation change.
+This recommendation holds across the 4.0.5, 4.0.6, and 4.0.7 implementations.
 
 Carton targets Ruby 4.0.7 or later. Its technical docs therefore use Master as
 the copy source, Root for bootstrap/builtins, Main for the top-level

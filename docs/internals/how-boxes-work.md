@@ -13,10 +13,9 @@ especially:
 - `ruby/doc/language/box.md`
 - `ruby/test/ruby/test_box.rb`
 
-The canonical model is tagged Ruby 4.0.6 source. Historical Ruby 4.0.5 probes
-are labelled where they differ from confirmed 4.0.6 behavior.
-See [root-box-vs-main-box.md](root-box-vs-main-box.md) for the tagged sources
-and version split.
+It describes Ruby 4.0.7. The Master Box model dates from 4.0.6, and
+[root-box-vs-main-box.md](root-box-vs-main-box.md) has the tagged sources and
+the 4.0.5 split.
 
 ## What `Ruby::Box` is trying to do
 
@@ -80,7 +79,7 @@ The box object is how code defined in the box is reached from the outside.
 
 ## The four box roles
 
-Ruby 4.0.6 distinguishes these roles:
+Ruby 4.0.7 distinguishes these roles:
 
 | Box role | What it is |
 | --- | --- |
@@ -94,7 +93,7 @@ inside an optional Box; the application that imports them runs in Main.
 
 ## Boot sequence and the Master Box
 
-Ruby 4.0.6 initializes Root and Main from Master before prelude loading. Root,
+Ruby initializes Root and Main from Master before prelude loading. Root,
 Main, and later optional Boxes all start from Master rather than copying one
 another.
 
@@ -359,7 +358,7 @@ It also explains why teardown and cleanup bugs in `Ruby::Box` can be subtle.
 
 ## Main Box owns the user program
 
-Ruby 4.0.6 creates Main from Master before prelude loading. The command-line
+Ruby creates Main from Master before prelude loading. The command-line
 program and `-r` features run in Main, not Root. Root remains the environment
 for bootstrap and builtin code.
 
@@ -374,14 +373,10 @@ The most relevant one for gem/runtime work is:
 
 > Defined methods in a box may not be referred by built-in methods written in Ruby.
 
-That warning is easy to underestimate. Ruby 4.0.5 gem/runtime failures matched
-it: direct boxed method calls worked while dispatch through `Symbol#to_proc`
-selected the wrong method, and boxed `super` selected the wrong superclass
-implementation. On Ruby 4.0.6 and later, Carton's path-gem acceptance suite passes and
-simple same-Box probes succeed; keep those historical dispatch notes only as
-context for the earlier failure, not as current blockers.
-
-This limitation is a big part of why RubyGems-in-box is hard even though `$LOAD_PATH` is already isolated.
+Ruby 4.0.5 RubyGems failures matched it. Boxed `Symbol#to_proc` and `super`
+dispatch picked the wrong method. They do not reproduce on 4.0.6 or later, but
+keep the warning in mind when a boxed library calls back into Ruby-written
+builtins.
 
 Other documented or visible rough edges include:
 
@@ -389,31 +384,13 @@ Other documented or visible rough edges include:
 - some top-level method behavior still being incomplete,
 - incomplete guarantees around warnings and some other globally flavored facilities.
 
-## Ruby 4.0.7 Bundler observations
+## Bundler in Boxes
 
-Ruby 4.0.7 with Bundler 4.0.23 handles the multi-Box case and Carton's
-acceptance boundaries:
-
-```ruby
-box1 = Ruby::Box.new
-box2 = Ruby::Box.new
-
-box1.eval("require 'bundler'")
-box2.eval("require 'bundler'")
-```
-
-Both boxes load distinct `Bundler` modules and the process exits normally.
-Conflicting non-path bundles, Imported Carton Gemfiles, and app-bundle path gems
-also keep activation state separate from Main Box, with no Carton patches to
-RubyGems or Bundler. `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the
-app.
-
-Ruby 4.0.6 differed in two ways that Carton used to work around:
-
-- a fresh Box created under `bundle exec` inherited the bundle's gem load paths
-  and loaded features,
-- a Box created after `bundler/setup` could re-enter the caller's setup through
-  the process-global `BUNDLER_SETUP` variable.
+Separate Boxes load separate `Bundler` modules, and per-Carton bundles,
+conflicting versions, and app-bundle path gems stay out of Main Box. See
+[how-gems-work.md](how-gems-work.md#ruby-407-confirmed-behavior) for details
+and [upstream.md](upstream.md#resolved) for the 4.0.6 problems that 4.0.7
+fixed.
 
 ## What this means for Carton
 
@@ -434,11 +411,10 @@ Because new Boxes copy **Master**, not the current caller Box. Carton therefore 
 
 Because `require` really does resolve against the loading box's local `$LOAD_PATH` and `$LOADED_FEATURES`.
 
-### Why `setup_bundle` scopes `ENV`
+### Why `setup_bundle` manages `ENV`
 
-RubyGems registry state is Box-local, but Bundler finds its Gemfile through
-process-global `ENV`. `setup_bundle` scopes `BUNDLE_GEMFILE` and
-`BUNDLE_LOCKFILE` around setup.
+RubyGems registry state is Box-local, but `ENV` is process-global. Bundler
+reads its Gemfile from `ENV` and writes subprocess variables back to it.
 
 ### Why Carton should avoid unnecessary Ruby-core changes
 
@@ -449,14 +425,13 @@ Because most of the mechanics Carton wants are already present:
 - box-local constant/method tables,
 - box-local Bundler constants when Bundler is first required in the box.
 
-No upstream change is currently needed. Keep Carton's path-gem and
-nested-bundle acceptance coverage green as the regression signal.
+Carton needs no upstream change today. [upstream.md](upstream.md) tracks the small open items.
 
 ## The short version
 
 If you want one sentence that stays accurate:
 
 > `Ruby::Box` already isolates file loading, RubyGems activation state, and most
-> language definitions; Carton only scopes Bundler's process-global `ENV`.
+> language definitions. Carton only has to manage the process-global `ENV`.
 
 That is the lens to keep while designing Carton.

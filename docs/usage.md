@@ -7,7 +7,10 @@
 - `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
 - `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
 
-In Carton, an importable package is called a carton. This guide still says "package" sometimes in plain English, but "carton" is the project term.
+An importable Ruby file and everything it loads is called a carton. Each
+carton runs in its own `Ruby::Box`, so its constants, gems, and monkey patches
+stay inside, and only what it exports crosses the boundary. See
+[CONTEXT.md](../CONTEXT.md) for the full glossary.
 
 ## Exporting
 
@@ -142,7 +145,7 @@ that is every Named Export.
 
 ```ruby
 import('math') => { version:, **rest }
-rest.keys # => [:PI, :add, :nothing, :subtract]
+rest.keys # => [:add, :PI]
 ```
 
 ## Constants
@@ -232,15 +235,20 @@ calling file for `gems.rb` or `Gemfile`; pass `gemfile:` (relative to the
 calling file) to choose one. It raises `Carton::GemfileNotFound` when there is
 no Gemfile, and Bundler errors raise instead of exiting.
 
-Bundler finds its Gemfile through process-global `ENV`, so `setup_bundle` sets
-`BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and restores both
-afterwards. Bundler keeps the Gemfile it selected, so a later
-`Bundler.require` in the same Carton still uses it.
+`ENV` is shared by the whole process. Bundler reads its Gemfile from
+`BUNDLE_GEMFILE` and exports variables such as `RUBYOPT` for subprocesses, so
+`setup_bundle` points `BUNDLE_GEMFILE` at the Carton's Gemfile, then restores
+all of `ENV` when setup finishes. Bundler keeps the Gemfile it selected, so a
+later `Bundler.require` in the same Carton still uses it.
+
+Restoring `ENV` means subprocesses never inherit a Carton's bundle, including
+ones the Carton starts itself. Wrap a subprocess that needs the bundle in
+`bundle exec`, or pass it `BUNDLE_GEMFILE`.
 
 `RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
 evaluates a gemspec.
 
-See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [rubygems-upstream.md](internals/rubygems-upstream.md) for the minimal upstream plan.
+See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [upstream.md](internals/upstream.md) for upstream status.
 
 ## Examples
 

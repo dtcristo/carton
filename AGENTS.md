@@ -16,7 +16,8 @@ Guidance and memory for agents working on this repo.
 - A Bare Carton's Public Surface includes only constants and top-level helpers introduced by its Entrypoint; inherited runtime constants and Box methods are excluded.
 - Full pattern deconstruction enumerates every Named Export or the Bare Carton's discovered Public Surface.
 - Ruby 4.0.7 gives each Box its own RubyGems state and clean gem paths; Carton patches nothing in RubyGems or Bundler and only scopes `BUNDLE_GEMFILE`/`BUNDLE_LOCKFILE`. Re-add a gem workaround only with a failing test on the current release.
-- `RUBY_BOX=1 bundle exec` works on Ruby 4.0.7 with Bundler 4.0.23.
+- `RUBY_BOX=1 bundle exec` works on Ruby 4.0.7 with Bundler 4.0.23. Ruby 4.0.7's prelude skips `BUNDLER_SETUP` outside Main Box (Bug #22123), which is what removed Carton's Box-creation workarounds.
+- Bundler setup writes subprocess `ENV` (`RUBYOPT`, `BUNDLER_SETUP`, ...); `setup_bundle` restores all of `ENV` afterwards, so Cartons never leak bundle variables into the process.
 - `Carton.setup_bundle(*groups, gemfile:)` mirrors `Bundler.setup` and restores `ENV` afterwards; check `Bundler.root` (memoized), not `Bundler.default_gemfile` (rereads `ENV`), when testing which Gemfile was selected.
 - Imports are shared process-wide, keyed by Entrypoint real path; the Main Box's `ImportCache` and loader build every Carton (user decision; replaces the earlier avoid-a-global-cache note).
 - `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
@@ -36,7 +37,7 @@ Guidance and memory for agents working on this repo.
 - Never use thread local variables in implementation.
 - Always review https://docs.ruby-lang.org/en/4.0/Ruby/Box.html on how `Ruby::Box` works.
 - For box/gem/Bundler/RubyGems work, always re-read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md` before changing code.
-- Read `docs/internals/ruby-upstream.md` and `docs/internals/rubygems-upstream.md` whenever upstream implications are relevant, and update them when plans or findings change.
+- Read `docs/internals/upstream.md` whenever upstream implications are relevant, and update it when plans or findings change.
 - Never bump the version or publish the gem.
 - When multiple implementation choices are viable, present a menu with your recommendation.
 - When grilling, name the proposed new domain term before asking each question.
@@ -45,7 +46,7 @@ Guidance and memory for agents working on this repo.
 
 ## Docs
 
-- Keep `README.md`, `docs/usage.md`, `docs/design.md`, `docs/todo.md`, `docs/internals/how-gems-work.md`, `docs/internals/how-boxes-work.md`, `docs/internals/rubygems-upstream.md`, `docs/internals/ruby-upstream.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, findings, or upstream plans change.
+- Keep `README.md`, `docs/usage.md`, `docs/design.md`, `docs/todo.md`, `docs/internals/how-gems-work.md`, `docs/internals/how-boxes-work.md`, `docs/internals/upstream.md`, `AGENTS.md`, and example READMEs up to date when behavior, workflow, findings, or upstream plans change.
 - Keep `CHANGELOG.md` up to date under the `Unreleased` section whenever user-facing behavior changes.
 - Keep the root `README.md` minimal; move detail into focused docs.
 - Put future work, open questions, and upstream ideas in `docs/todo.md`.

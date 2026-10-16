@@ -3,8 +3,8 @@
 This guide is based on direct reading of the upstream Ruby, RubyGems, and
 Bundler source trees.
 
-The canonical Box model is tagged Ruby 4.0.6 source. Historical Ruby 4.0.5
-probes are labelled where they differ from confirmed 4.0.6 behavior.
+It describes Ruby 4.0.7 with RubyGems/Bundler 4.0.23. Older-version failures
+and their fixes are listed in [upstream.md](upstream.md#resolved).
 
 The guide has two layers:
 
@@ -157,11 +157,6 @@ Carton.setup_bundle
 
 Carton patches nothing in RubyGems or Bundler.
 
-On Ruby 4.0.6, fresh Boxes created under `bundle exec` inherited the bundle's
-gem paths, and a Box created after `bundler/setup` could re-enter the caller's
-setup through `BUNDLER_SETUP`. Carton purged gem paths and guarded that variable
-until it moved to 4.0.7. With Bundler 4.0.16, boxed `bundle exec` also failed
-when evaluating a gemspec; Bundler 4.0.23 fixes that.
 
 ### What applications generally should touch
 
@@ -243,7 +238,7 @@ Each box carries its own:
 - `gvar_tbl`
 - `classext_cow_classes`
 
-In Ruby 4.0.6, `box_entry_initialize` creates each Box by duplicating state from the immutable **Master Box**:
+Since Ruby 4.0.6, `box_entry_initialize` creates each Box by duplicating state from the immutable **Master Box**:
 
 - `box->load_path = rb_ary_dup(master->load_path)`
 - `box->loaded_features = rb_ary_dup(master->loaded_features)`
@@ -260,14 +255,19 @@ The key files are:
 - `ruby/ruby.c`
 - `ruby/gem_prelude.rb`
 
-Ruby 4.0.6 initializes Root and Main from Master before prelude loading. Its gem prelude does:
+Since Ruby 4.0.6, Root and Main are initialized from Master before prelude
+loading. The gem prelude does:
 
 ```ruby
 require "rubygems"
 require "bundled_gems"
 ```
 
-if `Gem` is defined.
+if `Gem` is defined. `rubygems.rb` ends by requiring `ENV["BUNDLER_SETUP"]`
+when it is set, which is how `bundle exec` sets up the bundle early. Since Ruby
+4.0.7 the prelude skips that outside Main Box
+([Bug #22123](https://bugs.ruby-lang.org/issues/22123)), so a new optional Box
+no longer runs the caller's `bundler/setup` while loading RubyGems.
 
 Ruby loads these prelude helpers into Main and optional user Boxes independently.
 Thus `require "rubygems"` is already satisfied in each user Box, but not because
@@ -516,19 +516,16 @@ That matters because Bundler still uses process-global environment discovery:
 - `RUBYLIB`
 - `PATH`
 
-This is separate from the activation-isolation problem, but still relevant.
+Bundler reads `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle, so
+`Carton.setup_bundle` sets the first and clears any stale second. A leftover
+lockfile path would override the lockfile Bundler derives from the selected
+Gemfile.
 
-It is also why `Carton.setup_bundle` scopes `BUNDLE_GEMFILE` and clears any
-stale `BUNDLE_LOCKFILE`: Bundler reads both from process-global `ENV`, and a
-leftover lockfile path would override the lockfile Bundler would otherwise
-derive from the selected Gemfile.
-
-#### Historical: path-gem method dispatch and `bundle exec` prelude
-
-On Ruby 4.0.5, path-gem setup hit boxed `Symbol#to_proc` and `super` dispatch
-bugs. On Ruby 4.0.6 with Bundler 4.0.16, `RUBY_BOX=1 bundle exec` failed while
-evaluating a gemspec before `Gem::Specification` was visible. Neither
-reproduces on Ruby 4.0.7 with Bundler 4.0.23.
+Bundler also writes `ENV` during setup. `SharedHelpers.set_bundle_environment`
+exports `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`,
+`PATH`, and `BUNDLER_ORIG_*` so subprocesses inherit the bundle. Those writes
+reach every Box, so `setup_bundle` snapshots `ENV` first and restores all of it
+after setup.
 
 ## 8. Public APIs that matter for advanced gem/runtime work
 
@@ -574,28 +571,11 @@ These are the exact areas Carton and any upstream isolation work eventually need
 
 ## 9. Implications for Carton
 
-Carton's current design matches the runtime facts:
+- `Carton::Runtime.import` resolves names in the caller box and only carries
+  the matching load-path entry into the imported box.
+- Each Carton runs `Bundler.setup` in its own Box, so activation stays there;
+  Carton adds no RubyGems or Bundler patches.
+- `Carton.setup_bundle` manages the process-global `ENV` that Bundler reads.
 
-- `Carton::Runtime.import` resolves names in the caller box and only carries the matching load-path entry into the imported box.
-- `Carton.setup_bundle` scopes `ENV["BUNDLE_GEMFILE"]` and clears stale `ENV["BUNDLE_LOCKFILE"]` because Bundler still discovers bundle files from process-global environment state.
-
-Ruby 4.0.7 runtime probes and Carton's acceptance suite show:
-
-- two boxes activate conflicting non-path bundle versions,
-- Main Box remains unactivated,
-- Imported Carton Gemfiles and app-bundle path gems work without Main leakage,
-- ordinary process exit succeeds,
-- `RUBY_BOX=1 bundle exec` starts the app.
-
-So:
-
-1. Ruby core isolates load state and RubyGems registry state.
-2. Bundler can load independently per box.
-3. `ENV` remains process-global and must be scoped explicitly.
-
-The long-term shape for Carton is to keep box-local Bundler setup
-as the entry model and add no RubyGems or Bundler patches unless a current
-integration fails without one.
-
-> Let each Box keep its own Bundler module and RubyGems state; scope only the
-> process-global `ENV` Bundler reads.
+> Let each Box keep its own Bundler module and RubyGems state, and manage only
+> the process-global `ENV` that Bundler reads and writes.
