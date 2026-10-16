@@ -30,7 +30,7 @@ module Carton
 
     # Declare an Export Namespace for the current carton. Symbols name
     # top-level methods; keyword arguments are plain values.
-    def export(names, values, owner:)
+    def export(names, values, owner:, file:)
       if (names.empty? && values.empty?) ||
            names.any? { |name| !name.is_a?(Symbol) }
         raise ArgumentError,
@@ -42,9 +42,8 @@ module Carton
         raise ArgumentError, "export name given more than once: #{duplicate}"
       end
 
-      box = current_import_box
       methods = names.to_h { |name| [name, owner.method(name)] }
-      box.__send__(
+      entrypoint_box(file)&.__send__(
         :declare_export,
         ExportDeclaration.namespace(methods, values),
       )
@@ -52,8 +51,8 @@ module Carton
     end
 
     # Export a single value from the current carton.
-    def export_default(value)
-      current_import_box.__send__(
+    def export_default(value, file:)
+      entrypoint_box(file)&.__send__(
         :declare_export,
         ExportDeclaration.default(value),
       )
@@ -93,17 +92,15 @@ module Carton
     end
     private_class_method :extract_export
 
-    # `export` and `export_default` only make sense while Carton is loading a
-    # file inside an import box.
-    def current_import_box
+    # The Carton Box whose Entrypoint is `file`, or nil. Outside that file,
+    # such as under a plain `require`, `export` and `export_default` are
+    # inert, so Carton-aware files and gems still load the ordinary way.
+    def entrypoint_box(file)
       box = Ruby::Box.current
+      return unless box.respond_to?(:entrypoint?, true)
 
-      unless box.respond_to?(:declare_export, true)
-        raise 'export/export_default must be called from inside Carton.import/import_relative'
-      end
-
-      box
+      box if box.__send__(:entrypoint?, file)
     end
-    private_class_method :current_import_box
+    private_class_method :entrypoint_box
   end
 end

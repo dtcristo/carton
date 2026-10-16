@@ -51,6 +51,9 @@ There are three return shapes:
 `export_default` is the explicit Default Export form and preserves any value,
 including a Hash, `nil`, or `false`. `export` is the Export Namespace form and
 accepts positional Symbols naming top-level methods plus keyword values.
+`KernelPatch#export` passes the calling file to `Runtime`, which declares the
+export only when that file is the importing Box's Entrypoint; elsewhere both
+forms are inert after validating their arguments.
 `KernelPatch#export` resolves each Symbol with `method(name)` on the carton's
 top-level object, so a missing method raises `NameError` at export time.
 Carton records the form as an immutable Export Declaration instead of

@@ -19,12 +19,14 @@ module Carton
     # Export top-level methods by name plus keyword values from the current
     # carton. `self` is the carton's top-level object, which owns its methods.
     def export(*names, **values)
-      Runtime.export(names, values, owner: self)
+      file = caller_locations(1, 1).first.absolute_path
+      Runtime.export(names, values, owner: self, file:)
     end
 
     # Export a single default value from the current carton.
     def export_default(value)
-      Runtime.export_default(value)
+      file = caller_locations(1, 1).first.absolute_path
+      Runtime.export_default(value, file:)
     end
   end
 end

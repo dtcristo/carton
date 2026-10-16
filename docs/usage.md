@@ -75,6 +75,13 @@ MathTools[:add] # => #<Method: ...add(a, b)>
 
 Only one export call is allowed per imported file. Use `export_default value` for single exports or `export :name, key: value` for named exports.
 
+`export` and `export_default` only declare exports from the file being
+imported. Anywhere else they still check their arguments, then do nothing and
+return the value. A file loaded with `require`, whether by an app that never
+imports or by another Carton, ignores its own `export` line. A gem can add
+`export_default MyGem` and keep working for apps that just `require 'my_gem'`
+(it needs `require 'carton'` first so `export_default` exists).
+
 ## Importing
 
 ### `import_relative`

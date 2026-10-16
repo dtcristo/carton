@@ -30,6 +30,7 @@ module Carton
       activate_gems(gems, locked_gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
 
+      @entrypoint = real_path(feature)
       result = require_in_box(feature)
       discover_public_entries
       result
@@ -54,6 +55,18 @@ module Carton
 
     def add_import_load_path(path)
       load_path.unshift(path) unless load_path.include?(path)
+    end
+
+    # Only the imported Entrypoint declares this Carton's exports. Other files
+    # it requires may call `export` for their own imports; here it is inert.
+    def entrypoint?(file)
+      !@entrypoint.nil? && real_path(file) == @entrypoint
+    end
+
+    def real_path(path)
+      return unless path && File.absolute_path?(path) && File.file?(path)
+
+      File.realpath(path)
     end
 
     def declare_export(declaration)
