@@ -222,6 +222,34 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_bigdecimal_required')
   end
 
+  def test_gem_carton_rejects_importer_locking_a_different_version
+    script = <<~'RUBY'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
+      Carton.setup_bundle(gemfile: File.join(fixtures, 'Gemfile'))
+
+      import 'priced_gem' # first importer locks bigdecimal 3.3.1
+      begin
+        import File.join(fixtures, 'newer/entry') # its bundle locks 4.1.1
+        puts 'no error'
+      rescue RuntimeError => e
+        puts e.message
+      end
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    assert_match(
+      /priced_gem\.rb was imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      output,
+    )
+  end
+
   def test_bundler_example_imported_cartons_keep_separate_gem_versions
     script = <<~'RUBY'
       require 'json'

@@ -13,6 +13,7 @@ module Carton
     def initialize(&loader)
       @loader = loader
       @values = {}
+      @gem_versions = {}
       @loading = {}
       @lock = Thread::Mutex.new
     end
@@ -32,15 +33,37 @@ module Carton
     private
 
     def fetch(key, target)
-      return @values[key] if @values.key?(key)
+      if @values.key?(key)
+        check_gem_versions(key, target)
+        return @values[key]
+      end
       raise "circular import: #{key}" if @loading.key?(key)
 
       @loading[key] = true
       begin
         @values[key] = @loader.call(target)
+        @gem_versions[key] = gem_versions(target)
+        @values[key]
       ensure
         @loading.delete(key)
       end
+    end
+
+    # A cached Carton keeps the gem versions its first importer activated.
+    # Raise instead of silently sharing it with an importer that locks a
+    # different version of one of those gems.
+    def check_gem_versions(key, target)
+      cached = @gem_versions.fetch(key)
+      gem_versions(target).each do |name, version|
+        next if cached.fetch(name, version) == version
+
+        raise "#{key} was imported with #{name} #{cached[name]}, " \
+                "but this import activates #{name} #{version}"
+      end
+    end
+
+    def gem_versions(target)
+      (target.gems || []).to_h { |spec| [spec.name, spec.version.to_s] }
     end
   end
 end

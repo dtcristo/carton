@@ -35,6 +35,8 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
 
+Each cache entry also records the gem versions activated for it. A later import of the same Entrypoint whose caller activates a different version of one of those gems raises instead of reusing the entry, so one shared Carton never serves two lockfiles.
+
 A mutex serialises imports across threads; nested imports on the thread that holds it re-enter directly. A file that is still loading raises `circular import` if imported again. Failed loads are not cached. Targets that do not resolve to an absolute path, such as builtin features, load uncached.
 
 ## Export model

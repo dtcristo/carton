@@ -261,10 +261,19 @@ Carton.setup_bundle
 Pricing = import 'pricing' # pricing's `require 'bigdecimal'` gets 3.3.1
 ```
 
-Only dependencies the gemspec declares are shared. A gem that requires an
-undeclared gem gets whatever RubyGems finds in its Box. If the gem Carton
-also calls `setup_bundle`, its Gemfile must agree with the caller's versions,
-or Bundler raises `Gem::LoadError`.
+A gem Carton loads once per process, so its first importer fixes its gem
+versions. A later importer whose activated versions differ raises
+`RuntimeError` naming the gem and both versions, instead of silently sharing
+a Carton built against another version. If the gem Carton also calls
+`setup_bundle`, its Gemfile must agree with the caller's versions, or Bundler
+raises `Gem::LoadError`.
+
+Two cases still fall back to RubyGems picking the newest installed version
+inside the Box:
+
+- a gem the gemspec does not declare as a runtime dependency, and
+- a declared dependency the caller has not activated, such as one in a
+  Bundler group the caller did not set up.
 
 See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [upstream.md](internals/upstream.md) for upstream status.
 
