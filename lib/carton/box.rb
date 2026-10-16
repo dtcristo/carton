@@ -2,6 +2,9 @@
 
 module Carton
   class Box < Ruby::Box
+    ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
+    private_constant :ACTIVATE_GEMS
+
     include ExportMethods
 
     def initialize
@@ -51,16 +54,21 @@ module Carton
       result
     end
 
-    attr_reader :import_cache
+    attr_reader :import_cache, :pending_gems
 
     def require_in_box(feature)
       eval("require #{feature.inspect}")
     end
 
-    # Box methods run in the Box that defined them, so call this Box's own
-    # copy of Carton to activate gems in this Box's RubyGems.
+    # Box methods run in the Box that defined them, so this Box's own copy of
+    # Carton activates gems in this Box's RubyGems. `$LOAD_PATH` resolves to
+    # the Box of the file being loaded, which during a nested Import is the
+    # importing Carton, so activation runs from a file required here.
     def activate_gems(gems)
-      eval('Carton.const_get(:GemActivation)').activate(gems)
+      @pending_gems = [gems]
+      require_in_box(ACTIVATE_GEMS)
+    ensure
+      @pending_gems = nil
     end
 
     def add_import_load_path(path)

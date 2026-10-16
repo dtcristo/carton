@@ -223,6 +223,13 @@ So when Ruby code reads `$LOAD_PATH` during a boxed require, it is reading the l
 
 This is not an app-level convention. It is how the runtime is wired.
 
+`box.eval` does not set that flag. Code it runs reads and writes the loading
+Box's `$LOAD_PATH`, which during a nested Import is the importing Carton's
+Box, not `box`. Carton therefore activates gems in a new Box from a file it
+`require`s there (`lib/carton/activate_gems.rb`); `Gem.add_to_load_path` and
+Bundler's setup both write `$LOAD_PATH` and would otherwise update the
+wrong Box.
+
 ## The full `require` path under boxes
 
 `require_internal` in `ruby/load.c` is the center of the loading pipeline.

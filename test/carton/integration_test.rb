@@ -222,6 +222,25 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_bigdecimal_required')
   end
 
+  def test_gem_carton_imported_from_a_bundled_carton
+    script = <<~'RUBY'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      # entry.rb sets up its own bundle and imports priced_gem from its Box.
+      entry = import File.expand_path('test/fixtures/shared_gems/newer/entry', Dir.pwd)
+      gem 'minitest' # not in any Carton's lockfile
+      puts "#{entry.priced_gem.bigdecimal_version} #{Gem.loaded_specs['minitest'] ? 'ok' : 'missing'}"
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    assert_equal '4.1.1 ok', output.strip
+  end
+
   def test_gem_carton_rejects_importer_locking_a_different_version
     script = <<~'RUBY'
       require File.expand_path('lib/carton', Dir.pwd)
