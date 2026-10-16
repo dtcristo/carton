@@ -104,6 +104,29 @@ from Main or bootstrap mutations from Root.
 This makes Box contents independent of creation time and prevents Root from
 acting as a mutable template for later Boxes.
 
+### The Master Box on Ruby 4.0.7
+
+Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say
+"no code runs in the master box", and Ruby's tests only read from it. On
+4.0.7, though, code can run there and later Boxes inherit it:
+
+- `Ruby::Box.master.eval`/`require` defines constants and monkey patches that
+  every Box created afterwards sees. Main and existing Boxes do not.
+- Master's `load_path` is copied into later Boxes.
+- Objects and modules defined there are shared, not copied: a mutable
+  constant or a module's instance variables changed in one Box are seen in
+  every other.
+- Reopening a Master class or adding monkey patches in a Box stays in that
+  Box.
+- Methods defined in Master run in Master, so their constant lookups and lazy
+  `require`s use Master's `Object` and load path, not the caller's.
+
+Loading all of Active Support's core extensions into Master once made them
+available in every later Box at no per-Box cost; requiring them in each Box
+instead cost about 830ms per Box. [examples/master_prelude](../../examples/master_prelude/README.md)
+uses this as an optional, unsupported prelude. Carton itself does not, and
+will not until Ruby supports template Boxes.
+
 ## The actual box data structure
 
 The implementation lives in `ruby/internal/box.h`.
