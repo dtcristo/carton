@@ -1,4 +1,4 @@
-# Rails example
+# Rails in Main example
 
 A small Rails API app whose domain logic lives in a Carton:
 
@@ -41,5 +41,5 @@ changes to a Carton.
 ## Run
 
 ```sh
-RUBY_BOX=1 ruby examples/rails/main.rb
+RUBY_BOX=1 ruby examples/rails_in_main/main.rb
 ```

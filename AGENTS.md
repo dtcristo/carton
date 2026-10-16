@@ -26,7 +26,7 @@ Guidance and memory for agents working on this repo.
 - `export` may be called many times per Entrypoint (user decision). Capitalized Symbols name top-level constants, other Symbols top-level methods, keywords plain values; names resolve at the call, like `private`. Lookups return `Method` objects and never invoke values or bare helpers.
 - `export_default value` is exclusive: once per file, never with `export` (user decision; ESM-style `default:` slots and import name selection were tried and dropped). Bind a default to its own name; rename only for clashes.
 - Gems export their root module with `export_default` and hide internals with Ruby's `private_constant`, which holds across Boxes; Carton adds no visibility mechanism of its own.
-- Two Rails shapes work: Rails in the Main Box with plain-Ruby domain Cartons (`examples/rails`), or Rails loaded once in a framework Carton that domain Cartons subclass from (`examples/rails_cartons`). Cross-Box subclassing works because inherited methods run in the defining Box; Rails name lookups need the domain classes registered (`Object.const_set`) in the framework Box, and Active Support core extensions stay Box-local. Zeitwerk works inside a Carton Box.
+- Two Rails shapes work: Rails in the Main Box with plain-Ruby domain Cartons (`examples/rails_in_main`), or Rails loaded once in a framework Carton that domain Cartons subclass from (`examples/rails_in_cartons`). Cross-Box subclassing works because inherited methods run in the defining Box; Rails name lookups need the domain classes registered (`Object.const_set`) in the framework Box, and Active Support core extensions stay Box-local. Zeitwerk works inside a Carton Box.
 - Prefer raising the minimum Ruby/RubyGems/Bundler version over carrying workarounds for older releases (user decision).
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.
 - Never push. Make local commits only; the user handles pushes.
@@ -66,8 +66,8 @@ Guidance and memory for agents working on this repo.
 - `bundle exec rake example:minimal` - minimal example
 - `bundle exec rake example:gems` - manual RubyGems example
 - `bundle exec rake example:bundler` - per-Carton Bundler example
-- `bundle exec rake example:rails` - Rails app with a Zeitwerk Carton component
-- `bundle exec rake example:rails_cartons` - Rails loaded once in a framework Carton; domain Cartons hold models and controllers
+- `bundle exec rake example:rails_in_main` - Rails app with a Zeitwerk Carton component
+- `bundle exec rake example:rails_in_cartons` - Rails loaded once in a framework Carton; domain Cartons hold models and controllers
 - `bundle exec rake rubocop` - lint code
 - `bundle exec rake format` - format code
 - Prefer `mise x ruby@4.0.7 -- ...` when the shell default Ruby is older than the package baseline.

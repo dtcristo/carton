@@ -58,11 +58,11 @@ components/
 - **No Rails CLI.** Generators, `rails console`, and migrations are not wired
   up; each domain creates its own tables at boot.
 
-Compare with [examples/rails](../rails/README.md), which keeps Rails in the
-Main Box and puts only plain-Ruby domain logic in a Carton.
+Compare with [examples/rails_in_main](../rails_in_main/README.md), which keeps
+Rails in the Main Box and puts only plain-Ruby domain logic in a Carton.
 
 ## Run
 
 ```sh
-RUBY_BOX=1 ruby examples/rails_cartons/main.rb
+RUBY_BOX=1 ruby examples/rails_in_cartons/main.rb
 ```

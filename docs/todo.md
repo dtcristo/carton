@@ -24,7 +24,7 @@ See [upstream.md](internals/upstream.md) for detail.
 
 ## Docs
 
-- Consider a small Carton helper for the `register` pattern in `examples/rails_cartons` if more framework integrations need it.
+- Consider a small Carton helper for the `register` pattern in `examples/rails_in_cartons` if more framework integrations need it.
 - Expand the Rails example into a guide: passing records into Cartons, testing Cartons in a Rails app, and reloading (Cartons are process-lifetime today).
 
 ## Tooling ideas
