@@ -39,6 +39,7 @@
 
 ### Added
 
+- `examples/rails`: a Rails API app whose domain logic is a Zeitwerk-loaded path-gem Carton.
 - `Carton.setup_bundle(*groups, gemfile: nil)` sets up a Carton's own bundle. Without `gemfile:`, it searches upward from the calling file for `gems.rb` or `Gemfile`, clears any stale `BUNDLE_LOCKFILE`, and restores all of `ENV` after setup, so a Carton's bundle variables never reach the rest of the process.
 - `Carton::GemfileNotFound` is raised when `setup_bundle` cannot find a Gemfile.
 - Public RBS signatures in `sig/carton.rbs`.
