@@ -69,6 +69,6 @@ Define **Main Box** as the host environment that imports Cartons. Do not call it
 the Root Box: upstream Ruby reserves that term for bootstrap and builtin code.
 This recommendation survives the 4.0.5-to-4.0.6 implementation change.
 
-Carton targets Ruby 4.0.6 or later. Its technical docs therefore use Master as
+Carton targets Ruby 4.0.7 or later. Its technical docs therefore use Master as
 the copy source, Root for bootstrap/builtins, Main for the top-level
 application, and optional Boxes for imported Cartons.

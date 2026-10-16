@@ -1,0 +1,3 @@
+# frozen_string_literal: true
+
+gem 'tool_gem', path: 'tool_gem', group: :tools

@@ -377,7 +377,7 @@ The most relevant one for gem/runtime work is:
 That warning is easy to underestimate. Ruby 4.0.5 gem/runtime failures matched
 it: direct boxed method calls worked while dispatch through `Symbol#to_proc`
 selected the wrong method, and boxed `super` selected the wrong superclass
-implementation. On Ruby 4.0.6, Carton's path-gem acceptance suite passes and
+implementation. On Ruby 4.0.6 and later, Carton's path-gem acceptance suite passes and
 simple same-Box probes succeed; keep those historical dispatch notes only as
 context for the earlier failure, not as current blockers.
 
@@ -389,9 +389,10 @@ Other documented or visible rough edges include:
 - some top-level method behavior still being incomplete,
 - incomplete guarantees around warnings and some other globally flavored facilities.
 
-## Ruby 4.0.6 Bundler observations
+## Ruby 4.0.7 Bundler observations
 
-Ruby 4.0.6 handles the basic multi-Box case and Carton's acceptance boundaries:
+Ruby 4.0.7 with Bundler 4.0.23 handles the multi-Box case and Carton's
+acceptance boundaries:
 
 ```ruby
 box1 = Ruby::Box.new
@@ -403,13 +404,16 @@ box2.eval("require 'bundler'")
 
 Both boxes load distinct `Bundler` modules and the process exits normally.
 Conflicting non-path bundles, Imported Carton Gemfiles, and app-bundle path gems
-also keep activation state separate from Main Box when Carton clears
-`BUNDLER_SETUP` around optional Box construction.
+also keep activation state separate from Main Box, with no Carton patches to
+RubyGems or Bundler. `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the
+app.
 
-One incomplete boundary remains on 4.0.6:
+Ruby 4.0.6 differed in two ways that Carton used to work around:
 
-- `RUBY_BOX=1 bundle exec` can evaluate a gemspec before
-  `Gem::Specification` is visible.
+- a fresh Box created under `bundle exec` inherited the bundle's gem load paths
+  and loaded features,
+- a Box created after `bundler/setup` could re-enter the caller's setup through
+  the process-global `BUNDLER_SETUP` variable.
 
 ## What this means for Carton
 
@@ -426,15 +430,15 @@ But the internals also explain Carton's current constraints:
 
 Because new Boxes copy **Master**, not the current caller Box. Carton therefore asks the caller Box to resolve the feature name, then carries only the matched load-path entry into the imported Box when that feature needs its own load-path root.
 
-### Why `require "bundler/setup"` inside the box is the right shape
+### Why Bundler setup inside the box is the right shape
 
 Because `require` really does resolve against the loading box's local `$LOAD_PATH` and `$LOADED_FEATURES`.
 
-### Why that still is not enough for full Bundler support
+### Why `setup_bundle` scopes `ENV`
 
-RubyGems registry state is Box-local and Carton's path-gem acceptance suite
-passes on Ruby 4.0.6. The remaining startup failure is boxed `bundle exec`
-gemspec evaluation before `Gem::Specification` is visible.
+RubyGems registry state is Box-local, but Bundler finds its Gemfile through
+process-global `ENV`. `setup_bundle` scopes `BUNDLE_GEMFILE` and
+`BUNDLE_LOCKFILE` around setup.
 
 ### Why Carton should avoid unnecessary Ruby-core changes
 
@@ -445,20 +449,14 @@ Because most of the mechanics Carton wants are already present:
 - box-local constant/method tables,
 - box-local Bundler constants when Bundler is first required in the box.
 
-The next upstream check is narrow:
-
-1. fix `RUBY_BOX=1 bundle exec` under the 4.0.6 prelude model so gemspec
-   evaluation sees `Gem::Specification`,
-2. keep Carton's path-gem and nested-bundle acceptance coverage green.
-
-That is a much smaller upstream target than "rebuild gem loading around boxes from scratch".
+No upstream change is currently needed. Keep Carton's path-gem and
+nested-bundle acceptance coverage green as the regression signal.
 
 ## The short version
 
 If you want one sentence that stays accurate:
 
 > `Ruby::Box` already isolates file loading, RubyGems activation state, and most
-> language definitions; the remaining Bundler startup gap on Ruby 4.0.6 is boxed
-> `bundle exec` gemspec evaluation.
+> language definitions; Carton only scopes Bundler's process-global `ENV`.
 
 That is the lens to keep while designing Carton.

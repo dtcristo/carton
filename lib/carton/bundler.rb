@@ -1,89 +1,38 @@
 # frozen_string_literal: true
 
 module Carton
-  # Raised when Carton cannot find the bundle file for `with_bundle`.
+  # Raised when Carton cannot find the bundle file for `setup_bundle`.
   class GemfileNotFound < StandardError
   end
 
-  module BundlerSupport
-    # RubyGems defines `full_require_paths` in the root box during boot. Under
-    # `Ruby::Box`, Bundler path gems can then keep a synthetic install path there
-    # even though `loaded_from` points at the real checkout. Recompute path-gem
-    # load paths from the live gemspec location in the current box.
-    module SpecificationLoadPaths
-      def full_require_paths
-        root = real_require_paths_root
-        return super unless root
-
-        paths = raw_require_paths.map { |path| File.join(root, path) }
-        paths << extension_dir if have_extensions?
-        paths
-      end
-
-      def load_paths
-        full_require_paths
-      end
-
-      private
-
-      def real_require_paths_root
-        return unless raw_require_paths.any?
-        return unless loaded_from && File.file?(loaded_from)
-
-        root = File.dirname(loaded_from)
-        if raw_require_paths.all? { |path|
-             File.directory?(File.join(root, path))
-           }
-          root
-        end
-      end
-    end
-  end
-
   class << self
-    # Scope Bundler's process-global file discovery to the current carton.
+    # Set up the current carton's bundle, like `Bundler.setup(*groups)`.
     #
-    # Bundler still looks for its Gemfile through `ENV["BUNDLE_GEMFILE"]` or the
-    # real process cwd. Carton resolves the bundle path from the calling file,
-    # sets `BUNDLE_GEMFILE`, and clears any stale `BUNDLE_LOCKFILE` so Bundler
-    # can derive the matching lockfile itself.
-    def with_bundle(gemfile = nil)
-      raise ArgumentError, 'with_bundle requires a block' unless block_given?
+    # Bundler finds its Gemfile through process-global `ENV["BUNDLE_GEMFILE"]`
+    # or the real process cwd. Carton resolves the Gemfile from the calling
+    # file (or `gemfile:`, relative to it), points Bundler at it, and clears any
+    # stale `BUNDLE_LOCKFILE` so Bundler derives the matching lockfile. Both
+    # variables are restored afterwards; Bundler keeps the selected Gemfile.
+    def setup_bundle(*groups, gemfile: nil)
+      path = resolve_bundle_gemfile(gemfile, caller_locations(1, 1).first)
 
-      install_bundler_support!
-      previous_gemfile = ENV['BUNDLE_GEMFILE']
-      previous_lockfile = ENV['BUNDLE_LOCKFILE']
-      ENV['BUNDLE_GEMFILE'] = resolve_bundle_gemfile(
-        gemfile,
-        caller_locations(1, 1).first,
-      )
-      ENV.delete 'BUNDLE_LOCKFILE'
-      yield
-    ensure
-      if previous_gemfile
-        ENV['BUNDLE_GEMFILE'] = previous_gemfile
-      else
-        ENV.delete 'BUNDLE_GEMFILE'
-      end
-
-      if previous_lockfile
-        ENV['BUNDLE_LOCKFILE'] = previous_lockfile
-      else
-        ENV.delete 'BUNDLE_LOCKFILE'
+      with_bundle_env(path) do
+        require 'bundler'
+        Bundler.ui.silence { Bundler.setup(*groups) }
       end
     end
 
     private
 
-    def install_bundler_support!
-      return unless defined?(Ruby::Box) && Ruby::Box.enabled?
-      if Gem::BasicSpecification.ancestors.include?(
-           BundlerSupport::SpecificationLoadPaths,
-         )
-        return
-      end
-
-      Gem::BasicSpecification.prepend(BundlerSupport::SpecificationLoadPaths)
+    def with_bundle_env(gemfile)
+      previous_gemfile = ENV['BUNDLE_GEMFILE']
+      previous_lockfile = ENV['BUNDLE_LOCKFILE']
+      ENV['BUNDLE_GEMFILE'] = gemfile
+      ENV.delete 'BUNDLE_LOCKFILE'
+      yield
+    ensure
+      ENV['BUNDLE_GEMFILE'] = previous_gemfile
+      ENV['BUNDLE_LOCKFILE'] = previous_lockfile
     end
 
     def resolve_bundle_gemfile(gemfile, call_site)

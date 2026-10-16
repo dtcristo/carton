@@ -22,6 +22,5 @@ gem exercises the boxed path-gem boundary.
 ## Current status
 
 This example is the repository-level path-gem and nested-bundle regression. On
-Ruby 4.0.6 it passes: separate Cartons keep their gem versions, the app path
+Ruby 4.0.7 it passes: separate Cartons keep their gem versions, the app path
 gem imports cleanly, and Main Box activation state stays unchanged.
-`RUBY_BOX=1 bundle exec` with a gemspec remains an upstream prelude failure.

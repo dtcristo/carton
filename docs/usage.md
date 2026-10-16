@@ -2,7 +2,8 @@
 
 ## Requirements
 
-- Ruby 4.0.6+
+- Ruby 4.0.7+
+- Bundler 4.0.23+ if you use Bundler
 - `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
 - `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
 
@@ -205,12 +206,11 @@ A test sees only the carton's public surface. A bare carton exposes its top-leve
 
 ## Bundler inside cartons
 
-The library works with or without Bundler. A Carton that needs Bundler performs RubyGems/Bundler setup inside its Entrypoint; other Cartons need no setup.
+The library works with or without Bundler. A Carton that needs Bundler sets up its own bundle inside its Entrypoint; other Cartons need no setup. Each Box has its own RubyGems state, so a Carton's gems never leak into its caller.
 
 ```ruby
 # cartons/math_helper/lib/math_helper.rb
-Carton.bootstrap_rubygems!
-Carton.with_bundle { require 'bundler/setup' }
+Carton.setup_bundle
 
 # `require` exposes BigDecimal directly in this carton.
 require 'bigdecimal'
@@ -225,25 +225,20 @@ MathHelper = import 'math_helper'
 MathHelper.number_type
 ```
 
-If the top-level app only needs its own non-path bundle,
-`Carton.with_bundle { require 'bundler/setup' }` is enough.
-`Carton.bootstrap_rubygems!` remains compatibility setup for Cartons that load
-Bundler inside fresh Boxes.
+The top-level app uses the same line. `Carton.setup_bundle` works like
+`Bundler.setup`: pass groups to set up only those, e.g.
+`Carton.setup_bundle(:default, :test)`. By default it searches upward from the
+calling file for `gems.rb` or `Gemfile`; pass `gemfile:` (relative to the
+calling file) to choose one. It raises `Carton::GemfileNotFound` when there is
+no Gemfile, and Bundler errors raise instead of exiting.
 
-`Carton.bootstrap_rubygems!` installs Carton's temporary RubyGems compatibility
-patch in the current box. `Carton.with_bundle` scopes `BUNDLE_GEMFILE`, clears
-any stale `BUNDLE_LOCKFILE`, and installs a path-gem compatibility patch. With
-no argument, `with_bundle` searches upward from the calling file for `gems.rb`
-or `Gemfile`.
+Bundler finds its Gemfile through process-global `ENV`, so `setup_bundle` sets
+`BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and restores both
+afterwards. Bundler keeps the Gemfile it selected, so a later
+`Bundler.require` in the same Carton still uses it.
 
-Ruby 4.0.6 status:
-
-- per-Carton Bundler setup and app-bundle path gems work through Carton's
-  ordinary API,
-- `RUBY_BOX=1 bundle exec` still fails during gemspec evaluation before
-  `Gem::Specification` is visible,
-- `Carton.bootstrap_rubygems!` and loaded-spec restoration remain compatibility
-  code that should shrink once upstream prelude support lands.
+`RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
+evaluates a gemspec.
 
 See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [rubygems-upstream.md](internals/rubygems-upstream.md) for the minimal upstream plan.
 
@@ -256,8 +251,7 @@ RUBY_BOX=1 ruby examples/bundler/main.rb
 ```
 
 The Bundler example is the repository-level path-gem and nested-bundle
-regression. Boxed `bundle exec` with a gemspec remains an upstream prelude
-failure on Ruby 4.0.6.
+regression.
 
 See the example READMEs for details:
 

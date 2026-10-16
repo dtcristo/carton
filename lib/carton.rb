@@ -8,11 +8,8 @@ require_relative 'carton/box'
 require_relative 'carton/import_cache'
 require_relative 'carton/runtime'
 require_relative 'carton/kernel_patch'
-require_relative 'carton/rubygems'
 
 module Carton
-  private_constant :BundlerSupport
-  private_constant :BoxedRubyGems
   private_constant :ExportDeclaration
   private_constant :ExportMethods
   private_constant :ImportCache

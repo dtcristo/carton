@@ -80,35 +80,43 @@ class IntegrationTest < Minitest::Test
     assert_equal 'Hello, World!', result.greeting
   end
 
-  def test_with_bundle_auto_finds_parent_gemfile_inside_box
+  def test_setup_bundle_auto_finds_parent_gemfile_and_restores_env
     previous = ENV['BUNDLE_GEMFILE']
     previous_lockfile = ENV['BUNDLE_LOCKFILE']
-    result = import "#{FIXTURES}/with_bundle/nested/auto_gemfile"
+    result = import "#{FIXTURES}/auto_bundle/nested/auto_gemfile"
 
-    assert_equal "#{FIXTURES}/with_bundle/Gemfile", result.fetch(:selected)
-    assert_nil result.fetch(:selected_lockfile)
-    if previous
-      assert_equal previous, result.fetch(:restored)
-    else
-      assert_nil result.fetch(:restored)
-    end
-
-    if previous_lockfile
-      assert_equal previous_lockfile, result.fetch(:restored_lockfile)
-    else
-      assert_nil result.fetch(:restored_lockfile)
-    end
+    assert_equal "#{FIXTURES}/auto_bundle", result.fetch(:selected_root)
+    assert_equal [previous, previous_lockfile],
+                 result.fetch_values(:restored, :restored_lockfile)
   end
 
-  def test_with_bundle_raises_when_explicit_gemfile_is_missing
-    Dir.mktmpdir('carton-with-bundle') do |dir|
+  def test_setup_bundle_sets_up_only_requested_groups
+    default_group = import "#{FIXTURES}/setup_bundle/default_group"
+    tools_group = import "#{FIXTURES}/setup_bundle/tools_group"
+
+    refute default_group.fetch(:tool_gem_loadable)
+    assert_equal '0.1.0', tools_group.fetch(:tool_gem_version)
+    assert_equal "#{FIXTURES}/setup_bundle", tools_group.fetch(:root)
+    assert_equal [ENV['BUNDLE_GEMFILE']], tools_group.fetch_values(:env_gemfile)
+  end
+
+  def test_setup_bundle_restores_env_when_bundler_fails
+    previous = ENV['BUNDLE_GEMFILE']
+    previous_lockfile = ENV['BUNDLE_LOCKFILE']
+    result = import "#{FIXTURES}/setup_bundle/broken/entry"
+
+    assert_equal 'Bundler::Dsl::DSLError', result.fetch(:error)
+    assert_equal [previous, previous_lockfile],
+                 result.fetch_values(:env_gemfile, :env_lockfile)
+  end
+
+  def test_setup_bundle_raises_when_explicit_gemfile_is_missing
+    Dir.mktmpdir('carton-setup-bundle') do |dir|
       entry = File.join(dir, 'missing_gemfile.rb')
       File.write(entry, <<~RUBY)
           # frozen_string_literal: true
 
-          Carton.with_bundle('Gemfile') do
-            export_default true
-          end
+          Carton.setup_bundle(gemfile: 'Gemfile')
         RUBY
 
       error = assert_raises(StandardError) { import entry }
@@ -116,13 +124,13 @@ class IntegrationTest < Minitest::Test
     end
   end
 
-  def test_with_bundle_exposes_path_gems_to_name_based_imports
+  def test_setup_bundle_exposes_path_gems_to_name_based_imports
     script = <<~'RUBY'
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
       gemfile = File.expand_path('examples/bundler/Gemfile', Dir.pwd)
-      Carton.with_bundle(gemfile) { require 'bundler/setup' }
+      Carton.setup_bundle(gemfile:)
 
       before_loaded = Gem.loaded_specs.keys.sort
       before_load_path = $LOAD_PATH.to_a
@@ -162,7 +170,7 @@ class IntegrationTest < Minitest::Test
       examples = File.expand_path('examples/bundler', Dir.pwd)
       require File.expand_path('../../lib/carton', examples)
 
-      Carton.with_bundle(File.join(examples, 'Gemfile')) { require 'bundler/setup' }
+      Carton.setup_bundle(gemfile: File.join(examples, 'Gemfile'))
 
       Dir
         .glob(File.join(examples, 'cartons/*/lib'))
@@ -209,11 +217,11 @@ class IntegrationTest < Minitest::Test
 
           require 'carton'
 
-          export bootstraps_rubygems: Carton.respond_to?(:bootstrap_rubygems!)
+          export sets_up_bundles: Carton.respond_to?(:setup_bundle)
         RUBY
 
       result = import entry
-      assert_equal true, result.fetch(:bootstraps_rubygems)
+      assert_equal true, result.fetch(:sets_up_bundles)
     end
   end
 

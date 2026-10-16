@@ -5,17 +5,7 @@ module Carton
     include ExportMethods
 
     def initialize
-      # `require "bundler/setup"` leaves process-global `BUNDLER_SETUP` set so a
-      # later RubyGems load can re-enter setup. Optional Boxes copy Master, so
-      # Bundler is undefined there and that hook would re-run the caller's
-      # bundle. Clear it only around box construction.
-      previous_bundler_setup = ENV.delete('BUNDLER_SETUP')
-      begin
-        super
-      ensure
-        ENV['BUNDLER_SETUP'] = previous_bundler_setup if previous_bundler_setup
-      end
-      @rubygems_bootstrapped = false
+      super
       reset_export_declaration
     end
 
@@ -38,14 +28,12 @@ module Carton
 
     private
 
-    # Fresh boxes inherit root-box gem paths and loaded features. Strip those
-    # inherited gem entries, then load Carton's own entrypoint so the imported
-    # file gets `import`, `import_relative`, and `export`. Nested imports reuse
-    # the caller's process-wide import cache.
+    # Fresh boxes copy Master, so they start without the caller's gems. Load
+    # Carton's own entrypoint so the imported file gets `import`,
+    # `import_relative`, and `export`. Nested imports reuse the caller's
+    # process-wide import cache.
     def configure_for_import(entrypoint:, import_cache:)
       @import_cache = import_cache
-      purge_gem_load_path
-      purge_gem_loaded_features
       reset_export_declaration
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
@@ -53,13 +41,11 @@ module Carton
       self
     end
 
-    # Load the target feature inside the box. If the target bootstrapped
-    # RubyGems, restore the caller's loaded-spec view after the import. This is
-    # a temporary RubyGems isolation hack, not part of Carton's core box model.
+    # Load the target feature inside the box.
     def load_import(feature, load_path: nil)
       add_import_load_path(load_path) if load_path
 
-      result = preserve_loaded_specs { require_in_box(feature) }
+      result = require_in_box(feature)
       discover_public_entries
       result
     end
@@ -84,39 +70,6 @@ module Carton
 
     def reset_export_declaration
       @export_declaration = ExportDeclaration.absent
-    end
-
-    def mark_rubygems_bootstrapped
-      @rubygems_bootstrapped = true
-    end
-
-    def rubygems_bootstrapped?
-      @rubygems_bootstrapped
-    end
-
-    def preserve_loaded_specs
-      previous_loaded_specs = Gem.loaded_specs.dup
-      yield
-    ensure
-      if previous_loaded_specs && rubygems_bootstrapped?
-        Gem.loaded_specs.replace(previous_loaded_specs)
-      end
-    end
-
-    def purge_gem_load_path
-      load_path.reject! { |path| gem_path?(File.expand_path(path)) }
-    end
-
-    def purge_gem_loaded_features
-      eval('$LOADED_FEATURES').reject! do |feature|
-        gem_path?(File.expand_path(feature))
-      end
-    end
-
-    def gem_path?(path)
-      gem_roots = Gem.path.map { |root| File.expand_path(root) }
-      gem_roots.any? { |root| path == root || path.start_with?("#{root}/") } ||
-        path.include?('/vendor/bundle/') || path.include?('/bundler/gems/')
     end
 
     def lookup_entry(key)

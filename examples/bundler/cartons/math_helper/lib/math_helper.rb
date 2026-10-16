@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# Each Carton bootstraps boxed RubyGems before it asks Bundler to set up
-# that carton's own Gemfile.
-Carton.bootstrap_rubygems!
-Carton.with_bundle { require 'bundler/setup' }
+# Each Carton sets up its own Gemfile; activation stays inside this Box.
+Carton.setup_bundle
 
 # `require` makes BigDecimal available directly inside this carton, but not in
 # the caller that imported the carton.
