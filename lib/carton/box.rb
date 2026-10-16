@@ -73,6 +73,10 @@ module Carton
       @export_declaration = @export_declaration.add(methods, values)
     end
 
+    def declare_default(value)
+      @export_declaration = @export_declaration.default(value)
+    end
+
     # A Bare Carton's surface is the constants and top-level helpers its
     # Entrypoint defined, so importers never receive the Box itself.
     def export_public_surface(&)

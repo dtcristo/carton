@@ -10,7 +10,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | --- | --- |
 | `lib/carton.rb` | Entry point and internal wiring |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` plus caller-file bundle discovery |
-| `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, and `export` |
+| `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export`, and `export_default` |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
 | `lib/carton/gem_activation.rb` | Finds the activated gem that owns an Import, activates its dependency closure in the new Box, and restricts the Box to a bundled caller's locked gems; the only place Carton calls Bundler internals |
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
@@ -30,7 +30,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
 6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new box at the caller's versions, dependencies first. If the caller ran Bundler setup, the box is first restricted to the caller's locked gems and all of them are activated, as `Bundler.setup` does.
 7. The target file is required inside the box.
-8. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
+8. If the file called `export_default`, its value is returned directly. If it called `export`, its Named Exports are wrapped in `Carton::Exports`.
 9. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
@@ -41,10 +41,14 @@ A mutex serialises imports across threads; nested imports on the thread that hol
 
 ## Export model
 
-There are two return shapes, both `Carton::Exports`:
+There are three return shapes:
 
-- Export Namespace: the Named Exports from every `export` call
-- Bare Carton: the discovered Public Surface
+- Default Export: the `export_default` value itself
+- Export Namespace: `Carton::Exports` of the Named Exports from every `export` call
+- Bare Carton: `Carton::Exports` of the discovered Public Surface
+
+`export_default` may be called once and never alongside `export`, so the
+author's choice of form decides the shape and no name becomes unreachable.
 
 `export` accepts positional Symbols plus keyword values. A capitalized Symbol
 names a top-level constant, read with `Object.const_get(name, false)`; any

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# A gem-style Entrypoint: export the root module, hide internals with Ruby's
-# private_constant.
+# A gem-style Entrypoint: the root module is the Default Export, and Ruby's
+# private_constant hides internals.
 module Pricing
   class Calculator
     def total = Internal.round(1.005)
@@ -13,4 +13,4 @@ module Pricing
   private_constant :Internal
 end
 
-export :Pricing
+export_default Pricing
