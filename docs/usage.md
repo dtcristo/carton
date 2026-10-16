@@ -234,6 +234,39 @@ Keys are names, not Ruby expressions. Helper lookups return the `Method`
 object, so `[]`, `fetch`, `key?`, and destructuring never invoke a helper.
 Bare Carton hash-rest patterns enumerate that same Public Surface.
 
+## Sharing classes across cartons
+
+Boxes isolate monkey patches to builtin classes: patching `String` in one
+carton does not change `String` anywhere else. Classes a carton defines are
+different. An exported class is one object with one definition, shared by
+every importer, as in ordinary Ruby. Reopening it from another carton,
+including `class Customer` in a box where `Customer` names the imported
+class, changes it for every carton.
+
+Box is not a security boundary, so this cannot be prevented outright. These
+habits avoid it by accident:
+
+- **Subclass instead of reopening.** Give each carton its own base classes
+  rather than binding a shared one to a bare name:
+
+  ```ruby
+  # customers/lib/customers.rb
+  class ApplicationRecord < Framework::ApplicationRecord # this carton's own class
+    self.abstract_class = true
+  end
+  ```
+
+  Changes to a subclass never reach its parent.
+- **Refine to extend another carton's class.** A refinement applies only to
+  files that `using` it, so the owning carton never sees it.
+- **Freeze plain-Ruby exports.** `export_default Pricing.freeze` makes any
+  reopen raise `FrozenError` while still allowing subclasses. Do not freeze
+  Active Record models or their base classes: Rails writes class-level state
+  at runtime, so even `create!` raises once a model's class is frozen.
+
+See [how-boxes-work.md](internals/how-boxes-work.md#which-classes-get-per-box-copies-ruby-407)
+for why only builtins get per-box copies.
+
 ## Testing cartons
 
 Tests run in the Main Box, so a test imports a carton the same way an app does. Run them with `RUBY_BOX=1`.

@@ -55,7 +55,12 @@ components/
   domain class are ordinary classes created in a Carton Box, so they have one
   definition. A Carton that reopens `ApplicationRecord` (or another domain's
   model) changes it for every Carton. Only patches to builtin classes such as
-  `String` stay in the Box that makes them.
+  `String` stay in the Box that makes them. To avoid it, a domain can subclass
+  its own `ApplicationRecord < Framework::ApplicationRecord` (with
+  `self.abstract_class = true`) instead of binding the shared one, and refine
+  rather than reopen another domain's classes. Freezing these classes is not
+  an option: Active Record writes class-level state at runtime. See
+  [Sharing classes across cartons](../../docs/usage.md#sharing-classes-across-cartons).
 - **Everything Rails needs by name must be registered.** That includes
   controllers, models, and anything else Rails constantizes, such as
   serializers or polymorphic types.

@@ -107,6 +107,13 @@ blocking.
 
 ## Ideas not pursued
 
+- **Per-box copies for every class.** Classes created in user Boxes have one
+  shared definition, so reopening a Carton's class from another Box changes
+  it everywhere. Giving them per-Box copies like builtins would isolate
+  reopens, but the same object would then behave differently depending on the
+  calling Box. Recorded for context; raise it with the template Box proposal
+  ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) only if
+  maintainers ask about class isolation.
 - **Constant binding in patterns** (`import(path) => { Name: }`). The syntax is
   free today, but Matz keeps pattern targets to locals and `{ X: }` already
   reads a constant. Carton uses `export_default` and plain constant assignment
