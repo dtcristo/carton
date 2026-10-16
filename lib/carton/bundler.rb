@@ -11,8 +11,8 @@ module Carton
     # Bundler finds its Gemfile through process-global `ENV["BUNDLE_GEMFILE"]`
     # or the real process cwd. Carton resolves the Gemfile from the calling
     # file (or `gemfile:`, relative to it), points Bundler at it, and clears any
-    # stale `BUNDLE_LOCKFILE` so Bundler derives the matching lockfile. Both
-    # variables are restored afterwards; Bundler keeps the selected Gemfile.
+    # stale `BUNDLE_LOCKFILE` so Bundler derives the matching lockfile. All of
+    # `ENV` is restored afterwards; Bundler keeps the selected Gemfile.
     def setup_bundle(*groups, gemfile: nil)
       path = resolve_bundle_gemfile(gemfile, caller_locations(1, 1).first)
 
@@ -24,15 +24,15 @@ module Carton
 
     private
 
+    # `ENV` is process-global. Bundler reads the Gemfile from it and exports
+    # subprocess variables such as `RUBYOPT` into it, so restore all of it.
     def with_bundle_env(gemfile)
-      previous_gemfile = ENV['BUNDLE_GEMFILE']
-      previous_lockfile = ENV['BUNDLE_LOCKFILE']
+      previous_env = ENV.to_h
       ENV['BUNDLE_GEMFILE'] = gemfile
       ENV.delete 'BUNDLE_LOCKFILE'
       yield
     ensure
-      ENV['BUNDLE_GEMFILE'] = previous_gemfile
-      ENV['BUNDLE_LOCKFILE'] = previous_lockfile
+      ENV.replace(previous_env)
     end
 
     def resolve_bundle_gemfile(gemfile, call_site)

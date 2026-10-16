@@ -100,6 +100,27 @@ class IntegrationTest < Minitest::Test
     assert_equal [ENV['BUNDLE_GEMFILE']], tools_group.fetch_values(:env_gemfile)
   end
 
+  def test_setup_bundle_leaves_process_env_unchanged
+    script = <<~'RUBY'
+      require 'json'
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      before = ENV.to_h
+      import File.expand_path('test/fixtures/setup_bundle/env_restore', Dir.pwd)
+      changed = (before.keys | ENV.keys).reject { |key| before[key] == ENV[key] }
+
+      puts JSON.generate(changed.sort)
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output, error, status =
+      Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
+
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    assert_empty JSON.parse(output)
+  end
+
   def test_setup_bundle_restores_env_when_bundler_fails
     previous = ENV['BUNDLE_GEMFILE']
     previous_lockfile = ENV['BUNDLE_LOCKFILE']

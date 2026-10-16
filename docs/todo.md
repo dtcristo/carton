@@ -4,7 +4,6 @@ Ordered by priority within each section.
 
 ## Library
 
-- Restore all of `ENV` after `Carton.setup_bundle`, not just `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE`. Bundler setup exports `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`, `PATH`, and `BUNDLER_ORIG_*`, so subprocesses started by Main after importing a bundled Carton load the wrong bundle. Decide whether subprocesses started from inside the Carton should keep its bundle.
 - Raise a Carton error explaining `RUBY_BOX=1` when boxes are disabled, instead of the raw `Ruby::Box` error from `Carton::Box#initialize`.
 - Add `Carton::Error` with `ImportError` and `ExportError` subclasses, and make `GemfileNotFound` a subclass. Replace the plain `RuntimeError`s for exporting outside an Import and exporting twice, and include the paths Carton tried in missing-Import messages.
 - Stop `import 'name'` checking `Dir.pwd` before `$LOAD_PATH`. `require` has no cwd step, so results depend on where the app was started. Keep absolute paths and `$LOAD_PATH` only.
@@ -19,7 +18,6 @@ Ordered by priority within each section.
 See [upstream.md](internals/upstream.md) for detail.
 
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
-- If restoring `ENV` in Carton is not enough, propose a Bundler way to set up a bundle in-process without exporting subprocess `ENV`, or to pass the Gemfile without `BUNDLE_GEMFILE`.
 
 ## Docs
 

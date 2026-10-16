@@ -89,10 +89,10 @@ Running `Bundler.setup` inside a Carton's Box therefore activates gems only in
 that Box.
 
 `ENV` is the exception, because it is process-global. Bundler reads
-`BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle, so `setup_bundle`
-sets both from the calling file and restores them afterwards. Setup also
-writes subprocess variables such as `RUBYOPT`. Carton does not restore those
-yet, and [todo.md](todo.md) tracks the fix.
+`BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle and exports
+subprocess variables such as `RUBYOPT`. `setup_bundle` sets the Gemfile from
+the calling file, clears the lockfile, and restores all of `ENV` after setup,
+so importing a Carton never changes the environment Main's subprocesses see.
 
 See [how-gems-work.md](internals/how-gems-work.md) and
 [how-boxes-work.md](internals/how-boxes-work.md) for the runtime model, and

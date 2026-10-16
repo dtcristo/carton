@@ -517,14 +517,15 @@ That matters because Bundler still uses process-global environment discovery:
 - `PATH`
 
 Bundler reads `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle, so
-`Carton.setup_bundle` sets the first and clears any stale second, then restores
-both. A leftover lockfile path would override the lockfile Bundler derives from
-the selected Gemfile.
+`Carton.setup_bundle` sets the first and clears any stale second. A leftover
+lockfile path would override the lockfile Bundler derives from the selected
+Gemfile.
 
 Bundler also writes `ENV` during setup. `SharedHelpers.set_bundle_environment`
 exports `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`,
 `PATH`, and `BUNDLER_ORIG_*` so subprocesses inherit the bundle. Those writes
-reach every Box, and Carton does not restore them yet.
+reach every Box, so `setup_bundle` snapshots `ENV` first and restores all of it
+after setup.
 
 ## 8. Public APIs that matter for advanced gem/runtime work
 

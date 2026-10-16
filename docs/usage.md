@@ -235,15 +235,15 @@ calling file for `gems.rb` or `Gemfile`; pass `gemfile:` (relative to the
 calling file) to choose one. It raises `Carton::GemfileNotFound` when there is
 no Gemfile, and Bundler errors raise instead of exiting.
 
-Bundler finds its Gemfile through process-global `ENV`, so `setup_bundle` sets
-`BUNDLE_GEMFILE`, clears any stale `BUNDLE_LOCKFILE`, and restores both
-afterwards. Bundler keeps the Gemfile it selected, so a later
-`Bundler.require` in the same Carton still uses it.
+`ENV` is shared by the whole process. Bundler reads its Gemfile from
+`BUNDLE_GEMFILE` and exports variables such as `RUBYOPT` for subprocesses, so
+`setup_bundle` points `BUNDLE_GEMFILE` at the Carton's Gemfile, then restores
+all of `ENV` when setup finishes. Bundler keeps the Gemfile it selected, so a
+later `Bundler.require` in the same Carton still uses it.
 
-Bundler setup also exports subprocess variables such as `RUBYOPT` and
-`BUNDLER_SETUP`, and Carton does not restore those yet. A subprocess started
-after a Carton's `setup_bundle` may load that bundle. Until
-[todo.md](todo.md)'s fix lands, pass subprocesses an explicit environment.
+Restoring `ENV` means subprocesses never inherit a Carton's bundle, including
+ones the Carton starts itself. Wrap a subprocess that needs the bundle in
+`bundle exec`, or pass it `BUNDLE_GEMFILE`.
 
 `RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
 evaluates a gemspec.

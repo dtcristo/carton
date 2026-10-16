@@ -28,22 +28,6 @@ list of confirmed behavior.
 
 ## Open items
 
-None of these block Carton.
-
-### Bundler setup writes subprocess `ENV`
-
-`Bundler::Runtime#setup` calls `SharedHelpers.set_bundle_environment`, which
-exports `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`,
-`PATH`, and `BUNDLER_ORIG_*` so subprocesses inherit the bundle. `ENV` is
-process-global, so a Carton's setup changes the environment Main's
-subprocesses see. The plan is for Carton to restore `ENV` itself, as tracked in
-[todo.md](../todo.md).
-
-An upstream option to set up a bundle in-process without exporting subprocess
-environment, or to pass the Gemfile directly instead of through
-`BUNDLE_GEMFILE`, would remove the need. Only propose it if restoring `ENV`
-in Carton turns out not to be enough.
-
 ### Ruby docs describe old Main Box creation
 
 `doc/language/box.md` still says the main box is created "at the end of
@@ -53,6 +37,11 @@ Root and Main from Master before the prelude. The fix is one sentence, and
 
 ## Resolved
 
+- **Bundler setup writes subprocess `ENV`.** `Bundler::Runtime#setup` exports
+  `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`, `PATH`,
+  and `BUNDLER_ORIG_*`, and `ENV` is process-global. Carton handles it by
+  restoring all of `ENV` after `setup_bundle`, so no Bundler change is needed.
+  Revisit only if a Carton needs its own subprocesses to inherit its bundle.
 - **Ruby 4.0.7.** The gem prelude no longer runs `BUNDLER_SETUP` outside Main
   Box, per [Bug #22123](https://bugs.ruby-lang.org/issues/22123) and
   [this commit](https://github.com/ruby/ruby/commit/e9bccf88c1). On 4.0.6, a fresh Box under
