@@ -67,9 +67,8 @@ task :test do
     *test_files.map { |file| Shellwords.escape(file) },
   ].join(' ')
 
-  # `bundle exec` leaves BUNDLER_SETUP set. A RUBY_BOX=1 child would re-enter
-  # bundler/setup during gem prelude and hit the gemspec visibility failure.
-  # Install the Bundler-example deps the integration suite exercises.
+  # Run outside the dev bundle so tests exercise plain RubyGems and their own
+  # bundles. Install the Bundler-example deps the integration suite exercises.
   Bundler.with_unbundled_env do
     install_example_bigdecimals
     Dir

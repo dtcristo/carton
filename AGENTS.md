@@ -11,21 +11,21 @@ Guidance and memory for agents working on this repo.
 - The project should work with or without Bundler.
 - A package in this system is called a carton, though docs can still use "package" in plain English when it reads better.
 - Keep optional Bundler/RubyGems support clearly separated from the core import/export runtime.
-- Target Ruby 4.0.6 or later: Master Box is the immutable copy source, Root Box runs bootstrap/builtins, Main Box runs the application, and Cartons run in optional Boxes.
+- Target Ruby 4.0.7 or later (Bundler 4.0.23+): Master Box is the immutable copy source, Root Box runs bootstrap/builtins, Main Box runs the application, and Cartons run in optional Boxes.
 - Optional Boxes do not inherit Root or Main state; resolve imports in the caller and carry only the required load-path entry forward.
 - A Bare Carton's Public Surface includes only constants and top-level helpers introduced by its Entrypoint; inherited runtime constants and Box methods are excluded.
 - Full pattern deconstruction enumerates every Named Export or the Bare Carton's discovered Public Surface.
-- Ruby 4.0.6 confirms distinct RubyGems activation state, conflicting non-path bundles, and path-gem Carton imports under ordinary per-Carton Bundler setup.
-- `RUBY_BOX=1 bundle exec` still fails on Ruby 4.0.6 when a Gemfile evaluates a gemspec before `Gem::Specification` is visible; keep that as upstream prelude work.
+- Ruby 4.0.7 gives each Box its own RubyGems state and clean gem paths; Carton patches nothing in RubyGems or Bundler and only scopes `BUNDLE_GEMFILE`/`BUNDLE_LOCKFILE`. Re-add a gem workaround only with a failing test on the current release.
+- `RUBY_BOX=1 bundle exec` works on Ruby 4.0.7 with Bundler 4.0.23.
 - Imports are shared process-wide, keyed by Entrypoint real path; the Main Box's `ImportCache` and loader build every Carton (user decision; replaces the earlier avoid-a-global-cache note).
-- Carton clears process-global `BUNDLER_SETUP` around optional Box construction so Master-based Boxes do not re-enter the caller's `bundler/setup`.
 - `export` takes Symbols for top-level methods and keywords for plain values; lookups return `Method` objects and never invoke values or bare helpers.
+- Prefer raising the minimum Ruby/RubyGems/Bundler version over carrying workarounds for older releases (user decision).
 - Upstream changes must be strictly necessary; do not promote historical Ruby 4.0.5 findings without current reproduction.
 - Never push. Make local commits only; the user handles pushes.
 
 ## Working rules
 
-- Everything should have tests. Write tests for new behaviour, run targeted tests as you go, and `bundle exec rake` before finishing. The test and example tasks set `RUBY_BOX=1` themselves; do not wrap the outer `bundle exec` in `RUBY_BOX=1` until the gemspec prelude failure is fixed upstream.
+- Everything should have tests. Write tests for new behaviour, run targeted tests as you go, and `bundle exec rake` before finishing. The test and example tasks set `RUBY_BOX=1` themselves.
 - If you only changed an example, run that example during iteration and the full suite before finishing.
 - Run `bundle exec rake format` after every change.
 - Run `bundle exec rake rubocop` before finishing, and keep it passing for examples too.

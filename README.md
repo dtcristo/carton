@@ -10,7 +10,7 @@
   </p>
 </div>
 
-Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4.0.6+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
+Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4.0.7+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
 
 ## Install
 
@@ -18,7 +18,7 @@ Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/
 gem install carton   # or add `gem 'carton'` to your Gemfile
 ```
 
-Carton needs Ruby 4.0.6+ with boxes enabled, so run your app with `RUBY_BOX=1`:
+Carton needs Ruby 4.0.7+ with boxes enabled, so run your app with `RUBY_BOX=1`:
 
 ```sh
 RUBY_BOX=1 ruby main.rb
@@ -81,8 +81,8 @@ RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
 RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
 ```
 
-Per-Carton Bundler setup and path-gem imports work on Ruby 4.0.6.
-`RUBY_BOX=1 bundle exec` still fails when a Gemfile evaluates a gemspec.
+Per-Carton Bundler setup, path-gem imports, and `RUBY_BOX=1 bundle exec` work
+on Ruby 4.0.7 with Bundler 4.0.23.
 
 ## License
 

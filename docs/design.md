@@ -10,11 +10,10 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 | --- | --- |
 | `lib/carton.rb` | Entry point and internal wiring |
 | `lib/carton/bundler.rb` | `Carton.with_bundle` plus caller-file bundle discovery |
-| `lib/carton/rubygems.rb` | temporary compatibility patch behind `Carton.bootstrap_rubygems!` |
 | `lib/carton/kernel_patch.rb` | Adds global `import`, `import_relative`, `export_default`, and `export` |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
 | `lib/carton/runtime.rb` | Builds boxes, resolves targets, runs imports, and extracts exports |
-| `lib/carton/box.rb` | Box-specific helpers for requiring files, holding and resetting the current Export Declaration, seeding an imported feature's load path, and keeping the RubyGems cleanup hack out of the generic runtime path |
+| `lib/carton/box.rb` | Box-specific helpers for requiring files, holding and resetting the current Export Declaration, and seeding an imported feature's load path |
 | `lib/carton/export_declaration.rb` | Owns absence, uniqueness, kind, snapshotting, and Public Surface conversion for an Export Declaration |
 | `lib/carton/exports.rb` | Wraps named exports in a module-like namespace |
 | `lib/carton/export_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring support |
@@ -30,11 +29,6 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 7. If the file called `export_default`, its value is returned directly.
 8. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
 9. If there was no export, the box itself is returned.
-
-If the imported file bootstrapped RubyGems, `Carton::Box` restores the caller's
-`Gem.loaded_specs` view after the import. Supported-stack probes show the
-registry is already box-local, so this compatibility code should disappear
-once path-bundle integration passes without it.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
 
@@ -74,7 +68,7 @@ Neither invokes exported or discovered methods.
 
 ## Load path model
 
-Ruby 4.0.6 creates Root, Main, and optional user Boxes from an immutable internal Master Box, not from the current caller Box. `require` resolves against the loading Box's local `$LOAD_PATH` / `$LOADED_FEATURES`.
+Ruby 4.0.7 creates Root, Main, and optional user Boxes from an immutable internal Master Box, not from the current caller Box. `require` resolves against the loading Box's local `$LOAD_PATH` / `$LOADED_FEATURES`.
 
 Carton therefore does not copy the caller's whole load path forward. It resolves the feature name in the caller Box first, then carries only the matching load-path entry into the new Box if the imported feature needs that path for its own nested `require` calls.
 
@@ -85,24 +79,19 @@ This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicit
 Bundler setup is explicit inside the Carton entry file:
 
 ```ruby
-Carton.bootstrap_rubygems!
 Carton.with_bundle { require 'bundler/setup' }
 ```
 
-A top-level app that only needs its own bundle, like `examples/bundler/main.rb`,
-can stay lighter and use plain `Carton.with_bundle { require 'bundler/setup' }`.
-The explicit RubyGems bootstrap is for Cartons that load Bundler inside fresh Boxes.
-`Carton.with_bundle` also installs a current-box RubyGems path-gem compatibility
-patch and leaves ordinary per-Carton Bundler setup as the supported shape.
+The same line works in the top-level app and inside a Carton. Carton patches
+nothing in RubyGems or Bundler; `with_bundle` only scopes `BUNDLE_GEMFILE` and
+`BUNDLE_LOCKFILE`.
 
-Ruby 4.0.6 validation:
+Ruby 4.0.7 with Bundler 4.0.23 validation:
 
 - per-Carton Bundler setup, Imported Carton bundles, and app-bundle path gems work,
 - Main Box activation and load-path state stay unchanged across those imports,
-- `RUBY_BOX=1 bundle exec` still fails while evaluating a gemspec before
-  `Gem::Specification` is visible,
-- Carton clears process-global `BUNDLER_SETUP` around optional Box construction
-  so Master-based Boxes do not re-enter the caller's `bundler/setup`.
+- fresh Boxes start with no gem load paths, even under `bundle exec`,
+- `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the app.
 
 The problem is not that Bundler has special C code mutating every box at once. Bundler and RubyGems do their activation work in Ruby:
 
@@ -110,10 +99,9 @@ The problem is not that Bundler has special C code mutating every box at once. B
 - `Bundler::SharedHelpers#default_lockfile` reads `ENV['BUNDLE_LOCKFILE']`
 - `Bundler::Runtime#setup` calls `clean_load_path`, `replace_entrypoints`, `mark_loaded`, and `Gem.add_to_load_path`
 - RubyGems activation checks and writes `Gem.loaded_specs`
-- RubyGems may re-require `ENV['BUNDLER_SETUP']` when Bundler is undefined in the loading Box
 
-Ruby 4.0.6 probes show `$LOAD_PATH`, `Gem.loaded_specs`, and conflicting
-non-path bundles staying Box-local beneath Carton's ordinary setup. The open
-upstream blocker is boxed `bundle exec` gemspec evaluation.
+Each Box has its own `$LOAD_PATH` and RubyGems registries, so that work stays
+Box-local. Only the `ENV` reads are process-global, which is what
+`with_bundle` scopes.
 
 See [how-gems-work.md](internals/how-gems-work.md) and [how-boxes-work.md](internals/how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](internals/rubygems-upstream.md) and [ruby-upstream.md](internals/ruby-upstream.md) for the minimal upstream work.
