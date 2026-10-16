@@ -7,7 +7,10 @@
 - `RUBY_BOX=1` in the environment, e.g. `RUBY_BOX=1 ruby main.rb`
 - `require 'carton'` before using `import`, `import_relative`, `export_default`, or `export`
 
-In Carton, an importable package is called a carton. This guide still says "package" sometimes in plain English, but "carton" is the project term.
+An importable Ruby file and everything it loads is called a carton. Each
+carton runs in its own `Ruby::Box`, so its constants, gems, and monkey patches
+stay inside, and only what it exports crosses the boundary. See
+[CONTEXT.md](../CONTEXT.md) for the full glossary.
 
 ## Exporting
 
@@ -142,7 +145,7 @@ that is every Named Export.
 
 ```ruby
 import('math') => { version:, **rest }
-rest.keys # => [:PI, :add, :nothing, :subtract]
+rest.keys # => [:add, :PI]
 ```
 
 ## Constants
@@ -237,10 +240,15 @@ Bundler finds its Gemfile through process-global `ENV`, so `setup_bundle` sets
 afterwards. Bundler keeps the Gemfile it selected, so a later
 `Bundler.require` in the same Carton still uses it.
 
+Bundler setup also exports subprocess variables such as `RUBYOPT` and
+`BUNDLER_SETUP`, and Carton does not restore those yet. A subprocess started
+after a Carton's `setup_bundle` may load that bundle. Until
+[todo.md](todo.md)'s fix lands, pass subprocesses an explicit environment.
+
 `RUBY_BOX=1 bundle exec ruby main.rb` also works, including when the Gemfile
 evaluates a gemspec.
 
-See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [rubygems-upstream.md](internals/rubygems-upstream.md) for the minimal upstream plan.
+See [how-gems-work.md](internals/how-gems-work.md) for the runtime background and [upstream.md](internals/upstream.md) for upstream status.
 
 ## Examples
 

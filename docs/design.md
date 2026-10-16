@@ -76,32 +76,24 @@ This is why the examples add sibling `lib/` directories to `$LOAD_PATH` explicit
 
 ## Bundler model
 
-Bundler setup is explicit inside the Carton entry file:
+Bundler setup is explicit, one line in the app or in a Carton's Entrypoint:
 
 ```ruby
 Carton.setup_bundle
 ```
 
-The same line works in the top-level app and inside a Carton. Carton patches
-nothing in RubyGems or Bundler; `setup_bundle` scopes `BUNDLE_GEMFILE` and
-`BUNDLE_LOCKFILE` around `Bundler.setup(*groups)`.
+Carton patches nothing in RubyGems or Bundler. Bundler and RubyGems do their
+activation work in Ruby, against `$LOAD_PATH`, `Gem.loaded_specs`, and the
+`Gem::Specification` registries, and each Box has its own copy of all three.
+Running `Bundler.setup` inside a Carton's Box therefore activates gems only in
+that Box.
 
-Ruby 4.0.7 with Bundler 4.0.23 validation:
+`ENV` is the exception, because it is process-global. Bundler reads
+`BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle, so `setup_bundle`
+sets both from the calling file and restores them afterwards. Setup also
+writes subprocess variables such as `RUBYOPT`. Carton does not restore those
+yet, and [todo.md](todo.md) tracks the fix.
 
-- per-Carton Bundler setup, Imported Carton bundles, and app-bundle path gems work,
-- Main Box activation and load-path state stay unchanged across those imports,
-- fresh Boxes start with no gem load paths, even under `bundle exec`,
-- `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the app.
-
-The problem is not that Bundler has special C code mutating every box at once. Bundler and RubyGems do their activation work in Ruby:
-
-- `Bundler::SharedHelpers#find_gemfile` reads `ENV['BUNDLE_GEMFILE']`
-- `Bundler::SharedHelpers#default_lockfile` reads `ENV['BUNDLE_LOCKFILE']`
-- `Bundler::Runtime#setup` calls `clean_load_path`, `replace_entrypoints`, `mark_loaded`, and `Gem.add_to_load_path`
-- RubyGems activation checks and writes `Gem.loaded_specs`
-
-Each Box has its own `$LOAD_PATH` and RubyGems registries, so that work stays
-Box-local. Only the `ENV` reads are process-global, which is what
-`setup_bundle` scopes.
-
-See [how-gems-work.md](internals/how-gems-work.md) and [how-boxes-work.md](internals/how-boxes-work.md) for the deeper runtime model, plus [rubygems-upstream.md](internals/rubygems-upstream.md) and [ruby-upstream.md](internals/ruby-upstream.md) for the minimal upstream work.
+See [how-gems-work.md](internals/how-gems-work.md) and
+[how-boxes-work.md](internals/how-boxes-work.md) for the runtime model, and
+[upstream.md](internals/upstream.md) for upstream status.
