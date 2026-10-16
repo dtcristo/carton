@@ -4,6 +4,7 @@ Ordered by priority within each section.
 
 ## Library
 
+- Consider an opt-in guard that warns when a carton reopens a class another carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which carton exported each class; it would not catch `class_eval` or `define_method`.
 - Raise a Carton error explaining `RUBY_BOX=1` when boxes are disabled, instead of the raw `Ruby::Box` error from `Carton::Box#initialize`.
 - Add `Carton::Error` with `ImportError` and `ExportError` subclasses, and make `GemfileNotFound` a subclass. Replace the plain `RuntimeError`s for exporting twice, circular imports, and gem version mismatches, and include the paths Carton tried in missing-Import messages.
 - Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.
