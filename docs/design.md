@@ -30,7 +30,7 @@ Keep the library small: a thin wrapper around `Ruby::Box` that makes isolated fi
 5. If the target was found by name, Carton seeds only that matching load-path entry into the new box.
 6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new box at the caller's versions, dependencies first. If the caller ran Bundler setup, the box is first restricted to the caller's locked gems and all of them are activated, as `Bundler.setup` does.
 7. The target file is required inside the box.
-8. If the file exported `default:`, that value is returned as is. Otherwise its Named Exports are wrapped in `Carton::Exports`.
+8. If the file called `export`, its Named Exports are wrapped in `Carton::Exports`.
 9. If there was no export, the constants and top-level helpers the Entrypoint defined are wrapped in `Carton::Exports`. The box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Exports` no matter which Carton imports it first. Ruby objects are shared across Boxes, so the cached values cross Box boundaries unchanged.
@@ -41,20 +41,17 @@ A mutex serialises imports across threads; nested imports on the thread that hol
 
 ## Export model
 
-There are three return shapes:
+There are two return shapes, both `Carton::Exports`:
 
-- Default Export: the value exported as `default:`, returned as is
-- Export Namespace: `Carton::Exports` of the Named Exports from every `export` call
-- Bare Carton: `Carton::Exports` of the discovered Public Surface
+- Export Namespace: the Named Exports from every `export` call
+- Bare Carton: the discovered Public Surface
 
 `export` accepts positional Symbols plus keyword values. A capitalized Symbol
 names a top-level constant, read with `Object.const_get(name, false)`; any
 other Symbol names a top-level method, captured with `method(name)` on the
 carton's top-level object. Both are looked up at the call, so a missing name
 raises `NameError` there. Each call adds to an immutable Export Declaration,
-which rejects a name exported twice. `default` is a reserved name, as in ES
-modules: when present, import returns that value instead of the namespace,
-and `export :default` is rejected. `KernelPatch#export` passes the calling
+which rejects a name exported twice. `KernelPatch#export` passes the calling
 file to `Runtime`, which declares only when that file is the importing Box's
 Entrypoint; elsewhere `export` is inert after validating its arguments.
 

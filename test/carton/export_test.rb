@@ -5,24 +5,51 @@ require_relative '../test_helper'
 FIXTURES = File.expand_path('../fixtures', __dir__)
 
 class ExportTest < Minitest::Test
-  def test_single_export_returns_class
+  def test_constant_symbol_exports_the_class_itself
     result = import "#{FIXTURES}/single_export"
-    assert_equal 'User', result.name
-    user = result.new('Alice')
-    assert_equal 'Hello, Alice!', user.greet
+
+    assert_kind_of Carton::Exports, result
+    assert_equal 'User', result::User.name
+    assert_equal 'Hello, Alice!', result::User.new('Alice').greet
   end
 
-  def test_default_hash_export_returns_hash
-    result = import "#{FIXTURES}/default_hash_export"
+  def test_root_module_export_keeps_private_constants_private
+    pricing = import("#{FIXTURES}/root_module_export")::Pricing
 
-    assert_instance_of Hash, result
-    assert_equal 42, result[:answer]
-    assert_same result, result[:itself]
+    assert_in_delta 1.01, pricing::Calculator.new.total
+    assert_equal [:Calculator], pricing.constants
+    error = assert_raises(NameError) { pricing::Internal }
+    assert_match(/private constant/, error.message)
   end
 
-  def test_default_nil_and_false_are_exports
-    assert_nil import("#{FIXTURES}/default_nil_export")
-    assert_equal false, import("#{FIXTURES}/default_false_export")
+  def test_export_calls_accumulate_into_one_namespace
+    result = import "#{FIXTURES}/multiple_export"
+
+    assert_equal 'Widget', result::Widget.name
+    assert_equal 9, result.area(3)
+    assert_equal '1.0.0', result::VERSION
+    assert_equal 'widgets', result.label
+    assert_equal %i[VERSION Widget area label],
+                 result.deconstruct_keys(nil).keys.sort
+  end
+
+  def test_export_rejects_a_name_repeated_across_calls
+    error =
+      assert_raises(ArgumentError) { import "#{FIXTURES}/repeated_name_export" }
+    assert_equal 'export name given more than once: add', error.message
+  end
+
+  def test_constant_symbol_export_missing_constant_raises_name_error
+    error =
+      assert_raises(NameError) { import "#{FIXTURES}/missing_constant_export" }
+    assert_equal :Missing, error.name
+  end
+
+  def test_export_with_nil_and_false_values
+    result = import "#{FIXTURES}/hash_export"
+
+    assert_nil result.nothing
+    assert result.key?(:nothing)
   end
 
   def test_export_namespace_does_not_expose_its_stored_values
@@ -204,59 +231,6 @@ class ExportTest < Minitest::Test
 
     error = assert_raises(NameError) { broken_helper.call }
     assert_equal :MISSING_FROM_DECONSTRUCTION, error.name
-  end
-
-  def test_default_export_coexists_with_named_exports
-    widget = import "#{FIXTURES}/default_and_named_export"
-
-    assert_instance_of Class, widget
-    assert_equal 'Widget', widget.name
-  end
-
-  def test_export_rejects_a_default_symbol
-    error =
-      assert_raises(ArgumentError) do
-        import "#{FIXTURES}/default_symbol_export"
-      end
-    assert_equal 'export :default would export a method; use export default: value',
-                 error.message
-  end
-
-  def test_constant_symbol_exports_the_class_itself
-    result = import "#{FIXTURES}/multiple_export"
-
-    assert_equal 'Widget', result::Widget.name
-  end
-
-  def test_export_calls_accumulate_into_one_namespace
-    result = import "#{FIXTURES}/multiple_export"
-
-    assert_equal 9, result.area(3)
-    assert_equal '1.0.0', result::VERSION
-    assert_equal 'widgets', result.label
-    assert_equal %i[VERSION Widget area label],
-                 result.deconstruct_keys(nil).keys.sort
-  end
-
-  def test_export_rejects_a_name_repeated_across_calls
-    error =
-      assert_raises(ArgumentError) { import "#{FIXTURES}/repeated_name_export" }
-    assert_equal 'export name given more than once: add', error.message
-  end
-
-  def test_constant_symbol_export_missing_constant_raises_name_error
-    error =
-      assert_raises(NameError) { import "#{FIXTURES}/missing_constant_export" }
-    assert_equal :Missing, error.name
-  end
-
-  def test_root_module_export_keeps_private_constants_private
-    pricing = import "#{FIXTURES}/root_module_export"
-
-    assert_in_delta 1.01, pricing::Calculator.new.total
-    assert_equal [:Calculator], pricing.constants
-    error = assert_raises(NameError) { pricing::Internal }
-    assert_match(/private constant/, error.message)
   end
 
   def test_export_rejects_a_module_argument

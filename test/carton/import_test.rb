@@ -9,7 +9,7 @@ GEM_LIKE_DIR =
 class ImportTest < Minitest::Test
   def test_import_absolute_path
     result = import "#{FIXTURES_DIR}/single_export"
-    user = result.new('Bob')
+    user = result::User.new('Bob')
     assert_equal 'Hello, Bob!', user.greet
   end
 
@@ -27,7 +27,7 @@ class ImportTest < Minitest::Test
     $LOAD_PATH.unshift(FIXTURES_DIR) if added
 
     result = import 'single_export'
-    assert_equal 'User', result.name
+    assert_equal 'User', result::User.name
   ensure
     $LOAD_PATH.delete(FIXTURES_DIR) if added
   end
@@ -47,7 +47,7 @@ class ImportTest < Minitest::Test
 
     result = import "#{FIXTURES_DIR}/load_path_probe"
     refute_includes result::LOAD_PATH_AT_LOAD, GEM_LIKE_DIR
-    assert_equal :visible, import('leaked_feature').status
+    assert_equal :visible, import('leaked_feature')::LeakedFeature.status
   ensure
     $LOAD_PATH.delete(GEM_LIKE_DIR) if added
   end

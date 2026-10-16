@@ -1,4 +1,4 @@
-Sibling = import_relative 'single_export'
+Sibling = import_relative('single_export')::User
 
 def greeting = Sibling.new('World').greet
 

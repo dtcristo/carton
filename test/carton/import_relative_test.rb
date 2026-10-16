@@ -5,8 +5,8 @@ require_relative '../test_helper'
 class ImportRelativeTest < Minitest::Test
   def test_import_relative_single_export
     result = import_relative '../fixtures/single_export'
-    assert_equal 'User', result.name
-    user = result.new('Carol')
+    assert_equal 'User', result::User.name
+    user = result::User.new('Carol')
     assert_equal 'Hello, Carol!', user.greet
   end
 

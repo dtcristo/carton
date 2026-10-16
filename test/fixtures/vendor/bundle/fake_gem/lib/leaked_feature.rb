@@ -6,4 +6,4 @@ module LeakedFeature
   def self.status = Helper.status
 end
 
-export default: LeakedFeature
+export :LeakedFeature

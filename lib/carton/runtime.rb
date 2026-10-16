@@ -30,19 +30,13 @@ module Carton
 
     # Add to the current carton's Export Namespace. A capitalized Symbol names
     # a top-level constant, any other Symbol a top-level method; keyword
-    # arguments are plain values, and `default:` names the Default Export.
-    # Like `private`, a single Symbol is returned so `export def name ...`
-    # works.
+    # arguments are plain values. Like `private`, a single Symbol is returned
+    # so `export def name ...` works.
     def export(names, values, owner:, file:)
       if (names.empty? && values.empty?) ||
            names.any? { |name| !name.is_a?(Symbol) }
         raise ArgumentError,
               'export takes Symbols naming methods or constants, and keyword values'
-      end
-
-      if names.include?(:default)
-        raise ArgumentError,
-              'export :default would export a method; use export default: value'
       end
 
       duplicate = (names + values.keys).tally.find { |_, count| count > 1 }

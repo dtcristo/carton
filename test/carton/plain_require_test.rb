@@ -21,7 +21,7 @@ class PlainRequireTest < Minitest::Test
   end
 
   def test_only_the_entrypoint_declares_exports
-    assert_equal %i[entry library], import("#{DUAL}/entry")
+    assert_equal %i[entry library], import("#{DUAL}/entry").value
   end
 
   private

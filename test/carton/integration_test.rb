@@ -33,7 +33,7 @@ class IntegrationTest < Minitest::Test
 
   def test_mixed_import_styles
     # Use import with absolute path
-    user_class = import "#{FIXTURES}/single_export"
+    user_class = import("#{FIXTURES}/single_export")::User
 
     # Use import_relative
     math = import_relative '../fixtures/hash_export'

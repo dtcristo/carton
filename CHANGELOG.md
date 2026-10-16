@@ -4,13 +4,12 @@
 
 ### Breaking
 
-- `export_default value` is replaced by `export default: value`. As in ES
-  modules, `default` is a reserved export name, so a Default Export can sit
-  alongside named exports; `import` still returns the Default Export itself.
-- `export` can be called many times per file, and each call adds to one
-  Export Namespace. A capitalized Symbol exports a constant
-  (`export :Money`), other Symbols export methods, and `export def name ...`
-  works like `private def`. Exporting a name twice raises `ArgumentError`.
+- `export_default` is removed. `export` can be called many times per file and
+  each call adds to one Export Namespace. A capitalized Symbol exports a
+  constant (`export :User`), other Symbols export methods, and
+  `export def name ...` works like `private def`. Replace `export_default User`
+  with `export :User` and import it as `import('user')::User`. Exporting a
+  name twice raises `ArgumentError`.
 - Importing a file with no export (a Bare Carton) returns a `Carton::Exports`
   of the constants and top-level helpers it defines, instead of its
   `Carton::Box`. Importers can no longer `eval`, `require`, or read
@@ -57,7 +56,6 @@
 
 - A gem Carton imported from another Carton's Box now gets its dependencies. Gem activation wrote to the importing Carton's `$LOAD_PATH`, so the gem's `require` of a dependency raised `LoadError`.
 - Importing a file from an activated gem now activates that gem and its runtime dependencies in the Carton's Box at the caller's versions. Before, the Box auto-activated the newest installed version of each dependency, ignoring the caller's lockfile. A later import whose caller activates different versions raises instead of reusing the cached Carton.
-- A Default Export keeps Hash, `nil`, and `false` values instead of treating a Hash as an Export Namespace.
 - Bare Carton lookup only finds constants and helpers the Entrypoint defines. Keys are no longer evaluated as Ruby expressions, and `key?` no longer calls helpers.
 - Hash-rest patterns (`=> { **rest }`) return every Named Export, or every member of a Bare Carton's Public Surface, instead of an empty hash.
 

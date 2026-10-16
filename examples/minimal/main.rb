@@ -2,8 +2,8 @@
 
 require_relative '../../lib/carton'
 
-# Default import — Foo exports itself as `default:`.
-Foo = import_relative 'foo'
+# Foo exports its module as a constant; take it from the namespace.
+Foo = import_relative('foo')::Foo
 
 # Namespace import — Bar exports named methods and constants.
 Bar = import_relative 'bar'
