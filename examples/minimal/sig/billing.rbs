@@ -1,0 +1,10 @@
+# The billing Carton's own types. Billing::Tax is private, so it has none.
+module Billing
+  class Invoice
+    attr_reader subtotal: Integer
+    attr_reader tax: Float
+    def total: () -> Float
+  end
+
+  def self.invoice: (Integer subtotal) -> Invoice
+end

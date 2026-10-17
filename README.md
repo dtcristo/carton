@@ -96,6 +96,14 @@ A gem in the app's bundle imports as a Carton and gets its dependencies at the
 app's locked versions. For a monorepo, make each package a path gem in one
 Gemfile and import it by name; see [examples/monorepo](examples/monorepo/README.md).
 
+## Types and checks
+
+The `carton` command reads code without running it. `carton rbs main.rb`
+writes RBS so [Steep](https://github.com/soutaro/steep) knows what each import
+returns, and `carton check main.rb` reports missing imports, cycles, and
+`require` calls that reach into a Carton. See
+[Types and checks](docs/usage.md#types-and-checks).
+
 ## Status
 
 Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7+ and,
@@ -106,7 +114,7 @@ with every importer, so reopening one changes it everywhere; see
 
 ## Docs
 
-- [usage.md](docs/usage.md): exports, imports, Bundler, gem Cartons, and testing
+- [usage.md](docs/usage.md): exports, imports, Bundler, gem Cartons, testing, types, and checks
 - [design.md](docs/design.md): how an import runs
 - [todo.md](docs/todo.md): planned work and open questions
 - [internals/](docs/internals/): how `Ruby::Box`, RubyGems, and Bundler work, and upstream plans
@@ -116,7 +124,7 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 
 | Example | Shows |
 | --- | --- |
-| [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, and the error for importing a file inside a Carton |
+| [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, the error for importing a file inside a Carton, and Steep types |
 | [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
 | [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
 | [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |

@@ -3,11 +3,13 @@
 require 'shellwords'
 require 'rubocop/rake_task'
 
-STREE_FILES = '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile"'
+STREE_FILES =
+  '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile" "**/Steepfile" exe/carton'
 RUBOCOP_FILES = %w[
   Gemfile
   Rakefile
   *.gemspec
+  exe/carton
   lib/**/*.rb
   test/*.rb
   test/carton/**/*.rb

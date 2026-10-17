@@ -28,7 +28,9 @@ Gem::Specification.new do |spec|
 
   # An explicit list, so packaging does not depend on git or ship examples.
   spec.files =
-    Dir.glob(%w[lib/**/*.rb sig/**/*.rbs], base: __dir__) +
+    Dir.glob(%w[exe/* lib/**/*.rb sig/**/*.rbs], base: __dir__) +
       %w[CHANGELOG.md LICENSE.txt README.md]
+  spec.bindir = 'exe'
+  spec.executables = ['carton']
   spec.require_paths = ['lib']
 end

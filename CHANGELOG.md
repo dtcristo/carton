@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Added
+
+- A `carton` command that reads code with Prism and never runs it, so it
+  needs no `RUBY_BOX=1`. Give it the app's files; it follows imports into
+  every Carton they reach.
+- `carton rbs` writes `sig/generated/carton.rbs` so Steep knows what each
+  import returns: a Default Export's own type, or a generated
+  `Carton::Exports::*` module for Named Exports, typed from rbs-inline `#:`
+  annotations and literal values.
+- `carton check` reports missing imports, imports of files inside a Carton,
+  import cycles, `require` calls that load a second copy of an imported
+  Carton, and invalid export declarations, and exits non-zero on errors.
+- `sig/carton.rbs` declares `Carton::ExportMethods`, which `Carton::Exports`
+  includes.
+- The minimal example type-checks with Steep.
+
 ## [0.2.0] - 2026-10-17
 
 Cartons are now gem-sized or domain-sized units: a file plus the directory

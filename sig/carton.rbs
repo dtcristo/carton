@@ -25,7 +25,9 @@ end
 class Carton::GemfileNotFound < Carton::Error
 end
 
-class Carton::Exports < ::Module
+# Lookup helpers on every `Carton::Exports`. `carton rbs` extends its
+# generated `Carton::Exports::*` modules with these.
+module Carton::ExportMethods
   type key = ::String | ::Symbol
 
   # Exported methods come back as Method objects; values as exported.
@@ -39,4 +41,8 @@ class Carton::Exports < ::Module
   def has_key?: (key key) -> bool
   def key?: (key key) -> bool
   def values_at: (*key keys) -> ::Array[untyped]
+end
+
+class Carton::Exports < ::Module
+  include ::Carton::ExportMethods
 end

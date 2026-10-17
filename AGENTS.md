@@ -17,6 +17,7 @@
 - `import` returns a Default Export's value itself, and `Carton::Exports` for Named Exports and Bare Cartons; no wrapper with a `default` accessor.
 - Use Ruby's `private_constant` for visibility; Carton adds none.
 - Shared-class reopening risk is documented only (subclass, refine, freeze).
+- No `carton run` or `carton exec`: `RUBY_BOX=1` is the interface (user decision). The `carton` command only reads code (Prism) and is not loaded by `require 'carton'`.
 - Master Box stays clean: only `examples/master_prelude` writes to it, and upstream asks only for an official template Box API.
 
 ## Rules

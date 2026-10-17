@@ -393,6 +393,77 @@ the app's lockfile pins every version. See
 [how-gems-work.md](internals/how-gems-work.md) has the runtime background, and
 [upstream.md](internals/upstream.md) the upstream status.
 
+## Types and checks
+
+The `carton` command reads code with Prism and never runs it, so it needs no
+`RUBY_BOX=1`. Give it the app's files or directories; it follows each import
+into the Cartons it reaches. Named imports resolve against `-I DIR` and then
+the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app.
+
+### RBS
+
+`carton rbs main.rb` writes `sig/generated/carton.rbs` (`-o FILE` to change it,
+`-o -` for stdout). It tells a type checker such as
+[Steep](https://github.com/soutaro/steep) what each import returns:
+
+- A Default Export of a constant, such as `export_default Billing`, types as
+  `singleton(::Billing)`. The Carton declares `Billing` in its own RBS, as a gem
+  would; Steep reports a missing declaration as an unknown type.
+- Named Exports and Bare Cartons each get a module, such as
+  `Carton::Exports::Math`, with a singleton method per exported method and a
+  constant per exported value.
+- `MathTools = import 'math'` becomes `module MathTools = ::Carton::Exports::Math`,
+  so `MathTools.percent` and `MathTools::VERSION` type-check. So does a local
+  variable, `math = import 'math'`, through a `Kernel#import` overload on the
+  literal path.
+
+An exported method's type comes from an
+[rbs-inline](https://github.com/soutaro/rbs-inline) `#:` annotation on the
+line above it; without one its parameters are `untyped`. A constant's type
+comes from a `#:` annotation after it, or from a literal value:
+
+```ruby
+# math.rb
+#: (Numeric amount, Numeric rate) -> Float
+export def percent(amount, rate) = (amount * rate / 100.0).round(2)
+
+export VERSION: '1.0' # VERSION: ::String
+```
+
+Load Carton's own signatures and the generated file in the Steepfile, and
+regenerate the file whenever an import or export changes:
+
+```ruby
+# Steepfile
+target :app do
+  signature 'sig'
+  library 'carton'
+  check 'main.rb'
+end
+```
+
+RBS has one global namespace, so the app's target should check the app's own
+files. A path such as `import_relative 'tools'` that means different Cartons
+in different files gets no overload.
+
+### Static checks
+
+`carton check main.rb` prints each problem as `file:line: level: message` and
+exits non-zero on any error, so it can run in CI. Errors are certain to fail
+or misbehave when the code runs; warnings are things a dynamic program could
+still get right.
+
+| Level | Problem |
+| --- | --- |
+| error | An import of a missing path, or of a file inside a Carton |
+| error | An import cycle, unless an import in it runs lazily (then a warning) |
+| error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
+| error | `export_default` twice, `export_default` with `export`, or a name exported twice |
+| error | A syntax error |
+| warning | A named import not found on the load path, which a gem activated at runtime may provide |
+| warning | An import whose path is not a string literal |
+| warning | `export` in a file inside a Carton, where it does nothing |
+
 ## Errors
 
 Carton's own errors subclass `Carton::Error`:

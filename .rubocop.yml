@@ -85,3 +85,9 @@ Style/TrailingCommaInArrayLiteral:
 
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: consistent_comma
+
+Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma

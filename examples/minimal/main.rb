@@ -11,7 +11,7 @@ MathTools = import_relative 'math'
 puts "10% of 40: #{MathTools.percent(40, 10)} (math #{MathTools::VERSION})"
 
 begin
-  Billing::Tax
+  Billing::Tax # steep:ignore UnknownConstant
 rescue NameError
   puts 'Billing::Tax is private'
 end
