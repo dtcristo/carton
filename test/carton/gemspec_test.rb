@@ -33,15 +33,17 @@ class GemspecTest < Minitest::Test
     assert_includes carton_specification.description, 'Ruby 4.0.7'
   end
 
-  # The gem ships the library, its signatures, and top-level docs only, and
-  # the list does not depend on git, so it also builds from a source archive.
-  def test_packages_only_library_signatures_and_docs
+  # The gem ships the executable, the library, its signatures, and top-level
+  # docs only, and the list does not depend on git, so it also builds from a
+  # source archive.
+  def test_packages_only_executable_library_signatures_and_docs
     root = File.expand_path('../..', __dir__)
     expected =
       Dir.glob(%w[lib/**/*.rb sig/**/*.rbs], base: root) +
-        %w[CHANGELOG.md LICENSE.txt README.md]
+        %w[exe/carton CHANGELOG.md LICENSE.txt README.md]
 
     assert_equal expected.sort, carton_specification.files.sort
+    assert_equal ['carton'], carton_specification.executables
   end
 
   # Build the gem, install it into an empty gem home, and import through the
@@ -58,6 +60,9 @@ class GemspecTest < Minitest::Test
       assert loaded.start_with?(File.realpath(home)),
              "loaded #{loaded}, not the installed gem"
       assert_equal 'hello', greeting
+
+      usage = run_ruby(dir, File.join(home, 'bin', 'carton'), '--help', env:)
+      assert_match(/\AUsage: carton COMMAND/, usage)
     end
   end
 
