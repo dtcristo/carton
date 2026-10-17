@@ -34,6 +34,19 @@ module Carton
       loaded_specs.values.select { |spec| shareable?(spec) }
     end
 
+    # The specs that own at least one of `features`, by require path. Sorted
+    # features let each directory check be a binary search, so a large bundle
+    # stays cheap.
+    def owning(specs, features)
+      sorted = features.sort
+      specs.select do |spec|
+        spec.full_require_paths.any? do |dir|
+          prefix = "#{dir}/"
+          sorted.bsearch { |feature| feature >= prefix }&.start_with?(prefix)
+        end
+      end
+    end
+
     # Rebuild specs in the current Box and activate them. With `locked`, the
     # Box is restricted to those specs and all of them are activated, as
     # `Bundler.setup` does, since RubyGems does not auto-activate under

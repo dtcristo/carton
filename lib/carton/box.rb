@@ -37,7 +37,18 @@ module Carton
         gems: target.gems || [],
         locked_gems: target.locked_gems,
       )
+      record_used_gems(target)
       export_public_surface(&build)
+    end
+
+    # The gems this Carton depends on: its closure, plus the locked gems whose
+    # files it loaded, such as an undeclared gem the caller's lockfile allows.
+    # A later importer must agree on these versions to share the Carton.
+    def record_used_gems(target)
+      gems = target.gems || []
+      locked = (target.locked_gems || []) - gems
+      features = @box.eval('$LOADED_FEATURES.to_a')
+      target.used_gems = gems + GemActivation.owning(locked, features)
     end
 
     # Fresh boxes copy Master, so they start without the caller's gems. Load

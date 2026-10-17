@@ -256,6 +256,33 @@ class IntegrationTest < Minitest::Test
     assert_equal 'BigDecimal BigMath', run_boxed(script).strip
   end
 
+  # The cache also compares locked gems a Carton loaded without declaring
+  # them: sloppy_gem requires bigdecimal, which only the lockfile provides.
+  def test_gem_carton_rejects_importer_locking_another_undeclared_gem_version
+    script = <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
+      Carton.setup_bundle(gemfile: File.join(fixtures, 'Gemfile'))
+
+      import 'sloppy_gem' # loads bigdecimal 3.3.1 from the app's lockfile
+      begin
+        import File.join(fixtures, 'newer_sloppy/entry') # locks 4.1.1
+        puts 'no error'
+      rescue Carton::ImportError => e
+        puts e.message
+      end
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output = run_boxed(script)
+    assert_match(
+      /sloppy_gem\.rb was imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      output,
+    )
+  end
+
   def test_gem_carton_imported_from_a_bundled_carton
     script = <<~'RUBY'
       require File.expand_path('lib/carton', Dir.pwd)
