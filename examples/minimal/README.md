@@ -1,6 +1,9 @@
 # Minimal example
 
-The smallest working example, with no gems or Bundler. It shows every idea in
+In plain Ruby, any file can `require` any other file and reach any constant,
+so internal code turns into public API by accident. A Carton has one way in,
+its Entrypoint, and importers get only what it exports. This is the smallest
+example of that boundary, with no gems or Bundler, and it covers every idea in
 the [quick start](../../README.md#quick-start):
 
 ```

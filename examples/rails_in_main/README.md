@@ -1,6 +1,11 @@
 # Rails in Main example
 
-A small Rails API app whose domain logic lives in a Carton:
+Domain logic inside a Rails app can call any model, helper, or core
+extension, so its boundary wears away one convenient call at a time. This is
+the smallest change to an existing Rails app that stops that. Rails and its
+controllers stay where they are, and domain logic moves into a Carton that
+cannot see Rails or the app's constants. The app reaches it only through its
+export:
 
 - Rails, its controllers, and its Zeitwerk autoloader run in the Main Box.
 - `components/billing` is a path gem and a Carton. It runs in its own Box, with
@@ -20,7 +25,7 @@ app/controllers/invoices_controller.rb
 components/billing/
   billing.gemspec                # depends on zeitwerk
   lib/billing.rb                 # Entrypoint: Zeitwerk loader, export_default Billing
-  lib/billing/invoice.rb         # autoloaded inside the Carton's Box
+  lib/billing/invoice.rb         # eager loaded inside the Carton's Box
 main.rb                          # boots the app and sends GET /invoices/42 via Rack
 ```
 

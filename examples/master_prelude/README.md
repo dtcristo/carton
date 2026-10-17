@@ -1,9 +1,13 @@
 # Master prelude example (optional, unsupported hack)
 
-**You do not need this.** It is only worth it if you want the same monkey
-patches, such as all of Active Support's core extensions, in every Carton
-without each Carton loading them. It relies on Ruby behavior that Ruby's docs
-say does not happen, so it may break in a future Ruby.
+A Carton that wants Active Support's core extensions has to load them in its
+own Box, which takes about 830ms per Box in a Rails bundle. This hack loads
+them once, into Ruby's internal Master Box, and every Carton created after
+that starts with them.
+
+**You do not need this.** Requiring the patches in each Carton works and is
+supported. This relies on Ruby behavior that Ruby's docs say does not happen,
+so it may break in a future Ruby.
 
 ## What it does
 

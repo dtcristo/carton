@@ -1,7 +1,11 @@
 # Rails in Cartons example
 
-A Rails API app built from Cartons, with Rails loaded once and nothing
-Rails-related in the Main Box:
+In a Rails app, every model and controller shares one namespace, so domains
+couple through each other's internals without anyone deciding they should.
+This Rails API app is split into domain Cartons instead. Each owns its
+models, controllers, and tables, and reaches another domain only by importing
+it. Rails loads once, in its own Carton, and nothing Rails-related is in the
+Main Box:
 
 | Carton | Box contains | Exports |
 | --- | --- | --- |
