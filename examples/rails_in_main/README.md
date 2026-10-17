@@ -40,8 +40,37 @@ not inherit it. So Rails layers stay in Main and Cartons hold domain logic.
 A Carton may still be handed Main objects, such as records, and call their
 methods.
 
-Cartons are cached for the life of the process, so restart the app to pick up
-changes to a Carton.
+## Development
+
+Each Carton loads once per process, and Carton never reloads an imported
+Carton, so restart the process to pick up a change. A file watcher can do it
+for you. This loop needs only Ruby. It starts the app, checks every `.rb` and
+`.yml` file twice a second, and restarts the app when one changes:
+
+```sh
+cd examples/rails_in_main
+ruby -e '
+  snapshot = -> { Dir["**/*.{rb,yml}"].to_h { [it, File.mtime(it)] } }
+  loop do
+    seen = snapshot.()
+    pid = spawn({ "RUBY_BOX" => "1" }, *ARGV)
+    sleep 0.5 while snapshot.() == seen
+    Process.kill(:TERM, pid)
+    Process.wait(pid)
+  end
+' ruby main.rb
+```
+
+`main.rb` sends one request and exits, so here each change runs it again.
+For a real app, put the server command in place of `ruby main.rb`. A
+watcher such as [watchexec](https://github.com/watchexec/watchexec) with
+`--restart` does the same job.
+
+Zeitwerk can reload code inside a Carton's Box, but importers keep the
+classes and objects they already hold, and this Carton's
+`Zeitwerk::Loader.for_gem` loader cannot reload at all.
+[examples/zeitwerk](../zeitwerk/README.md#reloading) covers when reloading
+works and its limits.
 
 ## Run
 
