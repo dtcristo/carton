@@ -22,6 +22,7 @@ module Carton
         *import_problems,
         *cycles,
         *requires_into_cartons,
+        *undeclared_gems,
         *export_problems,
       ].sort_by { |problem| [problem.file, problem.line, problem.message] }
     end
@@ -120,6 +121,38 @@ module Carton
             "Carton's #{path == unit.entrypoint ? 'Entrypoint' : 'file'}: import it instead",
         )
       end
+    end
+
+    # A gem Carton's gemspec is its manifest: every other gem it imports or
+    # requires must be a runtime dependency there. Under a bundled app it
+    # still loads today, since the Carton sees the app's whole lockfile, but
+    # it fails wherever the gem is installed without that dependency. Default
+    # gems and Carton itself load in every Box.
+    def undeclared_gems
+      @project.units.each_value.flat_map do |unit|
+        spec = @project.gem_for(unit.entrypoint) or next []
+        declared = [spec.name, *spec.runtime_dependencies.map(&:name)]
+        calls = unit.files.flat_map { |path| loads(path) }
+        calls.filter_map do |call|
+          path = @project.target(call) or next
+          used = @project.gem_for(path) or next
+          next if used.default_gem? || used.name == 'carton'
+          next if declared.include?(used.name)
+
+          error(
+            call.file,
+            call.line,
+            "#{call.kind} '#{call.path}' loads the #{used.name} gem, which " \
+              "#{spec.name}'s gemspec does not declare: add " \
+              "spec.add_dependency '#{used.name}'",
+          )
+        end
+      end
+    end
+
+    def loads(path)
+      file = @project.files.fetch(path)
+      file.imports + file.requires
     end
 
     def export_problems

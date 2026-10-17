@@ -8,7 +8,8 @@ module Carton
   # The Cartons an app imports, found by following `import` and
   # `import_relative` calls from the given files without running them.
   # Name-based imports resolve against `load_path`, as they would against the
-  # importing Box's `$LOAD_PATH`.
+  # importing Box's `$LOAD_PATH`. `specs` are the gems that files may belong
+  # to: under Bundler, the bundle's.
   class Project
     # A Carton: its Entrypoint, its files (the Entrypoint plus its namespace
     # directory), and the `lib/` a gem-shaped directory import adds to its
@@ -31,14 +32,31 @@ module Carton
       path.start_with?("#{pwd}/") ? path.delete_prefix("#{pwd}/") : path
     end
 
-    def initialize(paths, load_path: [])
+    def initialize(paths, load_path: [], specs: nil)
       @load_path = load_path
+      @specs = specs
       @files = {}
       @units = {}
       @unit_by_file = {}
       ruby_files(paths).each { |path| parse(path) }
       discover
       @edges = imports.map { |call| resolve(call) }
+      @edge_by_call = @edges.to_h { |edge| [edge.call, edge] }
+    end
+
+    # The absolute path an import or require loads, or nil.
+    def target(call)
+      return locate(call) unless SourceFile::IMPORTS.include?(call.kind.to_sym)
+
+      @edge_by_call[call]&.unit&.entrypoint
+    end
+
+    # The gem whose require paths hold `path`, or nil.
+    def gem_for(path)
+      gem_dirs
+        .select { |dir, _| path.start_with?("#{dir}/") }
+        .max_by { |dir, _| dir.length }
+        &.last
     end
 
     # The Unit `file` belongs to, or nil for the app, which runs in Main.
@@ -71,6 +89,15 @@ module Carton
     end
 
     private
+
+    def gem_dirs
+      @gem_dirs ||=
+        (@specs || Gem::Specification.to_a).flat_map do |spec|
+          spec.full_require_paths.filter_map do |dir|
+            [File.realpath(dir), spec] if File.directory?(dir)
+          end
+        end
+    end
 
     def ruby_files(paths)
       files =
