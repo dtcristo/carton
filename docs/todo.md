@@ -8,7 +8,6 @@ in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 
 - Include the paths Carton tried in missing-Import `LoadError` messages.
 - Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.
-- Ship `exe/carton` that sets `RUBY_BOX=1` and execs Ruby, so `carton main.rb` just works.
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
 - If large Cartons need lazy parts, let a Carton declare public sub-entrypoints that can be imported, like the `exports` field in Node's `package.json`. Today a file inside a Carton cannot be imported.
 - Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
@@ -19,11 +18,14 @@ in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 
 ## Tooling
 
-Packages as gems, with these checks, are proposed in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
+`carton rbs` and `carton check` exist; the rest of [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) is still open. Packages as gems are proposed in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
 
-- Prototype a Prism-based `carton check` that finds root-level `import` and `export` calls and builds a static dependency graph without evaluating code.
-- Report cycles, missing import targets, dead imports, and unused exports.
-- Report imports that a gem Carton's gemspec does not declare (see `examples/monorepo`). At runtime a gem Carton sees the caller's whole lockfile, so this is the cheapest way to enforce package dependencies.
+- `carton check`: report unused exports and dead imports.
+- `carton check`: report imports that a gem Carton's gemspec does not declare (see `examples/monorepo`). At runtime a gem Carton sees the caller's whole lockfile, so this is the cheapest way to enforce package dependencies.
+- `carton check`: report gem versions in a Carton's own `Gemfile.lock` that disagree with the app's.
+- `carton rbs`: read exported top-level method types from a Carton's own RBS, not only rbs-inline `#:` annotations.
+- `carton rbs`: optionally write Steepfile targets, one per Carton, so Cartons' internal constants cannot clash in RBS's single namespace.
+- Sorbet through a Tapioca DSL compiler, if `tapioca dsl` works under `RUBY_BOX=1`.
 
 ## Upstream
 

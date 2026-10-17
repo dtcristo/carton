@@ -23,6 +23,17 @@ imports of gem-sized and domain-sized units feel like part of Ruby.
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` and Gemfile discovery from the calling file |
 
+The `carton` command (`exe/carton`) reads code with Prism and never runs it.
+`require 'carton'` does not load it.
+
+| File | Role |
+| --- | --- |
+| `lib/carton/cli.rb` | `carton rbs` and `carton check`: options and output |
+| `lib/carton/source_file.rb` | One file's imports, requires, exports, and top-level definitions |
+| `lib/carton/project.rb` | Follows imports and `require_relative` from the given files to every Carton, resolving with `Resolver` |
+| `lib/carton/signatures.rb` | RBS for what each import returns |
+| `lib/carton/checks.rb` | Problems `carton check` reports |
+
 ## Import flow
 
 1. `import` or `import_relative` calls `Carton::Runtime.import`.
