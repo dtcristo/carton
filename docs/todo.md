@@ -12,7 +12,6 @@ Ordered by priority within each section.
 - Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
 - Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
 - Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
-- Revisit whether `import` should always return a `Carton::Exports` with a `default` accessor, or whether the current duck-typed return values fit better long term.
 - Consider a small helper for the `register` pattern in `examples/rails_in_cartons` if more framework integrations need it.
 - Test that the gem builds, installs into a clean gem home, and can be required and imported.
 

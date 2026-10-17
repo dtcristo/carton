@@ -13,6 +13,7 @@
 - Imports are cached process-wide by Entrypoint real path.
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.
 - `export` is repeatable; `export_default` is exclusive (once, never with `export`).
+- `import` returns a Default Export's value itself, and `Carton::Exports` for Named Exports and Bare Cartons; no wrapper with a `default` accessor.
 - Use Ruby's `private_constant` for visibility; Carton adds none.
 - Shared-class reopening risk is documented only (subclass, refine, freeze).
 - Master Box stays clean: only `examples/master_prelude` writes to it, and upstream asks only for an official template Box API.
