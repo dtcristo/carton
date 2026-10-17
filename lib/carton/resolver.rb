@@ -24,15 +24,20 @@ module Carton
     # as a native extension, comes back as the bare `path`. A file inside a
     # Carton raises ImportError: only its Entrypoint can be imported.
     def resolve(path, load_path:, base_dir: nil)
-      path = path.to_s
-      target =
-        if base_dir || File.absolute_path?(path)
-          resolve_file(File.expand_path(path, base_dir))
-        else
-          resolve_name(path, load_path) || Target.new(feature: path)
-        end
-      reject_inside_carton(path, target)
+      target = locate(path, load_path:, base_dir:)
+      reject_inside_carton(path.to_s, target)
       target
+    end
+
+    # Like `resolve`, but a file inside a Carton comes back as is, as
+    # `require` would load it. `carton check` uses this for `require` calls.
+    def locate(path, load_path:, base_dir: nil)
+      path = path.to_s
+      if base_dir || File.absolute_path?(path)
+        resolve_file(File.expand_path(path, base_dir))
+      else
+        resolve_name(path, load_path) || Target.new(feature: path)
+      end
     end
 
     # A Carton is its Entrypoint `x.rb` plus the `x/` directory beside it,
