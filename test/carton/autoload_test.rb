@@ -43,6 +43,28 @@ class AutoloadTest < Minitest::Test
     assert_equal :ok, other::Part
   end
 
+  # Zeitwerk and similar tools patch Kernel#require to see autoloaded files.
+  def test_autoload_runs_the_carton_box_kernel_require
+    entry = <<~RUBY
+      SEEN = []
+      Kernel.prepend(Module.new do
+        def require(path)
+          SEEN << File.basename(path)
+          super
+        end
+      end)
+      module Lazy
+        autoload :Part, File.join(__dir__, 'lazy/part')
+        def self.seen = SEEN
+      end
+      export_default Lazy
+    RUBY
+    lazy = carton('entry.rb' => entry, 'lazy/part.rb' => PART)
+
+    refute_equal Ruby::Box.main, lazy::Part # triggers the autoload
+    assert_includes lazy.seen, 'part'
+  end
+
   def teardown
     FileUtils.rm_rf(@dir) if @dir
   end

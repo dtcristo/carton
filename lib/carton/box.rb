@@ -23,6 +23,7 @@ module Carton
     def initialize
       @box = Ruby::Box.new
       @box.instance_variable_set(IVAR, self)
+      route_autoloads_through_kernel_require
       reset_export_declaration
     end
 
@@ -68,6 +69,17 @@ module Carton
     end
 
     attr_reader :import_cache, :pending_gems
+
+    # Ruby loads an autoload registered in this Box with `Ruby::Box#require`,
+    # which skips the Box's `Kernel#require` and so any patch on it, such as
+    # the one Zeitwerk uses to run `on_load` callbacks. Send it through
+    # `Kernel#require` in this Box instead.
+    def route_autoloads_through_kernel_require
+      box = @box
+      box.define_singleton_method(:require) do |path|
+        box.eval("require #{path.to_s.inspect}")
+      end
+    end
 
     # `eval` rather than `Ruby::Box#require`, so the Box's own `Kernel#require`
     # runs, including patches such as Zeitwerk's.
