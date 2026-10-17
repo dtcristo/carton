@@ -74,10 +74,19 @@ module Carton
     end
     private_class_method :inside_carton_message
 
+    # A directory laid out like a gem, `billing/lib/billing.rb`, resolves to
+    # that Entrypoint with its `lib/` on the Carton's load path, so the
+    # Carton can `require 'billing/invoice'` as a gem would.
     def resolve_file(expanded)
       [expanded, "#{expanded}.rb"].each do |candidate|
         return Target.new(feature: candidate) if File.file?(candidate)
       end
+      lib = File.join(expanded, 'lib')
+      entrypoint = File.join(lib, "#{File.basename(expanded)}.rb")
+      if File.file?(entrypoint)
+        return Target.new(feature: entrypoint, load_path: lib)
+      end
+
       raise LoadError, "cannot load such file -- #{expanded}"
     end
     private_class_method :resolve_file

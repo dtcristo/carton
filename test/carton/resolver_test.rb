@@ -144,6 +144,26 @@ class ResolverTest < Minitest::Test
     end
   end
 
+  # A Carton laid out like a gem can be imported by its root directory.
+  def test_resolves_a_gem_shaped_directory_to_its_entrypoint
+    Dir.mktmpdir do |dir|
+      lib = File.join(File.realpath(dir), 'components/billing/lib')
+      FileUtils.mkdir_p(lib)
+      File.write("#{lib}/billing.rb", '')
+
+      target = resolve('components/billing', base_dir: File.realpath(dir))
+
+      assert_equal "#{lib}/billing.rb", target.feature
+    end
+  end
+
+  def test_directory_without_lib_entrypoint_raises_load_error
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p("#{dir}/empty")
+      assert_raises(LoadError) { resolve('empty', base_dir: dir) }
+    end
+  end
+
   # rack-test ships lib/rack/test.rb without a lib/rack.rb of its own, so
   # rack/test is a Carton even though another gem defines rack.rb.
   def test_directory_without_a_sibling_entrypoint_is_not_a_carton

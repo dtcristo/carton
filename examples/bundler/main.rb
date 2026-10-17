@@ -6,16 +6,10 @@ require_relative '../../lib/carton'
 # call `Carton.setup_bundle` inside their own entrypoints.
 Carton.setup_bundle
 
-cartons_dir = File.expand_path('cartons', __dir__)
-
-# Name-based imports stay explicit: main chooses which local carton entrypoints
-# are available to `import 'name'`.
-Dir
-  .glob(File.join(cartons_dir, '*/lib'))
-  .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
-
-MathHelper = import 'math_helper'
-Billing = import 'billing'
+# Each local Carton is a gem-shaped directory (cartons/billing/lib/billing.rb),
+# so it imports by its directory. The path gem imports by name.
+MathHelper = import_relative 'cartons/math_helper'
+Billing = import_relative 'cartons/billing'
 CartonedGemExports = import 'cartoned_gem'
 
 puts '-- Bundled require --'
