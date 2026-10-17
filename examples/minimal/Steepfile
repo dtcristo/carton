@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+# Type-check the app with each Carton's RBS. `carton rbs main.rb` writes
+# sig/generated/carton.rbs, which types what each import returns. In an app,
+# `library 'carton'` replaces the '../../sig' path.
+target :app do
+  signature 'sig', '../../sig'
+  check 'main.rb'
+end

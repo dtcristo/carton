@@ -26,3 +26,19 @@ math.rb              # a Carton of one file, with Named Exports
 ```sh
 RUBY_BOX=1 ruby examples/minimal/main.rb
 ```
+
+## Types
+
+`sig/billing.rbs` declares the billing Carton's types, and `math.rb` annotates
+`percent` with an rbs-inline `#:` comment. `carton rbs main.rb` generated
+`sig/generated/carton.rbs`, which types each import, and Steep checks
+`main.rb` against both:
+
+```sh
+cd examples/minimal
+ruby ../../exe/carton rbs main.rb
+bundle exec steep check
+```
+
+`ruby ../../exe/carton check main.rb` reports the deliberate import of
+`billing/invoice`.
