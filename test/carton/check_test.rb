@@ -170,6 +170,26 @@ class CheckTest < Minitest::Test
     )
   end
 
+  def test_export_shadowing_a_built_in_method_is_an_error
+    status, output =
+      check(
+        'main.rb' => "import_relative 'named'\nimport_relative 'bare'\n",
+        'named.rb' => "export fetch: 1, PI: 3\n",
+        'bare.rb' => "def name = 'bare'\ndef helper = 1\n",
+      )
+
+    assert_equal 1, status
+    assert_match(
+      /^named\.rb:1: error: export name fetch would hide Carton::Exports#fetch/,
+      output,
+    )
+    assert_match(
+      /^bare\.rb:1: error: export name name would hide Carton::Exports#name/,
+      output,
+    )
+    assert_equal 2, output.scan('would hide').size
+  end
+
   def test_export_inside_a_carton_is_a_warning
     status, output =
       check(

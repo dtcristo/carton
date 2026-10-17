@@ -39,6 +39,12 @@ module Carton
       raise KeyError, "key not found: #{key.inspect}"
     end
 
+    # Exported names as Symbols, in the order they were exported.
+    def keys = lookup_names.map(&:to_sym)
+
+    # Every export by name: methods as `Method` objects, values as exported.
+    def to_h = keys.to_h { |key| [key, self[key]] }
+
     # Fetch several exported values and raise if any are missing.
     def fetch_values(*keys)
       keys.map { |key| fetch(key) }
