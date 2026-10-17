@@ -35,6 +35,11 @@
 - `sig/carton.rbs` declares `Carton::ExportMethods`, which `Carton::Exports`
   includes.
 - The minimal example type-checks with Steep.
+- `examples/zeitwerk` shows Zeitwerk with Cartons outside Rails: a Carton
+  using `Zeitwerk::Loader.for_gem`, a separate Zeitwerk per Box, an app loader
+  that ignores a Carton in its directory, eager loading so autoloads never run
+  in an importer's Box, and reloading, which leaves importers' references
+  stale.
 
 ## [0.2.0] - 2026-10-17
 

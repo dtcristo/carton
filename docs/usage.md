@@ -40,6 +40,22 @@ lib/billing/models/charge.rb  # inside too: models/ has no models.rb
 - No gemspec, Gemfile, or manifest is required. A Carton may be a gem, a path
   gem, a gem-shaped directory, or a plain file.
 
+### Zeitwerk
+
+A Carton's Entrypoint can run its own Zeitwerk loader, such as
+`Zeitwerk::Loader.for_gem`, in its own Box with its own copy of Zeitwerk.
+
+- End the Entrypoint with `loader.eager_load`. Ruby runs an autoload in the
+  Box whose code first references the constant, so a constant left lazy can
+  load in an importer's Box instead of the Carton's.
+- If the app's own loader manages a directory that contains a Carton,
+  `ignore` the Carton's Entrypoint and directory there. Otherwise the app's
+  loader can load the Carton's files in the Main Box.
+- Reloading a Carton defines new classes inside it, but importers keep
+  whatever classes and objects they already hold.
+
+[examples/zeitwerk](../examples/zeitwerk/README.md) shows each case.
+
 ## Exporting
 
 ### Named Exports

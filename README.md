@@ -129,6 +129,7 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
 | [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
 | [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
+| [zeitwerk](examples/zeitwerk/README.md) | Zeitwerk loaders inside Cartons and in the app, eager loading, and what reloading a Carton does to importers |
 | [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton |
 | [rails_in_cartons](examples/rails_in_cartons/README.md) | Rails loaded once in a Carton, models and controllers in domain Cartons |
 | [master_prelude](examples/master_prelude/README.md) | An unsupported hack that shares Active Support with every Carton |
