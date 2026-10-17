@@ -490,6 +490,45 @@ Cartons while Rails loads once in a framework Carton
 constant *name* inside the defining Box (Rails' `constantize`) still need the
 subclass defined there too.
 
+### Which Box runs an autoload
+
+`autoload` records the current Box. When code first references the constant,
+`autoload_feature_require` in `ruby/variable.c` requires the file in that
+recorded Box only if the Box's class is exactly `Ruby::Box` (the
+`BOX_OBJ_P` check). Otherwise it calls `require` on the top self of the Box
+running the referencing code. Carton's Boxes are `Carton::Box`, a subclass,
+so an autoload a Carton defines runs in whichever Box references the
+constant first. The file's `require`s and top-level constant lookups then
+resolve there, and it lands in that Box's `$LOADED_FEATURES`. Zeitwerk
+defines plain `Module#autoload`s, so its constants behave the same way.
+
+```ruby
+# greeter.rb
+module Greeter
+  autoload :Late, File.join(__dir__, 'greeter/late')
+end
+
+# greeter/late.rb
+Greeter::Late = Ruby::Box.current
+
+# main.rb: RUBY_BOX=1 ruby main.rb Ruby::Box   (or SubBox)
+class SubBox < Ruby::Box; end
+
+box = Object.const_get(ARGV[0]).new
+box.eval("require #{File.join(__dir__, 'greeter').inspect}")
+Greeter = box.eval('Greeter') # what an import hands the Main Box
+p Greeter::Late == box            # Ruby::Box: true, SubBox: false
+p Greeter::Late == Ruby::Box.main # Ruby::Box: false, SubBox: true
+```
+
+The repro requires through `box.eval`, as Carton does, because
+`SubBox#require` loads the file into the Main Box on 4.0.7. Ruby's master
+branch keeps the same exact-class check. A Carton avoids the problem by
+calling `loader.eager_load` (or referencing every autoloaded constant) at the
+end of its Entrypoint, so each file loads in the Carton's Box before `import`
+returns. Code a Carton defines, such as its methods, runs in the Carton's
+Box, so autoloads it triggers load there too.
+
 ### Why Carton should avoid unnecessary Ruby-core changes
 
 Because most of the mechanics Carton wants are already present:

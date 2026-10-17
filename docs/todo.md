@@ -30,9 +30,10 @@ See [upstream.md](internals/upstream.md) for detail.
 
 - Post the Bundler activation API proposal ([dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16)) upstream and comment on [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) with Carton's use case.
 - Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: official template Box support, framed as requirements derived from how Box copy-on-write works, leaving Master clean.
+- Report that autoloads registered in a `Ruby::Box` subclass run in the referencing Box: `autoload_feature_require` checks the exact class (`BOX_OBJ_P`), so Carton's `Carton::Box` loses the registering Box. See [how-boxes-work.md](internals/how-boxes-work.md#which-box-runs-an-autoload).
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
 - Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals ([#18408](https://bugs.ruby-lang.org/issues/18408)); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
 
 ## Docs
 
-- Expand the Rails examples into a guide: passing records into Cartons, testing Cartons in a Rails app, and reloading (Cartons last for the life of the process).
+- Expand the Rails examples into a guide: passing records into Cartons and testing Cartons in a Rails app. For reloading, the Rails examples document restarting on change; Zeitwerk reloading inside a Carton works only for `push_dir(..., namespace:)` loaders and never updates classes or objects importers (or Rails, via `register`) already hold. See [examples/zeitwerk](../examples/zeitwerk/README.md#reloading).

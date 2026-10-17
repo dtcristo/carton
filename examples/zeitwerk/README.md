@@ -79,9 +79,11 @@ app's loader roots, like `cartons/billing`, needs nothing.
 
 ## Eager load inside the Carton
 
-Ruby runs an autoload in the Box whose code references the constant, not
-the Box that defined the autoload. Plain `Module#autoload` behaves the same
-way, so this is Ruby::Box behavior, not Zeitwerk's. `Billing::Archive` is left
+Ruby runs an autoload a Carton defines in the Box whose code references the
+constant, not the Carton's Box. Plain `Module#autoload` behaves the same way,
+so this is Ruby::Box behavior, not Zeitwerk's;
+[how-boxes-work.md](../../docs/internals/how-boxes-work.md#which-box-runs-an-autoload)
+explains why. `Billing::Archive` is left
 lazy to show it: `main.rb` references it first, so `archive.rb` runs in the
 Main Box. The Carton's loader never sees that load, and any `require` or
 top-level constant in the file resolves against the Main Box. If the app had
