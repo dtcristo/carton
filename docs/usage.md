@@ -300,6 +300,12 @@ explains why only builtins get per-Box copies.
 
 ## Testing Cartons
 
+A Carton has two kinds of test. An integration test imports the Carton and
+sees only its Public Surface. A unit test loads the Carton's files with plain
+`require` and can reach its internals.
+
+### Integration tests
+
 Tests run in the Main Box, so a test imports a Carton the same way an app
 does. Run them with `RUBY_BOX=1`.
 
@@ -321,9 +327,40 @@ end
 - Imports are shared across the process, so a Carton's state persists from
   one test to the next. Keep Cartons stateless, or reset their state through
   their Public Surface.
-- A test sees only the Public Surface, and files inside a Carton cannot be
-  imported on their own. To test internals directly, move them into a Carton
-  of their own and import that.
+- Files inside a Carton cannot be imported on their own, and private
+  constants stay private across the boundary.
+
+### Unit tests
+
+A Carton's files are ordinary Ruby. Outside an Import, `export` and
+`export_default` declare nothing, so `require` loads an Entrypoint into the
+test's own Box like any other file. A unit test can then test code the Carton
+keeps private, and needs no `RUBY_BOX=1`:
+
+```ruby
+require 'carton' # defines export_default, which does nothing here
+require 'minitest/autorun'
+require 'pricing' # plain require: no Import, no boundary
+
+class PricingTest < Minitest::Test
+  # Pricing::Rounding raises NameError; const_get still returns it.
+  Rounding = Pricing.const_get(:Rounding)
+
+  def test_cents
+    assert_equal BigDecimal('1.01'), Rounding.cents(BigDecimal('1.005'))
+  end
+end
+```
+
+- Keep unit and integration tests in separate files, and run each file in
+  its own process. A plain `require` loads a second copy of the Carton
+  beside the imported one.
+- Private code can stay private instead of moving into a Carton of its own.
+  A test names it once with `const_get`, or `send` for a private method, so
+  each reach into internals is easy to find.
+
+[examples/monorepo/test](../examples/monorepo/test) has both kinds, run
+under the monorepo's bundle.
 
 ## Bundler
 

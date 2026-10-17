@@ -30,6 +30,10 @@
   Carton, and invalid export declarations, and exits non-zero on errors.
 - `carton check` treats a gem Carton's gemspec as its manifest: it reports
   each gem the Carton imports or requires that its gemspec does not declare.
+- `examples/monorepo/test` shows both ways to test a Carton: a unit test that
+  loads `pricing` with plain `require` and tests its private `Rounding`, and
+  an integration test that imports the packages and sees only their exports.
+  `rake example:<name>` runs an example's `test/**/*_test.rb` after `main.rb`.
 - `examples/rails_in_cartons` declares the `logger` dependency its `shop`
   Carton requires.
 - `sig/carton.rbs` declares `Carton::ExportMethods`, which `Carton::Exports`

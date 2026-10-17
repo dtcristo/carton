@@ -52,6 +52,28 @@ Enforcing it at runtime too is proposed in
 [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) as strict
 gem Cartons.
 
+## Tests
+
+`test/` shows both ways to test a package. Both run under the monorepo's
+bundle, which locks `minitest` in its `test` group.
+
+- `test/pricing_test.rb` is a unit test. It loads `pricing` with plain
+  `require`, so there is no Box or boundary, and tests the private
+  `Pricing::Rounding` through `Pricing.const_get(:Rounding)`. It runs with or
+  without `RUBY_BOX=1`.
+- `test/app_test.rb` is an integration test. It imports `billing` and
+  `pricing` as `main.rb` does, tests their exports, and checks that
+  `Pricing::Rounding` and `bigdecimal` stay hidden.
+
+Each file runs in its own process, since the unit test's `require` would load
+a second copy of `pricing` beside the imported one. `rake example:monorepo`
+runs `main.rb` and then each test file.
+
+```sh
+ruby examples/monorepo/test/pricing_test.rb
+RUBY_BOX=1 ruby examples/monorepo/test/app_test.rb
+```
+
 ## Run
 
 ```sh
