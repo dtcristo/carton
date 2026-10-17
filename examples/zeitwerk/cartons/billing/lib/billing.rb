@@ -11,8 +11,8 @@ require 'zeitwerk'
 # A Carton already has Zeitwerk's gem layout (lib/billing.rb plus
 # lib/billing/), so for_gem needs no configuration.
 loader = Zeitwerk::Loader.for_gem
-# Archive stays lazy to show what an autoload from another Box does; see the
-# README.
+# Archive stays lazy to show that an autoload triggered from another Box still
+# runs here; see the README.
 loader.do_not_eager_load(File.join(__dir__, 'billing', 'archive.rb'))
 loader.setup
 
@@ -24,8 +24,8 @@ module Billing
   def self.zeitwerk_dirs = Zeitwerk::Loader.all_dirs
 end
 
-# Load the rest of the Carton now, while this Box is running. Importers then
-# find every constant already defined and never trigger an autoload.
+# Load the rest of the Carton now, as an app does in production, so a broken
+# file fails at boot. Lazy autoloads would also run in this Box.
 loader.eager_load
 
 # Only Billing crosses the Carton boundary.

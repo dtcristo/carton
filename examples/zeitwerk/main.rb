@@ -69,13 +69,13 @@ show 'OrderSummary.line(4200, 3)',
      'invoice $42.00 + shipping $11.00'
 puts
 
-puts '-- A lazy autoload runs in the Box that triggers it --'
-# Billing::Archive is excluded from eager loading. Ruby runs an autoload in
-# the Box whose code references the constant, so this line loads archive.rb
-# in the Main Box, outside the billing Carton.
+puts '-- A lazy autoload still runs in the Carton\'s Box --'
+# Billing::Archive is excluded from eager loading, so this line triggers its
+# autoload from the Main Box. archive.rb still runs in the billing Carton's
+# Box, where the autoload was defined.
 show 'Billing::Archive loaded in the Main Box',
      Billing::Archive::LOADED_IN.equal?(main_box),
-     true
+     false
 puts
 
 puts '-- Reloading a Carton --'

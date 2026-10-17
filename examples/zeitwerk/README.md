@@ -4,15 +4,15 @@ Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk,
 so moving that code into Cartons means running Zeitwerk inside them. Done
 carelessly, a Carton's files can load in the app's Box instead of the
 Carton's, often without an error, and the boundary is gone. A Carton has
-Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Three
+Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Two
 things then need care:
 
 - The app's loader must not load a Carton's files into the Main Box.
-- A constant a Carton leaves to autoload loads in whichever Box first
-  references it, which can be the app's.
 - Reloading a Carton replaces its classes, but importers keep the old ones.
 
-This example shows each, with no Rails involved. `main.rb` raises if any
+Lazy autoloading needs no care: a constant a Carton leaves to autoload loads
+in the Carton's Box even when the app references it first. This example
+shows all three, with no Rails involved. `main.rb` raises if any
 behavior below stops holding.
 
 ```
@@ -26,7 +26,7 @@ cartons/billing/
   Gemfile                    # zeitwerk 2.7.5 for this Carton only
   lib/billing.rb             # billing Carton's Entrypoint: Zeitwerk::Loader.for_gem
   lib/billing/invoice.rb     # eager loaded inside the Carton
-  lib/billing/archive.rb     # left lazy, to show where an autoload runs
+  lib/billing/archive.rb     # left lazy; still loads in the Carton's Box
 ```
 
 ## A Carton with `Zeitwerk::Loader.for_gem`
@@ -77,25 +77,26 @@ Box has no autoload for `Shipping` and, after the app's eager load, that no
 Carton file is in the Main Box's `$LOADED_FEATURES`. A Carton outside the
 app's loader roots, like `cartons/billing`, needs nothing.
 
-## Eager load inside the Carton
+## Lazy autoloads stay in the Carton
 
-Ruby runs an autoload a Carton defines in the Box whose code references the
-constant, not the Carton's Box. Plain `Module#autoload` behaves the same way,
-so this is Ruby::Box behavior, not Zeitwerk's;
+An autoload a Carton defines loads in the Carton's Box, whichever Box
+references the constant first. `Billing::Archive` is left lazy to show it:
+`main.rb` references it first, and `archive.rb` still runs in the billing
+Carton's Box, through that Box's own Zeitwerk, so `on_load` callbacks and
+reloading see it.
+
+Ruby keeps an autoload in the Box that defined it only when that Box is
+exactly a `Ruby::Box`, and it then loads the file with `Ruby::Box#require`,
+which skips Zeitwerk's `Kernel#require` patch. Carton's Boxes are plain
+`Ruby::Box` instances, and Carton routes that `require` through the Box's
+`Kernel#require`;
 [how-boxes-work.md](../../docs/internals/how-boxes-work.md#which-box-runs-an-autoload)
-explains why. `Billing::Archive` is left
-lazy to show it: `main.rb` references it first, so `archive.rb` runs in the
-Main Box. The Carton's loader never sees that load, and any `require` or
-top-level constant in the file resolves against the Main Box. If the app had
-bound the Carton to another name, `module Billing` in `archive.rb` would open
-a new Main Box module and the autoload would raise `NameError`.
+has the details.
 
-Call `loader.eager_load` at the end of the Entrypoint. Every file then loads
-while the Carton's Box is running, before `import` returns, and importers only
-ever read constants that already exist. `Billing::Invoice` and
-`Shipping::Rate` record `Ruby::Box.current` when their files run, and neither
-is the Main Box. Code inside a Carton, such as a method the Carton defines,
-can still autoload lazily: it runs in the Carton's Box.
+`cartons/billing/lib/billing.rb` still calls `loader.eager_load`, as an app
+does in production: a broken file then fails at boot, not on first use.
+`Billing::Invoice` and `Shipping::Rate` record `Ruby::Box.current` when their
+files run, and neither is the Main Box.
 
 ## Reloading
 
@@ -117,7 +118,7 @@ instance variables, or objects an importer already holds. Carton caches each
 import, so `import` after a reload returns the same root module, not a new
 one.
 
-Two setups do not reload:
+One setup does not reload:
 
 - A `for_gem` loader manages the Entrypoint too. Reloading removes the
   top-level `Billing` from the Carton's Box, and the `Billing` module
@@ -129,8 +130,6 @@ Two setups do not reload:
   file that configures it. Autoloading it lazily reaches `export_default` a
   second time, which raises `Carton::ExportError`. Use
   `push_dir(..., namespace:)` for a reloadable Carton.
-- A lazy Carton. After the reload, the first reference from the app runs the
-  file in the Main Box, as above. Eager load again after each reload.
 
 ## Run
 
