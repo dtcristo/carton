@@ -60,7 +60,7 @@ components/
   `self.abstract_class = true`) instead of binding the shared one, and refine
   rather than reopen another domain's classes. Freezing these classes is not
   an option: Active Record writes class-level state at runtime. See
-  [Sharing classes across cartons](../../docs/usage.md#sharing-classes-across-cartons).
+  [Sharing classes across Cartons](../../docs/usage.md#sharing-classes-across-cartons).
 - **Everything Rails needs by name must be registered.** That includes
   controllers, models, and anything else Rails constantizes, such as
   serializers or polymorphic types.

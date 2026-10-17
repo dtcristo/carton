@@ -31,7 +31,7 @@ list of confirmed behavior.
 
 ### Ruby docs describe old Main Box creation
 
-`doc/language/box.md` still says the main box is created "at the end of
+`doc/language/box.md` still says the Main Box is created "at the end of
 Ruby's bootstrap", on both v4.0.7 and master. Since 4.0.6, Ruby initializes
 Root and Main from Master before the prelude. The fix is one sentence, and
 [root-box-vs-main-box.md](root-box-vs-main-box.md) has the sources.
@@ -68,6 +68,21 @@ afterwards, so other threads can see a Carton's values during setup. A
 `Bundler.setup(gemfile:, lockfile:)` that leaves `ENV` alone would remove
 that. Propose only with a failing multi-threaded reproduction.
 
+### Template Boxes
+
+Sharing monkey patches across Cartons costs a full load per Box (about 830ms
+for Active Support's core extensions). Requiring them into `Ruby::Box.master`
+once works on 4.0.7 and later Boxes inherit them, but Ruby documents that no
+code runs in Master, and Master should stay clean. Ask for official template
+Box support instead. Box copy-on-write assumes Master is the only copy source
+(only builtins get per-Box copies), so the draft states
+requirements and implementation questions rather than an API. See
+[how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407) and
+[examples/master_prelude](../../examples/master_prelude/README.md). Draft
+proposal with a standalone reproduction:
+[dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25). Not
+blocking.
+
 ## Resolved
 
 - **Bundler setup writes subprocess `ENV`.** `Bundler::Runtime#setup` exports
@@ -90,24 +105,9 @@ that. Propose only with a failing multi-threaded reproduction.
 - **Ruby 4.0.5.** Boxed `Symbol#to_proc` and `super` dispatch failures do not
   reproduce on 4.0.6 or later.
 
-### Template Boxes
-
-Sharing monkey patches across Cartons costs a full load per Box (about 830ms
-for Active Support's core extensions). Requiring them into `Ruby::Box.master`
-once works on 4.0.7 and later Boxes inherit them, but Ruby documents that no
-code runs in Master, and Master should stay clean. Ask for official template
-Box support instead. Box copy-on-write assumes Master is the only copy source
-(only Master-created classes get per-Box copies), so the draft states
-requirements and implementation questions rather than an API. See
-[how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407) and
-[examples/master_prelude](../../examples/master_prelude/README.md). Draft
-proposal with a standalone reproduction:
-[dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25). Not
-blocking.
-
 ## Ideas not pursued
 
-- **Per-box copies for every class.** Classes created in user Boxes have one
+- **Per-Box copies for every class.** Classes created in user Boxes have one
   shared definition, so reopening a Carton's class from another Box changes
   it everywhere. Giving them per-Box copies like builtins would isolate
   reopens, but the same object would then behave differently depending on the

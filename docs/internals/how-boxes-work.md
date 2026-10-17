@@ -36,33 +36,33 @@ The idea is not "clone the whole VM". The idea is closer to:
 
 > keep Ruby's core objects and VM, but make the pieces that define code visibility and lookup become box-specific.
 
-That distinction explains both the power of boxes and their sharp edges.
+That distinction explains both the power of Boxes and their sharp edges.
 
 ## Public API
 
-`Ruby::Box` is a subclass of `Module`, and box instances behave like namespaces.
+`Ruby::Box` is a subclass of `Module`, and Box instances behave like namespaces.
 
 ### Class methods
 
 | API | Meaning |
 | --- | --- |
 | `Ruby::Box.enabled?` | whether the process was started with `RUBY_BOX=1` |
-| `Ruby::Box.current` | current box for the running code |
-| `Ruby::Box.root` | the root box created during Ruby bootstrap |
-| `Ruby::Box.main` | the main user box where the top-level script runs |
+| `Ruby::Box.current` | current Box for the running code |
+| `Ruby::Box.root` | the Root Box created during Ruby bootstrap |
+| `Ruby::Box.main` | the main user Box where the top-level script runs |
 
 ### Instance methods
 
 | API | Meaning |
 | --- | --- |
-| `Ruby::Box.new` | create a new optional user box |
-| `box.require(feature)` | require a feature inside that box |
-| `box.require_relative(feature)` | require relative to the caller inside that box |
-| `box.load(path, wrap = false)` | load a file inside that box |
-| `box.eval(code)` | eval a string inside that box |
-| `box.load_path` | the box's local load path array |
-| `box.root?` | whether this is the root box |
-| `box.main?` | whether this is the main user box |
+| `Ruby::Box.new` | create a new optional user Box |
+| `box.require(feature)` | require a feature inside that Box |
+| `box.require_relative(feature)` | require relative to the caller inside that Box |
+| `box.load(path, wrap = false)` | load a file inside that Box |
+| `box.eval(code)` | eval a string inside that Box |
+| `box.load_path` | the Box's local load path array |
+| `box.root?` | whether this is the Root Box |
+| `box.main?` | whether this is the main user Box |
 | `box.inspect` | debug-friendly identity like `#<Ruby::Box:2,user,optional>` |
 
 ### Minimum usage model
@@ -75,15 +75,15 @@ box::MyClass
 box::MY_CONST
 ```
 
-The box object is how code defined in the box is reached from the outside.
+The Box object is how code defined in the Box is reached from the outside.
 
-## The four box roles
+## The four Box roles
 
 Ruby 4.0.7 distinguishes these roles:
 
 | Box role | What it is |
 | --- | --- |
-| Master Box | internal immutable template; no code runs there |
+| Master Box | internal template every Box is copied from; Ruby's docs say no code runs there |
 | Root Box | runs Ruby bootstrap and builtin code |
 | Main Box | user Box that runs the command-line program and `-r` loads |
 | optional Box | extra user Box created by `Ruby::Box.new` |
@@ -116,12 +116,13 @@ Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say
 - Objects and modules defined there are shared, not copied: a mutable
   constant or a module's instance variables changed in one Box are seen in
   every other.
-- Reopening a Master class or adding monkey patches in a Box stays in that
-  Box.
+- Monkey patches a Box adds to builtins such as `String` stay in that Box.
+- Classes defined this way are not boxable, unlike builtins. Like classes
+  defined in a user Box, they have one shared definition: reopening one in
+  any Box, with `class` or `class_eval`, changes it in Master and every other
+  Box. This holds for both `eval` and `require` into Master.
 - Methods defined in Master run in Master, so their constant lookups and lazy
   `require`s use Master's `Object` and load path, not the caller's.
-- Classes defined in Master are boxable, unlike classes defined in a user box,
-  which is why a later Box's reopens of them stay in that Box.
 
 Loading all of Active Support's core extensions into Master once made them
 available in every later Box at no per-Box cost; requiring them in each Box
@@ -129,7 +130,7 @@ instead cost about 830ms per Box. [examples/master_prelude](../../examples/maste
 uses this as an optional, unsupported prelude. Carton itself does not, and
 will not until Ruby supports template Boxes.
 
-## The actual box data structure
+## The actual Box data structure
 
 The implementation lives in `ruby/internal/box.h`.
 
@@ -163,7 +164,7 @@ This tells you what `Ruby::Box` really isolates:
 
 It does **not** imply a brand new VM or brand new copies of every object.
 
-## How a new box is created
+## How a new Box is created
 
 `box_entry_initialize` in `ruby/box.c` is the key constructor for Boxes.
 
@@ -180,7 +181,7 @@ Two consequences matter a lot:
 
 ### 1. New Boxes are copied from Master, not from the caller
 
-This is why a box created deep inside another box does **not** automatically inherit the caller's custom `$LOAD_PATH`.
+This is why a Box created deep inside another Box does **not** automatically inherit the caller's custom `$LOAD_PATH`.
 
 Carton handles that by carrying forward only the caller load-path entry that
 resolved the imported feature.
@@ -204,8 +205,8 @@ The relevant code is in `ruby/vm.c`.
 
 Ruby keeps both:
 
-- the **current box**: where the current execution context lives,
-- the **loading box**: which box a `require`/`load` should resolve against.
+- the **current Box**: where the current execution context lives,
+- the **loading Box**: which Box a `require`/`load` should resolve against.
 
 `rb_vm_current_box` answers the first.
 
@@ -215,7 +216,7 @@ That matters because `require` is not just "use whatever box I happen to be in r
 
 > find the box that initiated this loading operation, then use that box's load state.
 
-This is why `box.require(...)` and nested requires remain coherent inside the box.
+This is why `box.require(...)` and nested requires remain coherent inside the Box.
 
 ## How `box.require` works
 
@@ -233,9 +234,9 @@ rb_vm_frame_flag_set_box_require(GET_EC());
 
 Then they call the normal require/load entrypoints.
 
-That single frame flag is how `rb_vm_loading_box` knows this load should be anchored to the box.
+That single frame flag is how `rb_vm_loading_box` knows this load should be anchored to the Box.
 
-## How `$LOAD_PATH` and `$LOADED_FEATURES` become box-local
+## How `$LOAD_PATH` and `$LOADED_FEATURES` become Box-local
 
 The relevant code is in `ruby/load.c`.
 
@@ -244,12 +245,12 @@ Ruby defines:
 - `load_path_getter` -> `rb_loading_box()->load_path`
 - `get_LOADED_FEATURES` -> `rb_loading_box()->loaded_features`
 
-and marks the globals as box-ready:
+and marks the globals as Box-ready:
 
 - `rb_gvar_box_ready("$LOAD_PATH")`
 - `rb_gvar_box_ready("$LOADED_FEATURES")`
 
-So when Ruby code reads `$LOAD_PATH` during a boxed require, it is reading the loading box's array.
+So when Ruby code reads `$LOAD_PATH` during a boxed require, it is reading the loading Box's array.
 
 This is not an app-level convention. It is how the runtime is wired.
 
@@ -260,7 +261,7 @@ Box, not `box`. Carton therefore activates gems in a new Box from a file it
 Bundler's setup both write `$LOAD_PATH` and would otherwise update the
 wrong Box.
 
-## The full `require` path under boxes
+## The full `require` path under Boxes
 
 `require_internal` in `ruby/load.c` is the center of the loading pipeline.
 
@@ -273,32 +274,32 @@ const rb_box_t *box = rb_loading_box();
 From there:
 
 1. `search_required` resolves the feature,
-2. `rb_feature_p` checks whether it is already loaded in that box,
+2. `rb_feature_p` checks whether it is already loaded in that Box,
 3. Ruby loads Ruby code or a native extension,
-4. `rb_provide_feature(box, path)` records the feature in that box's `loaded_features`.
+4. `rb_provide_feature(box, path)` records the feature in that Box's `loaded_features`.
 
-So the box-aware file-loading model is very real:
+So the Box-aware file-loading model is very real:
 
-- feature lookup is box-specific,
-- feature deduplication is box-specific,
-- the loaded-feature index is box-specific.
+- feature lookup is Box-specific,
+- feature deduplication is Box-specific,
+- the loaded-feature index is Box-specific.
 
-That is why two boxes can load different versions of the same Ruby file tree, as long as the rest of the runtime above them cooperates.
+That is why two Boxes can load different versions of the same Ruby file tree, as long as the rest of the runtime above them cooperates.
 
-## Why constants and monkey patches can differ per box
+## Why constants and monkey patches can differ per Box
 
 This is the second major mechanism after load-state isolation.
 
-`Ruby::Box` does **not** create separate `String`, `Array`, or `Object` objects for every box.
+`Ruby::Box` does **not** create separate `String`, `Array`, or `Object` objects for every Box.
 
-Instead, builtin classes/modules share identity, but their mutable definition state is split using per-box class extensions.
+Instead, builtin classes/modules share identity, but their mutable definition state is split using per-Box class extensions.
 
 The relevant structures live in:
 
 - `ruby/internal/class.h`
 - `ruby/class.c`
 
-Each class/module has a prime class-extension record plus optional per-box copies.
+Each class/module has a prime class-extension record plus optional per-Box copies.
 
 The class-extension structure includes:
 
@@ -317,33 +318,35 @@ The important helpers are:
 
 The model is copy-on-write:
 
-1. boxes initially read the prime/root definition state,
-2. the first write in a box duplicates the class-extension data,
-3. later reads/writes in that box use the box's extension tables.
+1. Boxes initially read the prime definition state,
+2. the first write in a Box duplicates the class-extension data,
+3. later reads/writes in that Box use the Box's extension tables.
 
 That is how this can be true at once:
 
 - `String == box::String`
-- monkey-patching `String` in a box stays local to that box
+- monkey-patching `String` in a Box stays local to that Box
 
-This is also why top-level constants and top-level methods can be box-local even though `Object` itself is a builtin class.
+This is also why top-level constants and top-level methods can be Box-local even though `Object` itself is a builtin class.
 
-### Which classes get per-box copies (Ruby 4.0.7)
+### Which classes get per-Box copies (Ruby 4.0.7)
 
-- **Only classes created while Master is the current box.** `class_alloc`
+- **Only classes created while Master is the current Box.** `class_alloc`
   marks a class "boxable" only when `BOX_MASTER_P(rb_current_box())`
-  ([class.c](https://github.com/ruby/ruby/blob/v4.0.7/class.c#L649-L700)). In practice that means builtins.
-- **Classes created in any user box have only prime, and it is writable.**
+  ([class.c](https://github.com/ruby/ruby/blob/v4.0.7/class.c#L649-L700)). In practice that means builtins defined during
+  bootstrap. Classes defined later through `Ruby::Box.master.eval` or
+  `require` are not boxable; verified on 4.0.7.
+- **Classes created in any user Box have only prime, and it is writable.**
   They are shared objects with one method table and one constant table, so
-  reopening such a class from another box changes it for every box holding
-  a reference. Patching `String` is box-local; patching a class another
+  reopening such a class from another Box changes it for every Box holding
+  a reference. Patching `String` is Box-local; patching a class another
   Carton defined is not.
-- **Reads fall through to prime until the first write.** A box that never
+- **Reads fall through to prime until the first write.** A Box that never
   writes `Rational` keeps seeing Master's current `Rational`
   ([`RCLASS_EXT_READABLE_IN_BOX`](https://github.com/ruby/ruby/blob/v4.0.7/internal/class.h#L352-L370),
   [`RCLASS_EXT_WRITABLE_LOOKUP`](https://github.com/ruby/ruby/blob/v4.0.7/internal/class.h#L387-L410)). Each
-  new box's gem prelude writes to `String`, `Array`, and others, so those
-  get an early per-box copy, which can look like a snapshot.
+  new Box's gem prelude writes to `String`, `Array`, and others, so those
+  get an early per-Box copy, which can look like a snapshot.
 - **Box creation itself copies only `load_path`, `loaded_features`, and
   `Object`'s constant table**
   ([`box_entry_initialize`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L157-L185),
@@ -351,68 +354,68 @@ This is also why top-level constants and top-level methods can be box-local even
   reads and writes prime directly
   ([`initialize_master_box`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L876-L897)).
 
-## Why a box is also a namespace
+## Why a Box is also a namespace
 
-`Ruby::Box` subclasses `Module`, and top-level constants defined in a box become constants of `Object` in that box.
+`Ruby::Box` subclasses `Module`, and top-level constants defined in a Box become constants of `Object` in that Box.
 
-Ruby then exposes them through the box object:
+Ruby then exposes them through the Box object:
 
 ```ruby
 box::FOO
 box::SomeClass
 ```
 
-The box's `top_self` also participates in top-level code execution.
+The Box's `top_self` also participates in top-level code execution.
 
-So a box is both:
+So a Box is both:
 
 - a runtime loading context,
 - and the external namespace through which that context is observed.
 
-## Global variables: box-local, but only for actual Ruby globals
+## Global variables: Box-local, but only for actual Ruby globals
 
 The relevant code is in `ruby/variable.c`.
 
 `rb_gvar_set` and `rb_gvar_get` can store values in `box->gvar_tbl`.
 
-Ruby also marks some globals as box-ready with `rb_gvar_box_ready`.
+Ruby also marks some globals as Box-ready with `rb_gvar_box_ready`.
 
 This is why globals like:
 
 - `$LOAD_PATH`
 - `$LOADED_FEATURES`
 
-can behave box-locally.
+can behave Box-locally.
 
-But this does **not** mean every process-global thing in Ruby becomes box-local.
+But this does **not** mean every process-global thing in Ruby becomes Box-local.
 
 The biggest counterexample is `ENV`.
 
-Runtime probes confirmed that writing `ENV["X"]` inside a box changes it for the whole process.
+Runtime probes confirmed that writing `ENV["X"]` inside a Box changes it for the whole process.
 
 That is because `ENV` is not just another global variable backed by `gvar_tbl`. It is a process-level object with its own behavior.
 
 This distinction matters a lot for Bundler.
 
-## Native extensions: boxes do extra work here
+## Native extensions: Boxes do extra work here
 
 Native extensions are one of the most interesting parts of `Ruby::Box`.
 
-When a box loads a native extension, Ruby cannot safely pretend that one shared `.bundle` / `.so` file mapping is always enough.
+When a Box loads a native extension, Ruby cannot safely pretend that one shared `.bundle` / `.so` file mapping is always enough.
 
 `ruby/box.c` handles this through `rb_box_local_extension`.
 
 It:
 
-1. builds a unique filename using the box id,
-2. copies the original extension file to a box-local temp filename,
+1. builds a unique filename using the Box id,
+2. copies the original extension file to a Box-local temp filename,
 3. loads that copied file,
 4. tracks it in `ruby_dln_libmap`,
 5. removes it during cleanup.
 
-So boxed native-extension loading is not just logical isolation. Ruby is creating physically separate temporary extension files per box.
+So boxed native-extension loading is not just logical isolation. Ruby is creating physically separate temporary extension files per Box.
 
-This explains why boxes can do things normal Ruby cannot easily do with one shared `dlopen` target.
+This explains why Boxes can do things normal Ruby cannot easily do with one shared `dlopen` target.
 
 It also explains why teardown and cleanup bugs in `Ruby::Box` can be subtle.
 
@@ -456,20 +459,20 @@ fixed.
 
 Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
-1. each Carton file loads once into its own box, and later imports share it,
-2. `$LOAD_PATH` inside that box is isolated,
-3. top-level constants and builtin-class monkey patches defined in the imported carton stay inside that box; classes the carton defines are shared objects, so another Box that reopens them changes them everywhere,
-4. the returned box or export object becomes the carton boundary.
+1. each Carton file loads once into its own Box, and later imports share it,
+2. `$LOAD_PATH` inside that Box is isolated,
+3. top-level constants and builtin-class monkey patches defined in the imported Carton stay inside that Box; classes the Carton defines are shared objects, so another Box that reopens them changes them everywhere,
+4. only the export value or `Carton::Exports` leaves the Box; the Box itself never does.
 
 But the internals also explain Carton's current constraints:
 
-### Why Carton resolves imports in the caller box first
+### Why Carton resolves imports in the caller Box first
 
 Because new Boxes copy **Master**, not the current caller Box. Carton therefore asks the caller Box to resolve the feature name, then carries only the matched load-path entry into the imported Box when that feature needs its own load-path root.
 
-### Why Bundler setup inside the box is the right shape
+### Why Bundler setup inside the Box is the right shape
 
-Because `require` really does resolve against the loading box's local `$LOAD_PATH` and `$LOADED_FEATURES`.
+Because `require` really does resolve against the loading Box's local `$LOAD_PATH` and `$LOADED_FEATURES`.
 
 ### Why `setup_bundle` manages `ENV`
 
@@ -491,10 +494,10 @@ subclass defined there too.
 
 Because most of the mechanics Carton wants are already present:
 
-- box-local load paths,
-- box-local loaded features,
-- box-local constant/method tables,
-- box-local Bundler constants when Bundler is first required in the box.
+- Box-local load paths,
+- Box-local loaded features,
+- Box-local constant/method tables,
+- Box-local Bundler constants when Bundler is first required in the Box.
 
 Carton needs no upstream change today. [upstream.md](upstream.md) tracks the small open items.
 
@@ -502,7 +505,9 @@ Carton needs no upstream change today. [upstream.md](upstream.md) tracks the sma
 
 If you want one sentence that stays accurate:
 
-> `Ruby::Box` already isolates file loading, RubyGems activation state, and most
-> language definitions. Carton only has to manage the process-global `ENV`.
+> `Ruby::Box` already isolates file loading, RubyGems activation state, and
+> monkey patches to builtins. Carton manages the process-global `ENV`, carries
+> a gem Carton's dependencies into its Box, and leaves classes it defines
+> shared.
 
 That is the lens to keep while designing Carton.

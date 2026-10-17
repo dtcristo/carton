@@ -24,6 +24,10 @@ _Avoid_: Root Box, root carton, main carton
 A user Box created for an Import and hosting one Carton. It is separate from the Main Box.
 _Avoid_: Carton box, child box
 
+**Master Box**:
+Ruby's internal Box that every new Box is copied from. Carton never writes to it.
+_Avoid_: Template box, root box
+
 **Import**:
 Loading a Carton into a Box and receiving its public surface. Only an Import crosses a Carton boundary; code loaded without one remains inside the current Carton.
 _Avoid_: Require
@@ -43,6 +47,10 @@ _Avoid_: Imported carton when the relationship is indirect
 **Public Surface**:
 The values a Carton deliberately makes available across its boundary, including values exposed through exported behavior.
 _Avoid_: Only the directly declared values
+
+**Gem Carton**:
+A Carton whose Entrypoint belongs to a gem the importer has activated, such as a path gem in the app's Gemfile. Its Box gets that gem's dependencies at the importer's versions.
+_Avoid_: Gem package
 
 **Bare Carton**:
 A Carton without declared exports. The constants and top-level helpers its Entrypoint defines are its public surface, returned as a `Carton::Exports` like an Export Namespace; importers never receive its Box.

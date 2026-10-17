@@ -34,8 +34,9 @@ bundle, against a single load here.
   Ruby could freeze Master or reject this.
 - **Shared state.** Objects and module state created by the prelude are the
   same objects in every Carton. Keep the prelude to monkey patches and
-  stateless helpers. A Carton reopening a prelude class or adding its own
-  patches still only changes its own Box.
+  stateless helpers. A Carton's own patches to builtins such as `String`
+  stay in its Box, but reopening a class the prelude defined (say
+  `ActiveSupport::Duration`) changes it in every Carton.
 - **Leaked load path.** Prelude methods run in Master even when a Carton calls
   them, so lazy `require`s inside them (I18n loads its backend on first use)
   search Master's load path. The gem paths therefore stay on Master's load

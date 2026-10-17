@@ -5,13 +5,13 @@
 Use **Main Box** for the top-level application's Ruby environment.
 
 - The **Root Box** is Ruby's bootstrap/builtin-code environment
-- The **Main Box** is the user box in which the command-line program runs
+- The **Main Box** is the user Box in which the command-line program runs
 - `Ruby::Box.current == Ruby::Box.main` in ordinary top-level user code
-- Ruby's top-level receiver named `main` is an object inside that environment; it is not another box
+- Ruby's top-level receiver named `main` is an object inside that environment; it is not another Box
 
 Ruby exposes both terms deliberately through `Ruby::Box.root` and
 `Ruby::Box.main`. The Ruby 4.0 docs assign the user's main program and `-r`
-loads to the Main Box, while the tests assert that the current box in the main
+loads to the Main Box, while the tests assert that the current Box in the main
 program is `Ruby::Box.main`.
 
 Sources:
@@ -26,7 +26,7 @@ Ruby 4.0.0 through 4.0.5 and Ruby 4.0.6 do not have the same copy source.
 
 ### Ruby 4.0.0-4.0.5
 
-The Main Box is created after the prelude. Both it and later optional boxes copy
+The Main Box is created after the prelude. Both it and later optional Boxes copy
 the Root Box. Therefore a Root Box load-path mutation is inherited by a later
 `Ruby::Box.new`; a Main Box mutation is not.
 
@@ -45,12 +45,14 @@ Sources:
 
 ### Ruby 4.0.6
 
-Ruby added an internal **Master Box** as the immutable copy source. Root, Main,
-and optional boxes copy Master; Root and Main are initialized before the prelude
-and load prelude state in their own environments. Master runs no code.
+Ruby added an internal **Master Box** as the copy source. Root, Main, and
+optional Boxes copy Master; Root and Main are initialized before the prelude
+and load prelude state in their own environments. Ruby intends no code to run
+in Master, though on 4.0.7 it can; see
+[how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407).
 
-This was explicitly intended to stop box contents depending on when a box was
-created. It does not change which box owns the user's main program: Main Box.
+This was explicitly intended to stop Box contents depending on when a Box was
+created. It does not change which Box owns the user's main program: Main Box.
 
 Sources:
 

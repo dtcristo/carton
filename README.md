@@ -10,21 +10,31 @@
   </p>
 </div>
 
-Carton is a thin wrapper around [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html) for safe, ergonomic modularization in Ruby 4.0.7+. It gives you imports and exports that work like ES Modules while still feeling like Ruby. Each carton can isolate constants, gems and monkey patches behind a small public API, so large apps can keep clear boundaries.
+Carton adds `import` and `export` to Ruby, built on
+[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html). Each imported
+file, called a Carton, loads in its own Box. Its constants, gems, and monkey
+patches stay inside, and only what it exports reaches the importer.
 
-## Install
+- **Explicit boundaries.** Only `import` crosses into a Carton, and only its
+  exports come back.
+- **Gem isolation.** Two Cartons can use different versions of the same gem in
+  one process, each with its own Bundler setup if it wants one.
+- **Contained monkey patches.** Patching `String` in one Carton leaves every
+  other Carton alone.
+- **Plain Ruby.** Any file can be a Carton, and Ruby's own `private_constant`
+  hides internals. Carton has no manifest or directory layout.
 
-```sh
-gem install carton   # or add `gem 'carton'` to your Gemfile
+## Quick start
+
+Carton needs Ruby 4.0.7+ with Boxes enabled (`RUBY_BOX=1`). The API below is
+on `main` and not yet released, so install from GitHub:
+
+```ruby
+# Gemfile
+gem 'carton', github: 'dtcristo/carton'
 ```
 
-Carton needs Ruby 4.0.7+ with boxes enabled, so run your app with `RUBY_BOX=1`:
-
-```sh
-RUBY_BOX=1 ruby main.rb
-```
-
-## Minimal usage
+Export one main value with `export_default`:
 
 ```ruby
 # user.rb
@@ -35,17 +45,8 @@ end
 export_default User
 ```
 
-```ruby
-# main.rb
-require 'carton'
-
-User = import_relative 'user'
-alice = User.new('Alice')
-```
-
-Without a default, `export` builds a namespace-like module. Call it as often
-as you like: capitalized Symbols export constants, other Symbols export
-methods, and keywords export plain values.
+Or export several names with `export`. Capitalized Symbols name constants,
+other Symbols name methods, and keywords are plain values:
 
 ```ruby
 # math.rb
@@ -53,46 +54,79 @@ export def add(a, b) = a + b
 export PI: 3.14159
 ```
 
+Import them:
+
 ```ruby
+# main.rb
+require 'carton'
+
+User = import_relative 'user'
+User.new('Alice')
+
 MathTools = import_relative 'math'
-MathTools::PI
-MathTools.add(2, 3)
+MathTools.add(2, 3) # => 5
+MathTools::PI       # => 3.14159
 ```
+
+```sh
+RUBY_BOX=1 ruby main.rb
+```
+
+`import 'name'` searches `$LOAD_PATH` like `require`, so gems and path gems
+import by name. Each Carton loads once per process, and every later import
+returns the same value.
+
+## Gems and Bundler
+
+A Carton can set up its own bundle, isolated from the app's:
+
+```ruby
+# cartons/reports/lib/reports.rb
+Carton.setup_bundle # uses cartons/reports/Gemfile
+require 'bigdecimal'
+```
+
+A gem in the app's bundle imports as a Carton and gets its dependencies at the
+app's locked versions. For a monorepo, make each package a path gem in one
+Gemfile and import it by name; see [examples/monorepo](examples/monorepo/README.md).
+
+## Status
+
+Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7+ and,
+with Bundler, Bundler 4.0.23+. Box is not a security boundary: it isolates
+definitions and load state, not objects. Classes a Carton defines are shared
+with every importer, so reopening one changes it everywhere; see
+[Sharing classes across Cartons](docs/usage.md#sharing-classes-across-cartons).
 
 ## Docs
 
-- [usage.md](docs/usage.md) - imports, exports, load paths, Bundler, and testing
-- [design.md](docs/design.md) - implementation overview and constraints
-- [todo.md](docs/todo.md) - planned library, docs, and tooling work
-- [examples/minimal](examples/minimal/README.md) - smallest example
-- [examples/gems](examples/gems/README.md) - manual RubyGems activation without Bundler
-- [examples/bundler](examples/bundler/README.md) - per-Carton Bundler setup plus a support gem
-- [examples/monorepo](examples/monorepo/README.md) - packages as path gems in one Gemfile, imported by gem name
-- [examples/rails_in_main](examples/rails_in_main/README.md) - Rails in the Main Box; plain-Ruby domain logic in a Zeitwerk Carton
-- [examples/rails_in_cartons](examples/rails_in_cartons/README.md) - Rails loaded once in a Carton; models and controllers across domain Cartons
-- [examples/master_prelude](examples/master_prelude/README.md) - optional, unsupported hack: share Active Support with every Carton via Ruby's Master Box
+- [usage.md](docs/usage.md): exports, imports, Bundler, gem Cartons, and testing
+- [design.md](docs/design.md): how an import runs
+- [todo.md](docs/todo.md): planned work and open questions
+- [internals/](docs/internals/): how `Ruby::Box`, RubyGems, and Bundler work, and upstream plans
+- [CONTEXT.md](CONTEXT.md): the glossary
 
-Research notes on `Ruby::Box`, RubyGems, Bundler, and upstream plans live in [docs/internals](docs/internals/).
+Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
+
+| Example | Shows |
+| --- | --- |
+| [minimal](examples/minimal/README.md) | `export_default`, `export`, and `import_relative`, with no gems |
+| [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
+| [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
+| [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
+| [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton |
+| [rails_in_cartons](examples/rails_in_cartons/README.md) | Rails loaded once in a Carton, models and controllers in domain Cartons |
+| [master_prelude](examples/master_prelude/README.md) | An unsupported hack that shares Active Support with every Carton |
 
 ## Development
 
 ```sh
-bundle install                              # Install development deps
-bundle exec rake                            # Run tests, lint, and examples
-bundle exec rake format                     # Format code
-bundle exec rake rubocop                    # Lint code
-RUBY_BOX=1 ruby examples/minimal/main.rb     # Run the minimal example
-RUBY_BOX=1 ruby examples/gems/main.rb        # Run the RubyGems example
-RUBY_BOX=1 ruby examples/bundler/main.rb     # Run the Bundler example
-RUBY_BOX=1 ruby examples/monorepo/main.rb    # Run the monorepo example
-RUBY_BOX=1 ruby examples/rails_in_main/main.rb     # Run the Rails-in-Main example
-RUBY_BOX=1 ruby examples/rails_in_cartons/main.rb  # Run the Rails-in-Cartons example
-RUBY_BOX=1 ruby examples/master_prelude/main.rb    # Run the Master prelude example
+bundle install
+bundle exec rake                  # tests, RuboCop, and every example
+bundle exec rake test             # tests only
+bundle exec rake example:monorepo # one example
+bundle exec rake format           # format with Syntax Tree
 ```
-
-A carton with its own Gemfile calls `Carton.setup_bundle`; see
-[usage.md](docs/usage.md#bundler-inside-cartons). Bundler support needs
-Bundler 4.0.23+, and `RUBY_BOX=1 bundle exec` works.
 
 ## License
 
