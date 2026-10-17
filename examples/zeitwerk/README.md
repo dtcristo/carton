@@ -1,8 +1,11 @@
 # Zeitwerk example
 
-An app that already autoloads its code with Zeitwerk can move parts of it
-into Cartons without giving Zeitwerk up. A Carton has Zeitwerk's gem layout,
-so its Entrypoint can run a loader of its own. Three things then need care:
+Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk,
+so moving that code into Cartons means running Zeitwerk inside them. Done
+carelessly, a Carton's files can load in the app's Box instead of the
+Carton's, often without an error, and the boundary is gone. A Carton has
+Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Three
+things then need care:
 
 - The app's loader must not load a Carton's files into the Main Box.
 - A constant a Carton leaves to autoload loads in whichever Box first
