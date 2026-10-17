@@ -10,11 +10,11 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Easily box your Ruby'
   spec.description =
-    'Carton is a thin wrapper around Ruby::Box for safe, ergonomic modularization ' \
-      'in Ruby 4.0.7+. It gives you imports and exports that work like ES Modules ' \
-      'while still feeling like Ruby. Each carton can isolate constants, gems ' \
-      'and monkey patches behind a small public API, so large apps can keep ' \
-      'clear boundaries.'
+    'Split a Ruby app into gem-sized units that import and export like ' \
+      'modules. Each Carton runs in its own Ruby::Box, so two parts of one app ' \
+      'can use different versions of the same gem, monkey patches stay where ' \
+      'they are made, and only what a Carton exports is reachable. No manifest ' \
+      'needed. Requires Ruby 4.0.7+.'
   spec.homepage = 'https://github.com/dtcristo/carton'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 4.0.7'
