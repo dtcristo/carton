@@ -18,6 +18,9 @@ Each Carton runs in its own
 - **monkey patches stay** in the Carton that makes them;
 - only what a Carton exports is reachable, so **boundaries hold at runtime**.
 
+[examples/plugins](examples/plugins/README.md) shows this in one process:
+two plugins on incompatible `bigdecimal` versions, and a patch that stays put.
+
 A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory, with
 no manifest. A gem, a path gem, a directory, or a single file can be one.
 
@@ -126,6 +129,7 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | Example | Shows |
 | --- | --- |
 | [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, the error for importing a file inside a Carton, and Steep types |
+| [plugins](examples/plugins/README.md) | A plugin host whose plugins need incompatible `bigdecimal` versions, each with its own bundle, and a `Float` patch that stays in one plugin |
 | [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
 | [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
 | [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |

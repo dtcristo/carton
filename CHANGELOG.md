@@ -17,6 +17,9 @@
 
 - `Carton::Exports#keys` and `#to_h`, and a readable `inspect`:
   `#<Carton::Exports add, PI, version>`.
+- `examples/plugins`, a report runner whose two plugins load bigdecimal
+  3.3.1 and 4.1.1 in one process from their own bundles, while one plugin's
+  `Float#to_s` patch stays out of the host and the other plugin.
 
 - A `carton` command that reads code with Prism and never runs it, so it
   needs no `RUBY_BOX=1`. Give it the app's files; it follows imports into
