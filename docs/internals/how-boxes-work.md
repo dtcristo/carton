@@ -111,7 +111,10 @@ Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say
 4.0.7, though, code can run there and later Boxes inherit it:
 
 - `Ruby::Box.master.eval`/`require` defines constants and monkey patches that
-  every Box created afterwards sees. Main and existing Boxes do not.
+  every Box created afterwards sees. Main and existing Boxes are not
+  shielded: a Box reads Master's copy of a builtin class until it changes
+  that class itself, so they see Master's later patches to any builtin they
+  have not changed (`Rational`, `Integer`) but not to one they have.
 - Master's `load_path` is copied into later Boxes.
 - Objects and modules defined there are shared, not copied: a mutable
   constant or a module's instance variables changed in one Box are seen in
