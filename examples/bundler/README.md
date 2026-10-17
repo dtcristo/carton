@@ -10,14 +10,15 @@ Small app-shaped example showing:
 
 | Carton | `bigdecimal` | How it loads |
 | --- | --- | --- |
-| `math_helper` | `4.1.1` | imported by name from `main.rb`, uses `require 'bigdecimal'` |
-| `billing` | none directly | imported by name from `main.rb`; `import_relative`s `rounding` |
+| `math_helper` | `4.1.1` | imported by its directory from `main.rb`; uses `require 'bigdecimal'` |
+| `billing` | none directly | imported by its directory from `main.rb`; imports `rounding` by its directory |
 | `rounding` | `3.3.1` | Imported Carton with its own Bundler setup; uses `import 'bigdecimal'` |
 | `cartoned_gem` | none | support gem resolved by the top-level bundle, then imported by name |
 
-`main.rb` keeps the Carton `lib/` load-path setup explicit so
-`import 'math_helper'` and `import 'billing'` are easy to follow. The support
-gem exercises the boxed path-gem boundary.
+Each local Carton is a gem-shaped directory, such as
+`cartons/billing/lib/billing.rb`, so `import_relative 'cartons/billing'`
+imports it without touching `$LOAD_PATH`. The support gem exercises the boxed
+path-gem boundary.
 
 ## Run
 

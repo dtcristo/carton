@@ -10,6 +10,7 @@
 ## Decisions
 
 - Importers never get another Carton's Box; Bare Cartons return `Carton::Exports`.
+- A Carton is an Entrypoint `x.rb` plus the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Files inside a Carton cannot be imported; the outermost Entrypoint wins.
 - Imports are cached process-wide by Entrypoint real path.
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.
 - `export` is repeatable; `export_default` is exclusive (once, never with `export`).

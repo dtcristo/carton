@@ -11,18 +11,21 @@
 </div>
 
 Carton adds `import` and `export` to Ruby, built on
-[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html). Each imported
-file, called a Carton, loads in its own Box. Its constants, gems, and monkey
-patches stay inside, and only what it exports reaches the importer.
+[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), for splitting
+an app into gem-sized or domain-sized units. A Carton is a file plus the
+directory named after it, the shape of a gem's `lib/`: `billing.rb` and
+everything in `billing/`. It loads in its own Box, its constants, gems, and
+monkey patches stay inside, and only what it exports reaches the importer.
 
-- **Explicit boundaries.** Only `import` crosses into a Carton, and only its
-  exports come back.
+- **Explicit boundaries.** Only `import` crosses into a Carton, only its
+  Entrypoint can be imported, and only its exports come back.
 - **Gem isolation.** Two Cartons can use different versions of the same gem in
   one process, each with its own Bundler setup if it wants one.
 - **Contained monkey patches.** Patching `String` in one Carton leaves every
   other Carton alone.
-- **Plain Ruby.** Any file can be a Carton, and Ruby's own `private_constant`
-  hides internals. Carton has no manifest or directory layout.
+- **Plain Ruby.** No manifest or required layout: a gem, a path gem, a
+  directory, or a single file can be a Carton, and Ruby's own
+  `private_constant` hides internals.
 
 ## Quick start
 
@@ -34,19 +37,27 @@ on `main` and not yet released, so install from GitHub:
 gem 'carton', github: 'dtcristo/carton'
 ```
 
-Export one main value with `export_default`:
+A Carton's Entrypoint loads its own files and exports one value with
+`export_default`:
 
-```ruby
-# user.rb
-class User
-  def initialize(name) = @name = name
-end
-
-export_default User
+```
+billing.rb          # the Entrypoint
+billing/invoice.rb  # inside the Carton
 ```
 
-Or export several names with `export`. Capitalized Symbols name constants,
-other Symbols name methods, and keywords are plain values:
+```ruby
+# billing.rb
+require_relative 'billing/invoice'
+
+module Billing
+  def self.invoice(total) = Invoice.new(total)
+end
+
+export_default Billing
+```
+
+Or it exports several names with `export`. Capitalized Symbols name
+constants, other Symbols name methods, and keywords are plain values:
 
 ```ruby
 # math.rb
@@ -60,8 +71,8 @@ Import them:
 # main.rb
 require 'carton'
 
-User = import_relative 'user'
-User.new('Alice')
+Billing = import_relative 'billing'
+Billing.invoice(42)
 
 MathTools = import_relative 'math'
 MathTools.add(2, 3) # => 5
@@ -72,9 +83,12 @@ MathTools::PI       # => 3.14159
 RUBY_BOX=1 ruby main.rb
 ```
 
-`import 'name'` searches `$LOAD_PATH` like `require`, so gems and path gems
-import by name. Each Carton loads once per process, and every later import
-returns the same value.
+`import_relative 'billing/invoice'` raises `Carton::ImportError`: the file is
+inside the `billing` Carton, so only `billing` can be imported. `import 'name'`
+searches `$LOAD_PATH` like `require`, so gems and path gems import by name, and
+a gem-shaped directory (`components/billing/lib/billing.rb`) imports by its
+path. Each Carton loads once per process, and every later import returns the
+same value.
 
 ## Gems and Bundler
 

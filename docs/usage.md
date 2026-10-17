@@ -1,9 +1,9 @@
 # Usage
 
-An importable Ruby file and everything it loads is a Carton. Each Carton runs
-in its own `Ruby::Box`, so its constants, gems, and monkey patches stay inside,
-and only what it exports crosses the boundary. [CONTEXT.md](../CONTEXT.md) has
-the glossary.
+Carton splits an app into gem-sized or domain-sized units called Cartons.
+Each Carton runs in its own `Ruby::Box`, so its constants, gems, and monkey
+patches stay inside, and only what it exports crosses the boundary.
+[CONTEXT.md](../CONTEXT.md) has the glossary.
 
 ## Requirements
 
@@ -11,6 +11,34 @@ the glossary.
 - Bundler 4.0.23+, if you use Bundler
 - `require 'carton'` before calling `import`, `import_relative`, `export`, or
   `export_default`
+
+## What a Carton is
+
+A Carton is an Entrypoint file plus the directory named after it, the same
+shape as a gem's `lib/` and a Zeitwerk explicit namespace:
+
+```
+lib/billing.rb                # the Entrypoint
+lib/billing/invoice.rb        # inside the billing Carton
+lib/billing/models/charge.rb  # inside too: models/ has no models.rb
+```
+
+- The Entrypoint loads the Carton's other files with `require`,
+  `require_relative`, or a Zeitwerk loader, all inside the Carton's one Box.
+- Only the Entrypoint can be imported. Importing a file inside a Carton raises
+  `Carton::ImportError` naming the import to use, because loading it on its
+  own would create a second copy of the Carton's classes.
+- Directories without their own `.rb` file, like Zeitwerk implicit
+  namespaces, belong to the Carton above them, so the outermost Entrypoint
+  wins.
+- A file with no directory beside it is a Carton of one file.
+- Cartons can nest in another Carton's tree, as long as they sit outside its
+  namespace directory. In `billing/cartons/tax/lib/tax.rb`, `tax` is its own
+  Carton, which `billing.rb` can `import_relative '../cartons/tax'`. Anything
+  under `billing/lib/billing/` belongs to `billing`, so put nested Cartons
+  beside that directory, not in it.
+- No gemspec, Gemfile, or manifest is required. A Carton may be a gem, a path
+  gem, a gem-shaped directory, or a plain file.
 
 ## Exporting
 
@@ -127,8 +155,14 @@ as long as `require 'carton'` comes first so the methods exist.
 a same-named feature on `$LOAD_PATH`.
 
 ```ruby
-User = import_relative 'user'
+Billing = import_relative 'billing'                  # billing.rb
+Billing = import_relative '../components/billing'    # components/billing/lib/billing.rb
 ```
+
+A path that names a gem-shaped directory, `billing/lib/billing.rb`, imports
+that Entrypoint and puts its `lib/` on the Carton's load path, so the Carton
+can `require 'billing/invoice'` as a gem would. A file of the same name wins
+over the directory.
 
 ### `import`
 
@@ -137,19 +171,12 @@ User = import_relative 'user'
 path or name raises `LoadError`.
 
 ```ruby
-MathTools = import 'math_tools'
+Billing = import 'billing'   # a gem or path gem in the bundle
 Widget = import '/absolute/path/to/widget.rb'
 ```
 
-Gems and path gems in your bundle are already on `$LOAD_PATH`. For local
-Cartons that are not gems, add their `lib/` directories first, as
-[examples/bundler](../examples/bundler/main.rb) does:
-
-```ruby
-Dir.glob(File.join(__dir__, 'cartons/*/lib')).each do |dir|
-  $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir)
-end
-```
+Gems and path gems in your bundle are already on `$LOAD_PATH`. Import other
+Cartons by path, or add their `lib/` directories to `$LOAD_PATH` first.
 
 ### Shared imports
 
@@ -279,8 +306,9 @@ end
 - Imports are shared across the process, so a Carton's state persists from
   one test to the next. Keep Cartons stateless, or reset their state through
   their Public Surface.
-- A test sees only the Public Surface. To test the internals of a Carton that
-  exports, move them into a Carton of their own and import that directly.
+- A test sees only the Public Surface, and files inside a Carton cannot be
+  imported on their own. To test internals directly, move them into a Carton
+  of their own and import that.
 
 ## Bundler
 
@@ -371,7 +399,7 @@ Carton's own errors subclass `Carton::Error`:
 
 | Error | Raised when |
 | --- | --- |
-| `Carton::ImportError` | Boxes are disabled (run with `RUBY_BOX=1`), a Carton imports itself, or a shared Carton was built against other gem versions |
+| `Carton::ImportError` | Boxes are disabled (run with `RUBY_BOX=1`), the target is a file inside a Carton, a Carton imports itself, or a shared Carton was built against other gem versions |
 | `Carton::ExportError` | a name is exported twice, `export_default` is called twice, or both forms are used |
 | `Carton::GemfileNotFound` | `setup_bundle` finds no Gemfile |
 

@@ -21,20 +21,72 @@ module Carton
     # `require` with an absolute path, or by searching `load_path` in order.
     # A missing relative or absolute target raises LoadError, as
     # `require_relative` does. A name that matches no Ruby source file, such
-    # as a native extension, comes back as the bare `path`.
+    # as a native extension, comes back as the bare `path`. A file inside a
+    # Carton raises ImportError: only its Entrypoint can be imported.
     def resolve(path, load_path:, base_dir: nil)
       path = path.to_s
-      if base_dir || File.absolute_path?(path)
-        resolve_file(File.expand_path(path, base_dir))
-      else
-        resolve_name(path, load_path) || Target.new(feature: path)
-      end
+      target =
+        if base_dir || File.absolute_path?(path)
+          resolve_file(File.expand_path(path, base_dir))
+        else
+          resolve_name(path, load_path) || Target.new(feature: path)
+        end
+      reject_inside_carton(path, target)
+      target
     end
 
+    # A Carton is its Entrypoint `x.rb` plus the `x/` directory beside it,
+    # the shape of a gem's `lib/` and of a Zeitwerk explicit namespace.
+    # Directories without their own `.rb` file, like Zeitwerk implicit
+    # namespaces, stay inside the Carton above them. Returns the outermost
+    # Entrypoint whose directory holds `file`, or `file` itself.
+    def entrypoint_for(file)
+      entrypoint = file
+      dir = File.dirname(file)
+      until dir == File.dirname(dir)
+        entrypoint = "#{dir}.rb" if File.file?("#{dir}.rb")
+        dir = File.dirname(dir)
+      end
+      entrypoint
+    end
+
+    def reject_inside_carton(path, target)
+      return unless File.absolute_path?(target.feature)
+
+      entrypoint = entrypoint_for(target.feature)
+      return if entrypoint == target.feature
+
+      raise ImportError, inside_carton_message(path, target, entrypoint)
+    end
+    private_class_method :reject_inside_carton
+
+    def inside_carton_message(path, target, entrypoint)
+      prefix = "#{target.load_path}/"
+      fix =
+        if target.load_path && entrypoint.start_with?(prefix)
+          name = entrypoint.delete_prefix(prefix).delete_suffix('.rb')
+          "#{path} is inside the #{name} Carton: import '#{name}'"
+        else
+          "#{target.feature} is inside the Carton #{entrypoint}: " \
+            'import that file'
+        end
+      "#{fix}, or require it from inside that Carton"
+    end
+    private_class_method :inside_carton_message
+
+    # A directory laid out like a gem, `billing/lib/billing.rb`, resolves to
+    # that Entrypoint with its `lib/` on the Carton's load path, so the
+    # Carton can `require 'billing/invoice'` as a gem would.
     def resolve_file(expanded)
       [expanded, "#{expanded}.rb"].each do |candidate|
         return Target.new(feature: candidate) if File.file?(candidate)
       end
+      lib = File.join(expanded, 'lib')
+      entrypoint = File.join(lib, "#{File.basename(expanded)}.rb")
+      if File.file?(entrypoint)
+        return Target.new(feature: entrypoint, load_path: lib)
+      end
+
       raise LoadError, "cannot load such file -- #{expanded}"
     end
     private_class_method :resolve_file

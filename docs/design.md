@@ -3,7 +3,7 @@
 ## Goal
 
 Keep the library small: a thin layer over `Ruby::Box` that makes isolated
-file-to-file imports feel like part of Ruby.
+imports of gem-sized and domain-sized units feel like part of Ruby.
 
 ## Main pieces
 
@@ -13,7 +13,7 @@ file-to-file imports feel like part of Ruby.
 | `lib/carton/error.rb` | `Carton::Error` and its subclasses |
 | `lib/carton/kernel_patch.rb` | Private `Kernel#import`, `#import_relative`, `#export`, and `#export_default` |
 | `lib/carton/runtime.rb` | Resolves an Import, checks the cache, and builds a Carton Box; validates `export` calls |
-| `lib/carton/resolver.rb` | Maps an Import path to a file, given a load path, without evaluating code |
+| `lib/carton/resolver.rb` | Maps an Import path to a Carton's Entrypoint, given a load path, without evaluating code |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
 | `lib/carton/box.rb` | The Carton Box: runs one Import from boot to Public Surface and holds its Export Declaration |
 | `lib/carton/export_declaration.rb` | One Entrypoint's exports: uniqueness, Default Export versus Export Namespace, and the Public Surface |
@@ -28,8 +28,10 @@ file-to-file imports feel like part of Ruby.
 1. `import` or `import_relative` calls `Carton::Runtime.import`.
 2. `Carton::Resolver` resolves the target: `import_relative` from the calling
    file's directory, `import` from an absolute path or the calling Box's
-   `$LOAD_PATH`. It never checks the current directory and reads no Box
-   state, so static tools can reuse it.
+   `$LOAD_PATH`. A gem-shaped directory resolves to `<dir>/lib/<dir>.rb`. A
+   file inside a Carton, under the directory named after an Entrypoint,
+   raises `Carton::ImportError`. The resolver never checks the current
+   directory and reads only the file system, so static tools can reuse it.
 3. If the target is already imported, the cached value is returned. Otherwise
    Carton creates a new `Carton::Box`.
 4. Carton requires its own `lib/carton.rb` inside the Box, so the Carton can

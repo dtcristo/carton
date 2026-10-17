@@ -459,7 +459,7 @@ fixed.
 
 Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
-1. each Carton file loads once into its own Box, and later imports share it,
+1. each Carton, an Entrypoint plus its directory, loads once into its own Box, and later imports share it,
 2. `$LOAD_PATH` inside that Box is isolated,
 3. top-level constants and builtin-class monkey patches defined in the imported Carton stay inside that Box; classes the Carton defines are shared objects, so another Box that reopens them changes them everywhere,
 4. only the export value or `Carton::Exports` leaves the Box; the Box itself never does.
