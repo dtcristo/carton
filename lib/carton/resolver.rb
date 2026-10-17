@@ -92,9 +92,23 @@ module Carton
         return Target.new(feature: entrypoint, load_path: lib)
       end
 
-      raise LoadError, "cannot load such file -- #{expanded}"
+      raise LoadError, missing_file_message(expanded)
     end
     private_class_method :resolve_file
+
+    # Name the files tried, relative to the directory they were tried in.
+    def missing_file_message(expanded)
+      name = File.basename(expanded)
+      tried =
+        if EXTENSIONS.include?(File.extname(name))
+          [name]
+        else
+          ["#{name}.rb", "#{name}/lib/#{name}.rb"]
+        end
+      "cannot load such file -- #{expanded} " \
+        "(tried #{tried.join(' and ')} in #{File.dirname(expanded)})"
+    end
+    private_class_method :missing_file_message
 
     # Like Ruby, check each load-path entry in order and try each extension
     # within it, so an earlier native extension shadows a later `.rb`.

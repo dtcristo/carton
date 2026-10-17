@@ -1,19 +1,46 @@
 PATH
-  remote: tool_gem
+  remote: ../..
   specs:
-    tool_gem (0.1.0)
+    carton (0.2.0)
+
+PATH
+  remote: packages/billing
+  specs:
+    billing (0.1.0)
+      pricing
+
+PATH
+  remote: packages/pricing
+  specs:
+    pricing (0.1.0)
+      bigdecimal
+
+PATH
+  remote: packages/shipping
+  specs:
+    shipping (0.1.0)
 
 GEM
+  remote: https://rubygems.org/
   specs:
+    bigdecimal (4.1.1)
 
 PLATFORMS
   arm64-darwin-27
 
 DEPENDENCIES
-  tool_gem!
+  bigdecimal (= 4.1.1)
+  billing!
+  carton!
+  pricing!
+  shipping!
 
 CHECKSUMS
-  tool_gem (0.1.0)
+  bigdecimal (4.1.1)
+  billing (0.1.0)
+  carton (0.2.0)
+  pricing (0.1.0)
+  shipping (0.1.0)
 
 BUNDLED WITH
   4.0.23

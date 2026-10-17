@@ -38,6 +38,8 @@ module Carton::ExportMethods
            | (key key, untyped default) -> untyped
            | [T] (key key) { (key key) -> T } -> (untyped | T)
   def fetch_values: (*key keys) -> ::Array[untyped]
+  def keys: () -> ::Array[::Symbol]
+  def to_h: () -> ::Hash[::Symbol, untyped]
   def has_key?: (key key) -> bool
   def key?: (key key) -> bool
   def values_at: (*key keys) -> ::Array[untyped]

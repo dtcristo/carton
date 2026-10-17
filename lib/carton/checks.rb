@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'export_methods'
+require_relative 'exports'
 require_relative 'project'
 
 module Carton
@@ -24,6 +26,7 @@ module Carton
         *requires_into_cartons,
         *undeclared_gems,
         *export_problems,
+        *bare_collisions,
       ].sort_by { |problem| [problem.file, problem.line, problem.message] }
     end
 
@@ -207,9 +210,37 @@ module Carton
             )
           end
           seen[name] = true
+          if Exports.reserved?(name)
+            problems << error(file.path, export.line, collision(name))
+          end
         end
       end
       problems
+    end
+
+    # A Bare Carton exports its top-level methods, so the same names collide.
+    def bare_collisions
+      @project.units.each_value.flat_map do |unit|
+        next [] unless @project.files.fetch(unit.entrypoint).exports.empty?
+
+        unit.files.flat_map do |path|
+          @project
+            .files
+            .fetch(path)
+            .methods
+            .each_value
+            .filter_map do |method|
+              next unless Exports.reserved?(method.name)
+
+              error(path, method.line, collision(method.name))
+            end
+        end
+      end
+    end
+
+    def collision(name)
+      "export name #{name} would hide Carton::Exports##{name}: " \
+        'rename it, or export it inside a Default Export'
     end
 
     def display(path) = Project.relative(path)

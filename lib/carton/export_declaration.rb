@@ -27,6 +27,7 @@ module Carton
     def add(methods, values)
       raise ExportError, COMBINED if default?
 
+      Exports.check_names(methods.keys + values.keys)
       duplicate =
         (methods.keys + values.keys).find do |name|
           @methods.key?(name) || @values.key?(name)

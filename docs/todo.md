@@ -6,8 +6,6 @@ in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 
 ## Library
 
-- Include the paths Carton tried in missing-Import `LoadError` messages.
-- Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
 - If large Cartons need lazy parts, let a Carton declare public sub-entrypoints that can be imported, like the `exports` field in Node's `package.json`. Today a file inside a Carton cannot be imported.
 - Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
