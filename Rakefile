@@ -111,6 +111,14 @@ namespace :example do
 
         sh "RUBY_BOX=1 ruby #{Shellwords.escape(File.join(dir, 'main.rb'))}",
            verbose: false
+
+        # One process per test file: a unit test's plain `require` must not
+        # share the Main Box with another file's imports.
+        Dir
+          .glob(File.join(dir, 'test/**/*_test.rb'))
+          .each do |file|
+            sh "RUBY_BOX=1 ruby #{Shellwords.escape(file)}", verbose: false
+          end
       end
     end
   end
