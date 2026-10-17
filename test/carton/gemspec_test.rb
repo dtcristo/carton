@@ -1,8 +1,17 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'open3'
+require 'rbconfig'
+require 'tmpdir'
 
 class GemspecTest < Minitest::Test
+  INSTALLED_IMPORT = <<~'RUBY'
+    require 'carton'
+    puts $LOADED_FEATURES.grep(%r{/carton\.rb\z})
+    puts import_relative('greeting')
+  RUBY
+
   def test_required_ruby_version_accepts_4_0_7_and_later
     requirement = carton_specification.required_ruby_version
 
@@ -35,10 +44,56 @@ class GemspecTest < Minitest::Test
     assert_equal expected.sort, carton_specification.files.sort
   end
 
+  # Build the gem, install it into an empty gem home, and import through the
+  # installed copy, so a file missing from the package fails here.
+  def test_built_gem_installs_and_imports
+    Dir.mktmpdir('carton-gem') do |dir|
+      home = install_built_gem(dir)
+      File.write(File.join(dir, 'greeting.rb'), "export_default 'hello'\n")
+      env = { 'GEM_HOME' => home, 'GEM_PATH' => home, 'RUBY_BOX' => '1' }
+
+      output = run_ruby(dir, '-e', INSTALLED_IMPORT, env:)
+
+      loaded, greeting = output.lines(chomp: true)
+      assert loaded.start_with?(File.realpath(home)),
+             "loaded #{loaded}, not the installed gem"
+      assert_equal 'hello', greeting
+    end
+  end
+
   private
 
   def carton_specification
     path = File.expand_path('../../carton.gemspec', __dir__)
     Gem::Specification.load(path)
+  end
+
+  # Returns the gem home the freshly built gem was installed into.
+  def install_built_gem(dir)
+    gem_file = File.join(dir, 'carton.gem')
+    home = File.join(dir, 'home')
+    root = File.expand_path('../..', __dir__)
+    run_ruby(root, '-S', 'gem', 'build', 'carton.gemspec', '--output', gem_file)
+    run_ruby(
+      dir,
+      '-S',
+      'gem',
+      'install',
+      '--local',
+      '--no-document',
+      '--install-dir',
+      home,
+      gem_file,
+    )
+    home
+  end
+
+  def run_ruby(dir, *, env: {})
+    clean =
+      ENV.keys.grep(/\A(BUNDLER?_|RUBY(OPT|LIB)\z)/).to_h { |key| [key, nil] }
+    output, error, status =
+      Open3.capture3(clean.merge(env), RbConfig.ruby, *, chdir: dir)
+    assert status.success?, [output, error].reject(&:empty?).join("\n")
+    output
   end
 end
