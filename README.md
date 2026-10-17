@@ -136,7 +136,11 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | [zeitwerk](examples/zeitwerk/README.md) | Zeitwerk loaders inside Cartons and in the app, eager loading, and what reloading a Carton does to importers |
 | [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton |
 | [rails_in_cartons](examples/rails_in_cartons/README.md) | Rails loaded once in a Carton, models and controllers in domain Cartons |
-| [master_prelude](examples/master_prelude/README.md) | An unsupported hack that shares Active Support with every Carton |
+
+**Experiments.** [master_prelude](examples/master_prelude/README.md) is an
+unsupported hack, not a pattern to copy. It loads Active Support once into
+Ruby's internal Master Box so every Carton starts with it, relying on Ruby
+behavior that Ruby's docs say does not happen.
 
 ## Development
 

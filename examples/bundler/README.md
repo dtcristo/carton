@@ -1,6 +1,9 @@
 # Bundler example
 
-Small app-shaped example showing:
+An app's `Gemfile.lock` pins one version of each gem for all of its code, so
+upgrading a gem means upgrading it everywhere at once. A Carton can set up its
+own bundle instead and move to a new version, or stay on an old one, while
+the rest of the app does not. This small app-shaped example has:
 
 - a Carton that runs Bundler setup before requiring `bigdecimal`
 - a Carton that forwards to an Imported Carton with its own Bundler setup

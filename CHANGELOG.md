@@ -12,6 +12,11 @@
 - A missing `import_relative` target's `LoadError` names the files Carton
   tried, and a name `import` cannot find says it searched `$LOAD_PATH`,
   suggesting `import_relative` when a matching file is beside the caller.
+- The Rails examples eager load their Cartons' Zeitwerk loaders, so
+  `rails_in_main` no longer loads `Billing::Invoice` in the Main Box, and
+  both gain a Development section on restarting after changes. Each example
+  README now opens with the problem it solves, and `master_prelude` moved
+  out of the README's examples table to an Experiments note.
 
 ### Added
 

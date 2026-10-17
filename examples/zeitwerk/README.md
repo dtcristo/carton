@@ -1,8 +1,11 @@
 # Zeitwerk example
 
-An app that already autoloads its code with Zeitwerk can move parts of it
-into Cartons without giving Zeitwerk up. A Carton has Zeitwerk's gem layout,
-so its Entrypoint can run a loader of its own. Three things then need care:
+Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk,
+so moving that code into Cartons means running Zeitwerk inside them. Done
+carelessly, a Carton's files can load in the app's Box instead of the
+Carton's, often without an error, and the boundary is gone. A Carton has
+Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Three
+things then need care:
 
 - The app's loader must not load a Carton's files into the Main Box.
 - A constant a Carton leaves to autoload loads in whichever Box first
@@ -76,9 +79,11 @@ app's loader roots, like `cartons/billing`, needs nothing.
 
 ## Eager load inside the Carton
 
-Ruby runs an autoload in the Box whose code references the constant, not
-the Box that defined the autoload. Plain `Module#autoload` behaves the same
-way, so this is Ruby::Box behavior, not Zeitwerk's. `Billing::Archive` is left
+Ruby runs an autoload a Carton defines in the Box whose code references the
+constant, not the Carton's Box. Plain `Module#autoload` behaves the same way,
+so this is Ruby::Box behavior, not Zeitwerk's;
+[how-boxes-work.md](../../docs/internals/how-boxes-work.md#which-box-runs-an-autoload)
+explains why. `Billing::Archive` is left
 lazy to show it: `main.rb` references it first, so `archive.rb` runs in the
 Main Box. The Carton's loader never sees that load, and any `require` or
 top-level constant in the file resolves against the Main Box. If the app had

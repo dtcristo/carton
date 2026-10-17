@@ -1,7 +1,10 @@
 # Monorepo example
 
-An app split into packages, where each package is a gem and Bundler is the
-manifest ([dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32)):
+When a large app splits its code into packages by directory alone, nothing
+stops one package from calling another's internals, and the dependency graph
+lives only in people's heads. Here each package is a gem that declares its
+dependencies and runs as a Carton in its own Box, and Bundler is the manifest
+([dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32)):
 
 - Each package under `packages/` is a path gem. Its gemspec names it and lists
   the packages and gems it depends on.

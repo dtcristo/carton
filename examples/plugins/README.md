@@ -1,7 +1,8 @@
 # Plugins example
 
-A month-end report runner that loads two plugins with incompatible
-dependencies into one Ruby process.
+Two plugins that need incompatible versions of the same gem cannot load into
+one Ruby process. This month-end report runner loads both anyway, each in its
+own Carton.
 
 ## The problem
 
