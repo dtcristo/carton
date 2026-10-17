@@ -1,14 +1,28 @@
 # frozen_string_literal: true
 
 module Carton
-  class Box < Ruby::Box
+  # One Import's state, attached to the plain `Ruby::Box` it runs in.
+  #
+  # This wraps a `Ruby::Box` rather than subclassing it: Ruby runs an autoload
+  # in the Box that registered it only when that Box is exactly a `Ruby::Box`,
+  # so a subclass would let a Carton's lazy autoloads run in the importer's
+  # Box. Code in any Box finds the Import from `Ruby::Box.current` with
+  # `Box.for`.
+  class Box
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
     ERRORS = %i[Error ImportError ExportError GemfileNotFound].freeze
     private_constant :ERRORS
+    IVAR = :@carton_import
+    private_constant :IVAR
+
+    # The Import running in `ruby_box`, or nil for the Main Box and Boxes
+    # Carton did not create.
+    def self.for(ruby_box) = ruby_box.instance_variable_get(IVAR)
 
     def initialize
-      super
+      @box = Ruby::Box.new
+      @box.instance_variable_set(IVAR, self)
       reset_export_declaration
     end
 
@@ -55,8 +69,10 @@ module Carton
 
     attr_reader :import_cache, :pending_gems
 
+    # `eval` rather than `Ruby::Box#require`, so the Box's own `Kernel#require`
+    # runs, including patches such as Zeitwerk's.
     def require_in_box(feature)
-      eval("require #{feature.inspect}")
+      @box.eval("require #{feature.inspect}")
     end
 
     # Box methods run in the Box that defined them, so this Box's own copy of
@@ -75,7 +91,7 @@ module Carton
     # Point them at the importer's classes, so one rescue catches errors
     # raised in any Carton.
     def share_error_classes
-      carton = const_get(:Carton, false)
+      carton = @box.const_get(:Carton, false)
       ERRORS.each do |name|
         carton.__send__(:remove_const, name)
         carton.const_set(name, Carton.const_get(name, false))
@@ -83,6 +99,7 @@ module Carton
     end
 
     def add_import_load_path(path)
+      load_path = @box.load_path
       load_path.unshift(path) unless load_path.include?(path)
     end
 
@@ -114,7 +131,9 @@ module Carton
 
     def bare_surface
       constants =
-        @public_constant_names.to_h { |name| [name, const_get(name, false)] }
+        @public_constant_names.to_h do |name|
+          [name, @box.const_get(name, false)]
+        end
       [@public_method_entries, constants]
     end
 
@@ -123,18 +142,18 @@ module Carton
     end
 
     def snapshot_import_support
-      @import_constant_names = constants(false).map(&:to_s)
+      @import_constant_names = @box.constants(false).map(&:to_s)
       @import_method_names = top_level_methods.keys
     end
 
     def discover_public_entries
       @public_constant_names =
-        constants(false).map(&:to_s) - @import_constant_names
+        @box.constants(false).map(&:to_s) - @import_constant_names
       @public_method_entries = top_level_methods.except(*@import_method_names)
     end
 
     def top_level_methods
-      eval(
+      @box.eval(
         'Object.private_instance_methods(false).to_h { |name| [name.to_s, method(name)] }',
       )
     end

@@ -103,10 +103,8 @@ module Carton
     private_class_method :load_import
 
     def import_cache
-      box = Ruby::Box.current
-      return IMPORT_CACHE unless box.respond_to?(:import_cache, true)
-
-      box.__send__(:import_cache)
+      box = Box.for(Ruby::Box.current)
+      box ? box.__send__(:import_cache) : IMPORT_CACHE
     end
     private_class_method :import_cache
 
@@ -114,10 +112,8 @@ module Carton
     # such as under a plain `require`, `export` is inert, so Carton-aware
     # files and gems still load the ordinary way.
     def entrypoint_box(file)
-      box = Ruby::Box.current
-      return unless box.respond_to?(:entrypoint?, true)
-
-      box if box.__send__(:entrypoint?, file)
+      box = Box.for(Ruby::Box.current)
+      box if box&.__send__(:entrypoint?, file)
     end
     private_class_method :entrypoint_box
   end
