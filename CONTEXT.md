@@ -9,7 +9,7 @@ An importable unit of Ruby code, gem-sized or domain-sized, with an isolated int
 _Avoid_: Package when naming the domain concept, box, plain carton, unbundled carton
 
 **Entrypoint**:
-The file an Import loads to establish a Carton boundary, such as `billing.rb`. Files under the `billing/` directory beside it, including implicit-namespace subdirectories, are inside the Carton and cannot be imported themselves. A file with no such directory is a Carton of one file.
+The file an Import loads to establish a Carton boundary, such as `billing.rb`. Files under the `billing/` directory beside it, including implicit-namespace subdirectories, are inside the Carton and cannot be imported themselves. A file with no such directory is a Carton of one file. A Carton may nest inside another Carton's tree, but not inside its namespace directory.
 _Avoid_: Manifest, package directory
 
 **Box**:

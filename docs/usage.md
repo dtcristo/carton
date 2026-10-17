@@ -32,6 +32,11 @@ lib/billing/models/charge.rb  # inside too: models/ has no models.rb
   namespaces, belong to the Carton above them, so the outermost Entrypoint
   wins.
 - A file with no directory beside it is a Carton of one file.
+- Cartons can nest in another Carton's tree, as long as they sit outside its
+  namespace directory. In `billing/cartons/tax/lib/tax.rb`, `tax` is its own
+  Carton, which `billing.rb` can `import_relative '../cartons/tax'`. Anything
+  under `billing/lib/billing/` belongs to `billing`, so put nested Cartons
+  beside that directory, not in it.
 - No gemspec, Gemfile, or manifest is required. A Carton may be a gem, a path
   gem, a gem-shaped directory, or a plain file.
 

@@ -157,6 +157,26 @@ class ResolverTest < Minitest::Test
     end
   end
 
+  # A Carton nested in its parent's tree, but outside the parent's namespace
+  # directory, is its own Carton. Inside that directory it is the parent's.
+  def test_nested_carton_beside_the_namespace_directory_is_its_own
+    Dir.mktmpdir do |dir|
+      root = File.join(File.realpath(dir), 'billing')
+      FileUtils.mkdir_p(["#{root}/lib/billing", "#{root}/cartons/tax/lib"])
+      File.write("#{root}/lib/billing.rb", '')
+      File.write("#{root}/cartons/tax/lib/tax.rb", '')
+
+      assert_equal "#{root}/cartons/tax/lib/tax.rb",
+                   resolve('cartons/tax', base_dir: root).feature
+
+      FileUtils.mkdir_p("#{root}/lib/billing/tax/lib")
+      File.write("#{root}/lib/billing/tax/lib/tax.rb", '')
+      assert_raises(Carton::ImportError) do
+        resolve('lib/billing/tax', base_dir: root)
+      end
+    end
+  end
+
   def test_directory_without_lib_entrypoint_raises_load_error
     Dir.mktmpdir do |dir|
       FileUtils.mkdir_p("#{dir}/empty")
