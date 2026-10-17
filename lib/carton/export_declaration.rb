@@ -25,14 +25,14 @@ module Carton
     end
 
     def add(methods, values)
-      raise COMBINED if default?
+      raise ExportError, COMBINED if default?
 
       duplicate =
         (methods.keys + values.keys).find do |name|
           @methods.key?(name) || @values.key?(name)
         end
       if duplicate
-        raise ArgumentError, "export name given more than once: #{duplicate}"
+        raise ExportError, "export name given more than once: #{duplicate}"
       end
 
       self.class.__send__(
@@ -44,8 +44,10 @@ module Carton
     end
 
     def default(value)
-      raise 'export_default may be called only once per file' if default?
-      raise COMBINED if namespace?
+      if default?
+        raise ExportError, 'export_default may be called only once per file'
+      end
+      raise ExportError, COMBINED if namespace?
 
       self.class.__send__(:new, @methods, @values, value)
     end

@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 module Carton
-  # Raised when Carton cannot find the bundle file for `setup_bundle`.
-  class GemfileNotFound < StandardError
-  end
-
   class << self
     # Set up the current carton's bundle, like `Bundler.setup(*groups)`.
     #

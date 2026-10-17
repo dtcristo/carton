@@ -41,7 +41,7 @@ module Carton
 
       duplicate = (names + values.keys).tally.find { |_, count| count > 1 }
       if duplicate
-        raise ArgumentError,
+        raise ExportError,
               "export name given more than once: #{duplicate.first}"
       end
 

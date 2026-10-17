@@ -269,7 +269,7 @@ class IntegrationTest < Minitest::Test
       begin
         import File.join(fixtures, 'newer/entry') # its bundle locks 4.1.1
         puts 'no error'
-      rescue RuntimeError => e
+      rescue Carton::ImportError => e
         puts e.message
       end
       STDOUT.flush

@@ -37,7 +37,7 @@ module Carton
         check_gem_versions(key, target)
         return @values[key]
       end
-      raise "circular import: #{key}" if @loading.key?(key)
+      raise ImportError, "circular import: #{key}" if @loading.key?(key)
 
       @loading[key] = true
       begin
@@ -57,7 +57,8 @@ module Carton
       gem_versions(target).each do |name, version|
         next if cached.fetch(name, version) == version
 
-        raise "#{key} was imported with #{name} #{cached[name]}, " \
+        raise ImportError,
+              "#{key} was imported with #{name} #{cached[name]}, " \
                 "but this import activates #{name} #{version}"
       end
     end

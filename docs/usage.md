@@ -37,7 +37,7 @@ export PI: 3.14159, version: '1.0.0'
   lowercase keys become readers. Values are never invoked:
   `export handler: -> {}` makes `handler` return the lambda itself.
 - A missing method or constant raises `NameError`, and a repeated name raises
-  `ArgumentError`, at the `export` call.
+  `Carton::ExportError`, at the `export` call.
 
 Importing returns a `Carton::Exports` namespace:
 
@@ -74,7 +74,8 @@ User.new('Alice')
 ```
 
 - The value may be anything, including a Hash, `nil`, or `false`.
-- Call it once per file, and never together with `export`; both raise. Put
+- Call it once per file, and never together with `export`; both raise
+  `Carton::ExportError`. Put
   other names inside the default value instead, e.g. `User::VERSION`.
 - Bind it to its own name (`User = import 'user'`). Rename only to resolve a
   clash between Cartons: `Module#name`, `inspect`, and backtraces keep the
@@ -164,7 +165,8 @@ Money.equal?(import('money')) # => true
 ```
 
 A failed load is not cached, so a later import tries again. A Carton that
-imports itself, directly or through other Cartons, raises `circular import`.
+imports itself, directly or through other Cartons, raises
+`Carton::ImportError` (`circular import`).
 
 ### Rakefiles
 
@@ -340,7 +342,7 @@ Pricing = import 'pricing' # pricing's `require 'bigdecimal'` gets 3.3.1
 
 - A gem Carton loads once per process, so its first importer fixes its gem
   versions. A later importer with different versions activated raises
-  `RuntimeError` naming the gem and both versions, instead of sharing a
+  `Carton::ImportError` naming the gem and both versions, instead of sharing a
   Carton built against other versions.
 - If the importer ran Bundler setup (`Carton.setup_bundle`, `bundler/setup`,
   or `bundle exec`), the gem Carton's Box is restricted to that bundle, as
@@ -362,6 +364,21 @@ the app's lockfile pins every version. See
 
 [how-gems-work.md](internals/how-gems-work.md) has the runtime background, and
 [upstream.md](internals/upstream.md) the upstream status.
+
+## Errors
+
+Carton's own errors subclass `Carton::Error`:
+
+| Error | Raised when |
+| --- | --- |
+| `Carton::ImportError` | a Carton imports itself, or a shared Carton was built against other gem versions |
+| `Carton::ExportError` | a name is exported twice, `export_default` is called twice, or both forms are used |
+| `Carton::GemfileNotFound` | `setup_bundle` finds no Gemfile |
+
+Otherwise Carton raises what Ruby would: `LoadError` for a missing import
+target, `NameError` for a missing exported name, and `ArgumentError` for
+invalid `export` arguments. Every Box shares these classes, so
+`rescue Carton::Error` works in the app and inside any Carton.
 
 ## Examples
 
