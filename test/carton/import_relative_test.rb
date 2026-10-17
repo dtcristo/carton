@@ -48,4 +48,23 @@ class ImportRelativeTest < Minitest::Test
     error = assert_raises(LoadError) { import_relative 'json' }
     assert_equal "cannot load such file -- #{__dir__}/json", error.message
   end
+
+  def test_carton_loads_its_directory_in_one_box
+    ledger = import_relative '../fixtures/units/ledger'
+
+    assert_instance_of ledger::Entry, ledger.entry
+  end
+
+  # Importing a file inside a Carton would load a second copy of it in its
+  # own Box, so its classes would not match the Carton's.
+  def test_file_inside_a_carton_cannot_be_imported
+    error =
+      assert_raises(Carton::ImportError) do
+        import_relative '../fixtures/units/ledger/entry'
+      end
+    assert_match(
+      %r{ledger/entry\.rb is inside the Carton .*/ledger\.rb},
+      error.message,
+    )
+  end
 end
