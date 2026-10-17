@@ -35,11 +35,22 @@ already is one.
 
 ## Undeclared imports
 
-Carton does not enforce the gemspec yet. A package imported from a bundled app
-sees the app's whole lockfile, as `Bundler.setup` gives the Main Box, so
-`import 'shipping'` inside `billing` would work even though `billing.gemspec`
-does not declare it. Reporting that from a static `carton check` is proposed
-in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
+A package imported from a bundled app sees the app's whole lockfile, as
+`Bundler.setup` gives the Main Box, so `import 'shipping'` inside `billing`
+would work at runtime even though `billing.gemspec` does not declare it.
+`carton check` reports it:
+
+```sh
+cd examples/monorepo
+bundle exec ruby ../../exe/carton check main.rb
+# packages/billing/lib/billing.rb:7: error: import 'shipping' loads the
+# shipping gem, which billing's gemspec does not declare: add
+# spec.add_dependency 'shipping'
+```
+
+Enforcing it at runtime too is proposed in
+[dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) as strict
+gem Cartons.
 
 ## Run
 

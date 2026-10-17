@@ -21,8 +21,7 @@ in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 `carton rbs` and `carton check` exist; the rest of [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) is still open. Packages as gems are proposed in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
 
 - `carton check`: report unused exports and dead imports.
-- `carton check`: report imports that a gem Carton's gemspec does not declare (see `examples/monorepo`). At runtime a gem Carton sees the caller's whole lockfile, so this is the cheapest way to enforce package dependencies.
-- `carton check`: report gem versions in a Carton's own `Gemfile.lock` that disagree with the app's.
+- `carton check`: resolve imports inside a Carton that calls `setup_bundle` against its own `Gemfile.lock`, then report a gem Carton shared by importers whose lockfiles lock its dependencies at different versions (a runtime `Carton::ImportError` today).
 - `carton rbs`: read exported top-level method types from a Carton's own RBS, not only rbs-inline `#:` annotations.
 - `carton rbs`: optionally write Steepfile targets, one per Carton, so Cartons' internal constants cannot clash in RBS's single namespace.
 - Sorbet through a Tapioca DSL compiler, if `tapioca dsl` works under `RUBY_BOX=1`.
