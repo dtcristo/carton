@@ -12,3 +12,8 @@ gem 'shipping', path: 'packages/shipping'
 
 # The app's lockfile pins third-party versions for every package.
 gem 'bigdecimal', '4.1.1'
+
+# The tests in test/ run under this same bundle.
+group :test do
+  gem 'minitest', '~> 5.16'
+end
