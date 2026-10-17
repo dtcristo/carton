@@ -371,7 +371,7 @@ Carton's own errors subclass `Carton::Error`:
 
 | Error | Raised when |
 | --- | --- |
-| `Carton::ImportError` | a Carton imports itself, or a shared Carton was built against other gem versions |
+| `Carton::ImportError` | Boxes are disabled (run with `RUBY_BOX=1`), a Carton imports itself, or a shared Carton was built against other gem versions |
 | `Carton::ExportError` | a name is exported twice, `export_default` is called twice, or both forms are used |
 | `Carton::GemfileNotFound` | `setup_bundle` finds no Gemfile |
 

@@ -326,6 +326,29 @@ class IntegrationTest < Minitest::Test
     assert payload.fetch('main_load_path_unchanged')
   end
 
+  def test_import_without_boxes_explains_how_to_enable_them
+    script = <<~SCRIPT
+    require 'carton'
+    %w[import import_relative].each do |method|
+      __send__(method, 'json')
+    rescue Carton::ImportError => e
+      puts e.message
+    end
+  SCRIPT
+    output, error, status =
+      Open3.capture3(
+        unbundled_env.merge('RUBY_BOX' => nil),
+        RbConfig.ruby,
+        '-Ilib',
+        '-e',
+        script,
+      )
+
+    assert status.success?, error
+    assert_equal ['Carton needs Ruby::Box: run Ruby with RUBY_BOX=1'] * 2,
+                 output.lines(chomp: true)
+  end
+
   def test_monorepo_example_imports_path_gem_packages_by_name
     output =
       run_boxed("load #{File.join(EXAMPLES, 'monorepo/main.rb').inspect}")

@@ -4,7 +4,6 @@ Ordered by priority within each section.
 
 ## Library
 
-- Raise a Carton error explaining `RUBY_BOX=1` when Boxes are disabled, instead of the raw `Ruby::Box` error from `Carton::Box#initialize`.
 - Include the paths Carton tried in missing-Import `LoadError` messages.
 - Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.
 - Ship `exe/carton` that sets `RUBY_BOX=1` and execs Ruby, so `carton main.rb` just works.

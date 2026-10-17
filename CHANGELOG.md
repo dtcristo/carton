@@ -84,6 +84,8 @@
 
 ### Fixed
 
+- Importing without `RUBY_BOX=1` raises `Carton::ImportError` explaining how to
+  enable Boxes, instead of `NoMethodError` on `nil`.
 - A missing `import_relative` target raises `LoadError` instead of loading a
   same-named feature from the load path (such as the stdlib `json`), and a
   missing absolute `import` raises `LoadError` instead of `Errno::ENOENT`.
