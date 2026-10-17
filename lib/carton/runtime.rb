@@ -15,8 +15,9 @@ module Carton
     # the box itself if the target does not export anything. Each Entrypoint
     # loads once per process; later imports return the same value.
     # `base_dir` is given for `import_relative`; plain `import` searches the
-    # caller Box's `$LOAD_PATH`.
-    def import(path, base_dir: nil)
+    # caller Box's `$LOAD_PATH`, and `from` names the calling file for its
+    # error message.
+    def import(path, base_dir: nil, from: nil)
       unless Ruby::Box.enabled?
         raise ImportError, 'Carton needs Ruby::Box: run Ruby with RUBY_BOX=1'
       end
@@ -29,7 +30,13 @@ module Carton
       unless target.gems.empty?
         target.locked_gems = GemActivation.locked(caller_box, loaded_specs)
       end
-      import_cache.import(target)
+      begin
+        import_cache.import(target)
+      rescue LoadError => e
+        raise unless e.path == target.feature && base_dir.nil?
+
+        raise LoadError, missing_name_message(path, e.message, from)
+      end
     end
 
     # Add to the current carton's Export Namespace. A capitalized Symbol names
@@ -68,6 +75,20 @@ module Carton
       entrypoint_box(file)&.__send__(:declare_default, value)
       value
     end
+
+    # A name not on `$LOAD_PATH` is the usual mistake of `import` for a file
+    # beside the caller, so point at `import_relative` when one is there.
+    def missing_name_message(path, message, from)
+      message = "#{message}: import searches $LOAD_PATH, like require"
+      dir = from && File.dirname(File.expand_path(from))
+      return message unless dir
+
+      file = Resolver.locate(path, load_path: [], base_dir: dir).feature
+      "#{message}; use import_relative #{path.to_s.inspect} for #{file}"
+    rescue LoadError
+      message
+    end
+    private_class_method :missing_name_message
 
     def load_import(target)
       Box

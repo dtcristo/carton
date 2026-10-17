@@ -46,7 +46,9 @@ class ImportRelativeTest < Minitest::Test
   # `json` exists in the stdlib but not next to this file.
   def test_missing_import_relative_raises_instead_of_loading_a_stdlib_feature
     error = assert_raises(LoadError) { import_relative 'json' }
-    assert_equal "cannot load such file -- #{__dir__}/json", error.message
+    assert_equal "cannot load such file -- #{__dir__}/json " \
+                   "(tried json.rb and json/lib/json.rb in #{__dir__})",
+                 error.message
   end
 
   def test_carton_loads_its_directory_in_one_box

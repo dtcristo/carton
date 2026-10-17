@@ -34,12 +34,16 @@ class ResolverTest < Minitest::Test
   # back to a same-named feature elsewhere, such as the stdlib `json`.
   def test_missing_relative_path_raises_load_error
     error = assert_raises(LoadError) { resolve('json', base_dir: FIXTURES) }
-    assert_equal "cannot load such file -- #{FIXTURES}/json", error.message
+    assert_equal "cannot load such file -- #{FIXTURES}/json " \
+                   "(tried json.rb and json/lib/json.rb in #{FIXTURES})",
+                 error.message
   end
 
   def test_missing_absolute_path_raises_load_error
     error = assert_raises(LoadError) { resolve("#{FIXTURES}/nope.rb") }
-    assert_equal "cannot load such file -- #{FIXTURES}/nope.rb", error.message
+    assert_equal "cannot load such file -- #{FIXTURES}/nope.rb " \
+                   "(tried nope.rb in #{FIXTURES})",
+                 error.message
   end
 
   def test_symlinked_load_path_entry_is_carried_as_given
