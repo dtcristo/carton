@@ -172,7 +172,7 @@ top-level app's:
 Carton.setup_bundle
 ```
 
-Carton patches nothing in RubyGems or Bundler. Strict gem Cartons call two Bundler internals; see [upstream.md](upstream.md#resolve-once-activate-in-many-boxes).
+Carton patches nothing in RubyGems or Bundler. Restricting a gem Carton to the importer's lockfile calls two Bundler internals; see [upstream.md](upstream.md#resolve-once-activate-in-many-boxes).
 
 ### What applications generally should touch
 

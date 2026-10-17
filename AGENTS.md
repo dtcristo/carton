@@ -12,7 +12,7 @@
 - Importers never get another Carton's Box; Bare Cartons return `Carton::Exports`.
 - A Carton is an Entrypoint `x.rb` plus the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Files inside a Carton cannot be imported; the outermost Entrypoint wins.
 - Imports are cached process-wide by Entrypoint real path.
-- Carton Boxes are exact `Ruby::Box` instances, never subclasses (Ruby keeps autoloads in their Box only for an exact `Ruby::Box`); `Carton::Box` wraps one.
+- `Carton::Box` wraps a plain `Ruby::Box`; never subclass `Ruby::Box` (autoloads would load in the importer's Box).
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.
 - `export` is repeatable; `export_default` is exclusive (once, never with `export`).
 - `import` returns a Default Export's value itself, and `Carton::Exports` for Named Exports and Bare Cartons; no wrapper with a `default` accessor.

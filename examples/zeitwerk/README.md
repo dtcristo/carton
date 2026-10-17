@@ -85,14 +85,6 @@ references the constant first. `Billing::Archive` is left lazy to show it:
 Carton's Box, through that Box's own Zeitwerk, so `on_load` callbacks and
 reloading see it.
 
-Ruby keeps an autoload in the Box that defined it only when that Box is
-exactly a `Ruby::Box`, and it then loads the file with `Ruby::Box#require`,
-which skips Zeitwerk's `Kernel#require` patch. Carton's Boxes are plain
-`Ruby::Box` instances, and Carton routes that `require` through the Box's
-`Kernel#require`;
-[how-boxes-work.md](../../docs/internals/how-boxes-work.md#which-box-runs-an-autoload)
-has the details.
-
 `cartons/billing/lib/billing.rb` still calls `loader.eager_load`, as an app
 does in production: a broken file then fails at boot, not on first use.
 `Billing::Invoice` and `Shipping::Rate` record `Ruby::Box.current` when their

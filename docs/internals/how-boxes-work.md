@@ -492,45 +492,19 @@ subclass defined there too.
 
 ### Which Box runs an autoload
 
-`autoload` records the current Box. When code first references the constant,
-`autoload_feature_require` in `ruby/variable.c` requires the file in that
-recorded Box only if the Box's class is exactly `Ruby::Box` (the
-`BOX_OBJ_P` check), by calling `require` on the Box object. Otherwise it
-calls `require` on the top self of the Box running the referencing code, so
-the file's `require`s and top-level constant lookups resolve there and it
-lands in that Box's `$LOADED_FEATURES`. Zeitwerk defines plain
-`Module#autoload`s, so its constants behave the same way.
+An autoload loads in the Box that registered it, whichever Box references the
+constant first, so a Carton's lazy constants, Zeitwerk's included, load in the
+Carton's Box. Carton relies on this, so `Carton::Box` wraps a plain
+`Ruby::Box` rather than subclassing it.
 
-```ruby
-# greeter.rb
-module Greeter
-  autoload :Late, File.join(__dir__, 'greeter/late')
-end
-
-# greeter/late.rb
-Greeter::Late = Ruby::Box.current
-
-# main.rb: RUBY_BOX=1 ruby main.rb Ruby::Box   (or SubBox)
-class SubBox < Ruby::Box; end
-
-box = Object.const_get(ARGV[0]).new
-box.eval("require #{File.join(__dir__, 'greeter').inspect}")
-Greeter = box.eval('Greeter') # what an import hands the Main Box
-p Greeter::Late == box            # Ruby::Box: true, SubBox: false
-p Greeter::Late == Ruby::Box.main # Ruby::Box: false, SubBox: true
-```
-
-The repro requires through `box.eval`, as Carton does, because
-`SubBox#require` loads the file into the Main Box on 4.0.7. Ruby's master
-branch keeps the same exact-class check.
-
-So Carton never subclasses `Ruby::Box`: `Carton::Box` wraps a plain one and
-attaches itself to it. That keeps every autoload a Carton defines in the
-Carton's Box. `Ruby::Box#require` on 4.0.7 also skips the Box's
-`Kernel#require`, and so Zeitwerk's patch on it, which runs `on_load`
-callbacks and tracks files for reloading. Carton defines `require` on each
-Box object to call `Kernel#require` inside the Box instead, so autoloaded
-files go through the same `require` as every other file in the Carton.
+On 4.0.7, Ruby loads the file with `Ruby::Box#require`, which skips the Box's
+`Kernel#require` and so any patch on it, such as the one Zeitwerk uses to run
+`on_load` callbacks and track files for reloading
+([Bug #21830](https://bugs.ruby-lang.org/issues/21830)). Carton defines
+`require` on each Box object to call `Kernel#require` inside the Box instead.
+Ruby master calls the Box's own `require`
+([PR #18534](https://github.com/ruby/ruby/pull/18534)), so the workaround can
+go once Carton's minimum Ruby includes that fix.
 
 ### Why Carton should avoid unnecessary Ruby-core changes
 

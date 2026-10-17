@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
 module Carton
-  # One Import's state, attached to the plain `Ruby::Box` it runs in.
-  #
-  # This wraps a `Ruby::Box` rather than subclassing it: Ruby runs an autoload
-  # in the Box that registered it only when that Box is exactly a `Ruby::Box`,
-  # so a subclass would let a Carton's lazy autoloads run in the importer's
-  # Box. Code in any Box finds the Import from `Ruby::Box.current` with
-  # `Box.for`.
+  # One Import's state, attached to the plain `Ruby::Box` it runs in. It wraps
+  # a `Ruby::Box` rather than subclassing it, because Ruby keeps autoloads in
+  # the Box that registered them only for a plain `Ruby::Box`. Code in any Box
+  # finds the Import from `Ruby::Box.current` with `Box.for`.
   class Box
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
@@ -70,10 +67,10 @@ module Carton
 
     attr_reader :import_cache, :pending_gems
 
-    # Ruby loads an autoload registered in this Box with `Ruby::Box#require`,
-    # which skips the Box's `Kernel#require` and so any patch on it, such as
-    # the one Zeitwerk uses to run `on_load` callbacks. Send it through
-    # `Kernel#require` in this Box instead.
+    # Ruby 4.0.7 loads an autoload registered in this Box with
+    # `Ruby::Box#require`, which skips the Box's `Kernel#require` and so any
+    # patch on it, such as Zeitwerk's (Bug #21830, fixed on Ruby master). Send
+    # it through `Kernel#require` in this Box instead.
     def route_autoloads_through_kernel_require
       box = @box
       box.define_singleton_method(:require) do |path|
