@@ -29,12 +29,10 @@ monkey patches stay inside, and only what it exports reaches the importer.
 
 ## Quick start
 
-Carton needs Ruby 4.0.7+ with Boxes enabled (`RUBY_BOX=1`). The API below is
-on `main` and not yet released, so install from GitHub:
+Carton needs Ruby 4.0.7+ with Boxes enabled (`RUBY_BOX=1`). Install it:
 
-```ruby
-# Gemfile
-gem 'carton', github: 'dtcristo/carton'
+```sh
+gem install carton   # or add `gem 'carton'` to your Gemfile
 ```
 
 A Carton's Entrypoint loads its own files and exports one value with
