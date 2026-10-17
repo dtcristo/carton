@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module Billing
-  # Plain Ruby domain object, autoloaded by the Carton's Zeitwerk loader.
+  # Plain Ruby domain object, eager loaded by the Carton's Zeitwerk loader
+  # in the Carton's Box.
   class Invoice
     def initialize(id:, subtotal_cents:)
       @id = id
