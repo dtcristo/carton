@@ -328,13 +328,13 @@ class IntegrationTest < Minitest::Test
 
   def test_import_without_boxes_explains_how_to_enable_them
     script = <<~SCRIPT
-    require 'carton'
-    %w[import import_relative].each do |method|
-      __send__(method, 'json')
-    rescue Carton::ImportError => e
-      puts e.message
-    end
-  SCRIPT
+      require 'carton'
+      %w[import import_relative].each do |method|
+        __send__(method, 'json')
+      rescue Carton::ImportError => e
+        puts e.message
+      end
+    SCRIPT
     output, error, status =
       Open3.capture3(
         unbundled_env.merge('RUBY_BOX' => nil),
