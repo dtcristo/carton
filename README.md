@@ -124,7 +124,7 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 
 | Example | Shows |
 | --- | --- |
-| [minimal](examples/minimal/README.md) | `export_default`, `export`, and `import_relative`, with no gems |
+| [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, and the error for importing a file inside a Carton |
 | [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
 | [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
 | [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |

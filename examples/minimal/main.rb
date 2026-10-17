@@ -2,16 +2,23 @@
 
 require_relative '../../lib/carton'
 
-# Default import: Foo exports its module with `export_default`.
-Foo = import_relative 'foo'
+# Import the billing Carton: billing.rb plus everything in billing/.
+Billing = import_relative 'billing'
+puts "Invoice total: #{Billing.invoice(40).total}"
 
-# Namespace import — Bar exports named methods and constants.
-Bar = import_relative 'bar'
+# Named Exports come back as a Carton::Exports namespace.
+MathTools = import_relative 'math'
+puts "10% of 40: #{MathTools.percent(40, 10)} (math #{MathTools::VERSION})"
 
-puts '-- Foo --'
-puts Foo.hello
+begin
+  Billing::Tax
+rescue NameError
+  puts 'Billing::Tax is private'
+end
 
-puts
-puts '-- Bar (uses Baz internally) --'
-puts Bar.hello
-puts "Bar::MAGIC = #{Bar::MAGIC}"
+# Only a Carton's Entrypoint can be imported, never a file inside it.
+begin
+  import_relative 'billing/invoice'
+rescue Carton::ImportError => e
+  puts e.message.gsub("#{__dir__}/", '')
+end
