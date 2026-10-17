@@ -30,6 +30,9 @@
 
 ### Added
 
+- `bench/scale.rb` (`rake bench`) measures import time and memory as
+  Cartons and bundles grow; [docs/performance.md](docs/performance.md) has
+  the results.
 - `Carton::Exports#keys` and `#to_h`, and a readable `inspect`:
   `#<Carton::Exports add, PI, version>`.
 - `examples/plugins`, a report runner whose two plugins load bigdecimal

@@ -13,6 +13,7 @@ RUBOCOP_FILES = %w[
   lib/**/*.rb
   test/*.rb
   test/carton/**/*.rb
+  bench/*.rb
   examples/**/*.rb
   examples/**/Gemfile
 ].freeze
@@ -122,6 +123,11 @@ namespace :example do
       end
     end
   end
+end
+
+desc 'Measure import time and memory at scale'
+task :bench do
+  Bundler.with_unbundled_env { sh 'ruby bench/scale.rb', verbose: false }
 end
 
 desc 'Run all examples'
