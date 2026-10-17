@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- An autoload a Carton defines, such as a lazy Zeitwerk constant, loads in
+  the Carton's Box even when an importer references it first. It used to run
+  in the importer's Box, often the Main Box, or raise `NameError` when the
+  importer used another name. Carton's Boxes are now plain `Ruby::Box`
+  instances, because Ruby keeps an autoload in its own Box only for an exact
+  `Ruby::Box`, and autoloaded files go through the Box's `Kernel#require`, so
+  Zeitwerk's `on_load` callbacks and reloading see them.
+
 ### Changed
 
 - A lowercase export named like a method every `Carton::Exports` has, such as

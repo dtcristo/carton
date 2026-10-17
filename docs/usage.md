@@ -45,9 +45,9 @@ lib/billing/models/charge.rb  # inside too: models/ has no models.rb
 A Carton's Entrypoint can run its own Zeitwerk loader, such as
 `Zeitwerk::Loader.for_gem`, in its own Box with its own copy of Zeitwerk.
 
-- End the Entrypoint with `loader.eager_load`. Ruby runs an autoload in the
-  Box whose code first references the constant, so a constant left lazy can
-  load in an importer's Box instead of the Carton's.
+- Constants left to autoload load in the Carton's Box, even when an importer
+  references them first, and go through the Carton's Zeitwerk, so `on_load`
+  callbacks and reloading work. Eager load at boot in production, as usual.
 - If the app's own loader manages a directory that contains a Carton,
   `ignore` the Carton's Entrypoint and directory there. Otherwise the app's
   loader can load the Carton's files in the Main Box.
