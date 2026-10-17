@@ -66,6 +66,11 @@ export PI: 3.14159, version: '1.0.0'
   `export handler: -> {}` makes `handler` return the lambda itself.
 - A missing method or constant raises `NameError`, and a repeated name raises
   `Carton::ExportError`, at the `export` call.
+- A lowercase name becomes a method on the namespace, so it cannot be a name
+  every `Carton::Exports` already has, such as `fetch`, `keys`, or `name`:
+  that raises `Carton::ExportError` instead of hiding the built-in method.
+  Rename it, or put it inside a Default Export. Capitalized names become
+  constants and never collide.
 
 Importing returns a `Carton::Exports` namespace:
 
@@ -151,8 +156,8 @@ as long as `require 'carton'` comes first so the methods exist.
 ### `import_relative`
 
 `import_relative path` resolves relative to the calling file, like
-`require_relative`. A missing file raises `LoadError`; it never falls back to
-a same-named feature on `$LOAD_PATH`.
+`require_relative`. A missing file raises `LoadError` naming the files it
+tried; it never falls back to a same-named feature on `$LOAD_PATH`.
 
 ```ruby
 Billing = import_relative 'billing'                  # billing.rb
@@ -168,7 +173,8 @@ over the directory.
 
 `import path` takes an absolute path, or searches the current Box's
 `$LOAD_PATH` like `require`. It never checks the current directory. A missing
-path or name raises `LoadError`.
+path or name raises `LoadError`; when the name matches a file beside the
+caller, the message suggests `import_relative` instead.
 
 ```ruby
 Billing = import 'billing'   # a gem or path gem in the bundle
@@ -227,6 +233,15 @@ rest.keys # => [:add, :PI]
 
 A hash-rest pattern collects every Named Export, or every member of a Bare
 Carton's Public Surface.
+
+To explore a namespace, `inspect` lists its names, `keys` returns them as
+Symbols in export order, and `to_h` returns every export by name:
+
+```ruby
+MathTools          # => #<Carton::Exports add, PI, version>
+MathTools.keys     # => [:add, :PI, :version]
+MathTools.to_h     # => {add: #<Method: ...add(a, b)>, PI: 3.14159, version: "1.0.0"}
+```
 
 ## Bare Cartons
 
@@ -464,7 +479,7 @@ still get right.
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
-| error | `export_default` twice, `export_default` with `export`, or a name exported twice |
+| error | `export_default` twice, `export_default` with `export`, a name exported twice, or a lowercase export (or Bare Carton method) that would hide a `Carton::Exports` method |
 | error | A gem Carton importing or requiring a gem its gemspec does not declare |
 | error | A syntax error |
 | warning | A named import not found on the load path, which a gem activated at runtime may provide |
@@ -478,7 +493,7 @@ Carton's own errors subclass `Carton::Error`:
 | Error | Raised when |
 | --- | --- |
 | `Carton::ImportError` | Boxes are disabled (run with `RUBY_BOX=1`), the target is a file inside a Carton, a Carton imports itself, or a shared Carton was built against other gem versions |
-| `Carton::ExportError` | a name is exported twice, `export_default` is called twice, or both forms are used |
+| `Carton::ExportError` | a name is exported twice, `export_default` is called twice, both forms are used, or a lowercase name would hide a `Carton::Exports` method |
 | `Carton::GemfileNotFound` | `setup_bundle` finds no Gemfile |
 
 Otherwise Carton raises what Ruby would: `LoadError` for a missing import

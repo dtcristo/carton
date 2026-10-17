@@ -7,7 +7,7 @@ module Carton
     # Import a carton by absolute path or by feature name from the caller box's
     # current `$LOAD_PATH`.
     def import(path)
-      Runtime.import(path)
+      Runtime.import(path, from: caller_locations(1, 1).first.path)
     end
 
     # Import a carton relative to the calling file, like `require_relative`.

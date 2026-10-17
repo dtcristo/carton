@@ -83,10 +83,10 @@ module Carton
       return 2 unless project
 
       problems = Checks.new(project).problems
-      pwd = "#{File.realpath(Dir.pwd)}/"
+      pwd = File.realpath(Dir.pwd)
       problems.each do |problem|
         file = Project.relative(problem.file)
-        message = problem.message.gsub(pwd, '')
+        message = problem.message.gsub("#{pwd}/", '').gsub(pwd, '.')
         @out.puts "#{file}:#{problem.line}: #{problem.level}: #{message}"
       end
       errors = problems.count(&:error?)

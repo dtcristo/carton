@@ -133,7 +133,9 @@ class ImportTest < Minitest::Test
 
   def test_import_missing_absolute_path_raises_load_error
     error = assert_raises(LoadError) { import "#{FIXTURES_DIR}/nope" }
-    assert_equal "cannot load such file -- #{FIXTURES_DIR}/nope", error.message
+    assert_equal "cannot load such file -- #{FIXTURES_DIR}/nope " \
+                   "(tried nope.rb and nope/lib/nope.rb in #{FIXTURES_DIR})",
+                 error.message
   end
 
   def test_import_missing_name_raises_load_error

@@ -2,7 +2,21 @@
 
 ## [Unreleased]
 
+### Changed
+
+- A lowercase export named like a method every `Carton::Exports` has, such as
+  `export fetch: 42` or `export def name`, raises `Carton::ExportError`. It
+  used to replace the built-in method, so `exports.fetch(:fetch)` broke. A
+  Bare Carton's top-level methods follow the same rule. `carton check`
+  reports these too.
+- A missing `import_relative` target's `LoadError` names the files Carton
+  tried, and a name `import` cannot find says it searched `$LOAD_PATH`,
+  suggesting `import_relative` when a matching file is beside the caller.
+
 ### Added
+
+- `Carton::Exports#keys` and `#to_h`, and a readable `inspect`:
+  `#<Carton::Exports add, PI, version>`.
 
 - A `carton` command that reads code with Prism and never runs it, so it
   needs no `RUBY_BOX=1`. Give it the app's files; it follows imports into

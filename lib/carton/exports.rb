@@ -10,8 +10,26 @@ module Carton
   class Exports < ::Module
     include ExportMethods
 
+    # A lowercase export becomes a singleton method, so one named like a
+    # method every `Carton::Exports` has, such as `fetch` or `name`, would
+    # hide it. Capitalized names become constants and never collide.
+    def self.reserved?(name)
+      name = name.to_s
+      !name.match?(/\A[A-Z]/) && RESERVED.include?(name)
+    end
+
+    # Raise for the first reserved name in `names`.
+    def self.check_names(names)
+      name = names.find { |n| reserved?(n) } or return
+
+      raise ExportError,
+            "export name #{name} would hide Carton::Exports##{name}: " \
+              'rename it, or export it inside a Default Export'
+    end
+
     def initialize(methods = {}, values = {})
       super()
+      Exports.check_names(methods.keys + values.keys)
       @lookup = {}
       define_methods(methods)
       define_values(values)
@@ -20,8 +38,16 @@ module Carton
     def deconstruct_keys(keys)
       return super if keys
 
-      @lookup.to_h { |key, value| [key.to_sym, value] }
+      to_h
     end
+
+    # `#<Carton::Exports PI, add>`: the exported names, so a namespace is
+    # recognizable in a console.
+    def inspect
+      names = @lookup.keys.join(', ')
+      names.empty? ? '#<Carton::Exports>' : "#<Carton::Exports #{names}>"
+    end
+    alias to_s inspect
 
     private
 
@@ -50,5 +76,10 @@ module Carton
       name = key.to_s
       @lookup.key?(name) ? [true, @lookup[name]] : [false, nil]
     end
+
+    def lookup_names = @lookup.keys
+
+    RESERVED = public_instance_methods.map(&:to_s).freeze
+    private_constant :RESERVED
   end
 end
