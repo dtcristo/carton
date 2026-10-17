@@ -242,6 +242,20 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_minitest')
   end
 
+  # Gem activation loads Bundler, Psych and Date into the Carton's Box, but
+  # they are Carton's support, not the Bare Carton's surface.
+  def test_bare_gem_carton_exposes_only_what_its_entrypoint_defines
+    script = <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+      Carton.setup_bundle(gemfile: File.expand_path('test/fixtures/shared_gems/Gemfile', Dir.pwd))
+      puts import('bigdecimal').keys.sort.join(' ')
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    assert_equal 'BigDecimal BigMath', run_boxed(script).strip
+  end
+
   def test_gem_carton_imported_from_a_bundled_carton
     script = <<~'RUBY'
       require File.expand_path('lib/carton', Dir.pwd)

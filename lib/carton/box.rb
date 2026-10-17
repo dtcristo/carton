@@ -50,7 +50,6 @@ module Carton
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
       share_error_classes
-      snapshot_import_support
       self
     end
 
@@ -58,6 +57,9 @@ module Carton
     def load_import(feature, load_path: nil, gems: [], locked_gems: nil)
       activate_gems(gems, locked_gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
+      # After activation, which loads Bundler and Psych here: a Bare
+      # Carton's surface is only what its Entrypoint adds.
+      snapshot_import_support
 
       @entrypoint = real_path(feature)
       result = require_in_box(feature)
