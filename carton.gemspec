@@ -22,7 +22,6 @@ Gem::Specification.new do |spec|
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
   spec.metadata['rubygems_mfa_required'] = 'true'
   spec.metadata['homepage_uri'] = spec.homepage
-  spec.metadata['source_code_uri'] = spec.homepage
   spec.metadata[
     'changelog_uri'
   ] = 'https://github.com/dtcristo/carton/blob/main/CHANGELOG.md'

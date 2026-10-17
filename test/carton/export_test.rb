@@ -27,7 +27,7 @@ class ExportTest < Minitest::Test
 
   def test_export_default_may_be_called_once
     error =
-      assert_raises(RuntimeError) do
+      assert_raises(Carton::ExportError) do
         import "#{FIXTURES}/repeated_default_export"
       end
     assert_equal 'export_default may be called only once per file',
@@ -36,7 +36,8 @@ class ExportTest < Minitest::Test
 
   def test_export_default_cannot_be_combined_with_export
     %w[default_then_export export_then_default].each do |fixture|
-      error = assert_raises(RuntimeError) { import "#{FIXTURES}/#{fixture}" }
+      error =
+        assert_raises(Carton::ExportError) { import "#{FIXTURES}/#{fixture}" }
       assert_equal 'export_default cannot be combined with export; ' \
                      'put the other names inside the default value',
                    error.message
@@ -71,9 +72,21 @@ class ExportTest < Minitest::Test
                  result.deconstruct_keys(nil).keys.sort
   end
 
+  def test_errors_from_any_box_are_the_importers_classes
+    error =
+      assert_raises(Carton::ExportError) do
+        import "#{FIXTURES}/duplicate_name_export"
+      end
+    assert_same Carton::ExportError, error.class
+    assert_same Carton::ExportError,
+                import("#{FIXTURES}/rescues_nested_export_error")
+  end
+
   def test_export_rejects_a_name_repeated_across_calls
     error =
-      assert_raises(ArgumentError) { import "#{FIXTURES}/repeated_name_export" }
+      assert_raises(Carton::ExportError) do
+        import "#{FIXTURES}/repeated_name_export"
+      end
     assert_equal 'export name given more than once: add', error.message
   end
 
@@ -145,7 +158,7 @@ class ExportTest < Minitest::Test
 
   def test_export_rejects_duplicate_names
     error =
-      assert_raises(ArgumentError) do
+      assert_raises(Carton::ExportError) do
         import "#{FIXTURES}/duplicate_name_export"
       end
     assert_equal 'export name given more than once: add', error.message

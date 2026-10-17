@@ -10,6 +10,7 @@ file-to-file imports feel like part of Ruby.
 | File | Role |
 | --- | --- |
 | `lib/carton.rb` | Entry point; loads the pieces below |
+| `lib/carton/error.rb` | `Carton::Error` and its subclasses |
 | `lib/carton/kernel_patch.rb` | Private `Kernel#import`, `#import_relative`, `#export`, and `#export_default` |
 | `lib/carton/runtime.rb` | Resolves an Import, checks the cache, and builds a Carton Box; validates `export` calls |
 | `lib/carton/resolver.rb` | Maps an Import path to a file, given a load path, without evaluating code |
@@ -32,7 +33,8 @@ file-to-file imports feel like part of Ruby.
 3. If the target is already imported, the cached value is returned. Otherwise
    Carton creates a new `Carton::Box`.
 4. Carton requires its own `lib/carton.rb` inside the Box, so the Carton can
-   call `import` and `export`.
+   call `import` and `export`, then points that copy's error classes at the
+   importer's, so `rescue Carton::Error` matches errors from any Box.
 5. If the target was found by name, only the load-path entry that matched is
    added to the new Box.
 6. If an activated gem in the caller owns the target, that gem and its

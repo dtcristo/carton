@@ -38,7 +38,8 @@ class SharedImportTest < Minitest::Test
   end
 
   def test_circular_import_raises
-    error = assert_raises(RuntimeError) { import "#{SHARED_DIR}/cycle_a" }
+    error =
+      assert_raises(Carton::ImportError) { import "#{SHARED_DIR}/cycle_a" }
     assert_match(/circular import: .*cycle_a\.rb/, error.message)
   end
 

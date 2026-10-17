@@ -4,6 +4,8 @@ module Carton
   class Box < Ruby::Box
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
+    ERRORS = %i[Error ImportError ExportError GemfileNotFound].freeze
+    private_constant :ERRORS
 
     def initialize
       super
@@ -35,6 +37,7 @@ module Carton
       reset_export_declaration
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
+      share_error_classes
       snapshot_import_support
       self
     end
@@ -65,6 +68,18 @@ module Carton
       require_in_box(ACTIVATE_GEMS)
     ensure
       @pending_gems = nil
+    end
+
+    # This Box just loaded its own copy of Carton, whose error classes are new
+    # objects that `rescue Carton::Error` in another Box would never match.
+    # Point them at the importer's classes, so one rescue catches errors
+    # raised in any Carton.
+    def share_error_classes
+      carton = const_get(:Carton, false)
+      ERRORS.each do |name|
+        carton.__send__(:remove_const, name)
+        carton.const_set(name, Carton.const_get(name, false))
+      end
     end
 
     def add_import_load_path(path)

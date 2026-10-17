@@ -4,8 +4,7 @@ Ordered by priority within each section.
 
 ## Library
 
-- Raise a Carton error explaining `RUBY_BOX=1` when Boxes are disabled, instead of the raw `Ruby::Box` error from `Carton::Box#initialize`.
-- Add `Carton::Error` with `ImportError` and `ExportError` subclasses, and make `GemfileNotFound` a subclass. Replace the plain `RuntimeError`s for exporting twice, circular imports, and gem version mismatches, and include the paths Carton tried in missing-Import messages.
+- Include the paths Carton tried in missing-Import `LoadError` messages.
 - Add `keys`, `to_h`, and a readable `inspect` (e.g. `#<Carton::Exports PI, add>`) to `Carton::Exports`.
 - Ship `exe/carton` that sets `RUBY_BOX=1` and execs Ruby, so `carton main.rb` just works.
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
@@ -13,7 +12,6 @@ Ordered by priority within each section.
 - Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
 - Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
 - Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
-- Revisit whether `import` should always return a `Carton::Exports` with a `default` accessor, or whether the current duck-typed return values fit better long term.
 - Consider a small helper for the `register` pattern in `examples/rails_in_cartons` if more framework integrations need it.
 - Test that the gem builds, installs into a clean gem home, and can be required and imported.
 

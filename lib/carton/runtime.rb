@@ -17,6 +17,10 @@ module Carton
     # `base_dir` is given for `import_relative`; plain `import` searches the
     # caller Box's `$LOAD_PATH`.
     def import(path, base_dir: nil)
+      unless Ruby::Box.enabled?
+        raise ImportError, 'Carton needs Ruby::Box: run Ruby with RUBY_BOX=1'
+      end
+
       caller_box = Ruby::Box.current
       load_path = caller_box.eval('$LOAD_PATH.to_a')
       target = Resolver.resolve(path, load_path:, base_dir:)
@@ -41,7 +45,7 @@ module Carton
 
       duplicate = (names + values.keys).tally.find { |_, count| count > 1 }
       if duplicate
-        raise ArgumentError,
+        raise ExportError,
               "export name given more than once: #{duplicate.first}"
       end
 

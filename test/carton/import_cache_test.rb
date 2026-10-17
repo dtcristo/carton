@@ -25,7 +25,7 @@ class ImportCacheTest < Minitest::Test
     @cache.import(target('bigdecimal' => '3.3.1'))
 
     error =
-      assert_raises(RuntimeError) do
+      assert_raises(Carton::ImportError) do
         @cache.import(target('bigdecimal' => '4.1.1'))
       end
     assert_match(/imported with bigdecimal 3\.3\.1/, error.message)

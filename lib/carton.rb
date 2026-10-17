@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'carton/error'
 require_relative 'carton/bundler'
 require_relative 'carton/export_methods'
 require_relative 'carton/exports'

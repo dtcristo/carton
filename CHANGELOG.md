@@ -11,13 +11,14 @@
   other Symbols export methods (`export :add`, or `export def add ...`), and
   keywords export plain values. Replace `export add: method(:add)` with
   `export :add`. A missing name raises `NameError`, and a name exported twice
-  raises `ArgumentError`.
+  raises `Carton::ExportError`.
 - Exported methods forward when called (`exports.add(...)`), while `[]`,
   `fetch`, and destructuring return the `Method` object. Keyword values are no
   longer invoked: `export handler: -> {}` makes `exports.handler` return the
   lambda.
 - `export_default` may be called only once per file and cannot be combined
-  with `export`; both raise. Put other names inside the default value.
+  with `export`; both raise `Carton::ExportError`. Put other names inside the
+  default value.
 - Importing a file with no exports (a Bare Carton) returns a `Carton::Exports`
   of the constants and top-level helpers it defines, instead of its
   `Carton::Box`. Importers can no longer `eval`, `require`, or read
@@ -28,7 +29,7 @@
 - Imports are shared across the process. Each Carton file loads once, and
   every later `import` or `import_relative` of it returns the same value, so
   sibling Cartons share classes and Carton state no longer resets per import.
-  A Carton that imports itself raises `circular import`.
+  A Carton that imports itself raises `Carton::ImportError`.
 - `import 'name'` no longer checks the current directory before `$LOAD_PATH`,
   so results no longer depend on where the app was started. Use an absolute
   path, `import_relative`, or add the directory to `$LOAD_PATH`.
@@ -39,6 +40,11 @@
 
 ### Added
 
+- `Carton::Error`, the base class of every error Carton raises itself, with
+  `Carton::ImportError` (circular imports, gem version mismatches) and
+  `Carton::ExportError` (repeated or conflicting exports). They replace plain
+  `RuntimeError`s and `ArgumentError`s, and are the same classes in every
+  Box. `Carton::GemfileNotFound` is now a `Carton::Error`.
 - `Carton.setup_bundle(*groups, gemfile: nil)` sets up a Carton's own bundle.
   Without `gemfile:` it searches upward from the calling file for `gems.rb`
   or `Gemfile`. It clears any stale `BUNDLE_LOCKFILE` and restores all of
@@ -78,6 +84,8 @@
 
 ### Fixed
 
+- Importing without `RUBY_BOX=1` raises `Carton::ImportError` explaining how to
+  enable Boxes, instead of `NoMethodError` on `nil`.
 - A missing `import_relative` target raises `LoadError` instead of loading a
   same-named feature from the load path (such as the stdlib `json`), and a
   missing absolute `import` raises `LoadError` instead of `Errno::ENOENT`.

@@ -13,7 +13,16 @@ module Carton
   def self.setup_bundle: (*::Symbol groups, ?gemfile: ::String?) -> untyped
 end
 
-class Carton::GemfileNotFound < ::StandardError
+class Carton::Error < ::StandardError
+end
+
+class Carton::ImportError < Carton::Error
+end
+
+class Carton::ExportError < Carton::Error
+end
+
+class Carton::GemfileNotFound < Carton::Error
 end
 
 class Carton::Exports < ::Module
