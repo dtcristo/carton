@@ -14,6 +14,10 @@
 - `carton check` reports missing imports, imports of files inside a Carton,
   import cycles, `require` calls that load a second copy of an imported
   Carton, and invalid export declarations, and exits non-zero on errors.
+- `carton check` treats a gem Carton's gemspec as its manifest: it reports
+  each gem the Carton imports or requires that its gemspec does not declare.
+- `examples/rails_in_cartons` declares the `logger` dependency its `shop`
+  Carton requires.
 - `sig/carton.rbs` declares `Carton::ExportMethods`, which `Carton::Exports`
   includes.
 - The minimal example type-checks with Steep.

@@ -33,6 +33,7 @@ PATH
     shop (0.1.0)
       customers
       framework
+      logger
       orders
 
 GEM

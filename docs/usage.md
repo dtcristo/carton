@@ -383,6 +383,12 @@ Pricing = import 'pricing' # pricing's `require 'bigdecimal'` gets 3.3.1
 - If the gem Carton also calls `setup_bundle`, its Gemfile must agree with
   the importer's versions, or Bundler raises `Gem::LoadError`.
 
+Because a bundled importer exposes its whole lockfile, a gem Carton can load a
+gem it never declared and still work, until it is installed somewhere without
+that gem. `carton check` reports each undeclared gem, so the gemspec stays an
+accurate manifest; run it under `bundle exec` so it sees the bundle's gems.
+Default gems and Carton itself need no declaration.
+
 ### Monorepos
 
 To split an app into packages, make each package a path gem in one Gemfile
@@ -459,6 +465,7 @@ still get right.
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
 | error | `export_default` twice, `export_default` with `export`, or a name exported twice |
+| error | A gem Carton importing or requiring a gem its gemspec does not declare |
 | error | A syntax error |
 | warning | A named import not found on the load path, which a gem activated at runtime may provide |
 | warning | An import whose path is not a string literal |

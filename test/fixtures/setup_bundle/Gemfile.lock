@@ -8,7 +8,6 @@ GEM
 
 PLATFORMS
   arm64-darwin-27
-  ruby
 
 DEPENDENCIES
   tool_gem!

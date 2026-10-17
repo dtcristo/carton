@@ -8,5 +8,6 @@ Gem::Specification.new do |spec|
   spec.files = Dir['{app,lib}/**/*.rb']
   spec.add_dependency 'customers'
   spec.add_dependency 'framework'
+  spec.add_dependency 'logger'
   spec.add_dependency 'orders'
 end

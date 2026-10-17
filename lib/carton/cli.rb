@@ -97,7 +97,8 @@ module Carton
 
     # Parse options shared by every command, then scan PATHs. Named imports
     # resolve against `-I` directories, then this process's `$LOAD_PATH`,
-    # which includes the bundle's gems under `bundle exec`.
+    # which includes the bundle's gems under `bundle exec`, and files belong
+    # to the gems RubyGems knows: the bundle's, or every installed gem.
     def project(args, command)
       includes = []
       parser =
