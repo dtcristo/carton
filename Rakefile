@@ -18,6 +18,7 @@ RUBOCOP_FILES = %w[
 ].freeze
 EXAMPLES = %w[
   minimal
+  plugins
   gems
   bundler
   monorepo
