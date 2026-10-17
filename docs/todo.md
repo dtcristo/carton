@@ -1,6 +1,8 @@
 # TODO
 
-Ordered by priority within each section.
+Ordered by priority within each section. Proposed next steps after 0.2.0
+(a `carton` CLI, RBS and Tapioca types, static checks, strict gem Cartons) are
+in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 
 ## Library
 

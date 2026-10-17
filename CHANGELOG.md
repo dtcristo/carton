@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-17
+
+Cartons are now gem-sized or domain-sized units: a file plus the directory
+named after it. This release also redesigns exports, shares imports across
+the process, adds gem and Bundler support, and requires Ruby 4.0.7.
+
 ### Breaking
 
 - A Carton is now a file plus the directory named after it, the shape of a
@@ -117,5 +123,6 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/dtcristo/carton/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/dtcristo/carton/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/dtcristo/carton/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/dtcristo/carton/releases/tag/v0.1.0
