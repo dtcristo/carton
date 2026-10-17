@@ -15,9 +15,10 @@ module Carton
   module GemActivation
     module_function
 
-    # The non-default gem in `loaded_specs` that owns `feature`, plus its
-    # activated runtime dependencies, dependencies first. Empty when no
-    # activated gem owns the file.
+    # The gem in `loaded_specs` that owns `feature`, plus its activated
+    # runtime dependencies, dependencies first. Default gems count: a new Box
+    # would otherwise load the newest installed version, not the caller's.
+    # Empty when no activated gem owns the file.
     def closure(feature, loaded_specs)
       owner = owner_of(feature, loaded_specs.values)
       return [] unless owner
@@ -93,7 +94,7 @@ module Carton
 
     def owner_of(feature, specs)
       specs
-        .select { |spec| shareable?(spec) }
+        .select { |spec| activatable?(spec) }
         .filter_map do |spec|
           dir =
             spec.full_require_paths.find do |path|
@@ -107,7 +108,7 @@ module Carton
     private_class_method :owner_of
 
     def visit(spec, loaded_specs, ordered, seen)
-      return ordered if seen[spec.name] || !shareable?(spec)
+      return ordered if seen[spec.name] || !activatable?(spec)
 
       seen[spec.name] = true
       spec.runtime_dependencies.each do |dependency|
@@ -118,13 +119,15 @@ module Carton
     end
     private_class_method :visit
 
-    # Default gems already load in every Box. Bundler is left out too: each
-    # Box loads its own copy to apply the restriction, possibly a different
-    # version than the caller's, and activating the caller's on top of it
-    # raises Gem::LoadError.
-    def shareable?(spec)
-      !spec.default_gem? && spec.name != 'bundler'
-    end
+    # Bundler is never shared: each Box loads its own copy to apply the
+    # restriction, possibly a different version than the caller's, and
+    # activating the caller's on top of it raises Gem::LoadError.
+    def activatable?(spec) = spec.name != 'bundler'
+    private_class_method :activatable?
+
+    # Bundler's restriction already lets default gems load, so the locked set
+    # leaves them out.
+    def shareable?(spec) = activatable?(spec) && !spec.default_gem?
     private_class_method :shareable?
   end
 end

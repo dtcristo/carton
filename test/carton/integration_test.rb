@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'fileutils'
 require 'json'
 require 'open3'
 require 'rbconfig'
@@ -283,6 +284,35 @@ class IntegrationTest < Minitest::Test
     )
   end
 
+  # Without Bundler, a gem Carton's default-gem dependency keeps the version
+  # the caller activated, even when a newer one is installed: here a fake
+  # json 99.0.0 in a temporary gem home.
+  def test_gem_carton_keeps_the_callers_default_gem_version
+    Dir.mktmpdir('carton-default-gem') do |home|
+      install_fake_newer_json(home)
+      probe = File.join(home, 'probe')
+      FileUtils.mkdir_p(File.join(probe, 'lib'))
+      File.write(
+        File.join(probe, 'lib', 'default_probe.rb'),
+        "require 'json'\nexport json_version: JSON::VERSION\n",
+      )
+      gem_path = [home, *Gem.path].join(File::PATH_SEPARATOR)
+
+      output, error, status =
+        Open3.capture3(
+          unbundled_env.merge('GEM_PATH' => gem_path),
+          RbConfig.ruby,
+          '-Ilib',
+          '-e',
+          default_probe_script(probe),
+        )
+
+      assert status.success?, [output, error].reject(&:empty?).join("\n")
+      default_version, carton_version = output.split
+      assert_equal default_version, carton_version
+    end
+  end
+
   def test_gem_carton_imported_from_a_bundled_carton
     script = <<~'RUBY'
       require File.expand_path('lib/carton', Dir.pwd)
@@ -447,6 +477,48 @@ class IntegrationTest < Minitest::Test
   # Runs `script` in a fresh `RUBY_BOX=1` Ruby outside the dev bundle, as a
   # real process so native extensions and process exit are exercised, asserts
   # it succeeded, and returns its stdout.
+  def install_fake_newer_json(home)
+    lib = File.join(home, 'gems', 'json-99.0.0', 'lib')
+    FileUtils.mkdir_p([lib, File.join(home, 'specifications')])
+    File.write(
+      File.join(lib, 'json.rb'),
+      "module JSON; VERSION = '99.0.0'; end\n",
+    )
+    spec =
+      Gem::Specification.new do |s|
+        s.name = 'json'
+        s.version = '99.0.0'
+        s.summary = 'fake'
+        s.authors = ['Carton']
+        s.files = ['lib/json.rb']
+      end
+    File.write(
+      File.join(home, 'specifications', 'json-99.0.0.gemspec'),
+      spec.to_ruby,
+    )
+  end
+
+  # Activates the default json, then imports a gem Carton that requires it.
+  def default_probe_script(probe)
+    <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+      default = Gem::Specification.find { |s| s.name == 'json' && s.default_gem? }
+      gem 'json', default.version.to_s
+      spec = Gem::Specification.new do |s|
+        s.name = 'default_probe'
+        s.version = '0.1.0'
+        s.summary = 'probe'
+        s.authors = ['Carton']
+        s.add_runtime_dependency('json')
+      end
+      spec.full_gem_path = #{probe.inspect}
+      spec.activate
+      puts [default.version, import('default_probe').json_version].join(' ')
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+  end
+
   def run_boxed(script)
     output, error, status =
       Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
