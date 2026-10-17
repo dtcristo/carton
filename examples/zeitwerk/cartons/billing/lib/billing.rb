@@ -1,0 +1,32 @@
+# frozen_string_literal: true
+
+# The billing Carton's Entrypoint. Everything in this file and lib/billing/
+# runs in the billing Carton's own Box.
+
+# This Carton's own bundle (cartons/billing/Gemfile): zeitwerk 2.7.5, while
+# the app locks 2.8.3. Each Box requires its own copy of Zeitwerk.
+Carton.setup_bundle
+require 'zeitwerk'
+
+# A Carton already has Zeitwerk's gem layout (lib/billing.rb plus
+# lib/billing/), so for_gem needs no configuration.
+loader = Zeitwerk::Loader.for_gem
+# Archive stays lazy to show what an autoload from another Box does; see the
+# README.
+loader.do_not_eager_load(File.join(__dir__, 'billing', 'archive.rb'))
+loader.setup
+
+module Billing
+  def self.invoice(cents) = Invoice.new(cents).to_s
+
+  # This Box's Zeitwerk, not the app's.
+  def self.zeitwerk_version = Zeitwerk::VERSION
+  def self.zeitwerk_dirs = Zeitwerk::Loader.all_dirs
+end
+
+# Load the rest of the Carton now, while this Box is running. Importers then
+# find every constant already defined and never trigger an autoload.
+loader.eager_load
+
+# Only Billing crosses the Carton boundary.
+export_default Billing

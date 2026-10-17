@@ -21,6 +21,7 @@ EXAMPLES = %w[
   gems
   bundler
   monorepo
+  zeitwerk
   rails_in_main
   rails_in_cartons
   master_prelude

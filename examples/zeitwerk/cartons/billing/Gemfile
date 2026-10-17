@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+# The billing Carton's own bundle: an older zeitwerk than the app's.
+gem 'zeitwerk', '2.7.5'

@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'carton', path: '../..'
+
+# The app's Zeitwerk. The shipping Carton shares this Gemfile but loads its own
+# copy of zeitwerk in its own Box; the billing Carton has its own Gemfile.
+gem 'zeitwerk', '2.8.3'
