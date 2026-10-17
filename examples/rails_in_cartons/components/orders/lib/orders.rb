@@ -12,7 +12,7 @@ loader = Zeitwerk::Loader.new
 loader.push_dir(File.expand_path('../app/models', __dir__))
 loader.push_dir(File.expand_path('../app/controllers', __dir__))
 loader.setup
-loader.eager_load # load app/ in this Box; see customers.rb
+loader.eager_load # load app/ at boot; see customers.rb
 
 def create_schema(connection)
   connection.create_table(:orders) do |t|

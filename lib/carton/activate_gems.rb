@@ -4,5 +4,5 @@
 # resolves to the Box of the file being loaded, so activating from a file
 # required here updates this Box even during a nested Import.
 Carton.const_get(:GemActivation).activate(
-  *Ruby::Box.current.__send__(:pending_gems),
+  *Carton.const_get(:Box).for(Ruby::Box.current).__send__(:pending_gems),
 )

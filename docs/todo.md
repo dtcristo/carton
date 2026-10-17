@@ -30,7 +30,7 @@ See [upstream.md](internals/upstream.md) for detail.
 
 - Post the Bundler activation API proposal ([dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16)) upstream and comment on [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) with Carton's use case.
 - Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: official template Box support, framed as requirements derived from how Box copy-on-write works, leaving Master clean.
-- Report that autoloads registered in a `Ruby::Box` subclass run in the referencing Box: `autoload_feature_require` checks the exact class (`BOX_OBJ_P`), so Carton's `Carton::Box` loses the registering Box. See [how-boxes-work.md](internals/how-boxes-work.md#which-box-runs-an-autoload).
+- Report that autoloads registered in a `Ruby::Box` subclass run in the referencing Box (`autoload_feature_require` checks the exact class, `BOX_OBJ_P`), and that `Ruby::Box#require` skips the Box's `Kernel#require`. Carton works around both by wrapping a plain `Ruby::Box`. See [how-boxes-work.md](internals/how-boxes-work.md#which-box-runs-an-autoload).
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
 - Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals ([#18408](https://bugs.ruby-lang.org/issues/18408)); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
 

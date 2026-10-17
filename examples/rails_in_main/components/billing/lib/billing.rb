@@ -19,9 +19,9 @@ module Billing
   def self.active_support_visible? = ''.respond_to?(:blank?)
 end
 
-# Load lib/billing/ now, while this Box is running. Left to autoload,
-# Billing::Invoice would load in the Box that references it first: the Main
-# Box, from InvoicesController.
+# Load lib/billing/ now, as Rails does in production, so a broken file fails
+# at boot. Left to autoload, Billing::Invoice would still load in this Box
+# when InvoicesController first references it.
 loader.eager_load
 
 # Only Billing crosses the Carton boundary.

@@ -13,9 +13,8 @@ loader.push_dir(File.expand_path('../app/models', __dir__))
 loader.push_dir(File.expand_path('../app/controllers', __dir__))
 loader.setup
 
-# Load app/ now, while this Box is running. Exporting the classes below
-# would load them here anyway, but a constant left to autoload, say a nested
-# Customer::Address, would load in whichever Box references it first.
+# Load app/ now, as Rails does in production, so a broken file fails at
+# boot. Constants left to autoload would still load in this Box.
 loader.eager_load
 
 # This domain owns its table.

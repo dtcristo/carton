@@ -15,7 +15,7 @@ imports of gem-sized and domain-sized units feel like part of Ruby.
 | `lib/carton/runtime.rb` | Resolves an Import, checks the cache, and builds a Carton Box; validates `export` calls |
 | `lib/carton/resolver.rb` | Maps an Import path to a Carton's Entrypoint, given a load path, without evaluating code |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
-| `lib/carton/box.rb` | The Carton Box: runs one Import from boot to Public Surface and holds its Export Declaration |
+| `lib/carton/box.rb` | The Carton Box: wraps a plain `Ruby::Box`, runs one Import from boot to Public Surface, and holds its Export Declaration |
 | `lib/carton/export_declaration.rb` | One Entrypoint's exports: uniqueness, Default Export versus Export Namespace, and the Public Surface |
 | `lib/carton/exports.rb` | `Carton::Exports`, the module-like namespace importers receive |
 | `lib/carton/export_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring |
@@ -44,7 +44,9 @@ The `carton` command (`exe/carton`) reads code with Prism and never runs it.
    raises `Carton::ImportError`. The resolver never checks the current
    directory and reads only the file system, so static tools can reuse it.
 3. If the target is already imported, the cached value is returned. Otherwise
-   Carton creates a new `Carton::Box`.
+   Carton creates a new `Carton::Box`, which holds the Import's state and
+   wraps a plain `Ruby::Box`. A subclass would let the Carton's autoloads run
+   in the importer's Box.
 4. Carton requires its own `lib/carton.rb` inside the Box, so the Carton can
    call `import` and `export`, then points that copy's error classes at the
    importer's, so `rescue Carton::Error` matches errors from any Box.
