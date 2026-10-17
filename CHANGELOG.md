@@ -4,6 +4,12 @@
 
 ### Breaking
 
+- A Carton is now a file plus the directory named after it, the shape of a
+  gem's `lib/`: `billing.rb` and everything under `billing/`, including
+  Zeitwerk implicit-namespace directories. Importing a file inside a Carton,
+  such as `import 'billing/invoice'`, raises `Carton::ImportError` naming the
+  import to use. It used to load a second copy of the file in its own Box, so
+  its classes did not match the Carton's.
 - Carton now requires Ruby 4.0.7 or later, enforced by the gemspec, and
   Bundler support needs Bundler 4.0.23 or later.
 - `export` can be called many times per file, and each call adds to one
@@ -40,6 +46,10 @@
 
 ### Added
 
+- `import_relative` and absolute `import` accept a gem-shaped directory:
+  `import_relative 'components/billing'` loads
+  `components/billing/lib/billing.rb` with that `lib/` on the Carton's load
+  path.
 - `Carton::Error`, the base class of every error Carton raises itself, with
   `Carton::ImportError` (circular imports, gem version mismatches) and
   `Carton::ExportError` (repeated or conflicting exports). They replace plain

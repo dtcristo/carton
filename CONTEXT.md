@@ -1,15 +1,15 @@
 # Carton
 
-Carton provides a small import and export language for isolated Ruby packages.
+Carton provides a small import and export language for gem-sized and domain-sized units of Ruby code.
 
 ## Language
 
 **Carton**:
-A logical, importable Ruby package with an isolated interior and a public surface.
+An importable unit of Ruby code, gem-sized or domain-sized, with an isolated interior and a public surface: an Entrypoint plus the directory named after it.
 _Avoid_: Package when naming the domain concept, box, plain carton, unbundled carton
 
 **Entrypoint**:
-The Ruby file selected by an Import to establish a Carton boundary. Any Ruby file may be an Entrypoint.
+The file an Import loads to establish a Carton boundary, such as `billing.rb`. Files under the `billing/` directory beside it, including implicit-namespace subdirectories, are inside the Carton and cannot be imported themselves. A file with no such directory is a Carton of one file.
 _Avoid_: Manifest, package directory
 
 **Box**:
