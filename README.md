@@ -10,22 +10,16 @@
   </p>
 </div>
 
-Carton adds `import` and `export` to Ruby, built on
-[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), for splitting
-an app into gem-sized or domain-sized units. A Carton is a file plus the
-directory named after it, the shape of a gem's `lib/`: `billing.rb` and
-everything in `billing/`. It loads in its own Box, its constants, gems, and
-monkey patches stay inside, and only what it exports reaches the importer.
+Split a Ruby app into gem-sized units that import and export like modules.
+Each Carton runs in its own
+[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so:
 
-- **Explicit boundaries.** Only `import` crosses into a Carton, only its
-  Entrypoint can be imported, and only its exports come back.
-- **Gem isolation.** Two Cartons can use different versions of the same gem in
-  one process, each with its own Bundler setup if it wants one.
-- **Contained monkey patches.** Patching `String` in one Carton leaves every
-  other Carton alone.
-- **Plain Ruby.** No manifest or required layout: a gem, a path gem, a
-  directory, or a single file can be a Carton, and Ruby's own
-  `private_constant` hides internals.
+- two parts of one app can use **different versions of the same gem**;
+- **monkey patches stay** in the Carton that makes them;
+- only what a Carton exports is reachable, so **boundaries hold at runtime**.
+
+A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory, with
+no manifest. A gem, a path gem, a directory, or a single file can be one.
 
 ## Quick start
 
