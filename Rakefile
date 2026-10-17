@@ -85,7 +85,7 @@ task :test do
   Bundler.with_unbundled_env do
     install_example_bigdecimals
     Dir
-      .glob(File.join('examples', '{bundler,monorepo}', '**/Gemfile'))
+      .glob(File.join('examples', '{bundler,monorepo,plugins}', '**/Gemfile'))
       .each { |gemfile| install_example_bundle(gemfile) }
     sh(command, verbose: false)
   end
