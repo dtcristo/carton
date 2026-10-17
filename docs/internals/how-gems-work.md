@@ -148,7 +148,8 @@ On Ruby 4.0.7 with Bundler 4.0.23:
 - `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the app.
 - a fresh Box auto-activates the newest installed version of a gem on
   `require`, ignoring the caller's lockfile. Carton activates an imported
-  gem's dependency closure first to prevent this.
+  gem's dependency closure first to prevent this, default gems included,
+  since a newer installed version would otherwise replace the caller's.
 - spec objects from another Box run that Box's methods, so calling `activate`
   on them updates the wrong Box. Carton rebuilds each spec with
   `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores
