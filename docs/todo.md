@@ -8,7 +8,7 @@ in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
 - If large Cartons need lazy parts, let a Carton declare public sub-entrypoints that can be imported, like the `exports` field in Node's `package.json`. Today a file inside a Carton cannot be imported.
-- Cache rebuilt specs per caller bundle: strict gem Cartons rebuild every locked spec from YAML on each first import, which grows with bundle size.
+- Rebuild a gem Carton's specs without YAML (e.g. a `Marshal` round trip, as RubyGems' own index uses): loading Psych into each new Box costs about 86 ms of a gem Carton's 195 ms, while each rebuilt spec costs 0.15 ms. See [performance.md](performance.md).
 - Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
 - Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
 - Consider a small helper for the `register` pattern in `examples/rails_in_cartons` if more framework integrations need it.
@@ -28,6 +28,7 @@ in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38).
 
 See [upstream.md](internals/upstream.md) for detail.
 
+- Measure and report `Ruby::Box.new` cost (about 55 ms and 2.2 MB per Box on 4.0.7, see [performance.md](performance.md)), the floor for every import.
 - Post the Bundler activation API proposal ([dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16)) upstream and comment on [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) with Carton's use case.
 - Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: official template Box support, framed as requirements derived from how Box copy-on-write works, leaving Master clean.
 - Report that autoloads registered in a `Ruby::Box` subclass run in the referencing Box (`autoload_feature_require` checks the exact class, `BOX_OBJ_P`), and that `Ruby::Box#require` skips the Box's `Kernel#require`. Carton works around both by wrapping a plain `Ruby::Box`. See [how-boxes-work.md](internals/how-boxes-work.md#which-box-runs-an-autoload).

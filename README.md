@@ -120,6 +120,7 @@ with every importer, so reopening one changes it everywhere; see
 
 - [usage.md](docs/usage.md): exports, imports, Bundler, gem Cartons, testing, types, and checks
 - [design.md](docs/design.md): how an import runs
+- [performance.md](docs/performance.md): import time and memory as Cartons and bundles grow
 - [todo.md](docs/todo.md): planned work and open questions
 - [internals/](docs/internals/): how `Ruby::Box`, RubyGems, and Bundler work, and upstream plans
 - [CONTEXT.md](CONTEXT.md): the glossary
