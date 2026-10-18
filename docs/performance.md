@@ -1,9 +1,6 @@
 # Performance
 
-How import time and memory grow with the number of Cartons and the size of
-the bundle, measured with [`bench/scale.rb`](../bench/scale.rb). Each
-measurement runs in a fresh Ruby process, since imports last for the life of
-the process.
+How import time and memory grow with the number of Cartons and the size of the bundle, measured with [`bench/scale.rb`](../bench/scale.rb). Each measurement runs in a fresh Ruby process, since imports last for the life of the process.
 
 ```sh
 bundle exec rake bench   # or: ruby bench/scale.rb
@@ -11,13 +8,11 @@ bundle exec rake bench   # or: ruby bench/scale.rb
 
 ## Results
 
-Ruby 4.0.7 on an Apple M5 Pro (virtualized, 16 GB), October 2026, median of
-three runs. Absolute numbers depend on the machine; the shape is the point.
+Ruby 4.0.7 on an Apple M5 Pro (virtualized, 16 GB), October 2026, median of three runs. Absolute numbers depend on the machine; the shape is the point.
 
 ### Plain Cartons
 
-One-file Cartons imported with `import_relative`, against requiring the same
-files without Carton:
+One-file Cartons imported with `import_relative`, against requiring the same files without Carton:
 
 | Cartons | require (ms) | import (ms) | per import (ms) | memory per Carton (MB) |
 | ---: | ---: | ---: | ---: | ---: |
@@ -28,8 +23,7 @@ files without Carton:
 
 ### Gem Cartons
 
-Ten path gems imported by name under `bundler/setup`, in bundles of growing
-size:
+Ten path gems imported by name under `bundler/setup`, in bundles of growing size:
 
 | Locked gems | import (ms) | per import (ms) | memory per Carton (MB) |
 | ---: | ---: | ---: | ---: |
@@ -48,8 +42,7 @@ Whole-process wall time, including Ruby's own boot:
 
 ## Where the time goes
 
-Each import costs about the same no matter how many came before, so cost
-grows linearly with the number of Cartons. Measured separately, per Box:
+Each import costs about the same no matter how many came before, so cost grows linearly with the number of Cartons. Measured separately, per Box:
 
 | Step | Time (ms) | Memory (MB) |
 | --- | ---: | ---: |
@@ -59,16 +52,8 @@ grows linearly with the number of Cartons. Measured separately, per Box:
 | Each further spec rebuilt from YAML (gem Cartons only) | 0.15 | |
 | `require 'bundler'` to restrict the Box to the lockfile (gem Cartons only) | 9 | 2.4 |
 
-- **Creating a Box is the floor.** Ruby copies its builtin classes into every
-  new Box, about 55 ms and 2.2 MB on this machine. Carton adds little on top
-  of it. That makes Carton suited to gem-sized or domain-sized units, tens of
-  Cartons rather than hundreds. 200 one-file Cartons take 12 seconds to boot.
-- **Gem Cartons pay for Psych.** Carton rebuilds the caller's gem specs in
-  each new Box with a YAML round trip, and the first one loads Psych into
-  that Box. That is almost half of a gem Carton's cost. The bundle's size
-  matters much less: 190 more locked gems add about 85 ms per import.
-- **Rails in Cartons** boots about a second slower than Rails in the Main
-  Box: four Carton Boxes, and Rails' gems activated in the framework Box.
+- **Creating a Box is the floor.** Ruby copies its builtin classes into every new Box, about 55 ms and 2.2 MB on this machine. Carton adds little on top of it. That makes Carton suited to gem-sized or domain-sized units, tens of Cartons rather than hundreds. 200 one-file Cartons take 12 seconds to boot.
+- **Gem Cartons pay for Psych.** Carton rebuilds the caller's gem specs in each new Box with a YAML round trip, and the first one loads Psych into that Box. That is almost half of a gem Carton's cost. The bundle's size matters much less: 190 more locked gems add about 85 ms per import.
+- **Rails in Cartons** boots about a second slower than Rails in the Main Box: four Carton Boxes, and Rails' gems activated in the framework Box.
 
-[todo.md](todo.md) tracks rebuilding specs without YAML and reporting Box
-creation cost upstream.
+[todo.md](todo.md) tracks rebuilding specs without YAML and reporting Box creation cost upstream.

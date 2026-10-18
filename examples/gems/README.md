@@ -1,12 +1,8 @@
 # Gems example
 
-A Ruby process normally loads one version of each gem, so two parts of an app
-that need different versions of the same gem cannot run together. Each Carton
-has its own Box and its own loaded gems. Here two Cartons load different
-`bigdecimal` versions in one process, with plain RubyGems and no Bundler.
+A Ruby process normally loads one version of each gem, so two parts of an app that need different versions of the same gem cannot run together. Each Carton has its own Box and its own loaded gems. Here two Cartons load different `bigdecimal` versions in one process, with plain RubyGems and no Bundler.
 
-`bigdecimal3.rb` and `bigdecimal4.rb` each activate one version with `gem`,
-require it, and export `BigDecimal::VERSION`. `main.rb` imports both.
+`bigdecimal3.rb` and `bigdecimal4.rb` each activate one version with `gem`, require it, and export `BigDecimal::VERSION`. `main.rb` imports both.
 
 ## Run
 
