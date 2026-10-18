@@ -212,6 +212,51 @@ class CheckTest < Minitest::Test
     assert_equal 2, output.scan('would hide').size
   end
 
+  # Export calls in different branches of one conditional never both run,
+  # so they are not duplicates.
+  def test_exclusive_branches_may_each_export
+    exclusive = <<~RUBY
+      if ENV['A']
+        export_default :a
+      elsif ENV['B']
+        export_default :b
+      else
+        case ENV['C']
+        when 'c' then export y: 1
+        else export y: 2
+        end
+      end
+    RUBY
+
+    status, output =
+      check(
+        'main.rb' => "import_relative 'exclusive'\n",
+        'exclusive.rb' => exclusive,
+      )
+
+    refute_match(/: error: /, output)
+    assert_equal 0, status
+  end
+
+  # Calls that can both run still conflict, even inside one branch.
+  def test_calls_that_can_both_run_still_conflict
+    both = <<~RUBY
+      if ENV['A']
+        export_default :a
+        export_default :b
+      end
+      export_default :c
+    RUBY
+
+    _, output =
+      check('main.rb' => "import_relative 'both'\n", 'both.rb' => both)
+
+    assert_equal %w[3 5],
+                 output.scan(
+                   /^both\.rb:(\d+): error: export_default may be called only once/,
+                 ).flatten
+  end
+
   def test_export_inside_a_carton_is_a_warning
     status, output =
       check(

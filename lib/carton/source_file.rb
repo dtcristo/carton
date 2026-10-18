@@ -46,7 +46,27 @@ module Carton
     # exported method and constant names, `values` maps keyword names to RBS
     # types, and `default` names the constant `export_default` was given.
     # `dynamic` is true when an argument cannot be read statically.
-    Export = Data.define(:kind, :names, :values, :default, :dynamic, :line)
+    # `branches` lists the enclosing `if`, `unless`, and `case` branches as
+    # [conditional, branch] pairs, so two calls in different branches of the
+    # same conditional are known never to both run.
+    Export =
+      Data.define(
+        :kind,
+        :names,
+        :values,
+        :default,
+        :dynamic,
+        :line,
+        :branches,
+      ) do
+        def exclusive?(other)
+          branches.any? do |id, branch|
+            other.branches.any? do |other_id, other_branch|
+              id == other_id && branch != other_branch
+            end
+          end
+        end
+      end
 
     # A top-level method and its RBS method type.
     Def = Data.define(:name, :type, :line)
@@ -204,6 +224,7 @@ module Carton
         @handled = {}.compare_by_identity
         @defining = {}.compare_by_identity
         @rescued = []
+        @branches = []
       end
 
       # Code in a `begin` body may raise into its `rescue` clauses, which
@@ -302,7 +323,24 @@ module Carton
 
           match(node.predicate, condition.pattern, :lookup)
         end
-        super
+        visit_branches(node, node.predicate, node.conditions, node.else_clause)
+      end
+
+      def visit_case_node(node)
+        visit_branches(node, node.predicate, node.conditions, node.else_clause)
+      end
+
+      def visit_if_node(node)
+        visit_branches(node, node.predicate, [node.statements], node.subsequent)
+      end
+
+      def visit_unless_node(node)
+        visit_branches(
+          node,
+          node.predicate,
+          [node.statements],
+          node.else_clause,
+        )
       end
 
       def visit_singleton_class_node(node) = nest(:@defs) { super }
@@ -391,7 +429,25 @@ module Carton
           default:,
           dynamic:,
           line: node.location.start_line,
+          branches: @branches.dup,
         )
+      end
+
+      # Visit a conditional's predicate, then each branch and the else
+      # branch under its own [conditional, branch] entry.
+      def visit_branches(node, predicate, branches, otherwise)
+        visit(predicate) if predicate
+        id = node.location.start_offset
+        [*branches, otherwise].each_with_index do |branch, index|
+          next unless branch
+
+          @branches.push([id, index])
+          begin
+            visit(branch)
+          ensure
+            @branches.pop
+          end
+        end
       end
 
       # A method call on a name that may be bound to an import.

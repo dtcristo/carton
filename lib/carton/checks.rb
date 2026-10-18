@@ -184,39 +184,43 @@ module Carton
       end
     end
 
-    # The same rules `Carton::ExportError` enforces at runtime.
+    # The same rules `Carton::ExportError` enforces at runtime, for calls
+    # that can both run: calls in different branches of one `if` or `case`
+    # never do.
     def declaration_problems(file)
       defaults, named =
         file.exports.partition { |e| e.kind == 'export_default' }
       problems =
-        defaults
-          .drop(1)
-          .map do |export|
-            error(
-              file.path,
-              export.line,
-              'export_default may be called only once per file',
-            )
-          end
-      if defaults.any? && named.any?
+        defaults.each_with_index.filter_map do |export, index|
+          next unless defaults.first(index).any? { |e| !e.exclusive?(export) }
+
+          error(
+            file.path,
+            export.line,
+            'export_default may be called only once per file',
+          )
+        end
+      combined = named.find { |n| defaults.any? { |d| !d.exclusive?(n) } }
+      if combined
         problems << error(
           file.path,
-          named.first.line,
+          combined.line,
           'export_default cannot be combined with export; ' \
             'put the other names inside the default value',
         )
       end
-      seen = {}
-      named.each do |export|
+      named.each_with_index do |export, index|
+        earlier = named.first(index).reject { |e| e.exclusive?(export) }
+        seen = earlier.flat_map { |e| e.names + e.values.keys }
         (export.names + export.values.keys).each do |name|
-          if seen.key?(name)
+          if seen.include?(name)
             problems << error(
               file.path,
               export.line,
               "export name given more than once: #{name}",
             )
           end
-          seen[name] = true
+          seen << name
           if Exports.reserved?(name)
             problems << error(file.path, export.line, collision(name))
           end
