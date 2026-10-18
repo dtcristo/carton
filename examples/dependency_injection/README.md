@@ -7,8 +7,8 @@ main.rb                  # Main: sets up the bundle, imports checkout, wires ada
 adapters.rb              # Main: JSON order storage and simulated payments
 checkout.rb              # Carton Entrypoint: export Checkout
 checkout/service.rb      # Inside the Carton: Checkout::Service
-test/checkout_test.rb     # Imports checkout and supplies fakes
-test/host_test.rb         # Imports checkout and exercises the file-backed adapters
+test/checkout_test.rb    # Imports checkout and supplies fakes
+test/host_test.rb        # Imports checkout and exercises the file-backed adapters
 ```
 
 ## The boundary
