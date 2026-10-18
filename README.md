@@ -5,19 +5,30 @@
   </h1>
   <p>
     <strong>
-      Easily box your Ruby
+      Real boundaries for Ruby
     </strong>
   </p>
 </div>
 
-Split a Ruby app into gem-sized units that import and export like modules.
-Each Carton runs in its own
-[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so:
+Ruby has gems to share code and Bundler to pick their versions, but nothing
+inside an app draws a boundary. Every file loads into one namespace: any code
+can reach any constant, a monkey patch applies everywhere, and one Gemfile
+fixes one version of each gem for the whole process. A boundary is a
+convention.
 
-- two parts of one app can use **different versions of the same gem**;
+Carton is the package system Ruby has been missing. Split code into Cartons
+that import and export like modules. Each Carton runs in its own
+[`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby
+enforces the boundary while the code runs:
+
+- other Cartons reach **only what a Carton exports**;
 - **monkey patches to builtin classes**, such as `String#blank?`, stay in the
   Carton that makes them;
-- other Cartons reach **only what a Carton exports**.
+- two Cartons can use **different versions of the same gem**.
+
+A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory, with
+no manifest. A gem, a path gem, a directory, or a single file can be one, and
+a Carton with a gemspec can leave the app as a published gem unchanged.
 
 A Box does not isolate everything. Classes and objects a Carton exports are
 shared, not copied, so reopening an exported class or changing a shared
@@ -26,28 +37,38 @@ second copy outside its boundary, which `carton check` reports. And each
 Carton loads once per process: its state lasts as long as the process, and
 its first importer fixes its gem versions.
 
-[examples/plugins](examples/plugins/README.md) shows the headline use: a
-plugin host whose plugins need incompatible `bigdecimal` versions, in one
-process.
+## Why Carton
 
-A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory, with
-no manifest. A gem, a path gem, a directory, or a single file can be one.
+| | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
+| --- | --- | --- | --- |
+| Boundaries inside an app | No | Checked statically, in CI | Enforced at runtime, and checked statically by `carton check` |
+| Private internals | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
+| Constants loaded dynamically | n/a | Not seen | Inside the boundary like any other |
+| Gem versions | One per app | One per app | One per Carton |
+| Monkey patches to builtins | Global | Global | Stay in their Carton |
+| Unit of distribution | A gem | A pack, which stays in the app | A gem-shaped Carton, which can become a gem |
 
-## Where it fits
+Static checks only see what they can parse. Packwerk's authors note that a
+package with zero violations "may actually crash with name errors when its
+code is executed"
+([A Packwerk Retrospective](https://shopify.engineering/a-packwerk-retrospective)).
+A Carton's boundary is the Box it runs in, so what `carton check` reports
+ahead of time is also what Ruby enforces.
 
-- **Trusted plugin hosts whose plugins need conflicting gem versions.** The
-  best fit: plain Ruby cannot load both, and a handful of plugins easily
-  justifies each Box's cost.
-- **Coarse application domains**, such as the packages of a monorepo, or
-  plain-Ruby domain logic beside a Rails app that stays in the Main Box
-  ([examples/rails_in_main](examples/rails_in_main/README.md)). Rails itself
-  inside Cartons works but is experimental
-  ([examples/rails_in_cartons](examples/rails_in_cartons/README.md)).
-- **Not a file-by-file replacement for `require`.** Each Carton costs about
-  60 ms and 2.4 MB ([performance.md](docs/performance.md)), so aim for tens of
-  Cartons, not hundreds. To organize a Rails app by convention, without
-  runtime isolation, [Packwerk](https://github.com/Shopify/packwerk) and
-  [Packs](https://github.com/rubyatscale/packs) are established tools.
+## Where it fits today
+
+- **The domains of an app or a monorepo**, as tens of Cartons. See
+  [examples/monorepo](examples/monorepo/README.md), and
+  [examples/rails_in_main](examples/rails_in_main/README.md) for domain
+  Cartons beside a Rails app in the Main Box.
+- **Plugin hosts whose plugins need conflicting gem versions**, which plain
+  Ruby cannot load together; see [examples/plugins](examples/plugins/README.md).
+- **Rails inside Cartons** works but is experimental: there is no reloading
+  yet, and domain Cartons see Active Support's core extensions only if they
+  load them ([examples/rails_in_cartons](examples/rails_in_cartons/README.md)).
+- **Not yet file by file.** Each Carton costs about 60 ms and 2.4 MB
+  ([performance.md](docs/performance.md)), most of it `Ruby::Box.new`, so aim
+  for tens of Cartons, not hundreds.
 
 ## Quick start
 
@@ -156,12 +177,12 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | Example | Shows |
 | --- | --- |
 | [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, the error for importing a file inside a Carton, and Steep types |
+| [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
+| [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton: the recommended way to use Carton with Rails |
 | [plugins](examples/plugins/README.md) | A plugin host whose plugins need incompatible `bigdecimal` versions, each with its own bundle, and a `Float` patch that stays in one plugin |
 | [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
 | [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
-| [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
 | [zeitwerk](examples/zeitwerk/README.md) | Zeitwerk loaders inside Cartons and in the app, eager loading, and what reloading a Carton does to importers |
-| [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton: the recommended way to use Carton with Rails |
 | [rails_in_cartons](examples/rails_in_cartons/README.md) | Experimental: Rails loaded once in a Carton, models and controllers in domain Cartons |
 
 **Experiments.** [master_prelude](examples/master_prelude/README.md) is an

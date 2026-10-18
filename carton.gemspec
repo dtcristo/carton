@@ -8,13 +8,13 @@ Gem::Specification.new do |spec|
   spec.authors = ['David Cristofaro']
   spec.email = ['david@dtcristo.com']
 
-  spec.summary = 'Easily box your Ruby'
+  spec.summary = 'Real boundaries for Ruby'
   spec.description =
-    'Split a Ruby app into gem-sized units that import and export like ' \
-      'modules. Each Carton runs in its own Ruby::Box, so two parts of one app ' \
-      'can use different versions of the same gem, monkey patches stay where ' \
-      'they are made, and only what a Carton exports is reachable. No manifest ' \
-      'needed. Requires Ruby 4.0.7+.'
+    'The package system Ruby has been missing. Split code into Cartons that ' \
+      'import and export like modules. Each Carton runs in its own Ruby::Box, ' \
+      'so only what it exports is reachable, monkey patches stay where they ' \
+      'are made, and two Cartons can use different versions of the same gem. ' \
+      'No manifest needed. Requires Ruby 4.0.7+.'
   spec.homepage = 'https://github.com/dtcristo/carton'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 4.0.7'
