@@ -11,7 +11,7 @@ class AutoloadTest < Minitest::Test
     module Lazy
       autoload :Part, File.join(__dir__, 'lazy/part')
     end
-    export_default Lazy
+    export Lazy
   RUBY
   PART = "Lazy::Part = Ruby::Box.current\n"
 
@@ -21,7 +21,7 @@ class AutoloadTest < Minitest::Test
     exports =
       carton('entry.rb' => "export box_class: Ruby::Box.current.class\n")
 
-    assert_equal Ruby::Box, exports.box_class
+    assert_equal Ruby::Box, exports[:box_class]
   end
 
   def test_autoload_triggered_by_the_importer_loads_in_the_carton
@@ -57,7 +57,7 @@ class AutoloadTest < Minitest::Test
         autoload :Part, File.join(__dir__, 'lazy/part')
         def self.seen = SEEN
       end
-      export_default Lazy
+      export Lazy
     RUBY
     lazy = carton('entry.rb' => entry, 'lazy/part.rb' => PART)
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'bindings'
-require 'carton/export_methods'
-require 'carton/exports'
+require 'carton/namespace_methods'
+require 'carton/namespace'
 require_relative 'project'
 
 module Carton
@@ -179,7 +179,7 @@ module Carton
               warning(
                 file.path,
                 export.line,
-                "#{export.kind} outside an Entrypoint does nothing: " \
+                'export outside an Entrypoint does nothing: ' \
                   "this file is inside the Carton #{display(Resolver.entrypoint_for(file.path))}",
               )
             end
@@ -191,48 +191,29 @@ module Carton
       # that can both run: calls in different branches of one `if` or `case`
       # never do.
       def declaration_problems(file)
-        defaults, named =
-          file.exports.partition { |e| e.kind == 'export_default' }
-        problems =
-          defaults.each_with_index.filter_map do |export, index|
-            next unless defaults.first(index).any? { |e| !e.exclusive?(export) }
-
-            error(
+        file.exports.each_with_index.flat_map do |export, index|
+          problems = []
+          if export.symbol
+            problems << error(
               file.path,
               export.line,
-              'export_default may be called only once per file',
+              'export takes the value to export, not a name: ' \
+                'export a module, or keywords for a Hash',
             )
           end
-        combined = named.find { |n| defaults.any? { |d| !d.exclusive?(n) } }
-        if combined
-          problems << error(
-            file.path,
-            combined.line,
-            'export_default cannot be combined with export; ' \
-              'put the other names inside the default value',
-          )
-        end
-        named.each_with_index do |export, index|
-          earlier = named.first(index).reject { |e| e.exclusive?(export) }
-          seen = earlier.flat_map { |e| e.names + e.values.keys }
-          (export.names + export.values.keys).each do |name|
-            if seen.include?(name)
-              problems << error(
-                file.path,
-                export.line,
-                "export name given more than once: #{name}",
-              )
-            end
-            seen << name
-            if Exports.reserved?(name)
-              problems << error(file.path, export.line, collision(name))
-            end
+          if file.exports.first(index).any? { |e| !e.exclusive?(export) }
+            problems << error(
+              file.path,
+              export.line,
+              'export may be called only once per Entrypoint',
+            )
           end
+          problems
         end
-        problems
       end
 
-      # A Bare Carton exports its top-level methods, so the same names collide.
+      # A Bare Carton's top-level methods become `Carton::Namespace` methods,
+      # so the same names collide.
       def bare_collisions
         @project.units.each_value.flat_map do |unit|
           next [] unless @project.files.fetch(unit.entrypoint).exports.empty?
@@ -244,7 +225,7 @@ module Carton
               .methods
               .each_value
               .filter_map do |method|
-                next unless Exports.reserved?(method.name)
+                next unless Namespace.reserved?(method.name)
 
                 error(path, method.line, collision(method.name))
               end
@@ -253,19 +234,18 @@ module Carton
       end
 
       def collision(name)
-        "export name #{name} would hide Carton::Exports##{name}: " \
-          'rename it, or export it inside a Default Export'
+        "a top-level method named #{name} would hide " \
+          "Carton::Namespace##{name}: rename it, or export a module"
       end
 
-      # A use of a Named Export that raises because the Carton does not export
-      # that name: a method call, a constant path, `fetch`, or a `=>` pattern.
-      # Lookups that return nil instead, such as `[]` or an `in` pattern, are
-      # not errors. Default Exports and Bare Cartons are not checked, since
-      # their names are not declared in one place.
+      # A `fetch` of a key a Carton's exported Hash does not have, which
+      # raises KeyError. `[]`, `key?`, and `in` patterns return nil or false
+      # instead. Only keyword and Hash literal exports are checked, since
+      # other exports' members are not declared in one place.
       def missing_exports
         from_bindings =
           @bindings.all.flat_map do |binding|
-            names = named_exports(binding.unit) or next []
+            names = hash_keys(binding.unit) or next []
             binding.uses.filter_map do |use|
               reference = use.reference
               next unless raises?(reference)
@@ -275,7 +255,7 @@ module Carton
                 use.file,
                 reference.line,
                 missing_message(
-                  written(reference.name, reference),
+                  "#{reference.name}.fetch(:#{reference.member})",
                   reference.member,
                   binding.unit,
                   names,
@@ -288,7 +268,7 @@ module Carton
 
       def missing_pattern_keys
         @bindings.patterns.flat_map do |call, unit|
-          names = named_exports(unit)
+          names = hash_keys(unit)
           next [] unless names && call.pattern.kind == :fetch
 
           (call.pattern.keys - ['**'] - names).map do |key|
@@ -306,27 +286,17 @@ module Carton
         end
       end
 
-      # A use raises unless an enclosing `rescue` catches what it raises, as
-      # the examples do to show that private constants stay private.
+      # A `fetch` or `=>` pattern raises unless an enclosing `rescue` catches
+      # what it raises.
       def raises?(reference)
-        raised =
-          case reference.kind
-          when :const
-            %w[NameError]
-          when :call
-            return false if Exports.reserved?(reference.member)
+        return false unless reference.kind == :fetch
 
-            %w[NoMethodError NameError]
-          when :fetch
-            %w[
-              KeyError
-              IndexError
-              NoMatchingPatternKeyError
-              NoMatchingPatternError
-            ]
-          else
-            return false
-          end
+        raised = %w[
+          KeyError
+          IndexError
+          NoMatchingPatternKeyError
+          NoMatchingPatternError
+        ]
         !rescued?(reference, raised)
       end
 
@@ -335,36 +305,20 @@ module Carton
         caught.intersect?([*raised, 'StandardError', 'Exception'])
       end
 
-      def written(name, reference)
-        case reference.kind
-        when :const
-          "#{name}::#{reference.member}"
-        when :call
-          "#{name}.#{reference.member}"
-        else
-          "#{name}.fetch(:#{reference.member})"
-        end
-      end
-
       def missing_message(code, name, unit, names)
-        "#{code}: the #{unit.name} Carton has no export #{name} " \
-          "(it exports #{names.join(', ')})"
+        "#{code}: the #{unit.name} Carton's export has no key #{name} " \
+          "(it has #{names.join(', ')})"
       end
 
-      # The names a Carton exports with `export`, or nil when they cannot be
-      # known statically.
-      def named_exports(unit)
+      # The keys of the Hash a Carton exports, or nil when it exports
+      # something else or its keys cannot be read statically.
+      def hash_keys(unit)
         exports = @project.files.fetch(unit.entrypoint).exports
-        if exports.empty? ||
-             exports.any? { |e| e.kind == 'export_default' || e.dynamic }
-          return
-        end
-
-        exports.flat_map { |export| export.names + export.values.keys }
+        exports.first.keys&.keys if exports.size == 1
       end
 
-      # `Billing::Tax`, where the billing Carton's Default Export `Billing`
-      # makes `Tax` private, raises NameError.
+      # `Billing::Tax`, where the billing Carton exports `Billing` and
+      # `Billing` makes `Tax` private, raises NameError.
       def private_constant_references
         @bindings.all.flat_map do |binding|
           default = default_export(binding.unit) or next []
@@ -388,13 +342,10 @@ module Carton
         end
       end
 
+      # The constant a Carton exports, or nil.
       def default_export(unit)
-        @project
-          .files
-          .fetch(unit.entrypoint)
-          .exports
-          .find { |e| e.kind == 'export_default' }
-          &.default
+        exports = @project.files.fetch(unit.entrypoint).exports
+        exports.first.value if exports.size == 1
       end
 
       def display(path) = Project.relative(path)

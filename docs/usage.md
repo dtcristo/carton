@@ -9,8 +9,7 @@ patches stay inside, and only what it exports crosses the boundary.
 
 - Ruby 4.0.7+, run with `RUBY_BOX=1` (e.g. `RUBY_BOX=1 ruby main.rb`)
 - Bundler 4.0.23+, if you use Bundler
-- `require 'carton'` before calling `import`, `import_relative`, `export`, or
-  `export_default`
+- `require 'carton'` before calling `import`, `import_relative`, or `export`
 
 ## What a Carton is
 
@@ -58,18 +57,10 @@ A Carton's Entrypoint can run its own Zeitwerk loader, such as
 
 ## Exporting
 
-Start with a Default Export. Most Cartons are a gem-sized or domain-sized
-unit with one main class or module, and `export_default` hands importers that
-value itself, as `require` would leave a constant behind. Use Named Exports
-for a deliberate facade of a few functions or values, where their extra rules
-(Symbols name methods or constants, keywords export values, lookups return
-`Method` objects, some names are reserved) earn their keep. Bare Cartons,
-which export nothing, are mainly for adapting existing code.
-
-### Default Export
-
-Use `export_default` when a file represents one main thing, typically a class
-or a root namespace module. Importing the file returns that value itself:
+An Entrypoint exports one value with `export`, and importing the Carton
+returns that value itself. Most Cartons are a gem-sized or domain-sized unit
+with one main class or module, so they export it, as `require` would leave a
+constant behind:
 
 ```ruby
 # user.rb
@@ -77,7 +68,7 @@ class User
   def initialize(name) = @name = name
 end
 
-export_default User
+export User
 ```
 
 ```ruby
@@ -86,17 +77,20 @@ User.new('Alice')
 ```
 
 - The value may be anything, including a Hash, `nil`, or `false`.
-- Call it once per file, and never together with `export`; both raise
-  `Carton::ExportError`. Put
-  other names inside the default value instead, e.g. `User::VERSION`.
+- Call `export` once per Entrypoint; a second call raises
+  `Carton::ExportError`. Put other names inside the exported value instead,
+  e.g. `User::VERSION`.
+- A Symbol raises `Carton::ExportError`, so `export def add` cannot export
+  `:add` by mistake. To export functions, define them on a module and export
+  the module.
 - Bind it to its own name (`User = import 'user'`). Rename only to resolve a
   clash between Cartons: `Module#name`, `inspect`, and backtraces keep the
   original name.
 
 ### A gem's root module
 
-Make the root module the Default Export and hide internals with Ruby's own
-`private_constant`, which holds across Boxes:
+Export the root module and hide internals with Ruby's own `private_constant`,
+which holds across Boxes:
 
 ```ruby
 # lib/pricing.rb
@@ -109,7 +103,7 @@ module Pricing
   private_constant :Internal
 end
 
-export_default Pricing
+export Pricing
 ```
 
 ```ruby
@@ -118,62 +112,28 @@ Pricing::Calculator # public
 Pricing::Internal   # NameError: private constant Pricing::Internal referenced
 ```
 
-To publish a facade instead, export chosen inner constants by keyword:
-`export Calculator: Pricing::Calculator`. Importers then see only those, as
-`import('pricing')::Calculator`.
+### A few values
 
-### Named Exports
-
-`export` adds names to the Carton's Export Namespace. Call it as often as you
-like; each name may be exported once.
+Keywords export a plain Hash, for values that need no module of their own:
 
 ```ruby
-# pricing.rb
-class Money
-end
-export :Money                     # a capitalized Symbol names a constant
-
-export def add(a, b) = a + b      # `def` returns :add, like `private def`
-
-export PI: 3.14159, version: '1.0.0'
+# info.rb
+export version: '1.0', built_on: 'ci'
 ```
-
-- A capitalized Symbol exports the top-level constant of that name; any other
-  Symbol exports the top-level method. Both are looked up when `export` runs,
-  so export after defining, as with `private` or `private_constant`.
-- Keywords export plain values. Capitalized keys become constants and
-  lowercase keys become readers. Values are never invoked:
-  `export handler: -> {}` makes `handler` return the lambda itself.
-- A missing method or constant raises `NameError`, and a repeated name raises
-  `Carton::ExportError`, at the `export` call.
-- A lowercase name becomes a method on the namespace, so it cannot be a name
-  every `Carton::Exports` already has, such as `fetch`, `keys`, or `name`:
-  that raises `Carton::ExportError` instead of hiding the built-in method.
-  Rename it, or put it inside a Default Export. Capitalized names become
-  constants and never collide.
-
-Importing returns a `Carton::Exports` namespace:
 
 ```ruby
-Pricing = import_relative 'pricing'
-
-Pricing::Money.new
-Pricing.add(2, 3)
-Pricing::PI
-Pricing[:add] # => #<Method: ...add(a, b)>
+Info = import_relative 'info'
+Info[:version] # => "1.0"
+import_relative('info') => { version: }
 ```
-
-`Pricing.add(...)` forwards arguments, keywords, and blocks. `[]`, `fetch`,
-`fetch_values`, `values_at`, `key?`, and destructuring return the `Method`
-object without calling it.
 
 ### Exports under plain `require`
 
-Only the imported Entrypoint declares exports. In any other file, including
-one loaded with plain `require` by an app or by another Carton, `export` and
-`export_default` check their arguments and do nothing. A gem can add
-`export_default MyGem` and keep working for apps that just `require 'my_gem'`,
-as long as `require 'carton'` comes first so the methods exist.
+Only the imported Entrypoint's `export` counts. In any other file, including
+one loaded with plain `require` by an app or by another Carton, `export`
+checks its argument, returns it, and does nothing else. A gem can add
+`export MyGem` and keep working for apps that just `require 'my_gem'`, as
+long as `require 'carton'` comes first so the method exists.
 
 ## Importing
 
@@ -247,65 +207,36 @@ Rake defines its own `import` on the Rakefile's top-level object, which
 shadows Carton's. Use `import_relative` in a Rakefile, or call `import` from
 inside a class or method.
 
-## Reading exports
-
-Use namespace access, `[]`, or `fetch` for single values, and `fetch_values`
-for several:
-
-```ruby
-MathTools = import 'math'
-MathTools::PI
-MathTools[:PI]
-MathTools.fetch(:PI)
-pi, version = MathTools.fetch_values(:PI, :version)
-```
-
-Export Namespaces and Bare Cartons also support pattern matching:
-
-```ruby
-import('math') => { add:, version: }
-add.(2, 3)
-
-import('math') => { add: sum }        # rename while destructuring
-import('math') => { version:, **rest }
-rest.keys # => [:add, :PI]
-```
-
-A hash-rest pattern collects every Named Export, or every member of a Bare
-Carton's Public Surface.
-
-To explore a namespace, `inspect` lists its names, `keys` returns them as
-Symbols in export order, and `to_h` returns every export by name:
-
-```ruby
-MathTools          # => #<Carton::Exports add, PI, version>
-MathTools.keys     # => [:add, :PI, :version]
-MathTools.to_h     # => {add: #<Method: ...add(a, b)>, PI: 3.14159, version: "1.0.0"}
-```
-
 ## Bare Cartons
 
-A file that never calls `export` or `export_default` is a Bare Carton.
-Importing it returns a `Carton::Exports` of the constants and top-level helper
-methods the file defines, as if it had exported them all. Its Box stays
-private, so an importer cannot `eval` or `require` inside it. Bare Cartons
-suit existing code you want to load in a Box without changing it; new
-Cartons should export deliberately.
+A file that never calls `export` is a Bare Carton. Importing it returns a
+`Carton::Namespace` of the constants and top-level helper methods the file
+defines, as if it had exported them all. Its Box stays private, so an
+importer cannot `eval` or `require` inside it. Bare Cartons suit existing
+code you want to load in a Box without changing it; new Cartons should
+export deliberately.
 
 ```ruby
 Toolbox = import 'some_script'
 
 Toolbox::SomeConstant
 Toolbox.helper
-Toolbox.fetch(:helper).call
+Toolbox[:helper]         # => #<Method: ...helper()>, not called
+Toolbox.fetch(:SomeConstant)
+Toolbox => { helper:, **rest }
+Toolbox                  # => #<Carton::Namespace helper, SomeConstant>
 ```
 
 - Only constants and helpers the Entrypoint introduces count, not constants
   the runtime already defined.
 - Constants are read when the import finishes, so an autoloaded top-level
   constant loads then rather than on first use.
-- Keys are names, not Ruby expressions. Helper lookups return the `Method`
-  object, so `[]`, `fetch`, `key?`, and destructuring never call a helper.
+- `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, `keys`, `to_h`, and
+  destructuring look members up by name. Keys are names, not Ruby
+  expressions, and helper lookups return the `Method` object, so they never
+  call a helper.
+- A helper named like a `Carton::Namespace` method, such as `fetch`, `keys`,
+  or `name`, raises `Carton::ExportError` instead of hiding it.
 
 ## Sharing classes across Cartons
 
@@ -332,7 +263,7 @@ habits avoid it by accident:
   Changes to a subclass never reach its parent.
 - **Refine to extend another Carton's class.** A refinement applies only to
   files that activate it with `using`, so the owning Carton never sees it.
-- **Freeze plain-Ruby exports.** `export_default Pricing.freeze` makes any
+- **Freeze plain-Ruby exports.** `export Pricing.freeze` makes any
   reopen raise `FrozenError` while still allowing subclasses. Do not freeze
   Active Record models or their base classes: Rails writes class-level state
   at runtime, so even `create!` raises once a model's class is frozen.
@@ -374,13 +305,13 @@ end
 
 ### Unit tests
 
-A Carton's files are ordinary Ruby. Outside an Import, `export` and
-`export_default` declare nothing, so `require` loads an Entrypoint into the
+A Carton's files are ordinary Ruby. Outside an Import, `export` declares
+nothing, so `require` loads an Entrypoint into the
 test's own Box like any other file. A unit test can then test code the Carton
 keeps private, and needs no `RUBY_BOX=1`:
 
 ```ruby
-require 'carton' # defines export_default, which does nothing here
+require 'carton' # defines export, which does nothing here
 require 'minitest/autorun'
 require 'pricing' # plain require: no Import, no boundary
 
@@ -518,29 +449,19 @@ the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app.
 `-o -` for stdout). It tells a type checker such as
 [Steep](https://github.com/soutaro/steep) what each import returns:
 
-- A Default Export of a constant, such as `export_default Billing`, types as
+- An exported constant, such as `export Billing`, types as
   `singleton(::Billing)`. The Carton declares `Billing` in its own RBS, as a gem
   would; Steep reports a missing declaration as an unknown type.
-- Named Exports and Bare Cartons each get a module, such as
-  `Carton::Exports::Math`, with a singleton method per exported method and a
-  constant per exported value.
-- `MathTools = import 'math'` becomes `module MathTools = ::Carton::Exports::Math`,
-  so `MathTools.percent` and `MathTools::VERSION` type-check. So does a local
-  variable, `math = import 'math'`, through a `Kernel#import` overload on the
+- A keyword export, such as `export version: '1.0'`, types as a record,
+  `{ version: ::String }`.
+- A Bare Carton gets a module, such as `Carton::Namespace::Util`, with a
+  singleton method per helper and a constant per constant. A helper's type
+  comes from an [rbs-inline](https://github.com/soutaro/rbs-inline) `#:`
+  annotation on the line above it, and a constant's from a `#:` annotation
+  after it or a literal value; otherwise they are `untyped`.
+- `Billing = import 'billing'` needs nothing more, and a local variable,
+  `billing = import 'billing'`, types through a `Kernel#import` overload on the
   literal path.
-
-An exported method's type comes from an
-[rbs-inline](https://github.com/soutaro/rbs-inline) `#:` annotation on the
-line above it; without one its parameters are `untyped`. A constant's type
-comes from a `#:` annotation after it, or from a literal value:
-
-```ruby
-# math.rb
-#: (Numeric amount, Numeric rate) -> Float
-export def percent(amount, rate) = (amount * rate / 100.0).round(2)
-
-export VERSION: '1.0' # VERSION: ::String
-```
 
 Load Carton's own signatures and the generated file in the Steepfile, and
 regenerate the file whenever an import or export changes:
@@ -576,9 +497,9 @@ Dir.glob('plugins/*/').each do |dir|
 end
 ```
 
-`carton check` follows a name bound to an import, `MathTools = import 'math'`
-or `math = import 'math'`, to its uses: method calls, constant paths,
-lookups, and hash patterns. A constant binding is followed in every file of
+`carton check` follows a name bound to an import, `Info = import 'info'` or
+`info = import 'info'`, to its uses: method calls, constant paths, lookups,
+and hash patterns. A constant binding is followed in every file of
 the same Box, a local only in its own file and only when nothing reassigns
 it.
 
@@ -587,10 +508,10 @@ it.
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
-| error | `export_default` twice, `export_default` with `export`, or a name exported twice, in calls that can both run (calls in different branches of one `if` or `case` cannot), or a lowercase export (or Bare Carton method) that would hide a `Carton::Exports` method |
+| error | `export` twice in calls that can both run (calls in different branches of one `if` or `case` cannot), `export` of a Symbol, or a Bare Carton method that would hide a `Carton::Namespace` method |
 | error | A gem Carton importing or requiring a gem its gemspec does not declare |
-| error | A Named Export that does not exist, used where it would raise: `MathTools.nope`, `MathTools::NOPE`, `fetch(:nope)`, or a `=>` pattern. `[]`, `key?` and `in` patterns return nil or false instead, and Default Exports and Bare Cartons are not checked |
-| error | A private constant of a Default Export, such as `Billing::Tax` when `Billing` calls `private_constant :Tax` |
+| error | A key a keyword or Hash literal export does not have, read with `fetch(:nope)` or a `=>` pattern. `[]`, `key?` and `in` patterns return nil or false instead |
+| error | A private constant of an exported module, such as `Billing::Tax` when `Billing` calls `private_constant :Tax` |
 | error | A syntax error |
 | warning | A named import not found on the load path, which a gem activated at runtime may provide |
 | warning | An import whose path is not a string literal, unless marked `# carton:dynamic` |
@@ -603,12 +524,11 @@ Carton's own errors subclass `Carton::Error`:
 | Error | Raised when |
 | --- | --- |
 | `Carton::ImportError` | Boxes are disabled (run with `RUBY_BOX=1`), the target is a file inside a Carton, a Carton imports itself, or a shared Carton was built against other gem versions |
-| `Carton::ExportError` | a name is exported twice, `export_default` is called twice, both forms are used, or a lowercase name would hide a `Carton::Exports` method |
+| `Carton::ExportError` | `export` is called twice in one Entrypoint or given a Symbol, or a Bare Carton helper would hide a `Carton::Namespace` method |
 | `Carton::GemfileNotFound` | `setup_bundle` finds no Gemfile |
 
 Otherwise Carton raises what Ruby would: `LoadError` for a missing import
-target, `NameError` for a missing exported name, and `ArgumentError` for
-invalid `export` arguments. Every Box shares these classes, so
+target and `ArgumentError` for `export` without exactly one value. Every Box shares these classes, so
 `rescue Carton::Error` works in the app and inside any Carton.
 
 ## Examples

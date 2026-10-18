@@ -12,17 +12,22 @@ class PlainRequireTest < Minitest::Test
     box = plain_box
 
     assert_equal 'hi', box.eval("require #{"#{DUAL}/named".inspect}; shout")
-    assert_nil box.eval('export value: :v')
-    assert_equal :value, box.eval('export_default :value')
-    assert_equal :whisper, box.eval('export def whisper = "hi"')
+    assert_equal({ value: :v }, box.eval('export value: :v'))
+    assert_equal 1, box.eval('export 1; export 1')
   end
 
   def test_export_still_validates_arguments_under_plain_require
-    assert_raises(ArgumentError) { plain_box.eval("export 'not a symbol'") }
+    box = plain_box
+
+    # The plain Box loaded its own Carton, so its error class is its own.
+    error =
+      assert_raises(StandardError) { box.eval('export def whisper = "hi"') }
+    assert_equal 'Carton::ExportError', error.class.name
+    assert_raises(ArgumentError) { box.eval('export') }
   end
 
   def test_only_the_entrypoint_declares_exports
-    assert_equal %i[entry library], import("#{DUAL}/entry").value
+    assert_equal %i[entry library], import("#{DUAL}/entry")[:value]
   end
 
   private

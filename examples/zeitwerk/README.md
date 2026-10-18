@@ -32,7 +32,7 @@ cartons/billing/
 ## A Carton with `Zeitwerk::Loader.for_gem`
 
 `cartons/billing/lib/billing.rb` calls `Zeitwerk::Loader.for_gem`, sets it up,
-eager loads, and ends with `export_default Billing`. Nothing else is needed:
+eager loads, and ends with `export Billing`. Nothing else is needed:
 `lib/billing.rb` plus `lib/billing/` is both a Carton and a Zeitwerk gem.
 Keep one Carton per `lib/`, since `for_gem` manages the whole directory.
 
@@ -119,7 +119,7 @@ One setup does not reload:
   fails either way. Eager loading it calls `enable_reloading` while the
   loader is busy and raises `ThreadError` ("deadlock; recursive locking");
   Zeitwerk does the same without Boxes, since a loader cannot reload the
-  file that configures it. Autoloading it lazily reaches `export_default` a
+  file that configures it. Autoloading it lazily reaches `export` a
   second time, which raises `Carton::ExportError`. Use
   `push_dir(..., namespace:)` for a reloadable Carton.
 

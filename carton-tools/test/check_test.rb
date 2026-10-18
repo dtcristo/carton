@@ -12,8 +12,7 @@ class CheckTest < Minitest::Test
     status, output =
       check(
         'main.rb' => "Billing = import_relative 'billing'\n",
-        'billing.rb' =>
-          "require_relative 'billing/tax'\nexport_default Billing\n",
+        'billing.rb' => "require_relative 'billing/tax'\nexport Billing\n",
         'billing/tax.rb' => "module Billing; end\n",
       )
 
@@ -166,49 +165,35 @@ class CheckTest < Minitest::Test
   def test_export_rules_match_the_runtime
     status, output =
       check(
-        'main.rb' => <<~RUBY,
-          import_relative 'twice'
-          import_relative 'mixed'
-          import_relative 'repeated'
-        RUBY
-        'twice.rb' => "export_default 1\nexport_default 2\n",
-        'mixed.rb' => "export_default 1\nexport a: 1\n",
-        'repeated.rb' => "export a: 1\nexport a: 2\n",
+        'main.rb' => "import_relative 'twice'\nimport_relative 'named'\n",
+        'twice.rb' => "export 1\nexport a: 1\n",
+        'named.rb' => "export def add(a, b) = a + b\n",
       )
 
     assert_equal 1, status
     assert_match(
-      /^mixed\.rb:2: error: export_default cannot be combined with export; /,
+      /^twice\.rb:2: error: export may be called only once per Entrypoint$/,
       output,
     )
     assert_match(
-      /^repeated\.rb:2: error: export name given more than once: a$/,
-      output,
-    )
-    assert_match(
-      /^twice\.rb:2: error: export_default may be called only once per file$/,
+      /^named\.rb:1: error: export takes the value to export, not a name: /,
       output,
     )
   end
 
-  def test_export_shadowing_a_built_in_method_is_an_error
+  def test_bare_helper_shadowing_a_built_in_method_is_an_error
     status, output =
       check(
-        'main.rb' => "import_relative 'named'\nimport_relative 'bare'\n",
-        'named.rb' => "export fetch: 1, PI: 3\n",
+        'main.rb' => "import_relative 'bare'\n",
         'bare.rb' => "def name = 'bare'\ndef helper = 1\n",
       )
 
     assert_equal 1, status
     assert_match(
-      /^named\.rb:1: error: export name fetch would hide Carton::Exports#fetch/,
+      /^bare\.rb:1: error: a top-level method named name would hide Carton::Namespace#name/,
       output,
     )
-    assert_match(
-      /^bare\.rb:1: error: export name name would hide Carton::Exports#name/,
-      output,
-    )
-    assert_equal 2, output.scan('would hide').size
+    assert_equal 1, output.scan('would hide').size
   end
 
   # Export calls in different branches of one conditional never both run,
@@ -216,9 +201,9 @@ class CheckTest < Minitest::Test
   def test_exclusive_branches_may_each_export
     exclusive = <<~RUBY
       if ENV['A']
-        export_default :a
+        export 1
       elsif ENV['B']
-        export_default :b
+        export 2
       else
         case ENV['C']
         when 'c' then export y: 1
@@ -241,10 +226,10 @@ class CheckTest < Minitest::Test
   def test_calls_that_can_both_run_still_conflict
     both = <<~RUBY
       if ENV['A']
-        export_default :a
-        export_default :b
+        export 1
+        export 2
       end
-      export_default :c
+      export 3
     RUBY
 
     _, output =
@@ -252,7 +237,7 @@ class CheckTest < Minitest::Test
 
     assert_equal %w[3 5],
                  output.scan(
-                   /^both\.rb:(\d+): error: export_default may be called only once/,
+                   /^both\.rb:(\d+): error: export may be called only once/,
                  ).flatten
   end
 
@@ -261,7 +246,7 @@ class CheckTest < Minitest::Test
       check(
         'main.rb' => "import_relative 'billing'\n",
         'billing.rb' => "require_relative 'billing/tax'\n",
-        'billing/tax.rb' => "export :x\n",
+        'billing/tax.rb' => "export 1\n",
       )
 
     assert_equal 0, status

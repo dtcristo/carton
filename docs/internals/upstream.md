@@ -130,7 +130,7 @@ blocking.
   maintainers ask about class isolation.
 - **Constant binding in patterns** (`import(path) => { Name: }`). The syntax is
   free today, but Matz keeps pattern targets to locals and `{ X: }` already
-  reads a constant. Carton uses `export_default` and plain constant assignment
+  reads a constant. Carton uses `export` and plain constant assignment
   instead. See
   [constant-binding-patterns.md](constant-binding-patterns.md).
 

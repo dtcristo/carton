@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
-# A Carton of one file, with Named Exports: a method and a constant.
-#: (Numeric amount, Numeric rate) -> Float
-export def percent(amount, rate) = (amount * rate / 100.0).round(2)
+# A Carton of one file: math.rb, with no math/ directory beside it.
+module MathTools
+  VERSION = '1.0'
 
-export VERSION: '1.0'
+  def self.percent(amount, rate) = (amount * rate / 100.0).round(2)
+end
+
+export MathTools

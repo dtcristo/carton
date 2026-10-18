@@ -4,7 +4,7 @@
 # a plain `require`. No Carton boundary and no Box, so it runs with or without
 # RUBY_BOX=1 and can reach code that importers never see.
 
-# Carton defines `export_default`, which is inert outside an import, so
+# Carton defines `export`, which is inert outside an import, so
 # pricing.rb loads like any other file. The monorepo bundle puts pricing's
 # lib/ on $LOAD_PATH and locks bigdecimal and minitest.
 require_relative '../../../lib/carton'

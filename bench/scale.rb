@@ -118,7 +118,7 @@ module Bench
     count.times do |i|
       File.write(
         File.join(dir, "c#{i}.rb"),
-        "module C#{i}\n  def self.value = #{i}\nend\nexport_default C#{i}\n",
+        "module C#{i}\n  def self.value = #{i}\nend\nexport C#{i}\n",
       )
       File.write(
         File.join(dir, "p#{i}.rb"),
@@ -153,7 +153,7 @@ module Bench
           module G#{i}
             def self.value = #{i}
           end
-          export_default G#{i}
+          export G#{i}
         RUBY
         File.write(File.join(dir, 'gems', "g#{i}", "g#{i}.gemspec"), <<~RUBY)
           Gem::Specification.new do |s|

@@ -25,7 +25,7 @@ class BoxSemanticsTest < Minitest::Test
           def self.label = respond_to?(:extra) ? 'reopened' : 'original'
         end
 
-        export_default Widget
+        export Widget
       RUBY
 
       widget = import "#{dir}/widget"

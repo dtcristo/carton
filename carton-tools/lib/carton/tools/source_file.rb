@@ -43,23 +43,15 @@ module Carton
       # `'**'` for a rest pattern.
       Pattern = Data.define(:kind, :keys)
 
-      # An `export` or `export_default` call at top level. `names` are the
-      # exported method and constant names, `values` maps keyword names to RBS
-      # types, and `default` names the constant `export_default` was given.
-      # `dynamic` is true when an argument cannot be read statically.
-      # `branches` lists the enclosing `if`, `unless`, and `case` branches as
-      # [conditional, branch] pairs, so two calls in different branches of the
-      # same conditional are known never to both run.
+      # An `export` call at top level. `value` names the constant it exports,
+      # if it is one. `keys` maps a keyword or Hash literal export's keys to
+      # RBS types, or is nil. `symbol` is true when it was given a Symbol,
+      # which `export` refuses. `branches` lists the enclosing `if`,
+      # `unless`, and `case` branches as [conditional, branch] pairs, so two
+      # calls in different branches of the same conditional are known never
+      # to both run.
       Export =
-        Data.define(
-          :kind,
-          :names,
-          :values,
-          :default,
-          :dynamic,
-          :line,
-          :branches,
-        ) do
+        Data.define(:value, :keys, :symbol, :line, :branches) do
           def exclusive?(other)
             branches.any? do |id, branch|
               other.branches.any? do |other_id, other_branch|
@@ -386,7 +378,7 @@ module Carton
         def record_call(node)
           if IMPORTS.include?(node.name) || REQUIRES.include?(node.name)
             record_load(node)
-          elsif %i[export export_default].include?(node.name) && top_level?
+          elsif node.name == :export && top_level?
             record_export(node)
           elsif node.name == :private_constant && @namespace.any?
             record_private(@namespace.last, node)
@@ -415,44 +407,30 @@ module Carton
 
         def record_export(node)
           args = node.arguments&.arguments || []
-          names = []
-          values = {}
-          default = nil
-          dynamic = false
-          args.each do |arg|
-            case arg
-            when Prism::SymbolNode
-              names << arg.unescaped
-            when Prism::DefNode
-              names << arg.name.to_s
-            when Prism::KeywordHashNode
-              arg.elements.each do |element|
-                if element.is_a?(Prism::AssocNode) &&
-                     element.key.is_a?(Prism::SymbolNode)
-                  values[element.key.unescaped] = SourceFile.literal_type(
-                    element.value,
-                  )
-                else
-                  dynamic = true
-                end
-              end
-            else
-              if node.name == :export_default
-                default = constant_name(arg)
-              else
-                dynamic = true
-              end
-            end
-          end
+          arg = args.first if args.size == 1
           @file.exports << Export.new(
-            kind: node.name.to_s,
-            names:,
-            values:,
-            default:,
-            dynamic:,
+            value: constant_name(arg),
+            keys: hash_types(arg),
+            symbol: arg.is_a?(Prism::SymbolNode) || arg.is_a?(Prism::DefNode),
             line: node.location.start_line,
             branches: @branches.dup,
           )
+        end
+
+        # `export version: '1.0'` or `export({ version: '1.0' })`: each
+        # Symbol key's RBS type, or nil when a key is not a Symbol literal.
+        def hash_types(node)
+          case node
+          when Prism::KeywordHashNode, Prism::HashNode
+            node.elements.to_h do |element|
+              unless element.is_a?(Prism::AssocNode) &&
+                       element.key.is_a?(Prism::SymbolNode)
+                return nil
+              end
+
+              [element.key.unescaped, SourceFile.literal_type(element.value)]
+            end
+          end
         end
 
         # Visit a conditional's predicate, then each branch and the else

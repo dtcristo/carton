@@ -32,4 +32,4 @@ Shipping.define_singleton_method(:reload!) do
 end
 
 # Only Shipping crosses the Carton boundary.
-export_default Shipping
+export Shipping

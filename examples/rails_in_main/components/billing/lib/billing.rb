@@ -25,4 +25,4 @@ end
 loader.eager_load
 
 # Only Billing crosses the Carton boundary.
-export_default Billing
+export Billing

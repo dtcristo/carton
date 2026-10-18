@@ -7,4 +7,4 @@ module Shipping
   def self.quote(kilograms) = kilograms * RATE_PER_KG
 end
 
-export_default Shipping
+export Shipping

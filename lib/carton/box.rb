@@ -15,6 +15,9 @@ module Carton
     IVAR = :@carton_import
     private_constant :IVAR
 
+    NO_EXPORT = Object.new.freeze
+    private_constant :NO_EXPORT
+
     # The Import running in `ruby_box`, or nil for the Main Box and Boxes
     # Carton did not create.
     def self.for(ruby_box) = ruby_box.instance_variable_get(IVAR)
@@ -23,7 +26,7 @@ module Carton
       @box = Ruby::Box.new
       @box.instance_variable_set(IVAR, self)
       route_autoloads_through_kernel_require
-      reset_export_declaration
+      reset_export
     end
 
     private
@@ -79,7 +82,7 @@ module Carton
     # process-wide import cache.
     def configure_for_import(entrypoint:, import_cache:)
       @import_cache = import_cache
-      reset_export_declaration
+      reset_export
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
       share_error_classes
@@ -159,18 +162,19 @@ module Carton
       File.realpath(path)
     end
 
-    def declare_export(methods, values)
-      @export_declaration = @export_declaration.add(methods, values)
+    def declare_export(value)
+      unless NO_EXPORT.equal?(@export)
+        raise ExportError, 'export may be called only once per Entrypoint'
+      end
+
+      @export = value
     end
 
-    def declare_default(value)
-      @export_declaration = @export_declaration.default(value)
-    end
-
-    # A Bare Carton's surface is the constants and top-level helpers its
-    # Entrypoint defined, so importers never receive the Box itself.
-    def export_public_surface(&)
-      @export_declaration.public_surface(bare: method(:bare_surface), &)
+    # The exported value, or for a Bare Carton the constants and top-level
+    # helpers its Entrypoint defined, which `build` wraps, so importers never
+    # receive the Box itself.
+    def export_public_surface
+      NO_EXPORT.equal?(@export) ? yield(*bare_surface) : @export
     end
 
     def bare_surface
@@ -181,8 +185,8 @@ module Carton
       [@public_method_entries, constants]
     end
 
-    def reset_export_declaration
-      @export_declaration = ExportDeclaration.absent
+    def reset_export
+      @export = NO_EXPORT
     end
 
     def snapshot_import_support

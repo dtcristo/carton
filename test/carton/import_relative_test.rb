@@ -5,22 +5,22 @@ require_relative '../test_helper'
 class ImportRelativeTest < Minitest::Test
   def test_import_relative_single_export
     result = import_relative '../fixtures/single_export'
-    assert_equal 'User', result::User.name
-    user = result::User.new('Carol')
+    assert_equal 'User', result.name
+    user = result.new('Carol')
     assert_equal 'Hello, Carol!', user.greet
   end
 
-  def test_import_relative_hash_export
-    result = import_relative '../fixtures/hash_export'
-    assert_kind_of Carton::Exports, result
+  def test_import_relative_bare_math
+    result = import_relative '../fixtures/bare_math'
+    assert_kind_of Carton::Namespace, result
     assert_equal 8, result.add(3, 5)
     assert_equal 2, result.subtract(5, 3)
-    assert_equal '1.0.0', result.version
+    assert_equal '1.0.0', result::VERSION
     assert_in_delta 3.14159, result::PI
   end
 
   def test_import_relative_destructuring
-    import_relative('../fixtures/hash_export') => { add:, PI: pi }
+    import_relative('../fixtures/bare_math') => { add:, PI: pi }
     assert_equal 7, add.(3, 4)
     assert_in_delta 3.14159, pi
   end
@@ -29,7 +29,7 @@ class ImportRelativeTest < Minitest::Test
     result = import_relative '../fixtures/math_tools/advanced'
     assert_in_delta 314.159, result.circle_area(10)
     assert_equal 25, result.add(10, 15)
-    assert_equal '2.0.0', result.version
+    assert_equal '2.0.0', result::VERSION
   end
 
   def test_import_relative_chained
@@ -39,7 +39,7 @@ class ImportRelativeTest < Minitest::Test
 
   def test_import_relative_bare
     result = import_relative '../fixtures/bare'
-    assert_kind_of Carton::Exports, result
+    assert_kind_of Carton::Namespace, result
     assert_equal 'hello from bare', result.fetch(:GREETING)
   end
 

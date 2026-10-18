@@ -17,9 +17,14 @@ loader.setup
 # boot. Constants left to autoload would still load in this Box.
 loader.eager_load
 
-# This domain owns its table.
-def create_schema(connection)
-  connection.create_table(:customers) { |t| t.string :name, null: false }
+# The domain's public classes, and the table it owns.
+module Customers
+  Customer = ::Customer
+  CustomersController = ::CustomersController
+
+  def self.create_schema(connection)
+    connection.create_table(:customers) { |t| t.string :name, null: false }
+  end
 end
 
-export :Customer, :CustomersController, :create_schema
+export Customers

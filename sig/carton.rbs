@@ -3,8 +3,7 @@ module Kernel
 
   def import: (::String path) -> untyped
   def import_relative: (::String path) -> untyped
-  def export: (*::Symbol names, **untyped values) -> ::Symbol?
-  def export_default: [T] (T value) -> T
+  def export: [T] (T value) -> T
 end
 
 module Carton
@@ -25,12 +24,12 @@ end
 class Carton::GemfileNotFound < Carton::Error
 end
 
-# Lookup helpers on every `Carton::Exports`. `carton rbs` extends its
-# generated `Carton::Exports::*` modules with these.
-module Carton::ExportMethods
+# Lookup helpers on every `Carton::Namespace`. `carton rbs` extends its
+# generated `Carton::Namespace::*` modules with these.
+module Carton::NamespaceMethods
   type key = ::String | ::Symbol
 
-  # Exported methods come back as Method objects; values as exported.
+  # Helpers come back as Method objects; constants as set.
   def []: (key key) -> untyped
   def deconstruct_keys: (nil keys) -> ::Hash[::Symbol, untyped]
                       | (::Array[::Symbol] keys) -> ::Hash[::Symbol, untyped]
@@ -45,6 +44,6 @@ module Carton::ExportMethods
   def values_at: (*key keys) -> ::Array[untyped]
 end
 
-class Carton::Exports < ::Module
-  include ::Carton::ExportMethods
+class Carton::Namespace < ::Module
+  include ::Carton::NamespaceMethods
 end

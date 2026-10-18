@@ -10,4 +10,4 @@ module Billing
   end
 end
 
-export_default Billing
+export Billing

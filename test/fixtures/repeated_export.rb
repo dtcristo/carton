@@ -1,3 +1,4 @@
 # frozen_string_literal: true
 
-export :Missing
+export 1
+export 2

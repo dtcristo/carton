@@ -30,12 +30,12 @@ class SharedImportTest < Minitest::Test
     assert bank.deposit(wallet.pay(100))
   end
 
-  def test_namespace_first_imported_by_a_carton_is_main_box_exports
+  def test_namespace_first_imported_by_a_carton_is_a_main_box_namespace
     from_carton = import "#{SHARED_DIR}/units_user"
     units = import "#{SHARED_DIR}/units"
 
     assert_same from_carton::Units, units
-    assert_kind_of Carton::Exports, units
+    assert_kind_of Carton::Namespace, units
   end
 
   def test_circular_import_raises
@@ -49,7 +49,7 @@ class SharedImportTest < Minitest::Test
     assert_raises(RuntimeError) { import "#{SHARED_DIR}/flaky" }
 
     ENV.delete('CARTON_FLAKY_FAIL')
-    assert_equal :loaded, import("#{SHARED_DIR}/flaky").status
+    assert_equal :loaded, import("#{SHARED_DIR}/flaky")[:status]
   ensure
     ENV.delete('CARTON_FLAKY_FAIL')
   end
@@ -58,13 +58,13 @@ class SharedImportTest < Minitest::Test
   # for it, as it could with require.
   def test_entrypoint_thread_can_import_another_carton
     Dir.mktmpdir('carton-thread') do |dir|
-      File.write(File.join(dir, 'other.rb'), "export_default :other\n")
+      File.write(File.join(dir, 'other.rb'), "export 'other'\n")
       File.write(File.join(dir, 'threaded.rb'), <<~RUBY)
         thread = Thread.new { import_relative 'other' }
-        export_default thread.join(5) ? thread.value : :timed_out
+        export thread.join(5) ? thread.value : :timed_out
       RUBY
 
-      assert_equal :other, import(File.join(dir, 'threaded.rb'))
+      assert_equal 'other', import(File.join(dir, 'threaded.rb'))
     end
   end
 

@@ -7,39 +7,32 @@ require 'tmpdir'
 
 # Checks that follow how an import's result is used.
 class CheckUsesTest < Minitest::Test
-  MATH = "export def add(a, b) = a + b\nexport PI: 3.14\n"
+  MATH = "export add: 1, PI: 3.14\n"
 
-  def test_missing_named_exports_are_errors
+  # Only `fetch` and `=>` patterns raise for a missing key of an exported
+  # Hash.
+  def test_missing_hash_keys_are_errors
     main = <<~RUBY
       MathTools = import_relative 'math'
-      MathTools.add(1, 2)
-      MathTools::PI
-      MathTools.nope
-      MathTools::NOPE
+      MathTools.fetch(:add)
+      MathTools.fetch(:PI)
       MathTools.fetch(:gone)
     RUBY
 
     status, output = check('main.rb' => main, 'math.rb' => MATH)
 
     assert_equal 1, status
-    expected = [
-      missing(4, 'MathTools.nope', 'nope'),
-      missing(5, 'MathTools::NOPE', 'NOPE'),
-      missing(6, 'MathTools.fetch(:gone)', 'gone'),
-    ]
-    assert_equal expected, errors(output)
+    assert_equal [missing(4, 'MathTools.fetch(:gone)', 'gone')], errors(output)
   end
 
-  # `[]`, `key?` and `in` patterns return nil or false instead of raising,
-  # and Carton::Exports' own methods are always there.
-  def test_non_raising_lookups_and_helpers_are_fine
+  # `[]`, `key?` and `in` patterns return nil or false instead of raising.
+  def test_non_raising_lookups_are_fine
     main = <<~RUBY
       MathTools = import_relative 'math'
       MathTools[:nope]
       MathTools.key?(:nope)
       MathTools.fetch(:nope, nil)
       MathTools.keys
-      MathTools.inspect
       case MathTools
       in { nope: } then 1
       end
@@ -53,7 +46,7 @@ class CheckUsesTest < Minitest::Test
   def test_local_variables_and_patterns_are_followed
     main = <<~RUBY
       math = import_relative 'math'
-      math.nope
+      math.fetch(:nope)
       import_relative('math') => { add:, missing: }
       math => { pi: }
     RUBY
@@ -62,7 +55,7 @@ class CheckUsesTest < Minitest::Test
 
     pattern = "import_relative('math') => { missing: }"
     expected = [
-      missing(2, 'math.nope', 'nope'),
+      missing(2, 'math.fetch(:nope)', 'nope'),
       missing(3, pattern, 'missing'),
       missing(4, 'math.fetch(:pi)', 'pi'),
     ]
@@ -71,7 +64,7 @@ class CheckUsesTest < Minitest::Test
 
   # A reassigned local could hold anything, so it is not followed.
   def test_reassigned_locals_are_not_followed
-    main = "math = import_relative 'math'\nmath = other\nmath.nope\n"
+    main = "math = import_relative 'math'\nmath = other\nmath.fetch(:nope)\n"
 
     assert_equal 0, check('main.rb' => main, 'math.rb' => MATH).first
   end
@@ -81,15 +74,16 @@ class CheckUsesTest < Minitest::Test
     files = {
       'main.rb' =>
         "module App\n  MathTools = import_relative 'math'\nend\nrequire_relative 'use'\n",
-      'use.rb' => "module App\n  MathTools.nope\nend\nApp::MathTools.gone\n",
+      'use.rb' =>
+        "module App\n  MathTools.fetch(:nope)\nend\nApp::MathTools.fetch(:gone)\n",
       'math.rb' => MATH,
     }
 
     _, output = check(files)
 
     expected = [
-      missing(2, 'MathTools.nope', 'nope', file: 'use.rb'),
-      missing(4, 'App::MathTools.gone', 'gone', file: 'use.rb'),
+      missing(2, 'MathTools.fetch(:nope)', 'nope', file: 'use.rb'),
+      missing(4, 'App::MathTools.fetch(:gone)', 'gone', file: 'use.rb'),
     ]
     assert_equal expected, errors(output)
   end
@@ -104,7 +98,7 @@ class CheckUsesTest < Minitest::Test
     RUBY
     files = {
       'main.rb' => main,
-      'billing.rb' => "module Billing; end\nexport_default Billing\n",
+      'billing.rb' => "module Billing; end\nexport Billing\n",
       'util.rb' => "def helper = 1\n",
     }
 
@@ -116,24 +110,25 @@ class CheckUsesTest < Minitest::Test
     main = <<~RUBY
       MathTools = import_relative 'math'
       begin
-        MathTools.nope
-      rescue NoMethodError
+        MathTools.fetch(:nope)
+      rescue KeyError
         nil
       end
       MathTools.fetch(:gone) rescue nil
       begin
-        MathTools::NOPE
-      rescue KeyError
+        MathTools.fetch(:other)
+      rescue NameError
         nil
       end
     RUBY
 
     _, output = check('main.rb' => main, 'math.rb' => MATH)
 
-    assert_equal [missing(9, 'MathTools::NOPE', 'NOPE')], errors(output)
+    assert_equal [missing(9, 'MathTools.fetch(:other)', 'other')],
+                 errors(output)
   end
 
-  def test_private_constant_of_a_default_export_is_an_error
+  def test_private_constant_of_an_exported_module_is_an_error
     main = <<~RUBY
       Billing = import_relative 'billing'
       Billing::Invoice
@@ -145,7 +140,7 @@ class CheckUsesTest < Minitest::Test
         module Tax; end
         private_constant :Tax
       end
-      export_default Billing
+      export Billing
     RUBY
 
     status, output = check('main.rb' => main, 'billing.rb' => billing)
@@ -159,8 +154,8 @@ class CheckUsesTest < Minitest::Test
   private
 
   def missing(line, code, name, file: 'main.rb')
-    "#{file}:#{line}: error: #{code}: the math Carton has no export #{name} " \
-      '(it exports add, PI)'
+    "#{file}:#{line}: error: #{code}: the math Carton's export has no key " \
+      "#{name} (it has add, PI)"
   end
 
   def errors(output) = output.lines(chomp: true).grep(/: error: /)

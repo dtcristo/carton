@@ -53,20 +53,13 @@ A Carton whose Entrypoint belongs to a gem the importer has activated, such as a
 _Avoid_: Gem package
 
 **Bare Carton**:
-A Carton without declared exports. The constants and top-level helpers its Entrypoint defines are its public surface, returned as a `Carton::Exports` like an Export Namespace; importers never receive its Box.
+A Carton whose Entrypoint never calls `export`. The constants and top-level helpers its Entrypoint defines are its public surface, returned as a `Carton::Namespace`; importers never receive its Box.
 _Avoid_: Unexported carton
 
-**Export Declaration**:
-What a Carton's Entrypoint exports: either an Export Namespace built from one or more `export` calls, or one Default Export from `export_default`, never both. Each name may be exported once. Calls in any other file, including files loaded by plain `require`, declare nothing. A Bare Carton has none.
-_Avoid_: Mixing a Default Export with Named Exports
+**Export**:
+The one value a Carton's Entrypoint gives `export`, returned as is when the Carton is imported: usually its root module, or a Hash from keywords. Calls in any other file, including files loaded by plain `require`, declare nothing. A Bare Carton has none.
+_Avoid_: Default export, named exports, export declaration
 
-**Default Export**:
-A Carton's one exported value from `export_default`, returned directly when the Carton is imported.
-_Avoid_: Single export, direct export
-
-**Export Namespace**:
-A module-like public surface containing a Carton's Named Exports.
-_Avoid_: Named exports or exports when referring to the whole namespace
-
-**Named Export**:
-A named member of an Export Namespace.
+**Namespace**:
+The `Carton::Namespace` module a Bare Carton's importers receive, holding its constants and top-level helpers.
+_Avoid_: Exports, export namespace

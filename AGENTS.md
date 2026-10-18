@@ -18,15 +18,15 @@ whether it moves Carton toward that, for apps of any size;
 
 ## Decisions
 
-- Importers never get another Carton's Box; Bare Cartons return `Carton::Exports`.
+- Importers never get another Carton's Box; Bare Cartons return `Carton::Namespace`.
 - A Carton is an Entrypoint `x.rb` plus the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Files inside a Carton cannot be imported; the outermost Entrypoint wins.
 - Imports are cached process-wide by Entrypoint real path.
 - `Carton::Box` wraps a plain `Ruby::Box`; never subclass `Ruby::Box` (autoloads would load in the importer's Box).
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.
-- `export` is repeatable; `export_default` is exclusive (once, never with `export`).
-- `import` returns a Default Export's value itself, and `Carton::Exports` for Named Exports and Bare Cartons; no wrapper with a `default` accessor.
+- `export` takes one value, once per Entrypoint; Named Exports are gone, since a Ruby module is already a namespace (user decision). Keywords export a plain Hash, and a Symbol raises `ExportError`.
+- `import` returns the exported value itself, never a wrapper.
 - Use Ruby's `private_constant` for visibility; Carton adds none.
-- A lowercase export that would hide a `Carton::Exports` method raises `ExportError`; exports never shadow helpers.
+- A Bare Carton helper that would hide a `Carton::Namespace` method raises `ExportError`.
 - Shared-class reopening risk is documented only (subclass, refine, freeze).
 - No `carton run` or `carton exec`: `RUBY_BOX=1` is the interface (user decision). The `carton` command only reads code (Prism).
 - Two gems, released together at one version: `carton` is the runtime only, with no dependencies and no executable, since every gem built on Carton depends on it; `carton-tools` (`carton-tools/`, `Carton::Tools`) holds the `carton` command and static analysis, depends on exactly the same `carton`, and may use its internals (user decision).
