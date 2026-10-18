@@ -126,11 +126,12 @@ Gemfile and import it by name; see [examples/monorepo](examples/monorepo/README.
 
 ## Types and checks
 
-The `carton` command reads code without running it. `carton rbs main.rb`
-writes RBS so [Steep](https://github.com/soutaro/steep) knows what each import
-returns, and `carton check main.rb` reports missing imports, cycles,
-`require` calls that reach into a Carton, and gems a gem Carton uses without
-declaring them. See
+The `carton` command, in the [`carton-tools`](carton-tools/README.md) gem,
+reads code without running it; add `gem 'carton-tools', group: :development`
+beside `carton`. `carton rbs main.rb` writes RBS so
+[Steep](https://github.com/soutaro/steep) knows what each import returns, and
+`carton check main.rb` reports missing imports, cycles, `require` calls that
+reach into a Carton, and gems a gem Carton uses without declaring them. See
 [Types and checks](docs/usage.md#types-and-checks).
 
 ## Status

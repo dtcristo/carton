@@ -23,17 +23,20 @@ imports of gem-sized and domain-sized units feel like part of Ruby.
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` and Gemfile discovery from the calling file |
 
-The `carton` command (`exe/carton`) reads code with Prism and never runs it.
-`require 'carton'` does not load it.
+The `carton` command ships in the `carton-tools` gem, under `carton-tools/`,
+as `Carton::Tools`. It reads code with Prism and never runs it, and reuses
+the core's `Resolver`, errors, and export rules, so each carton-tools release
+depends on exactly its own `carton`. The core gem has no dependencies and no
+executable, since every gem built on Carton depends on it.
 
 | File | Role |
 | --- | --- |
-| `lib/carton/cli.rb` | `carton rbs` and `carton check`: options and output |
-| `lib/carton/source_file.rb` | One file's imports, requires, exports, and top-level definitions |
-| `lib/carton/project.rb` | Follows imports and `require_relative` from the given files to every Carton, resolving with `Resolver` |
-| `lib/carton/signatures.rb` | RBS for what each import returns |
-| `lib/carton/bindings.rb` | Names bound to imports, and each use of them |
-| `lib/carton/checks.rb` | Problems `carton check` reports |
+| `lib/carton/tools/cli.rb` | `carton rbs` and `carton check`: options and output |
+| `lib/carton/tools/source_file.rb` | One file's imports, requires, exports, and top-level definitions |
+| `lib/carton/tools/project.rb` | Follows imports and `require_relative` from the given files to every Carton, resolving with `Resolver` |
+| `lib/carton/tools/signatures.rb` | RBS for what each import returns |
+| `lib/carton/tools/bindings.rb` | Names bound to imports, and each use of them |
+| `lib/carton/tools/checks.rb` | Problems `carton check` reports |
 
 ## Import flow
 

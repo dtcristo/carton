@@ -72,9 +72,11 @@
   3.3.1 and 4.1.1 in one process from their own bundles, while one plugin's
   `Float#to_s` patch stays out of the host and the other plugin.
 
-- A `carton` command that reads code with Prism and never runs it, so it
-  needs no `RUBY_BOX=1`. Give it the app's files; it follows imports into
-  every Carton they reach.
+- The `carton-tools` gem, with a `carton` command that reads code with
+  Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it the app's
+  files; it follows imports into every Carton they reach. It is released
+  with `carton` at exactly the same version, and `carton` itself stays the
+  runtime only, with no dependencies and no executable.
 - `carton rbs` writes `sig/generated/carton.rbs` so Steep knows what each
   import returns: a Default Export's own type, or a generated
   `Carton::Exports::*` module for Named Exports, typed from rbs-inline `#:`

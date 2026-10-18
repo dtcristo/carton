@@ -43,5 +43,5 @@ bundle exec carton rbs main.rb
 bundle exec steep check
 ```
 
-`ruby ../../exe/carton check main.rb` reports the deliberate import of
+`bundle exec carton check main.rb` reports the deliberate import of
 `billing/invoice`.
