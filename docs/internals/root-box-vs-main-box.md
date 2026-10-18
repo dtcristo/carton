@@ -9,10 +9,7 @@ Use **Main Box** for the top-level application's Ruby environment.
 - `Ruby::Box.current == Ruby::Box.main` in ordinary top-level user code
 - Ruby's top-level receiver named `main` is an object inside that environment; it is not another Box
 
-Ruby exposes both terms deliberately through `Ruby::Box.root` and
-`Ruby::Box.main`. The Ruby 4.0 docs assign the user's main program and `-r`
-loads to the Main Box, while the tests assert that the current Box in the main
-program is `Ruby::Box.main`.
+Ruby exposes both terms deliberately through `Ruby::Box.root` and `Ruby::Box.main`. The Ruby 4.0 docs assign the user's main program and `-r` loads to the Main Box, while the tests assert that the current Box in the main program is `Ruby::Box.main`.
 
 Sources:
 
@@ -26,9 +23,7 @@ Ruby 4.0.0 through 4.0.5 and Ruby 4.0.6 do not have the same copy source.
 
 ### Ruby 4.0.0-4.0.5
 
-The Main Box is created after the prelude. Both it and later optional Boxes copy
-the Root Box. Therefore a Root Box load-path mutation is inherited by a later
-`Ruby::Box.new`; a Main Box mutation is not.
+The Main Box is created after the prelude. Both it and later optional Boxes copy the Root Box. Therefore a Root Box load-path mutation is inherited by a later `Ruby::Box.new`; a Main Box mutation is not.
 
 This matches the installed Ruby 4.0.5 probe:
 
@@ -45,14 +40,9 @@ Sources:
 
 ### Ruby 4.0.6
 
-Ruby added an internal **Master Box** as the copy source. Root, Main, and
-optional Boxes copy Master; Root and Main are initialized before the prelude
-and load prelude state in their own environments. Ruby intends no code to run
-in Master, though on 4.0.7 it can; see
-[how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407).
+Ruby added an internal **Master Box** as the copy source. Root, Main, and optional Boxes copy Master; Root and Main are initialized before the prelude and load prelude state in their own environments. Ruby intends no code to run in Master, though on 4.0.7 it can; see [how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407).
 
-This was explicitly intended to stop Box contents depending on when a Box was
-created. It does not change which Box owns the user's main program: Main Box.
+This was explicitly intended to stop Box contents depending on when a Box was created. It does not change which Box owns the user's main program: Main Box.
 
 Sources:
 
@@ -63,24 +53,14 @@ Sources:
 
 ### Ruby 4.0.7
 
-The copy model is unchanged. The gem prelude now skips `ENV["BUNDLER_SETUP"]`
-outside Main Box, so creating an optional Box under `bundle exec` no longer
-runs Bundler setup in it. See [Bug #22123](https://bugs.ruby-lang.org/issues/22123)
-and [the commit](https://github.com/ruby/ruby/commit/e9bccf88c1).
+The copy model is unchanged. The gem prelude now skips `ENV["BUNDLER_SETUP"]` outside Main Box, so creating an optional Box under `bundle exec` no longer runs Bundler setup in it. See [Bug #22123](https://bugs.ruby-lang.org/issues/22123) and [the commit](https://github.com/ruby/ruby/commit/e9bccf88c1).
 
 ### Stale upstream prose
 
-`doc/language/box.md` still says Main is "created at the end of Ruby's
-bootstrap" on v4.0.7 and master. That describes 4.0.5. For boot-order and
-inheritance claims, the tagged source is authoritative. Fixing that sentence is
-listed in [upstream.md](upstream.md).
+`doc/language/box.md` still says Main is "created at the end of Ruby's bootstrap" on v4.0.7 and master. That describes 4.0.5. For boot-order and inheritance claims, the tagged source is authoritative. Fixing that sentence is listed in [upstream.md](upstream.md).
 
 ## Carton terminology
 
-Define **Main Box** as the host environment that imports Cartons. Do not call it
-the Root Box: upstream Ruby reserves that term for bootstrap and builtin code.
-This recommendation holds across the 4.0.5, 4.0.6, and 4.0.7 implementations.
+Define **Main Box** as the host environment that imports Cartons. Do not call it the Root Box: upstream Ruby reserves that term for bootstrap and builtin code. This recommendation holds across the 4.0.5, 4.0.6, and 4.0.7 implementations.
 
-Carton targets Ruby 4.0.7 or later. Its technical docs therefore use Master as
-the copy source, Root for bootstrap/builtins, Main for the top-level
-application, and optional Boxes for imported Cartons.
+Carton targets Ruby 4.0.7 or later. Its technical docs therefore use Master as the copy source, Root for bootstrap/builtins, Main for the top-level application, and optional Boxes for imported Cartons.

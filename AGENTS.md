@@ -2,12 +2,7 @@
 
 ## North Star
 
-Carton is the package system Ruby has always needed: real boundaries for
-Ruby code, enforced while it runs. A Carton has a private interior, a
-declared public surface, its own dependencies and gem versions, and the
-shape of a gem, so it can leave the app as one. Weigh every change by
-whether it moves Carton toward that, for apps of any size;
-[design.md](docs/design.md#how-close-carton-is) tracks the gaps.
+Carton is the package system Ruby has always needed: real boundaries for Ruby code, enforced while it runs. A Carton has a private interior, a declared public surface, its own dependencies and gem versions, and the shape of a gem, so it can leave the app as one. Weigh every change by whether it moves Carton toward that, for apps of any size; [design.md](docs/design.md#how-close-carton-is) tracks the gaps.
 
 ## Principles
 
@@ -38,6 +33,7 @@ whether it moves Carton toward that, for apps of any size;
 - Test everything. Run `bundle exec rake format` after changes; `bundle exec rake` (tests, rubocop, examples) before finishing.
 - Update the relevant docs, `CHANGELOG.md` (Unreleased), and this file when behavior or durable guidance changes.
 - Comment examples so Carton, export, and bundle boundaries are visible.
+- Don't hard-wrap Markdown: write each paragraph, list item, and blockquote on one line.
 - To test which Gemfile was selected, check `Bundler.root` (memoized), not `Bundler.default_gemfile` (rereads `ENV`).
 - No thread-local variables.
 - Commit each logical step separately with explanatory messages.

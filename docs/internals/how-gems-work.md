@@ -1,10 +1,8 @@
 # How Ruby gems, RubyGems, Bundler, and `Ruby::Box` fit together
 
-This guide is based on direct reading of the upstream Ruby, RubyGems, and
-Bundler source trees.
+This guide is based on direct reading of the upstream Ruby, RubyGems, and Bundler source trees.
 
-It describes Ruby 4.0.7 with RubyGems/Bundler 4.0.23. Older-version failures
-and their fixes are listed in [upstream.md](upstream.md#resolved).
+It describes Ruby 4.0.7 with RubyGems/Bundler 4.0.23. Older-version failures and their fixes are listed in [upstream.md](upstream.md#resolved).
 
 The guide has two layers:
 
@@ -117,8 +115,7 @@ Or in one sentence:
 
 That means file loading itself is already much more isolated than normal Ruby.
 
-RubyGems and Bundler are mostly Ruby code running on top of that runtime, so
-their behavior also depends on Ruby method lookup across Boxes.
+RubyGems and Bundler are mostly Ruby code running on top of that runtime, so their behavior also depends on Ruby method lookup across Boxes.
 
 The most important Ruby 4.0.7 facts are:
 
@@ -128,8 +125,7 @@ The most important Ruby 4.0.7 facts are:
 4. Therefore `require "rubygems"` is already satisfied in a fresh optional Box without inheriting Main or Root state.
 5. **Bundler is not preloaded that way.** If the first `require "bundler"` happens inside a Box, that Box gets its own `Bundler` constant and module state.
 6. RubyGems definitions and activation state belong to each user Box.
-7. Per-Carton Bundler setup, path-gem imports, and boxed `bundle exec` work on
-   4.0.7 with Bundler 4.0.23.
+7. Per-Carton Bundler setup, path-gem imports, and boxed `bundle exec` work on 4.0.7 with Bundler 4.0.23.
 
 That is why running Bundler setup inside each Carton remains the right isolation shape.
 
@@ -139,37 +135,17 @@ On Ruby 4.0.7 with Bundler 4.0.23:
 
 - `$LOAD_PATH`, `Gem.loaded_specs`, and RubyGems registry changes stay Box-local.
 - `Bundler` module state is Box-local if Bundler is first loaded inside the Box.
-- conflicting non-path bundles work in separate Boxes, including under an
-  already-bundled Main Box.
-- app-bundle path gems import as Cartons; Imported Carton Gemfiles keep their
-  intended versions without mutating Main Box.
-- fresh optional Boxes start with no gem load paths or gem loaded features,
-  even when Main ran under `bundle exec`.
+- conflicting non-path bundles work in separate Boxes, including under an already-bundled Main Box.
+- app-bundle path gems import as Cartons; Imported Carton Gemfiles keep their intended versions without mutating Main Box.
+- fresh optional Boxes start with no gem load paths or gem loaded features, even when Main ran under `bundle exec`.
 - `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the app.
-- a fresh Box auto-activates the newest installed version of a gem on
-  `require`, ignoring the caller's lockfile. Carton activates an imported
-  gem's dependency closure first to prevent this, default gems included,
-  since a newer installed version would otherwise replace the caller's.
-  Default gems are activated first, from the Box's own default specs: the
-  YAML rebuild below loads Psych, whose requires (such as `date`) would
-  otherwise activate the newest installed version before the caller's.
-- spec objects from another Box run that Box's methods, so calling `activate`
-  on them updates the wrong Box. Carton rebuilds each spec with
-  `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores
-  `loaded_from` and `full_gem_path`, which also avoids re-evaluating gemspecs.
-- a bundled caller's restriction carries into a Carton Box through
-  `Bundler.rubygems.replace_entrypoints(specs)` on the rebuilt specs: locked
-  gems load at their versions, default gems still load, and unlocked gems
-  raise `LoadError`. Under that restriction RubyGems does not auto-activate,
-  so every locked spec must be activated, as `Bundler.setup` does.
-- the `bundler` spec is never shared: the Box loads its own Bundler to apply
-  the restriction, which can be the Ruby default (4.0.20 on CI) while the
-  caller runs the locked 4.0.23, and activating both raises `Gem::LoadError`.
-- activation costs well under a millisecond per gem; `Ruby::Box.new` itself
-  is about 70ms.
+- a fresh Box auto-activates the newest installed version of a gem on `require`, ignoring the caller's lockfile. Carton activates an imported gem's dependency closure first to prevent this, default gems included, since a newer installed version would otherwise replace the caller's. Default gems are activated first, from the Box's own default specs: the YAML rebuild below loads Psych, whose requires (such as `date`) would otherwise activate the newest installed version before the caller's.
+- spec objects from another Box run that Box's methods, so calling `activate` on them updates the wrong Box. Carton rebuilds each spec with `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores `loaded_from` and `full_gem_path`, which also avoids re-evaluating gemspecs.
+- a bundled caller's restriction carries into a Carton Box through `Bundler.rubygems.replace_entrypoints(specs)` on the rebuilt specs: locked gems load at their versions, default gems still load, and unlocked gems raise `LoadError`. Under that restriction RubyGems does not auto-activate, so every locked spec must be activated, as `Bundler.setup` does.
+- the `bundler` spec is never shared: the Box loads its own Bundler to apply the restriction, which can be the Ruby default (4.0.20 on CI) while the caller runs the locked 4.0.23, and activating both raises `Gem::LoadError`.
+- activation costs well under a millisecond per gem; `Ruby::Box.new` itself is about 70ms.
 
-That is why Carton's per-Carton Bundler pattern is one line, the same as the
-top-level app's:
+That is why Carton's per-Carton Bundler pattern is one line, the same as the top-level app's:
 
 ```ruby
 # cartons/my_carton/lib/my_carton.rb
@@ -275,24 +251,16 @@ The key files are:
 - `ruby/ruby.c`
 - `ruby/gem_prelude.rb`
 
-Since Ruby 4.0.6, Root and Main are initialized from Master before prelude
-loading. The gem prelude does:
+Since Ruby 4.0.6, Root and Main are initialized from Master before prelude loading. The gem prelude does:
 
 ```ruby
 require "rubygems"
 require "bundled_gems"
 ```
 
-if `Gem` is defined. `rubygems.rb` ends by requiring `ENV["BUNDLER_SETUP"]`
-when it is set, which is how `bundle exec` sets up the bundle early. Since Ruby
-4.0.7 the prelude skips that outside Main Box
-([Bug #22123](https://bugs.ruby-lang.org/issues/22123)), so a new optional Box
-no longer runs the caller's `bundler/setup` while loading RubyGems.
+if `Gem` is defined. `rubygems.rb` ends by requiring `ENV["BUNDLER_SETUP"]` when it is set, which is how `bundle exec` sets up the bundle early. Since Ruby 4.0.7 the prelude skips that outside Main Box ([Bug #22123](https://bugs.ruby-lang.org/issues/22123)), so a new optional Box no longer runs the caller's `bundler/setup` while loading RubyGems.
 
-Ruby loads these prelude helpers into Main and optional user Boxes independently.
-Thus `require "rubygems"` is already satisfied in each user Box, but not because
-its `$LOADED_FEATURES` was copied from Root. RubyGems definitions and activation
-state belong to that Box's environment.
+Ruby loads these prelude helpers into Main and optional user Boxes independently. Thus `require "rubygems"` is already satisfied in each user Box, but not because its `$LOADED_FEATURES` was copied from Root. RubyGems definitions and activation state belong to that Box's environment.
 
 ## 4. RubyGems: activation is spec selection plus load-path mutation
 
@@ -536,16 +504,9 @@ That matters because Bundler still uses process-global environment discovery:
 - `RUBYLIB`
 - `PATH`
 
-Bundler reads `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle, so
-`Carton.setup_bundle` sets the first and clears any stale second. A leftover
-lockfile path would override the lockfile Bundler derives from the selected
-Gemfile.
+Bundler reads `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle, so `Carton.setup_bundle` sets the first and clears any stale second. A leftover lockfile path would override the lockfile Bundler derives from the selected Gemfile.
 
-Bundler also writes `ENV` during setup. `SharedHelpers.set_bundle_environment`
-exports `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`,
-`PATH`, and `BUNDLER_ORIG_*` so subprocesses inherit the bundle. Those writes
-reach every Box, so `setup_bundle` snapshots `ENV` first and restores all of it
-after setup.
+Bundler also writes `ENV` during setup. `SharedHelpers.set_bundle_environment` exports `RUBYOPT=-rbundler/setup`, `RUBYLIB`, `BUNDLER_SETUP`, `GEM_HOME`, `PATH`, and `BUNDLER_ORIG_*` so subprocesses inherit the bundle. Those writes reach every Box, so `setup_bundle` snapshots `ENV` first and restores all of it after setup.
 
 ## 8. Public APIs that matter for advanced gem/runtime work
 
@@ -591,15 +552,9 @@ These are the exact areas Carton and any upstream isolation work eventually need
 
 ## 9. Implications for Carton
 
-- `Carton::Runtime.import` resolves names in the caller Box and only carries
-  the matching load-path entry into the imported Box.
-- Each Carton runs `Bundler.setup` in its own Box, so activation stays there;
-  Carton adds no RubyGems or Bundler patches.
+- `Carton::Runtime.import` resolves names in the caller Box and only carries the matching load-path entry into the imported Box.
+- Each Carton runs `Bundler.setup` in its own Box, so activation stays there; Carton adds no RubyGems or Bundler patches.
 - `Carton.setup_bundle` manages the process-global `ENV` that Bundler reads.
-- A gem Carton gets the caller's activated versions: Carton rebuilds the specs
-  in the new Box and activates them there, restricted to the caller's lockfile
-  when the caller is bundled.
+- A gem Carton gets the caller's activated versions: Carton rebuilds the specs in the new Box and activates them there, restricted to the caller's lockfile when the caller is bundled.
 
-> Let each Box keep its own Bundler module and RubyGems state, manage the
-> process-global `ENV` that Bundler reads and writes, and carry the caller's
-> gem versions into gem Cartons.
+> Let each Box keep its own Bundler module and RubyGems state, manage the process-global `ENV` that Bundler reads and writes, and carry the caller's gem versions into gem Cartons.
