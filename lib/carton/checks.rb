@@ -31,6 +31,9 @@ module Carton
         *bare_collisions,
         *missing_exports,
         *private_constant_references,
+        *unused_imports,
+        *unused_exports,
+        *reopened_classes,
       ].sort_by { |problem| [problem.file, problem.line, problem.message] }
     end
 
@@ -380,6 +383,100 @@ module Carton
             reference.line,
             "#{reference.name}::#{reference.member} is a private constant " \
               "of the #{binding.unit.name} Carton",
+          )
+        end
+      end
+    end
+
+    # A binding nothing reads. A top-level constant in a Bare Carton is part
+    # of its surface, and one named by `export` is exported, so neither is
+    # unused.
+    def unused_imports
+      @bindings.all.filter_map do |binding|
+        next unless binding.uses.empty?
+        next if exported_binding?(binding)
+
+        warning(
+          binding.file,
+          binding.line,
+          "#{binding.name} is bound to an import of the #{binding.unit.name} " \
+            'Carton but never used',
+        )
+      end
+    end
+
+    def exported_binding?(binding)
+      unit = @project.owner(binding.file) or return false
+      exports = @project.files.fetch(unit.entrypoint).exports
+      return !binding.name.include?('::') if exports.empty?
+
+      exports.any? { |export| export.names.include?(binding.name) }
+    end
+
+    # A Named Export no importer uses. Skipped when any import of the
+    # Carton is not followed, or passes the namespace on, since its uses
+    # cannot all be seen.
+    def unused_exports
+      @project.units.each_value.flat_map do |unit|
+        next [] unless named_exports(unit)
+
+        used = used_names(unit) or next []
+
+        @project
+          .files
+          .fetch(unit.entrypoint)
+          .exports
+          .flat_map do |export|
+            (export.names + export.values.keys)
+              .reject { |n| used.include?(n) }
+              .map do |name|
+                warning(
+                  unit.entrypoint,
+                  export.line,
+                  "export #{name} of the #{unit.name} Carton is never used by " \
+                    'an importer',
+                )
+              end
+          end
+      end
+    end
+
+    # Every Named Export name the Carton's importers use, or nil when an
+    # import is not followed or passes the namespace on.
+    def used_names(unit)
+      per_import =
+        @project
+          .edges
+          .select { |edge| edge.unit == unit }
+          .map { |edge| names_used_by(edge.call) }
+      per_import.flatten unless per_import.include?(nil)
+    end
+
+    def names_used_by(call)
+      if call.pattern
+        call.pattern.keys unless call.pattern.keys.include?('**')
+      elsif (binding = @bindings.for(call))
+        uses = binding.uses.map(&:reference)
+        uses.map(&:member) unless uses.any? { |use| use.kind == :value }
+      end
+    end
+
+    # `class Billing::Invoice`, or `class Billing`, in a Box that imported
+    # Billing reopens a class another Carton defined. Classes are shared, so
+    # the change reaches every Carton that uses it.
+    def reopened_classes
+      @project.files.each_value.flat_map do |file|
+        file.definition_sites.filter_map do |site|
+          root = site.name.delete_prefix('::').split('::').first
+          binding = @bindings.constant(file.path, root, site.scope) or next
+          next if binding.unit == @project.owner(file.path)
+
+          warning(
+            file.path,
+            site.line,
+            "#{site.kind} #{site.name} reopens #{root} from the " \
+              "#{binding.unit.name} Carton, which changes it for every " \
+              'Carton that shares it: subclass it or use a refinement instead',
           )
         end
       end
