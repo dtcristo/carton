@@ -531,7 +531,8 @@ in different files gets no overload.
 exits non-zero on any error, so it can run in CI. Errors are certain to fail
 or misbehave when the code runs; warnings are things a dynamic program could
 still get right. `--strict` fails on warnings too, for a codebase that wants
-every import followed.
+every import followed. `--format json` prints the problems and counts as JSON,
+for CI annotations and editors.
 
 An import found at runtime, such as plugin discovery, cannot be followed. Mark
 it with `# carton:dynamic`, on its line or the line above, to say so and
@@ -562,6 +563,9 @@ it.
 | warning | A named import not found on the load path, which a gem activated at runtime may provide |
 | warning | An import whose path is not a string literal, unless marked `# carton:dynamic` |
 | warning | `export` in a file inside a Carton, where it does nothing |
+| warning | A name bound to an import and never used. A Bare Carton's top-level constants and names given to `export` count as used |
+| warning | A Named Export no importer uses. Not reported when an import is unbound or passes the namespace on, since its uses cannot all be seen |
+| warning | `class Billing::Invoice` or `module Billing` in a Box that imported `Billing`, which reopens a class another Carton defined and changes it for every Carton that shares it |
 
 ## Errors
 

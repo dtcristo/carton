@@ -48,6 +48,9 @@
 - `carton check --strict` fails on warnings as well as errors, and a
   `# carton:dynamic` comment marks an intentionally dynamic import, such as
   plugin discovery, to silence its warning.
+- `carton check` warns about names bound to imports and never used, Named
+  Exports no importer uses, and `class` or `module` definitions that reopen
+  a class from another Carton. `--format json` prints its report as JSON.
 - `carton check` follows names bound to imports and reports, as errors, a
   Named Export that does not exist where using it would raise
   (`MathTools.nope`, `MathTools::NOPE`, `fetch(:nope)`, a `=>` pattern), and
