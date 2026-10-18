@@ -43,33 +43,7 @@ class ToolsGemspecTest < Minitest::Test
   # the default prism when it runs.
   def test_built_gems_install_and_run
     Dir.mktmpdir('carton-tools-gem') do |dir|
-      home = File.join(dir, 'home')
-      gems =
-        [[ROOT, 'carton'], [TOOLS, 'carton-tools']].map do |root, name|
-          file = File.join(dir, "#{name}.gem")
-          run_ruby(
-            root,
-            '-S',
-            'gem',
-            'build',
-            "#{name}.gemspec",
-            '--output',
-            file,
-          )
-          file
-        end
-      run_ruby(
-        dir,
-        '-S',
-        'gem',
-        'install',
-        '--local',
-        '--no-document',
-        '--ignore-dependencies',
-        '--install-dir',
-        home,
-        *gems,
-      )
+      home = install_built_gems(dir)
       File.write(File.join(dir, 'main.rb'), "import_relative 'missing'\n")
       env = { 'GEM_HOME' => home, 'GEM_PATH' => home }
 
@@ -89,6 +63,38 @@ class ToolsGemspecTest < Minitest::Test
   end
 
   private
+
+  # Returns the gem home both freshly built gems were installed into.
+  def install_built_gems(dir)
+    gems =
+      [[ROOT, 'carton'], [TOOLS, 'carton-tools']].map do |root, name|
+        file = File.join(dir, "#{name}.gem")
+        run_ruby(
+          root,
+          '-S',
+          'gem',
+          'build',
+          "#{name}.gemspec",
+          '--output',
+          file,
+        )
+        file
+      end
+    home = File.join(dir, 'home')
+    run_ruby(
+      dir,
+      '-S',
+      'gem',
+      'install',
+      '--local',
+      '--no-document',
+      '--ignore-dependencies',
+      '--install-dir',
+      home,
+      *gems,
+    )
+    home
+  end
 
   def tools_specification
     Gem::Specification.load(File.join(TOOLS, 'carton-tools.gemspec'))

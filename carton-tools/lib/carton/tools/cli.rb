@@ -11,15 +11,15 @@ module Carton
     # it, so neither needs `RUBY_BOX=1`.
     class CLI
       USAGE = <<~TEXT
-      Usage: carton COMMAND [options] PATH...
+        Usage: carton COMMAND [options] PATH...
 
-      Commands:
-        rbs    Write RBS for what each import returns
-        check  Report import and export problems without running code
+        Commands:
+          rbs    Write RBS for what each import returns
+          check  Report import and export problems without running code
 
-      PATH is a Ruby file or a directory of them, such as main.rb or app.
-      Imports are followed into every Carton they reach.
-    TEXT
+        PATH is a Ruby file or a directory of them, such as main.rb or app.
+        Imports are followed into every Carton they reach.
+      TEXT
 
       RBS_OUTPUT = 'sig/generated/carton.rbs'
 
