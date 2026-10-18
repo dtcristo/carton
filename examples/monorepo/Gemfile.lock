@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    carton (0.2.0)
+    carton (0.3.0)
 
 PATH
   remote: packages/billing
@@ -41,7 +41,7 @@ DEPENDENCIES
 CHECKSUMS
   bigdecimal (4.1.1) sha256=1c09efab961da45203c8316b0cdaec0ff391dfadb952dd459584b63ebf8054ca
   billing (0.1.0)
-  carton (0.2.0)
+  carton (0.3.0)
   minitest (5.27.0) sha256=2d3b17f8a36fe7801c1adcffdbc38233b938eb0b4966e97a6739055a45fa77d5
   pricing (0.1.0)
   shipping (0.1.0)
