@@ -57,31 +57,40 @@ class SourceFileTest < Minitest::Test
     )
   end
 
-  def test_reads_named_exports
-    file = parse(<<~RUBY)
-      export def add(a, b) = a + b
-      export :PI, :helper, VERSION: '1.0', answer: 42
-    RUBY
+  def test_reads_an_exported_constant
+    file = parse("module Billing; end\nexport Billing\n")
 
-    first, second = file.exports
-    assert_equal ['add'], first.names
-    assert_equal %w[PI helper], second.names
-    assert_equal(
-      { 'VERSION' => '::String', 'answer' => '::Integer' },
-      second.values,
-    )
-    refute second.dynamic
-  end
-
-  def test_reads_default_export_constant
-    file = parse("module Billing; end\nexport_default Billing\n")
-
-    assert_equal 'Billing', file.exports.first.default
+    assert_equal 'Billing', file.exports.first.value
+    assert_nil file.exports.first.keys
     assert_equal({ 'Billing' => :module }, file.definitions)
   end
 
+  def test_reads_keyword_and_hash_exports
+    keywords, hash, dynamic =
+      parse(
+        "export VERSION: '1.0', answer: 42\nexport({ a: 1 })\nexport **x\n",
+      ).exports
+
+    assert_equal(
+      { 'VERSION' => '::String', 'answer' => '::Integer' },
+      keywords.keys,
+    )
+    assert_equal({ 'a' => '::Integer' }, hash.keys)
+    assert_nil dynamic.keys
+    assert_nil keywords.value
+  end
+
+  def test_marks_symbol_exports
+    def_export, symbol, value =
+      parse("export def add = 1\nexport :x\nexport 1\n").exports
+
+    assert def_export.symbol
+    assert symbol.symbol
+    refute value.symbol
+  end
+
   def test_ignores_exports_inside_methods_and_namespaces
-    file = parse("def setup = export(:x)\nmodule M\n  export :y\nend\n")
+    file = parse("def setup = export(1)\nmodule M\n  export 2\nend\n")
 
     assert_empty file.exports
   end

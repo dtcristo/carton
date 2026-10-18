@@ -21,7 +21,7 @@ class RbsTest < Minitest::Test
     rbs =
       generate(
         'main.rb' => "Billing = import_relative 'billing'\n",
-        'billing.rb' => "module Billing; end\nexport_default Billing\n",
+        'billing.rb' => "module Billing; end\nexport Billing\n",
       )
 
     assert_includes rbs, '("billing" path) -> singleton(::Billing)'
@@ -33,8 +33,8 @@ class RbsTest < Minitest::Test
       generate(
         'main.rb' =>
           "Invoicing = import_relative 'billing'\nUsers = import_relative 'user'\n",
-        'billing.rb' => "module Billing; end\nexport_default Billing\n",
-        'user.rb' => "class User; end\nexport_default User\n",
+        'billing.rb' => "module Billing; end\nexport Billing\n",
+        'user.rb' => "class User; end\nexport User\n",
       )
 
     assert_includes rbs, 'module Invoicing = ::Billing'
@@ -45,37 +45,22 @@ class RbsTest < Minitest::Test
     rbs =
       generate(
         'main.rb' => "Greeting = import_relative 'greeting'\n",
-        'greeting.rb' => "export_default 'hello'\n",
+        'greeting.rb' => "export 'hello'\n",
       )
 
     assert_includes rbs, 'Greeting: untyped'
     refute_includes rbs, 'module Kernel'
   end
 
-  def test_named_exports_become_a_module
+  def test_keyword_export_is_a_record
     rbs =
       generate(
-        'main.rb' => "Tools = import_relative 'tools'\n",
-        'tools.rb' => <<~RUBY,
-          PI = 3.14
-          #: (Integer n) -> Integer
-          def double(n) = n * 2
-          def helper(x, y = 1) = x
-          export :PI, :double, :helper, VERSION: '1', answer: 42
-        RUBY
+        'main.rb' => "Info = import_relative 'info'\n",
+        'info.rb' => "export VERSION: '1', answer: 42, other: compute\n",
       )
 
-    assert_includes rbs, <<~RBS
-      module Carton::Exports::Tools
-        extend ::Carton::ExportMethods
-        def self.double: (Integer n) -> Integer
-        def self.helper: (untyped x, ?untyped y) -> untyped
-        VERSION: ::String
-        def self.answer: () -> ::Integer
-        PI: ::Float
-      end
-    RBS
-    assert_includes rbs, 'module Tools = ::Carton::Exports::Tools'
+    assert_includes rbs,
+                    'Info: { VERSION: ::String, answer: ::Integer, other: untyped }'
   end
 
   def test_bare_carton_surface_becomes_a_module
@@ -86,8 +71,8 @@ class RbsTest < Minitest::Test
       )
 
     assert_includes rbs, <<~RBS
-      module Carton::Exports::Util
-        extend ::Carton::ExportMethods
+      module Carton::Namespace::Util
+        extend ::Carton::NamespaceMethods
         def self.run: (untyped x) -> untyped
         LIMIT: ::Integer
         Helper: singleton(::Helper)
@@ -100,12 +85,12 @@ class RbsTest < Minitest::Test
       generate(
         'main.rb' =>
           "A = import_relative 'a/math'\nB = import_relative 'b/math'\n",
-        'a/math.rb' => "export x: 1\n",
-        'b/math.rb' => "export y: 1\n",
+        'a/math.rb' => "X = 1\n",
+        'b/math.rb' => "Y = 1\n",
       )
 
-    assert_includes rbs, 'module Carton::Exports::AMath'
-    assert_includes rbs, 'module Carton::Exports::BMath'
+    assert_includes rbs, 'module Carton::Namespace::AMath'
+    assert_includes rbs, 'module Carton::Namespace::BMath'
   end
 
   # The same relative path names two Cartons in two files, so a single
@@ -127,19 +112,19 @@ class RbsTest < Minitest::Test
   def test_writes_the_default_output_file
     Dir.mktmpdir do |dir|
       File.write(File.join(dir, 'main.rb'), "import_relative 'tools'\n")
-      File.write(File.join(dir, 'tools.rb'), "export x: 1\n")
+      File.write(File.join(dir, 'tools.rb'), "X = 1\n")
 
       status, output = run_cli(dir, 'rbs', 'main.rb')
 
       assert_equal 0, status
       assert_equal "Wrote sig/generated/carton.rbs\n", output
       assert_includes File.read(File.join(dir, 'sig/generated/carton.rbs')),
-                      'module Carton::Exports::Tools'
+                      'module Carton::Namespace::Tools'
     end
   end
 
   # End to end: Steep accepts the minimal example with its generated RBS,
-  # and catches a misuse of a Named Export's annotated type.
+  # and catches a misuse of a Bare Carton helper's annotated type.
   def test_steep_checks_imports_with_generated_signatures
     assert_steep(MINIMAL)
 
