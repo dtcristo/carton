@@ -554,7 +554,7 @@ it.
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
-| error | `export_default` twice, `export_default` with `export`, a name exported twice, or a lowercase export (or Bare Carton method) that would hide a `Carton::Exports` method |
+| error | `export_default` twice, `export_default` with `export`, or a name exported twice, in calls that can both run (calls in different branches of one `if` or `case` cannot), or a lowercase export (or Bare Carton method) that would hide a `Carton::Exports` method |
 | error | A gem Carton importing or requiring a gem its gemspec does not declare |
 | error | A Named Export that does not exist, used where it would raise: `MathTools.nope`, `MathTools::NOPE`, `fetch(:nope)`, or a `=>` pattern. `[]`, `key?` and `in` patterns return nil or false instead, and Default Exports and Bare Cartons are not checked |
 | error | A private constant of a Default Export, such as `Billing::Tax` when `Billing` calls `private_constant :Tax` |

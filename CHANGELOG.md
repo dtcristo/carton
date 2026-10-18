@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- `carton check` no longer reports `export_default` or `export` calls in
+  different branches of one `if`, `unless`, or `case` as duplicates or as
+  mixing both forms, since only one branch runs.
+
 - A shared gem Carton raises `Carton::ImportError` when a later importer
   locks a different version of a gem it loaded without declaring, such as an
   undeclared gem the first importer's lockfile allowed, including one it
