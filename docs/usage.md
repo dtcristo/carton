@@ -58,50 +58,13 @@ A Carton's Entrypoint can run its own Zeitwerk loader, such as
 
 ## Exporting
 
-### Named Exports
-
-`export` adds names to the Carton's Export Namespace. Call it as often as you
-like; each name may be exported once.
-
-```ruby
-# pricing.rb
-class Money
-end
-export :Money                     # a capitalized Symbol names a constant
-
-export def add(a, b) = a + b      # `def` returns :add, like `private def`
-
-export PI: 3.14159, version: '1.0.0'
-```
-
-- A capitalized Symbol exports the top-level constant of that name; any other
-  Symbol exports the top-level method. Both are looked up when `export` runs,
-  so export after defining, as with `private` or `private_constant`.
-- Keywords export plain values. Capitalized keys become constants and
-  lowercase keys become readers. Values are never invoked:
-  `export handler: -> {}` makes `handler` return the lambda itself.
-- A missing method or constant raises `NameError`, and a repeated name raises
-  `Carton::ExportError`, at the `export` call.
-- A lowercase name becomes a method on the namespace, so it cannot be a name
-  every `Carton::Exports` already has, such as `fetch`, `keys`, or `name`:
-  that raises `Carton::ExportError` instead of hiding the built-in method.
-  Rename it, or put it inside a Default Export. Capitalized names become
-  constants and never collide.
-
-Importing returns a `Carton::Exports` namespace:
-
-```ruby
-Pricing = import_relative 'pricing'
-
-Pricing::Money.new
-Pricing.add(2, 3)
-Pricing::PI
-Pricing[:add] # => #<Method: ...add(a, b)>
-```
-
-`Pricing.add(...)` forwards arguments, keywords, and blocks. `[]`, `fetch`,
-`fetch_values`, `values_at`, `key?`, and destructuring return the `Method`
-object without calling it.
+Start with a Default Export. Most Cartons are a gem-sized or domain-sized
+unit with one main class or module, and `export_default` hands importers that
+value itself, as `require` would leave a constant behind. Use Named Exports
+for a deliberate facade of a few functions or values, where their extra rules
+(Symbols name methods or constants, keywords export values, lookups return
+`Method` objects, some names are reserved) earn their keep. Bare Cartons,
+which export nothing, are mainly for adapting existing code.
 
 ### Default Export
 
@@ -159,6 +122,51 @@ To publish a facade instead, export chosen inner constants by keyword:
 `export Calculator: Pricing::Calculator`. Importers then see only those, as
 `import('pricing')::Calculator`.
 
+### Named Exports
+
+`export` adds names to the Carton's Export Namespace. Call it as often as you
+like; each name may be exported once.
+
+```ruby
+# pricing.rb
+class Money
+end
+export :Money                     # a capitalized Symbol names a constant
+
+export def add(a, b) = a + b      # `def` returns :add, like `private def`
+
+export PI: 3.14159, version: '1.0.0'
+```
+
+- A capitalized Symbol exports the top-level constant of that name; any other
+  Symbol exports the top-level method. Both are looked up when `export` runs,
+  so export after defining, as with `private` or `private_constant`.
+- Keywords export plain values. Capitalized keys become constants and
+  lowercase keys become readers. Values are never invoked:
+  `export handler: -> {}` makes `handler` return the lambda itself.
+- A missing method or constant raises `NameError`, and a repeated name raises
+  `Carton::ExportError`, at the `export` call.
+- A lowercase name becomes a method on the namespace, so it cannot be a name
+  every `Carton::Exports` already has, such as `fetch`, `keys`, or `name`:
+  that raises `Carton::ExportError` instead of hiding the built-in method.
+  Rename it, or put it inside a Default Export. Capitalized names become
+  constants and never collide.
+
+Importing returns a `Carton::Exports` namespace:
+
+```ruby
+Pricing = import_relative 'pricing'
+
+Pricing::Money.new
+Pricing.add(2, 3)
+Pricing::PI
+Pricing[:add] # => #<Method: ...add(a, b)>
+```
+
+`Pricing.add(...)` forwards arguments, keywords, and blocks. `[]`, `fetch`,
+`fetch_values`, `values_at`, `key?`, and destructuring return the `Method`
+object without calling it.
+
 ### Exports under plain `require`
 
 Only the imported Entrypoint declares exports. In any other file, including
@@ -212,6 +220,16 @@ them.
 Money = import 'money'
 Money.equal?(import('money')) # => true
 ```
+
+This is an architectural choice to plan around, not a cache to forget:
+
+- A Carton's module state lasts the whole process, including from one test
+  to the next.
+- A shared gem Carton's first importer fixes its gem versions. An importer
+  whose bundle locks a different version of one of its gems raises
+  `Carton::ImportError` (see [Gem Cartons](#gem-cartons)). To give two
+  importers different versions, give each its own copy: a Carton at another
+  path is another Carton.
 
 A failed load is not cached, so a later import tries again. A Carton that
 imports itself, directly or through other Cartons, raises
@@ -270,7 +288,9 @@ MathTools.to_h     # => {add: #<Method: ...add(a, b)>, PI: 3.14159, version: "1.
 A file that never calls `export` or `export_default` is a Bare Carton.
 Importing it returns a `Carton::Exports` of the constants and top-level helper
 methods the file defines, as if it had exported them all. Its Box stays
-private, so an importer cannot `eval` or `require` inside it.
+private, so an importer cannot `eval` or `require` inside it. Bare Cartons
+suit existing code you want to load in a Box without changing it; new
+Cartons should export deliberately.
 
 ```ruby
 Toolbox = import 'some_script'

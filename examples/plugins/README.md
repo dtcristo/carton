@@ -85,6 +85,45 @@ BigDecimal defined: false
 0.1 + 0.2 = 0.30000000000000004
 ```
 
+## Sharing a Carton between plugins
+
+A Carton loads once per process, keyed by its Entrypoint's path. If both
+plugins import the same third Carton, such as a shared path gem, they get one
+copy, built with the gem versions of whichever plugin imported it first. When
+the other plugin's bundle locks a different version of a gem that Carton
+uses, its import raises `Carton::ImportError`, naming the gem and both
+versions, rather than sharing a copy built against the wrong one. Either lock
+the same versions in both plugins, or give each plugin its own copy: a
+Carton at another path, such as a vendored copy or another installed version
+of the gem, is a separate Carton.
+
+## Testing plugins
+
+Test a plugin the way the host uses it: import its directory and call its
+interface. Run the test with `RUBY_BOX=1`.
+
+```ruby
+# test/growth_test.rb
+require 'minitest/autorun'
+require 'carton'
+
+class GrowthTest < Minitest::Test
+  ORDERS = [{ month: '2026-06', state: 'CA', amount: '100.00' }].freeze
+
+  def test_reports_each_month
+    growth = import_relative '../plugins/growth'
+
+    assert_match(/bigdecimal 4\.1\.1/, growth.title)
+    assert_equal 2, growth.call(ORDERS).size
+  end
+end
+```
+
+Imports last for the whole process, so a plugin's state carries from one test
+to the next. Keep plugins stateless, or run each plugin's tests in its own
+process. To test a plugin's internals, require its files directly without
+Boxes; see [Testing Cartons](../../docs/usage.md#testing-cartons).
+
 ## Limits
 
 - Box is not a security boundary. Plugins run with the host's full

@@ -1,5 +1,9 @@
 # Rails in Main example
 
+This is the recommended way to use Carton with Rails today: Rails, its
+controllers, models, and tooling stay where Rails expects them, and selected
+plain-Ruby domains run as Cartons.
+
 Domain logic inside a Rails app can call any model, helper, or core
 extension, so its boundary wears away one convenient call at a time. This is
 the smallest change to an existing Rails app that stops that. Rails and its
