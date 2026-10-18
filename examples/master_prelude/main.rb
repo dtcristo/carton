@@ -49,5 +49,9 @@ puts format(
      )
 puts format('both Cartons imported: %.0fms', (imported - loaded) * 1000)
 puts
-puts '-- Main Box is unchanged --'
+puts '-- The prelude can reach Main --'
+# Main sees a Master patch to a builtin class only until Ruby copies that
+# class's state for Main, which method calls as well as changes can trigger,
+# so which patches show up here is not guaranteed.
 puts "Main sees ''.blank?: #{''.respond_to?(:blank?)}"
+puts "Main sees 1.day: #{1.respond_to?(:day)}"

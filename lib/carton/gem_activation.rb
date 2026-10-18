@@ -15,9 +15,10 @@ module Carton
   module GemActivation
     module_function
 
-    # The non-default gem in `loaded_specs` that owns `feature`, plus its
-    # activated runtime dependencies, dependencies first. Empty when no
-    # activated gem owns the file.
+    # The gem in `loaded_specs` that owns `feature`, plus its activated
+    # runtime dependencies, dependencies first. Default gems count: a new Box
+    # would otherwise load the newest installed version, not the caller's.
+    # Empty when no activated gem owns the file.
     def closure(feature, loaded_specs)
       owner = owner_of(feature, loaded_specs.values)
       return [] unless owner
@@ -34,21 +35,52 @@ module Carton
       loaded_specs.values.select { |spec| shareable?(spec) }
     end
 
+    # The specs that own at least one of `features`, by require path. Sorted
+    # features let each directory check be a binary search, so a large bundle
+    # stays cheap.
+    def owning(specs, features)
+      sorted = features.sort
+      specs.select do |spec|
+        spec.full_require_paths.any? do |dir|
+          prefix = "#{dir}/"
+          sorted.bsearch { |feature| feature >= prefix }&.start_with?(prefix)
+        end
+      end
+    end
+
     # Rebuild specs in the current Box and activate them. With `locked`, the
     # Box is restricted to those specs and all of them are activated, as
     # `Bundler.setup` does, since RubyGems does not auto-activate under
     # Bundler's restricted view. Spec objects come from another Box, so their
     # own `activate` would update that Box; a YAML round trip builds this Box's
     # `Gem::Specification` without re-evaluating gemspec files.
+    #
+    # Default gems come first, from this Box's own default specs: the YAML
+    # round trip loads Psych, whose requires (date, for one) would otherwise
+    # activate the newest installed version before the caller's.
     def activate(specs, locked = nil)
-      rebuilt = (locked || specs).map { |source| rebuild(source) }
-      restrict_to(rebuilt) if locked
+      defaults, others = (locked || specs).partition(&:default_gem?)
+      defaults.each { |source| activate_spec(default_spec(source)) }
 
-      rebuilt.each do |spec|
-        loaded = Gem.loaded_specs[spec.name]
-        spec.activate unless loaded && loaded.version == spec.version
-      end
+      rebuilt = others.map { |source| rebuild(source) }
+      restrict_to(rebuilt) if locked
+      rebuilt.each { |spec| activate_spec(spec) }
     end
+
+    def activate_spec(spec)
+      loaded = Gem.loaded_specs[spec.name]
+      spec.activate unless loaded && loaded.version == spec.version
+    end
+    private_class_method :activate_spec
+
+    def default_spec(source)
+      stub =
+        Gem::Specification.default_stubs(
+          "#{source.name}-#{source.version}.gemspec",
+        ).first
+      stub ? stub.to_spec : rebuild(source)
+    end
+    private_class_method :default_spec
 
     def rebuild(source)
       spec = Gem::Specification.from_yaml(source.to_spec.to_yaml)
@@ -80,7 +112,7 @@ module Carton
 
     def owner_of(feature, specs)
       specs
-        .select { |spec| shareable?(spec) }
+        .select { |spec| activatable?(spec) }
         .filter_map do |spec|
           dir =
             spec.full_require_paths.find do |path|
@@ -94,7 +126,7 @@ module Carton
     private_class_method :owner_of
 
     def visit(spec, loaded_specs, ordered, seen)
-      return ordered if seen[spec.name] || !shareable?(spec)
+      return ordered if seen[spec.name] || !activatable?(spec)
 
       seen[spec.name] = true
       spec.runtime_dependencies.each do |dependency|
@@ -105,13 +137,15 @@ module Carton
     end
     private_class_method :visit
 
-    # Default gems already load in every Box. Bundler is left out too: each
-    # Box loads its own copy to apply the restriction, possibly a different
-    # version than the caller's, and activating the caller's on top of it
-    # raises Gem::LoadError.
-    def shareable?(spec)
-      !spec.default_gem? && spec.name != 'bundler'
-    end
+    # Bundler is never shared: each Box loads its own copy to apply the
+    # restriction, possibly a different version than the caller's, and
+    # activating the caller's on top of it raises Gem::LoadError.
+    def activatable?(spec) = spec.name != 'bundler'
+    private_class_method :activatable?
+
+    # Bundler's restriction already lets default gems load, so the locked set
+    # leaves them out.
+    def shareable?(spec) = activatable?(spec) && !spec.default_gem?
     private_class_method :shareable?
   end
 end

@@ -37,11 +37,23 @@ class GemActivationTest < Minitest::Test
                  )
   end
 
-  def test_closure_skips_default_gems_and_survives_cycles
+  # A default gem the caller activated is shared at its version: a new Box
+  # would otherwise load the newest installed one.
+  def test_closure_keeps_default_gems_and_survives_cycles
     specs = loaded(app: %w[a stdlib], a: %w[app], stdlib: [])
     specs['stdlib'].default = true
 
-    assert_equal %w[a app], closure('/gems/app/lib/app.rb', specs).map(&:name)
+    assert_equal %w[a stdlib app],
+                 closure('/gems/app/lib/app.rb', specs).map(&:name)
+  end
+
+  def test_locked_leaves_out_default_gems
+    specs = loaded(app: %w[stdlib], stdlib: [])
+    specs['stdlib'].default = true
+    bundled_box =
+      Object.new.tap { |box| box.define_singleton_method(:eval) { |_| true } }
+
+    assert_equal %w[app], GemActivation.locked(bundled_box, specs).map(&:name)
   end
 
   # Each Box loads its own Bundler to apply the restriction, which may be a

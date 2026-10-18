@@ -8,6 +8,8 @@ module Carton
   class Box
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
+    LOADED_FEATURES = File.expand_path('loaded_features.rb', __dir__)
+    private_constant :LOADED_FEATURES
     ERRORS = %i[Error ImportError ExportError GemfileNotFound].freeze
     private_constant :ERRORS
     IVAR = :@carton_import
@@ -37,7 +39,38 @@ module Carton
         gems: target.gems || [],
         locked_gems: target.locked_gems,
       )
+      record_used_gems(target)
       export_public_surface(&build)
+    end
+
+    # The gems this Carton depends on: its closure, plus the locked gems whose
+    # files it has loaded, such as an undeclared gem the caller's lockfile
+    # allows. A later importer must agree on these versions to share the
+    # Carton, so they are read again at each check, after any lazy requires.
+    def record_used_gems(target)
+      target.gem_usage = -> { used_gems(target) }
+    end
+
+    def used_gems(target)
+      gems = target.gems || []
+      locked = (target.locked_gems || []) - gems
+      return gems if locked.empty?
+
+      gems + GemActivation.owning(locked, loaded_features)
+    end
+
+    # `Ruby::Box#eval` does not switch the loading Box, so during a nested
+    # Import `$LOADED_FEATURES` there would be the importer's. A file loaded
+    # in this Box reads this Box's.
+    def loaded_features
+      @box.eval("load #{LOADED_FEATURES.inspect}")
+      features = @loaded_features
+      @loaded_features = nil
+      features
+    end
+
+    def receive_loaded_features(features)
+      @loaded_features = features
     end
 
     # Fresh boxes copy Master, so they start without the caller's gems. Load
@@ -50,7 +83,6 @@ module Carton
       add_import_load_path(File.dirname(entrypoint))
       require_in_box(entrypoint)
       share_error_classes
-      snapshot_import_support
       self
     end
 
@@ -58,6 +90,9 @@ module Carton
     def load_import(feature, load_path: nil, gems: [], locked_gems: nil)
       activate_gems(gems, locked_gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
+      # After activation, which loads Bundler and Psych here: a Bare
+      # Carton's surface is only what its Entrypoint adds.
+      snapshot_import_support
 
       @entrypoint = real_path(feature)
       result = require_in_box(feature)

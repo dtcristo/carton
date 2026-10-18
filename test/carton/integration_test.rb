@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'fileutils'
 require 'json'
 require 'open3'
 require 'rbconfig'
@@ -242,6 +243,127 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_minitest')
   end
 
+  # Gem activation loads Bundler, Psych and Date into the Carton's Box, but
+  # they are Carton's support, not the Bare Carton's surface.
+  def test_bare_gem_carton_exposes_only_what_its_entrypoint_defines
+    script = <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+      Carton.setup_bundle(gemfile: File.expand_path('test/fixtures/shared_gems/Gemfile', Dir.pwd))
+      puts import('bigdecimal').keys.sort.join(' ')
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    assert_equal 'BigDecimal BigMath', run_boxed(script).strip
+  end
+
+  # The cache also compares locked gems a Carton loaded without declaring
+  # them: sloppy_gem requires bigdecimal, which only the lockfile provides.
+  def test_gem_carton_rejects_importer_locking_another_undeclared_gem_version
+    script = <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
+      Carton.setup_bundle(gemfile: File.join(fixtures, 'Gemfile'))
+
+      import 'sloppy_gem' # loads bigdecimal 3.3.1 from the app's lockfile
+      begin
+        import File.join(fixtures, 'newer_sloppy/entry') # locks 4.1.1
+        puts 'no error'
+      rescue Carton::ImportError => e
+        puts e.message
+      end
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    output = run_boxed(script)
+    assert_match(
+      /sloppy_gem\.rb was imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      output,
+    )
+  end
+
+  # The same check when sloppy_gem's first import is nested in another
+  # Carton, whose Box is the loading Box while sloppy_gem loads.
+  def test_nested_first_import_still_records_undeclared_locked_gems
+    script = <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
+      import File.join(fixtures, 'wrapper/entry') # imports sloppy_gem, 3.3.1
+      begin
+        import File.join(fixtures, 'newer_sloppy/entry') # locks 4.1.1
+        puts 'no error'
+      rescue Carton::ImportError => e
+        puts e.message
+      end
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    assert_match(
+      /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      run_boxed(script),
+    )
+  end
+
+  LAZY_SLOPPY = <<~RUBY
+    export def locked
+      require 'bigdecimal'
+      Gem.loaded_specs['bigdecimal'].version.to_s
+    end
+  RUBY
+
+  # A gem the Carton requires lazily, after its import, counts at the next
+  # import's check.
+  def test_lazily_loaded_locked_gems_count_at_later_imports
+    Dir.mktmpdir('carton-lazy-gem') do |dir|
+      FileUtils.cp_r(File.expand_path('../fixtures/shared_gems', __dir__), dir)
+      gems = File.join(dir, 'shared_gems')
+      File.write(File.join(gems, 'sloppy_gem/lib/sloppy_gem.rb'), LAZY_SLOPPY)
+
+      output = run_boxed(lazy_sloppy_script(gems))
+      assert_match(/\A3\.3\.1$/, output)
+      assert_match(
+        /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+        output,
+      )
+    end
+  end
+
+  # Without Bundler, a gem Carton's default-gem dependencies keep the
+  # versions the caller activated, even when newer ones are installed: here
+  # fake json and date 99.0.0 in a temporary gem home. date is also one of
+  # Psych's requires, so it must be activated before any YAML spec rebuild.
+  def test_gem_carton_keeps_the_callers_default_gem_versions
+    %w[json date].each do |name|
+      Dir.mktmpdir('carton-default-gem') do |home|
+        install_fake_newer_default_gem(home, name)
+        probe = File.join(home, 'probe')
+        FileUtils.mkdir_p(File.join(probe, 'lib'))
+        File.write(
+          File.join(probe, 'lib', 'default_probe.rb'),
+          "require '#{name}'\nexport version: Gem.loaded_specs['#{name}'].version.to_s\n",
+        )
+        gem_path = [home, *Gem.path].join(File::PATH_SEPARATOR)
+
+        output, error, status =
+          Open3.capture3(
+            unbundled_env.merge('GEM_PATH' => gem_path),
+            RbConfig.ruby,
+            '-Ilib',
+            '-e',
+            default_probe_script(name, probe),
+          )
+
+        assert status.success?, [output, error].reject(&:empty?).join("\n")
+        default_version, carton_version = output.split
+        assert_equal default_version, carton_version, name
+      end
+    end
+  end
+
   def test_gem_carton_imported_from_a_bundled_carton
     script = <<~'RUBY'
       require File.expand_path('lib/carton', Dir.pwd)
@@ -406,6 +528,67 @@ class IntegrationTest < Minitest::Test
   # Runs `script` in a fresh `RUBY_BOX=1` Ruby outside the dev bundle, as a
   # real process so native extensions and process exit are exercised, asserts
   # it succeeded, and returns its stdout.
+  # A newer `name` that loads the real default gem's files, so code that
+  # requires it still works and only the activated version tells them apart.
+  def install_fake_newer_default_gem(home, name)
+    lib = File.join(home, 'gems', "#{name}-99.0.0", 'lib')
+    FileUtils.mkdir_p([lib, File.join(home, 'specifications')])
+    real = File.join(RbConfig::CONFIG['rubylibdir'], "#{name}.rb")
+    File.write(File.join(lib, "#{name}.rb"), "require #{real.inspect}\n")
+    spec =
+      Gem::Specification.new do |s|
+        s.name = name
+        s.version = '99.0.0'
+        s.summary = 'fake'
+        s.authors = ['Carton']
+        s.files = ["lib/#{name}.rb"]
+      end
+    File.write(
+      File.join(home, 'specifications', "#{name}-99.0.0.gemspec"),
+      spec.to_ruby,
+    )
+  end
+
+  # Activates the default `name`, then imports a gem Carton that requires it.
+  def default_probe_script(name, probe)
+    <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+      default = Gem::Specification.find { |s| s.name == #{name.inspect} && s.default_gem? }
+      default.activate
+      spec = Gem::Specification.new do |s|
+        s.name = 'default_probe'
+        s.version = '0.1.0'
+        s.summary = 'probe'
+        s.authors = ['Carton']
+        s.add_runtime_dependency(#{name.inspect})
+      end
+      spec.full_gem_path = #{probe.inspect}
+      spec.activate
+      puts [default.version, import('default_probe').version].join(' ')
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+  end
+
+  # Calls the lazy sloppy_gem, then imports a Carton locking another
+  # bigdecimal.
+  def lazy_sloppy_script(gems)
+    <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      Carton.setup_bundle(gemfile: #{File.join(gems, 'Gemfile').inspect})
+      puts import('sloppy_gem').locked # requires bigdecimal 3.3.1 now
+      begin
+        import #{File.join(gems, 'newer_sloppy/entry').inspect} # locks 4.1.1
+        puts 'no error'
+      rescue Carton::ImportError => e
+        puts e.message
+      end
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+  end
+
   def run_boxed(script)
     output, error, status =
       Open3.capture3(unbundled_env, RbConfig.ruby, '-Ilib', '-e', script)
