@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Resolved by the app's lockfile, so every package sees the same version.
+# Resolved by the app's lockfile, so every Carton sees the same version.
 require 'bigdecimal'
 
 module Pricing
@@ -17,5 +17,5 @@ module Pricing
   def self.bigdecimal_version = BigDecimal::VERSION
 end
 
-# The package's public surface is its root module.
+# The Carton's Public Surface is its root module.
 export Pricing

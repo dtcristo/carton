@@ -42,7 +42,7 @@ class ImportTest < Minitest::Test
     $LOAD_PATH.delete(FIXTURES_DIR) if added
   end
 
-  def test_import_by_name_uses_caller_gem_paths_without_copying_them_into_box
+  def test_import_by_name_uses_importer_gem_paths_without_copying_them_into_box
     added = !$LOAD_PATH.include?(GEM_LIKE_DIR)
     $LOAD_PATH.unshift(GEM_LIKE_DIR) if added
 

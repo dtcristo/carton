@@ -33,10 +33,10 @@ module Carton
         overloads =
           %w[import import_relative].filter_map do |kind|
             types =
-              edges_by_path(kind).filter_map do |path, units|
-                next unless units.uniq.size == 1
+              edges_by_path(kind).filter_map do |path, cartons|
+                next unless cartons.uniq.size == 1
 
-                type = type_of(units.first)
+                type = type_of(cartons.first)
                 "(#{path.inspect} path) -> #{type}" unless type == 'untyped'
               end
             next if types.empty?
@@ -59,9 +59,9 @@ module Carton
       def edges_by_path(kind)
         @project
           .edges
-          .select { |edge| edge.unit && edge.call.kind == kind }
+          .select { |edge| edge.carton && edge.call.kind == kind }
           .group_by { |edge| edge.call.path }
-          .transform_values { |edges| edges.map(&:unit) }
+          .transform_values { |edges| edges.map(&:carton) }
           .sort
       end
 
@@ -70,10 +70,10 @@ module Carton
       def namespaces
         @names
           .sort_by { |_, name| name }
-          .map do |unit, name|
-            members = surface(unit).map { |member| "  #{member}" }
+          .map do |carton, name|
+            members = surface(carton).map { |member| "  #{member}" }
             [
-              "# #{Project.relative(unit.entrypoint)}",
+              "# #{Project.relative(carton.entrypoint)}",
               "module Carton::Namespace::#{name}",
               '  extend ::Carton::NamespaceMethods',
               *members,
@@ -84,16 +84,16 @@ module Carton
       end
 
       # A Bare Carton's surface is what its files define at top level.
-      def surface(unit)
-        files = unit.files.map { |path| file(path) }
+      def surface(carton)
+        files = carton.files.map { |path| file(path) }
         methods = files.flat_map { |f| f.methods.keys }.uniq
         constants = files.flat_map { |f| f.constants.keys + top_definitions(f) }
         [
           *methods.map do |name|
-            "def self.#{name}: #{method_type(unit, name)}"
+            "def self.#{name}: #{method_type(carton, name)}"
           end,
           *constants.uniq.map do |name|
-            "#{name}: #{constant_type(unit, name)}"
+            "#{name}: #{constant_type(carton, name)}"
           end,
         ]
       end
@@ -105,36 +105,36 @@ module Carton
         bindings =
           @project
             .edges
-            .select { |edge| edge.unit && edge.call.constant }
+            .select { |edge| edge.carton && edge.call.constant }
             .group_by { |edge| edge.call.constant }
-            .transform_values { |edges| edges.map(&:unit).uniq }
-            .select { |_, units| units.size == 1 }
+            .transform_values { |edges| edges.map(&:carton).uniq }
+            .select { |_, cartons| cartons.size == 1 }
         lines =
-          bindings.sort.filter_map do |constant, (unit)|
-            type = type_of(unit)
+          bindings.sort.filter_map do |constant, (carton)|
+            type = type_of(carton)
             next if type == "singleton(::#{constant})"
 
-            alias_of(constant, unit, type) || "#{constant}: #{type}"
+            alias_of(constant, carton, type) || "#{constant}: #{type}"
           end
         return if lines.empty?
 
         ['# Constants bound to imports', *lines, ''].join("\n")
       end
 
-      def alias_of(constant, unit, type)
+      def alias_of(constant, carton, type)
         target = type[/\Asingleton\((.+)\)\z/, 1] or return
-        return "module #{constant} = #{target}" if @names.key?(unit)
+        return "module #{constant} = #{target}" if @names.key?(carton)
 
-        kind = definition_kind(unit, target.delete_prefix('::'))
+        kind = definition_kind(carton, target.delete_prefix('::'))
         "#{kind} #{constant} = #{target}" if kind
       end
 
-      def type_of(unit)
-        if @names.key?(unit)
-          return "singleton(::Carton::Namespace::#{@names[unit]})"
+      def type_of(carton)
+        if @names.key?(carton)
+          return "singleton(::Carton::Namespace::#{@names[carton]})"
         end
 
-        exports = file(unit.entrypoint).exports
+        exports = file(carton.entrypoint).exports
         return 'untyped' unless exports.size == 1
 
         export = exports.first
@@ -145,29 +145,29 @@ module Carton
         "{ #{fields.join(', ')} }"
       end
 
-      def exported?(unit) = file(unit.entrypoint).exports.any?
+      def exported?(carton) = file(carton.entrypoint).exports.any?
 
       def file(path) = @project.files.fetch(path)
 
-      def method_type(unit, name)
-        unit.files.each do |path|
+      def method_type(carton, name)
+        carton.files.each do |path|
           definition = file(path).methods[name]
           return definition.type if definition
         end
         '(?) -> untyped'
       end
 
-      def constant_type(unit, name)
-        unit.files.each do |path|
+      def constant_type(carton, name)
+        carton.files.each do |path|
           type = file(path).constants[name]
           return type if type
         end
-        kind = definition_kind(unit, name)
+        kind = definition_kind(carton, name)
         kind ? "singleton(::#{name})" : 'untyped'
       end
 
-      def definition_kind(unit, name)
-        unit.files.each do |path|
+      def definition_kind(carton, name)
+        carton.files.each do |path|
           kind = file(path).definitions[name]
           return kind if kind
         end
@@ -182,34 +182,35 @@ module Carton
       # Entrypoint's name, camelized, with parent directories prepended while
       # two Cartons share a name.
       def namespace_names
-        units =
+        cartons =
           @project
             .edges
-            .filter_map(&:unit)
+            .filter_map(&:carton)
             .uniq
-            .reject { |unit| exported?(unit) }
-        depth = units.to_h { |unit| [unit, 1] }
+            .reject { |carton| exported?(carton) }
+        depth = cartons.to_h { |carton| [carton, 1] }
         loop do
-          names = units.to_h { |unit| [unit, camelize(unit, depth[unit])] }
-          clashes = names.keys.group_by { |unit| names[unit] }.values
+          names =
+            cartons.to_h { |carton| [carton, camelize(carton, depth[carton])] }
+          clashes = names.keys.group_by { |carton| names[carton] }.values
           clashes = clashes.select { |group| group.size > 1 }.flatten
-          if clashes.empty? || clashes.none? { |unit| deeper?(unit, depth) }
+          if clashes.empty? || clashes.none? { |carton| deeper?(carton, depth) }
             return names
           end
 
-          clashes.each { |unit| depth[unit] += 1 }
+          clashes.each { |carton| depth[carton] += 1 }
         end
       end
 
-      def deeper?(unit, depth) = depth[unit] < path_parts(unit).size
+      def deeper?(carton, depth) = depth[carton] < path_parts(carton).size
 
-      def camelize(unit, depth)
-        words = path_parts(unit).last(depth).join('_').split(/[^A-Za-z0-9]+/)
+      def camelize(carton, depth)
+        words = path_parts(carton).last(depth).join('_').split(/[^A-Za-z0-9]+/)
         words.map { |word| word[0].upcase + word[1..] }.join
       end
 
-      def path_parts(unit)
-        unit
+      def path_parts(carton)
+        carton
           .entrypoint
           .delete_suffix('.rb')
           .split('/')

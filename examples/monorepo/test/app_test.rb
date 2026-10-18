@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Integration test: imports packages the way main.rb does, so each one loads
+# Integration test: imports Cartons the way main.rb does, so each one loads
 # in its own Box and the test sees only its Public Surface. Needs RUBY_BOX=1.
 
 require_relative '../../../lib/carton'
@@ -9,7 +9,7 @@ Carton.setup_bundle
 require 'minitest/autorun'
 
 class AppTest < Minitest::Test
-  # --- Carton boundary: only each package's export value crosses ---
+  # --- Carton boundary: only each Carton's Export crosses ---
   # Imports are cached per process, so every test shares these Cartons.
   Billing = import 'billing'
   Pricing = import 'pricing'

@@ -18,24 +18,24 @@ Each Box keeps its own load path, loaded features, gem activation, and `Bundler`
 
 ## Status on Ruby 4.0.7 with Bundler 4.0.23
 
-Nothing blocks Carton. Carton patches nothing in RubyGems or Bundler, and its path-gem and nested-bundle tests pass; restricting a gem Carton to the importer's lockfile calls two Bundler internals (below). See [how-gems-work.md](how-gems-work.md#ruby-407-confirmed-behavior) for the full list of confirmed behavior.
+Nothing blocks Carton. Carton patches nothing in RubyGems or Bundler, and its path-gem and nested-bundle tests pass; restricting a Gem Carton to the importer's lockfile calls two Bundler internals (below). See [how-gems-work.md](how-gems-work.md#ruby-407-confirmed-behavior) for the full list of confirmed behavior.
 
 ## Open items
 
-### Ruby docs describe old Main Box creation
+### Ruby's Box docs are stale
 
-`doc/language/box.md` still says the Main Box is created "at the end of Ruby's bootstrap", on both v4.0.7 and master. Since 4.0.6, Ruby initializes Root and Main from Master before the prelude. The fix is one sentence, and [root-box-vs-main-box.md](root-box-vs-main-box.md) has the sources.
+On v4.0.7 and master, `doc/language/box.md` still says the Main Box is created "at the end of Ruby's bootstrap", though since 4.0.6 Ruby initializes Root and Main from Master before the prelude. The same section opens with an unfinished sentence, "Ruby bootstrap runs in the root box, and a". The `Ruby::Box` class docs also omit `Ruby::Box.master`, `.root`, and `.main`, which Ruby defines only when Boxes are enabled. Each fix is small; [box-names.md](box-names.md#stale-upstream-docs) has the sources.
 
 ### Resolve once, activate in many Boxes
 
-Carton does this today: it reads the caller's `Gem.loaded_specs`, rebuilds each spec in the new Box from YAML, and activates it. When the caller is bundled, it also restricts the Box to the caller's locked specs. Bundler has no public API for that, so `lib/carton/gem_activation.rb` calls two internals:
+Carton does this today: it reads the importer's `Gem.loaded_specs`, rebuilds each spec in the new Box from YAML, and activates it. When the importer is bundled, it also restricts the Box to the caller's locked specs. Bundler has no public API for that, so `lib/carton/gem_activation.rb` calls two internals:
 
-- `Bundler.rubygems.instance_variable_get(:@replaced_methods)` to detect that the caller ran Bundler setup, and
+- `Bundler.rubygems.instance_variable_get(:@replaced_methods)` to detect that the importer ran Bundler setup, and
 - `Bundler.rubygems.replace_entrypoints(specs)`, the strict half of `Bundler::Runtime#setup`.
 
-`Runtime#setup` cannot be reused for this because it also resolves, writes `RUBYOPT`/`RUBYLIB`/`PATH`/`BUNDLER_*` into `ENV`, and may rewrite the lockfile. Rebuilding specs from YAML also loads Psych into every new Box, about 86 ms per gem Carton ([performance.md](../performance.md)).
+`Runtime#setup` cannot be reused for this because it also resolves, writes `RUBYOPT`/`RUBYLIB`/`PATH`/`BUNDLER_*` into `ENV`, and may rewrite the lockfile. Rebuilding specs from YAML also loads Psych into every new Box, about 86 ms per Gem Carton ([performance.md](../performance.md)).
 
-[Ruby #22275](https://bugs.ruby-lang.org/issues/22275) tracks Box support in RubyGems and Bundler. Its suites pass under `RUBY_BOX=1`, but several core design decisions are open. On 2026-09-25 it proposed not loading RubyGems and Bundler into Boxes by default, and creating a Box from an already-resolved load path instead. That fits Carton better than a Bundler activation API: Carton would compute a gem Carton's load path once and hand it to the Box, with no spec rebuilding, no Psych, and no Bundler internals. Comment there with Carton's use case; the older activation-API draft is [dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16). Not blocking.
+[Ruby #22275](https://bugs.ruby-lang.org/issues/22275) tracks Box support in RubyGems and Bundler. Its suites pass under `RUBY_BOX=1`, but several core design decisions are open. On 2026-09-25 it proposed not loading RubyGems and Bundler into Boxes by default, and creating a Box from an already-resolved load path instead. That fits Carton better than a Bundler activation API: Carton would compute a Gem Carton's load path once and hand it to the Box, with no spec rebuilding, no Psych, and no Bundler internals. Comment there with Carton's use case; the older activation-API draft is [dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16). Not blocking.
 
 ### `Bundler.setup` selects its Gemfile through `ENV`
 
@@ -57,7 +57,7 @@ Sharing monkey patches across Cartons costs a full load per Box (about 830ms for
 
 ## Ideas not pursued
 
-- **Per-Box copies for every class.** Classes created in user Boxes have one shared definition, so reopening a Carton's class from another Box changes it everywhere. Giving them per-Box copies like builtins would isolate reopens, but the same object would then behave differently depending on the calling Box. Recorded for context; raise it with the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) only if maintainers ask about class isolation.
+- **Per-Box copies for every class.** Classes created in User Boxes have one shared definition, so reopening a Carton's class from another Box changes it everywhere. Giving them per-Box copies like builtins would isolate reopens, but the same object would then behave differently depending on the calling Box. Recorded for context; raise it with the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) only if maintainers ask about class isolation.
 - **Constant binding in patterns** (`import(path) => { Name: }`). The syntax is free today, but Matz keeps pattern targets to locals and `{ X: }` already reads a constant. Carton uses `export` and plain constant assignment instead. See [constant-binding-patterns.md](constant-binding-patterns.md).
 
 ## Non-goals

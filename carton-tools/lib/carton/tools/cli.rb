@@ -97,7 +97,7 @@ module Carton
           @out.puts "#{file}:#{problem.line}: #{problem.level}: #{message}"
         end
         errors = problems.count(&:error?)
-        @out.puts "#{project.files.size} files, #{project.units.size} Cartons, " \
+        @out.puts "#{project.files.size} files, #{project.cartons.size} Cartons, " \
                     "#{errors} errors, #{problems.size - errors} warnings"
         failures = strict ? problems.size : errors
         failures.zero? ? 0 : 1

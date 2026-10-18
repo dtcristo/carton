@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# A package with no dependencies of its own.
+# A Carton with no dependencies of its own.
 module Shipping
   RATE_PER_KG = 4
 

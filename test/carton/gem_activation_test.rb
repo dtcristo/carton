@@ -37,7 +37,7 @@ class GemActivationTest < Minitest::Test
                  )
   end
 
-  # A default gem the caller activated is shared at its version: a new Box
+  # A default gem the Importer activated is shared at its version: a new Box
   # would otherwise load the newest installed one.
   def test_closure_keeps_default_gems_and_survives_cycles
     specs = loaded(app: %w[a stdlib], a: %w[app], stdlib: [])
@@ -57,7 +57,7 @@ class GemActivationTest < Minitest::Test
   end
 
   # Each Box loads its own Bundler to apply the restriction, which may be a
-  # different version than the caller's, so Bundler itself is never shared.
+  # different version than the Importer's, so Bundler itself is never shared.
   def test_locked_and_closure_leave_out_bundler
     specs = loaded(app: %w[bundler money], money: [], bundler: [])
     bundled_box =

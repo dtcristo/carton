@@ -1,23 +1,24 @@
 # frozen_string_literal: true
 
 module Carton
-  # Carries the caller's activated gems into a Carton Box.
+  # Carries the Importer's activated gems into a Carton Box.
   #
   # Optional Boxes copy Master, so they start with clean RubyGems state and
   # would auto-activate the newest installed version of any dependency. When
   # an Import resolves inside an activated gem, Carton activates that gem and
-  # its runtime dependencies in the new Box at the caller's versions, so the
-  # caller's lockfile (or plain `gem` calls) decides what the Carton sees.
+  # its runtime dependencies in the new Box at the Importer's versions, so the
+  # Importer's lockfile (or plain `gem` calls) decides what the Carton sees.
   #
-  # When the caller ran Bundler setup, the Box is also restricted to the
-  # caller's locked gems, as `Bundler.setup` restricts Main: every locked gem
+  # When the Importer ran Bundler setup, the Box is also restricted to the
+  # Importer's locked gems, as `Bundler.setup` restricts Main: every locked gem
   # is activated at its locked version and anything else fails to load.
   module GemActivation
     module_function
 
-    # The gem in `loaded_specs` that owns `feature`, plus its activated
-    # runtime dependencies, dependencies first. Default gems count: a new Box
-    # would otherwise load the newest installed version, not the caller's.
+    # The Gem Closure of `feature`: the gem in `loaded_specs` that owns it,
+    # plus its activated runtime dependencies, dependencies first. Default
+    # gems count: a new Box would otherwise load the newest installed version,
+    # not the Importer's.
     # Empty when no activated gem owns the file.
     def closure(feature, loaded_specs)
       owner = owner_of(feature, loaded_specs.values)
@@ -26,7 +27,7 @@ module Carton
       visit(owner, loaded_specs, [], {})
     end
 
-    # The caller's locked gems when `box` ran Bundler setup, otherwise nil.
+    # The Importer's locked gems when `box` ran Bundler setup, otherwise nil.
     # Bundler marks every locked spec as loaded, so these are the shareable
     # entries of its `Gem.loaded_specs`.
     def locked(box, loaded_specs)
@@ -57,7 +58,7 @@ module Carton
     #
     # Default gems come first, from this Box's own default specs: the YAML
     # round trip loads Psych, whose requires (date, for one) would otherwise
-    # activate the newest installed version before the caller's.
+    # activate the newest installed version before the Importer's.
     def activate(specs, locked = nil)
       defaults, others = (locked || specs).partition(&:default_gem?)
       defaults.each { |source| activate_spec(default_spec(source)) }
@@ -138,8 +139,8 @@ module Carton
     private_class_method :visit
 
     # Bundler is never shared: each Box loads its own copy to apply the
-    # restriction, possibly a different version than the caller's, and
-    # activating the caller's on top of it raises Gem::LoadError.
+    # restriction, possibly a different version than the Importer's, and
+    # activating the Importer's on top of it raises Gem::LoadError.
     def activatable?(spec) = spec.name != 'bundler'
     private_class_method :activatable?
 

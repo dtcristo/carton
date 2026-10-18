@@ -78,11 +78,11 @@ module Carton
         graph = Hash.new { |hash, key| hash[key] = [] }
         @project.edges.each do |edge|
           from = @project.owner(edge.call.file)
-          graph[from.entrypoint] << edge if from && edge.unit
+          graph[from.entrypoint] << edge if from && edge.carton
         end
         find_cycles(graph).map do |cycle|
           first = cycle.first.call
-          names = [cycle.last.unit, *cycle.map(&:unit)].map(&:name)
+          names = [cycle.last.carton, *cycle.map(&:carton)].map(&:name)
           message = "import cycle: #{names.join(' -> ')}"
           if cycle.any? { |edge| edge.call.lazy }
             warning(
@@ -105,15 +105,16 @@ module Carton
         end
         cycles
           .sort_by { |cycle| cycle.count { |edge| edge.call.lazy } }
-          .uniq { |cycle| cycle.map { |edge| edge.unit.entrypoint } }
+          .uniq { |cycle| cycle.map { |edge| edge.carton.entrypoint } }
       end
 
       def walk(graph, start, node, path, cycles)
         graph[node].each do |edge|
-          target = edge.unit.entrypoint
+          target = edge.carton.entrypoint
           if target == start
             cycles << [*path, edge]
-          elsif target > start && path.none? { |e| e.unit.entrypoint == target }
+          elsif target > start &&
+                path.none? { |e| e.carton.entrypoint == target }
             walk(graph, start, target, [*path, edge], cycles)
           end
         end
@@ -124,28 +125,28 @@ module Carton
       def requires_into_cartons
         @project.requires.filter_map do |call|
           path = @project.locate(call) or next
-          unit = @project.unit_containing(path) or next
-          next if unit == @project.owner(call.file)
+          carton = @project.carton_containing(path) or next
+          next if carton == @project.owner(call.file)
 
           error(
             call.file,
             call.line,
-            "#{call.kind} '#{call.path}' loads a second copy of the #{unit.name} " \
-              "Carton's #{path == unit.entrypoint ? 'Entrypoint' : 'file'}: import it instead",
+            "#{call.kind} '#{call.path}' loads a second copy of the #{carton.name} " \
+              "Carton's #{path == carton.entrypoint ? 'Entrypoint' : 'file'}: import it instead",
           )
         end
       end
 
-      # A gem Carton's gemspec is its manifest: every other gem it imports or
+      # A Gem Carton's gemspec is its manifest: every other gem it imports or
       # requires must be a runtime dependency there. Under a bundled app it
       # still loads today, since the Carton sees the app's whole lockfile, but
       # it fails wherever the gem is installed without that dependency. Default
       # gems and Carton itself load in every Box.
       def undeclared_gems
-        @project.units.each_value.flat_map do |unit|
-          spec = @project.gem_for(unit.entrypoint) or next []
+        @project.cartons.each_value.flat_map do |carton|
+          spec = @project.gem_for(carton.entrypoint) or next []
           declared = [spec.name, *spec.runtime_dependencies.map(&:name)]
-          calls = unit.files.flat_map { |path| loads(path) }
+          calls = carton.files.flat_map { |path| loads(path) }
           calls.filter_map do |call|
             path = @project.target(call) or next
             used = @project.gem_for(path) or next
@@ -215,10 +216,10 @@ module Carton
       # A Bare Carton's top-level methods become `Carton::Namespace` methods,
       # so the same names collide.
       def bare_collisions
-        @project.units.each_value.flat_map do |unit|
-          next [] unless @project.files.fetch(unit.entrypoint).exports.empty?
+        @project.cartons.each_value.flat_map do |carton|
+          next [] unless @project.files.fetch(carton.entrypoint).exports.empty?
 
-          unit.files.flat_map do |path|
+          carton.files.flat_map do |path|
             @project
               .files
               .fetch(path)
@@ -245,7 +246,7 @@ module Carton
       def missing_exports
         from_bindings =
           @bindings.all.flat_map do |binding|
-            names = hash_keys(binding.unit) or next []
+            names = hash_keys(binding.carton) or next []
             binding.uses.filter_map do |use|
               reference = use.reference
               next unless raises?(reference)
@@ -257,7 +258,7 @@ module Carton
                 missing_message(
                   "#{reference.name}.fetch(:#{reference.member})",
                   reference.member,
-                  binding.unit,
+                  binding.carton,
                   names,
                 ),
               )
@@ -267,8 +268,8 @@ module Carton
       end
 
       def missing_pattern_keys
-        @bindings.patterns.flat_map do |call, unit|
-          names = hash_keys(unit)
+        @bindings.patterns.flat_map do |call, carton|
+          names = hash_keys(carton)
           next [] unless names && call.pattern.kind == :fetch
 
           (call.pattern.keys - ['**'] - names).map do |key|
@@ -278,7 +279,7 @@ module Carton
               missing_message(
                 "#{call.kind}('#{call.path}') => { #{key}: }",
                 key,
-                unit,
+                carton,
                 names,
               ),
             )
@@ -305,15 +306,15 @@ module Carton
         caught.intersect?([*raised, 'StandardError', 'Exception'])
       end
 
-      def missing_message(code, name, unit, names)
-        "#{code}: the #{unit.name} Carton's export has no key #{name} " \
+      def missing_message(code, name, carton, names)
+        "#{code}: the #{carton.name} Carton's export has no key #{name} " \
           "(it has #{names.join(', ')})"
       end
 
       # The keys of the Hash a Carton exports, or nil when it exports
       # something else or its keys cannot be read statically.
-      def hash_keys(unit)
-        exports = @project.files.fetch(unit.entrypoint).exports
+      def hash_keys(carton)
+        exports = @project.files.fetch(carton.entrypoint).exports
         exports.first.keys&.keys if exports.size == 1
       end
 
@@ -321,30 +322,30 @@ module Carton
       # `Billing` makes `Tax` private, raises NameError.
       def private_constant_references
         @bindings.all.flat_map do |binding|
-          default = default_export(binding.unit) or next []
+          constant = exported_constant(binding.carton) or next []
           privates =
-            binding.unit.files.flat_map do |path|
+            binding.carton.files.flat_map do |path|
               @project.files.fetch(path).private_constants
             end
           binding.uses.filter_map do |use|
             reference = use.reference
             next unless reference.kind == :const
-            next unless privates.include?("#{default}::#{reference.member}")
+            next unless privates.include?("#{constant}::#{reference.member}")
             next if rescued?(reference, %w[NameError])
 
             error(
               use.file,
               reference.line,
               "#{reference.name}::#{reference.member} is a private constant " \
-                "of the #{binding.unit.name} Carton",
+                "of the #{binding.carton.name} Carton",
             )
           end
         end
       end
 
       # The constant a Carton exports, or nil.
-      def default_export(unit)
-        exports = @project.files.fetch(unit.entrypoint).exports
+      def exported_constant(carton)
+        exports = @project.files.fetch(carton.entrypoint).exports
         exports.first.value if exports.size == 1
       end
 

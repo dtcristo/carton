@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Carton
-  # Hash-like lookup helpers for `Carton::Namespace`.
+  # Hash-like lookups for `Carton::Namespace`.
   module NamespaceMethods
     # Support destructuring like `import('math') => { add: }`.
     def deconstruct_keys(keys)

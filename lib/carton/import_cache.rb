@@ -6,9 +6,8 @@ module Carton
   # The Main Box creates one instance and every Carton Box receives that same
   # object, so each Entrypoint loads once no matter which Carton imports it.
   # Ruby objects are shared across Boxes; only definitions are Box-local, so
-  # the Main Box's loader builds every Carton. A cached value is then a
-  # value or `Carton::Exports` from the Main Box regardless of which
-  # Carton imported it first.
+  # the Main Box's loader builds every Carton. A cached Namespace is then the
+  # Main Box's `Carton::Namespace`, whichever Carton imported it first.
   class ImportCache
     # Returned by `claim` when the calling thread should load the Entrypoint.
     LOAD = Object.new.freeze
@@ -80,9 +79,9 @@ module Carton
       end
     end
 
-    # A cached Carton keeps the gem versions its first importer gave it: its
-    # closure and the locked gems it has loaded, including any loaded lazily
-    # since. Raise instead of silently sharing it with an importer that
+    # A shared Carton keeps the gem versions its First Importer gave it: its
+    # Gem Closure and the locked gems it has loaded, including any loaded lazily
+    # since. Raise instead of silently sharing it with an Importer that
     # activates or locks another version of one.
     def check_gem_versions(key, target)
       wanted = versions([*target.locked_gems, *target.gems])

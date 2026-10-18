@@ -9,6 +9,6 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
-  # The packages this one may import.
+  # The Cartons this one may import.
   spec.add_dependency 'pricing'
 end

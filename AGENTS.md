@@ -14,7 +14,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 ## Decisions
 
 - Importers never get another Carton's Box; Bare Cartons return `Carton::Namespace`.
-- A Carton is an Entrypoint `x.rb` plus the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Files inside a Carton cannot be imported; the outermost Entrypoint wins.
+- A Carton is an Entrypoint `x.rb` plus its Interior, the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Interior files cannot be imported; the outermost Entrypoint wins.
 - Imports are cached process-wide by Entrypoint real path.
 - `Carton::Box` wraps a plain `Ruby::Box`; never subclass `Ruby::Box` (autoloads would load in the importer's Box).
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.
@@ -32,6 +32,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 - Before Box/gem/Bundler work, read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md`; read `docs/internals/upstream.md` for upstream questions.
 - Test everything. Run `bundle exec rake format` after changes; `bundle exec rake` (tests, rubocop, examples) before finishing.
 - Update the relevant docs, `CHANGELOG.md` (Unreleased), and this file when behavior or durable guidance changes.
+- Keep `CONTEXT.md` current: when a domain concept is added, renamed, or redefined, update it in the same change. Keep code (identifiers, comments, test names, messages) and docs in step with it, using its terms and never the ones it lists under _Avoid_.
 - Comment examples so Carton, export, and bundle boundaries are visible.
 - Don't hard-wrap Markdown: write each paragraph, list item, and blockquote on one line.
 - To test which Gemfile was selected, check `Bundler.root` (memoized), not `Bundler.default_gemfile` (rereads `ENV`).

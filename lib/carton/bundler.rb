@@ -2,7 +2,7 @@
 
 module Carton
   class << self
-    # Set up the current carton's bundle, like `Bundler.setup(*groups)`.
+    # Set up the current Carton's bundle, like `Bundler.setup(*groups)`.
     #
     # Bundler finds its Gemfile through process-global `ENV["BUNDLE_GEMFILE"]`
     # or the real process cwd. Carton resolves the Gemfile from the calling

@@ -4,19 +4,19 @@ PATH
     carton (0.3.0)
 
 PATH
-  remote: packages/billing
+  remote: cartons/billing
   specs:
     billing (0.1.0)
       pricing
 
 PATH
-  remote: packages/pricing
+  remote: cartons/pricing
   specs:
     pricing (0.1.0)
       bigdecimal
 
 PATH
-  remote: packages/shipping
+  remote: cartons/shipping
   specs:
     shipping (0.1.0)
 

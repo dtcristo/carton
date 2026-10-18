@@ -12,7 +12,7 @@ This guide is based on direct reading of the upstream Ruby source tree, especial
 - `ruby/doc/language/box.md`
 - `ruby/test/ruby/test_box.rb`
 
-It describes Ruby 4.0.7. The Master Box model dates from 4.0.6, and [root-box-vs-main-box.md](root-box-vs-main-box.md) has the tagged sources and the 4.0.5 split.
+It describes Ruby 4.0.7. The Master Box model dates from 4.0.6, and [box-names.md](box-names.md) has upstream's Box names, the tagged sources, and the 4.0.5 split.
 
 ## What `Ruby::Box` is trying to do
 
@@ -45,21 +45,23 @@ That distinction explains both the power of Boxes and their sharp edges.
 | --- | --- |
 | `Ruby::Box.enabled?` | whether the process was started with `RUBY_BOX=1` |
 | `Ruby::Box.current` | current Box for the running code |
-| `Ruby::Box.root` | the Root Box created during Ruby bootstrap |
-| `Ruby::Box.main` | the main user Box where the top-level script runs |
+| `Ruby::Box.master` | the Master Box every Box is copied from |
+| `Ruby::Box.root` | the Root Box, where bootstrap and builtin code run |
+| `Ruby::Box.main` | the Main Box, where the top-level script runs |
 
 ### Instance methods
 
 | API | Meaning |
 | --- | --- |
-| `Ruby::Box.new` | create a new optional user Box |
+| `Ruby::Box.new` | create a new Optional Box |
 | `box.require(feature)` | require a feature inside that Box |
 | `box.require_relative(feature)` | require relative to the caller inside that Box |
 | `box.load(path, wrap = false)` | load a file inside that Box |
 | `box.eval(code)` | eval a string inside that Box |
 | `box.load_path` | the Box's local load path array |
+| `box.master?` | whether this is the Master Box |
 | `box.root?` | whether this is the Root Box |
-| `box.main?` | whether this is the main user Box |
+| `box.main?` | whether this is the Main Box |
 | `box.inspect` | debug-friendly identity like `#<Ruby::Box:2,user,optional>` |
 
 ### Minimum usage model
@@ -74,26 +76,26 @@ box::MY_CONST
 
 The Box object is how code defined in the Box is reached from the outside.
 
-## The four Box roles
+## Kinds of Box
 
-Ruby 4.0.7 distinguishes these roles:
+Ruby 4.0.7 has three kinds of Box, and splits User Boxes in two. `#inspect` shows the same words, such as `#<Ruby::Box:3,user,main>`.
 
-| Box role | What it is |
+| Kind | What it is |
 | --- | --- |
-| Master Box | internal template every Box is copied from; Ruby's docs say no code runs there |
-| Root Box | runs Ruby bootstrap and builtin code |
-| Main Box | user Box that runs the command-line program and `-r` loads |
-| optional Box | extra user Box created by `Ruby::Box.new` |
+| Master Box | the master copy every Box is copied from; Ruby's docs say no code runs there |
+| Root Box | the one Box that runs Ruby bootstrap and builtin code |
+| User Box: Main Box | runs the command-line program and `-r` loads |
+| User Box: Optional Box | any other User Box, created by `Ruby::Box.new` |
 
-Main and optional Boxes are both user Boxes. Carton runs each imported Carton inside an optional Box; the application that imports them runs in Main.
+Carton runs each imported Carton inside its own Carton Box, an Optional Box; the application that imports them runs in Main. [box-names.md](box-names.md) explains where these names come from.
 
 ## Boot sequence and the Master Box
 
-Ruby initializes Root and Main from Master before prelude loading. Root, Main, and later optional Boxes all start from Master rather than copying one another.
+Ruby initializes Root and Main from Master before prelude loading. Root, Main, and later Optional Boxes all start from Master rather than copying one another.
 
-Prelude helpers such as RubyGems are then loaded into each user Box's own environment. A new optional Box therefore does not inherit application state from Main or bootstrap mutations from Root.
+Prelude helpers such as RubyGems are then loaded into each User Box's own environment. A new Optional Box therefore does not inherit application state from Main or bootstrap mutations from Root.
 
-This makes Box contents independent of creation time and prevents Root from acting as a mutable template for later Boxes.
+This makes Box contents independent of creation time and prevents Root from acting as a mutable copy source for later Boxes.
 
 ### The Master Box on Ruby 4.0.7
 
@@ -103,7 +105,7 @@ Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say "no 
 - Master's `load_path` is copied into later Boxes.
 - Objects and modules defined there are shared, not copied: a mutable constant or a module's instance variables changed in one Box are seen in every other.
 - Monkey patches a Box adds to builtins such as `String` stay in that Box.
-- Classes defined this way are not boxable, unlike builtins. Like classes defined in a user Box, they have one shared definition: reopening one in any Box, with `class` or `class_eval`, changes it in Master and every other Box. This holds for both `eval` and `require` into Master.
+- Classes defined this way are not boxable, unlike builtins. Like classes defined in a User Box, they have one shared definition: reopening one in any Box, with `class` or `class_eval`, changes it in Master and every other Box. This holds for both `eval` and `require` into Master.
 - Methods defined in Master run in Master, so their constant lookups and lazy `require`s use Master's `Object` and load path, not the caller's.
 
 Loading all of Active Support's core extensions into Master once made them available in every later Box at no per-Box cost; requiring them in each Box instead cost about 830ms per Box. [examples/master_prelude](../../examples/master_prelude/README.md) uses this as an optional, unsupported prelude. Carton itself does not, and will not until Ruby supports template Boxes.
@@ -161,11 +163,11 @@ Two consequences matter a lot:
 
 This is why a Box created deep inside another Box does **not** automatically inherit the caller's custom `$LOAD_PATH`.
 
-Carton handles that by carrying forward only the caller load-path entry that resolved the imported feature.
+Carton handles that by carrying forward only the importer's load-path entry that resolved the imported feature.
 
 ### 2. Root and Main state are not inherited
 
-Mutating `$LOAD_PATH` or loading application code in Root or Main does not change the Master template used by a later optional Box. Any state Carton wants to carry across the boundary must be propagated explicitly.
+Mutating `$LOAD_PATH` or loading application code in Root or Main does not change the Master Box a later Optional Box is copied from. Any state Carton wants to carry across the boundary must be propagated explicitly.
 
 This includes `Ruby::Box.root.eval`: on 4.0.7, a constant or monkey patch defined there is not visible in a Box created afterwards. Loading a framework such as Rails into Root so every Box inherits it, which worked before the Master Box in 4.0.6, no longer does. See [examples/rails_in_main](../../examples/rails_in_main/README.md).
 
@@ -299,7 +301,7 @@ This is also why top-level constants and top-level methods can be Box-local even
 ### Which classes get per-Box copies (Ruby 4.0.7)
 
 - **Only classes created while Master is the current Box.** `class_alloc` marks a class "boxable" only when `BOX_MASTER_P(rb_current_box())` ([class.c](https://github.com/ruby/ruby/blob/v4.0.7/class.c#L649-L700)). In practice that means builtins defined during bootstrap. Classes defined later through `Ruby::Box.master.eval` or `require` are not boxable; verified on 4.0.7.
-- **Classes created in any user Box have only prime, and it is writable.** They are shared objects with one method table and one constant table, so reopening such a class from another Box changes it for every Box holding a reference. Patching `String` is Box-local; patching a class another Carton defined is not.
+- **Classes created in any User Box have only prime, and it is writable.** They are shared objects with one method table and one constant table, so reopening such a class from another Box changes it for every Box holding a reference. Patching `String` is Box-local; patching a class another Carton defined is not.
 - **Reads fall through to prime until the first write.** A Box that never writes `Rational` keeps seeing Master's current `Rational` ([`RCLASS_EXT_READABLE_IN_BOX`](https://github.com/ruby/ruby/blob/v4.0.7/internal/class.h#L352-L370), [`RCLASS_EXT_WRITABLE_LOOKUP`](https://github.com/ruby/ruby/blob/v4.0.7/internal/class.h#L387-L410)). Each new Box's gem prelude writes to `String`, `Array`, and others, so those get an early per-Box copy, which can look like a snapshot.
 - **Box creation itself copies only `load_path`, `loaded_features`, and `Object`'s constant table** ([`box_entry_initialize`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L157-L185), [`box_initialize`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L389-L427)). Master never copies-on-write; it reads and writes prime directly ([`initialize_master_box`](https://github.com/ruby/ruby/blob/v4.0.7/box.c#L876-L897)).
 
@@ -372,7 +374,7 @@ It also explains why teardown and cleanup bugs in `Ruby::Box` can be subtle.
 
 Ruby creates Main from Master before prelude loading. The command-line program and `-r` features run in Main, not Root. Root remains the environment for bootstrap and builtin code.
 
-This distinction is semantic, not merely boot ordering: Carton's top-level application is hosted by Main, while imported Cartons run in optional Boxes.
+This distinction is semantic, not merely boot ordering: Carton's top-level application is hosted by Main, while imported Cartons run in Optional Boxes.
 
 ## Known sharp edges from Ruby's own docs
 
@@ -405,9 +407,9 @@ Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
 But the internals also explain Carton's current constraints:
 
-### Why Carton resolves imports in the caller Box first
+### Why Carton resolves imports in the importer's Box first
 
-Because new Boxes copy **Master**, not the current caller Box. Carton therefore asks the caller Box to resolve the feature name, then carries only the matched load-path entry into the imported Box when that feature needs its own load-path root.
+Because new Boxes copy **Master**, not the Box that creates them. Carton therefore asks the importer's Box to resolve the feature name, then carries only the matched load-path entry into the Carton Box when that feature needs its own load-path root.
 
 ### Why Bundler setup inside the Box is the right shape
 
@@ -442,6 +444,6 @@ Carton needs no upstream change today. [upstream.md](upstream.md) tracks the sma
 
 If you want one sentence that stays accurate:
 
-> `Ruby::Box` already isolates file loading, RubyGems activation state, and monkey patches to builtins. Carton manages the process-global `ENV`, carries a gem Carton's dependencies into its Box, and leaves classes it defines shared.
+> `Ruby::Box` already isolates file loading, RubyGems activation state, and monkey patches to builtins. Carton manages the process-global `ENV`, carries a Gem Carton's dependencies into its Box, and leaves classes it defines shared.
 
 That is the lens to keep while designing Carton.

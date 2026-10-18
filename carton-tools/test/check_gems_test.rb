@@ -6,7 +6,7 @@ require 'open3'
 require 'rbconfig'
 require 'tmpdir'
 
-# `carton check` treats a gem Carton's gemspec as its manifest.
+# `carton check` treats a Gem Carton's gemspec as its manifest.
 class CheckGemsTest < Minitest::Test
   Checks = Carton::Tools.const_get(:Checks)
   Project = Carton::Tools.const_get(:Project)
@@ -62,7 +62,7 @@ class CheckGemsTest < Minitest::Test
     assert_empty problems
   end
 
-  # Only the gem Carton's own files are held to its gemspec. The app and
+  # Only the Gem Carton's own files are held to its gemspec. The app and
   # Cartons that are not gems may load any gem.
   def test_app_and_plain_cartons_are_not_checked
     problems =
@@ -75,7 +75,7 @@ class CheckGemsTest < Minitest::Test
     assert_empty problems
   end
 
-  # The monorepo's packages declare what they import, so it checks clean
+  # The monorepo's Cartons declare what they import, so it checks clean
   # under its own bundle.
   def test_monorepo_example_declares_its_imports
     dir = File.join(ROOT, 'examples/monorepo')

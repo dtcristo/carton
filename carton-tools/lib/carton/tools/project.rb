@@ -9,23 +9,23 @@ module Carton
     # The Cartons an app imports, found by following `import` and
     # `import_relative` calls from the given files without running them.
     # Name-based imports resolve against `load_path`, as they would against the
-    # importing Box's `$LOAD_PATH`. `specs` are the gems that files may belong
+    # Importer's `$LOAD_PATH`. `specs` are the gems that files may belong
     # to: under Bundler, the bundle's.
     class Project
-      # A Carton: its Entrypoint, its files (the Entrypoint plus its namespace
-      # directory), and the `lib/` a gem-shaped directory import adds to its
-      # load path.
-      Unit =
+      # A Carton: its Entrypoint, its files (the Entrypoint plus its Interior),
+      # and the `lib/` an Import of a Gem-shaped Directory adds to its load
+      # path.
+      Carton =
         Data.define(:entrypoint, :files, :load_path) do
           def name = File.basename(entrypoint, '.rb')
         end
 
-      # One import call and what it resolved to: a Unit, an error message, or
-      # a name not found on the load path, which a gem activated at runtime
+      # One import call and what it resolved to: a Carton, an error message,
+      # or a name not found on the load path, which a gem activated at runtime
       # may still provide.
-      Edge = Data.define(:call, :unit, :error, :unfound)
+      Edge = Data.define(:call, :carton, :error, :unfound)
 
-      attr_reader :files, :units, :edges
+      attr_reader :files, :cartons, :edges
 
       # `path` relative to the current directory, for messages and comments.
       def self.relative(path)
@@ -37,8 +37,8 @@ module Carton
         @load_path = load_path
         @specs = specs
         @files = {}
-        @units = {}
-        @unit_by_file = {}
+        @cartons = {}
+        @carton_by_file = {}
         ruby_files(paths).each { |path| parse(path) }
         discover
         @edges = imports.map { |call| resolve(call) }
@@ -51,7 +51,7 @@ module Carton
           return locate(call)
         end
 
-        @edge_by_call[call]&.unit&.entrypoint
+        @edge_by_call[call]&.carton&.entrypoint
       end
 
       # The gem whose require paths hold `path`, or nil.
@@ -62,8 +62,8 @@ module Carton
           &.last
       end
 
-      # The Unit `file` belongs to, or nil for the app, which runs in Main.
-      def owner(file) = @unit_by_file[file]
+      # The Carton `file` belongs to, or nil for the app, which runs in Main.
+      def owner(file) = @carton_by_file[file]
 
       def imports = @files.values.flat_map(&:imports)
 
@@ -86,9 +86,9 @@ module Carton
         nil
       end
 
-      # The Unit whose files include `path`, if that Unit is imported.
-      def unit_containing(path)
-        @unit_by_file[path] || @units[Resolver.entrypoint_for(path)]
+      # The Carton whose files include `path`, if that Carton is imported.
+      def carton_containing(path)
+        @carton_by_file[path] || @cartons[Resolver.entrypoint_for(path)]
       end
 
       private
@@ -122,26 +122,26 @@ module Carton
           required =
             requires.select(&:relative?).filter_map { |call| locate(call) }
           required = required.grep(/\.rb\z/).reject { |path| @files.key?(path) }
-          found = imports.filter_map { |call| resolve(call).unit }
-          fresh = found.reject { |unit| @units.key?(unit.entrypoint) }
+          found = imports.filter_map { |call| resolve(call).carton }
+          fresh = found.reject { |carton| @cartons.key?(carton.entrypoint) }
           break if required.empty? && fresh.empty?
 
           required.each { |path| parse(path) }
-          fresh.each { |unit| add_unit(unit) }
+          fresh.each { |carton| add_carton(carton) }
         end
       end
 
-      def add_unit(unit)
-        @units[unit.entrypoint] = unit
-        unit.files.each do |file|
-          @unit_by_file[file] ||= unit
+      def add_carton(carton)
+        @cartons[carton.entrypoint] = carton
+        carton.files.each do |file|
+          @carton_by_file[file] ||= carton
           parse(file)
         end
       end
 
       def resolve(call)
         unless call.path
-          return Edge.new(call:, unit: nil, error: nil, unfound: false)
+          return Edge.new(call:, carton: nil, error: nil, unfound: false)
         end
 
         base_dir = File.dirname(call.file) if call.relative?
@@ -152,24 +152,24 @@ module Carton
             base_dir:,
           )
         unless File.absolute_path?(target.feature)
-          return Edge.new(call:, unit: nil, error: nil, unfound: true)
+          return Edge.new(call:, carton: nil, error: nil, unfound: true)
         end
 
-        Edge.new(call:, unit: unit_for(target), error: nil, unfound: false)
+        Edge.new(call:, carton: carton_for(target), error: nil, unfound: false)
       rescue ImportError, LoadError => e
-        Edge.new(call:, unit: nil, error: e.message, unfound: false)
+        Edge.new(call:, carton: nil, error: e.message, unfound: false)
       end
 
-      def unit_for(target)
+      def carton_for(target)
         entrypoint = File.realpath(target.feature)
-        @units.fetch(entrypoint) do
+        @cartons.fetch(entrypoint) do
           dir = entrypoint.delete_suffix('.rb')
           files =
             Dir
               .glob('**/*.rb', base: dir)
               .sort
               .map { |file| File.realpath(File.join(dir, file)) }
-          Unit.new(
+          Carton.new(
             entrypoint:,
             files: [entrypoint, *files],
             load_path: target.load_path,

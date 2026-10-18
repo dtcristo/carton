@@ -89,7 +89,7 @@ class CheckUsesTest < Minitest::Test
   end
 
   # Their names are not declared in one place.
-  def test_default_exports_and_bare_cartons_are_not_checked
+  def test_module_exports_and_bare_cartons_are_not_checked
     main = <<~RUBY
       Billing = import_relative 'billing'
       Billing.anything
