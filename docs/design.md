@@ -75,10 +75,13 @@ the same Entrypoint whose caller has different versions activated raises
 instead of reusing the entry, so one shared Carton never serves two
 lockfiles.
 
-A mutex serializes imports across threads; nested imports on the thread that
-holds it re-enter directly. Importing a file that is still loading raises
-`circular import`. Failed loads are not cached. Targets that do not resolve to
-an absolute path, such as builtin features, load uncached.
+A mutex guards only the cache's bookkeeping, never a running Entrypoint, so
+an Entrypoint can start threads that import other Cartons. Each Entrypoint
+records the thread loading it. Another thread importing it waits for that
+load; the same thread importing it again raises `circular import`. Failed
+loads are not cached, and a waiting thread then tries the load itself.
+Targets that do not resolve to an absolute path, such as builtin features,
+load uncached.
 
 ## Export model
 
