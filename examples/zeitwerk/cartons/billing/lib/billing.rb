@@ -22,6 +22,7 @@ module Billing
   # This Box's Zeitwerk, not the app's.
   def self.zeitwerk_version = Zeitwerk::VERSION
   def self.zeitwerk_dirs = Zeitwerk::Loader.all_dirs
+  def self.zeitwerk_nsfiles? = Zeitwerk::Loader.method_defined?(:nsfile=)
 end
 
 # Load the rest of the Carton now, as an app does in production, so a broken
