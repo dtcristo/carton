@@ -55,6 +55,77 @@ class ImportCacheTest < Minitest::Test
     assert_equal 1, @loads
   end
 
+  # The cache's lock is not held while an Entrypoint runs, so its threads
+  # can import other Cartons.
+  def test_entrypoint_threads_can_import_other_cartons
+    other = FEATURE.sub('single_export', 'hash_export')
+    cache =
+      ImportCache.new do |t|
+        next :other if t.feature == other
+
+        thread = Thread.new { cache.import(Target.new(feature: other)) }
+        thread.join(5) ? thread.value : :timed_out
+      end
+
+    assert_equal :other, cache.import(Target.new(feature: FEATURE))
+  end
+
+  # A second thread importing an Entrypoint that is still loading waits for
+  # that load instead of starting another.
+  def test_concurrent_imports_of_one_entrypoint_load_once
+    started = Queue.new
+    release = Queue.new
+    loads = 0
+    cache =
+      ImportCache.new do
+        loads += 1
+        started << true
+        release.pop
+        :value
+      end
+
+    first = Thread.new { cache.import(target) }
+    started.pop
+    second = Thread.new { cache.import(target) }
+    sleep 0.05 until second.status == 'sleep'
+    release << true
+
+    assert_equal %i[value value], [first, second].map(&:value)
+    assert_equal 1, loads
+  end
+
+  def test_reentrant_import_on_one_thread_is_circular
+    cache = ImportCache.new { cache.import(target) }
+
+    error = assert_raises(Carton::ImportError) { cache.import(target) }
+    assert_match(/\Acircular import: /, error.message)
+  end
+
+  # A thread waiting on a load that fails tries the load itself.
+  def test_waiting_thread_retries_after_a_failed_load
+    started = Queue.new
+    release = Queue.new
+    attempts = 0
+    cache =
+      ImportCache.new do
+        attempts += 1
+        next :second if attempts == 2
+
+        started << true
+        release.pop
+        raise 'first load fails'
+      end
+
+    first = Thread.new { cache.import(target) }
+    started.pop
+    second = Thread.new { cache.import(target) }
+    sleep 0.05 until second.status == 'sleep'
+    release << true
+
+    assert_raises(RuntimeError) { first.value }
+    assert_equal :second, second.value
+  end
+
   private
 
   def locked_target(versions)
