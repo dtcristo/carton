@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `examples/dependency_injection`: a checkout Carton receives order storage, payments, and logging from its host through constructor arguments. File-backed demo adapters stay in Main, and integration tests import the Carton with fakes.
+
 ## [0.3.0] - 2026-10-18
 
 `export` now takes one value, which `import` returns as is. This release also adds the `carton-tools` gem, whose `carton` command checks imports and exports and writes RBS, and makes a Carton's autoloads load in its own Box.

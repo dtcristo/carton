@@ -118,6 +118,7 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | Example | Shows |
 | --- | --- |
 | [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, the error for importing a file inside a Carton, and Steep types |
+| [dependency_injection](examples/dependency_injection/README.md) | A checkout Carton with host-owned order storage, payments, and logging, tested through its export with fakes |
 | [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
 | [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton: the recommended way to use Carton with Rails |
 | [plugins](examples/plugins/README.md) | A plugin host whose plugins need incompatible `bigdecimal` versions, each with its own bundle, and a `Float` patch that stays in one plugin |
