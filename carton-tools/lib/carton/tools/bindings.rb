@@ -10,7 +10,7 @@ module Carton
     # a local binding only in its own file, and only when nothing reassigns it.
     class Bindings
       # A name bound to an imported Carton, with each Use of it.
-      Binding = Data.define(:name, :unit, :file, :line, :uses)
+      Binding = Data.define(:name, :carton, :file, :line, :uses)
 
       # One Reference to a binding, and the file it is in.
       Use = Data.define(:file, :reference)
@@ -26,10 +26,10 @@ module Carton
       end
 
       # Imports matched directly against a pattern, `import('math') => { add: }`,
-      # as [call, unit] pairs.
+      # as [call, carton] pairs.
       def patterns
         @project.edges.filter_map do |edge|
-          [edge.call, edge.unit] if edge.unit && edge.call.pattern
+          [edge.call, edge.carton] if edge.carton && edge.call.pattern
         end
       end
 
@@ -39,18 +39,18 @@ module Carton
         clashing = {}
         @project.edges.each do |edge|
           call = edge.call
-          next unless edge.unit
+          next unless edge.carton
 
           key = binding_key(call)
           next unless key
 
           existing = @by_key[key]
-          clashing[key] = true if existing && existing.unit != edge.unit
+          clashing[key] = true if existing && existing.carton != edge.carton
           next if existing
 
           @by_key[key] = Binding.new(
             name: call.constant || call.local,
-            unit: edge.unit,
+            carton: edge.carton,
             file: call.file,
             line: call.line,
             uses: [],

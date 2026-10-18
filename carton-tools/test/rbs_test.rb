@@ -17,7 +17,7 @@ class RbsTest < Minitest::Test
     assert_equal File.read(File.join(MINIMAL, 'sig/generated/carton.rbs')), rbs
   end
 
-  def test_default_export_bound_to_its_own_name_needs_nothing
+  def test_constant_export_bound_to_its_own_name_needs_nothing
     rbs =
       generate(
         'main.rb' => "Billing = import_relative 'billing'\n",
@@ -28,7 +28,7 @@ class RbsTest < Minitest::Test
     refute_includes rbs, 'Constants bound to imports'
   end
 
-  def test_default_export_bound_to_another_name_is_an_alias
+  def test_constant_export_bound_to_another_name_is_an_alias
     rbs =
       generate(
         'main.rb' =>
@@ -41,7 +41,7 @@ class RbsTest < Minitest::Test
     assert_includes rbs, 'class Users = ::User'
   end
 
-  def test_default_export_of_a_value_is_untyped
+  def test_export_of_a_plain_value_is_untyped
     rbs =
       generate(
         'main.rb' => "Greeting = import_relative 'greeting'\n",
