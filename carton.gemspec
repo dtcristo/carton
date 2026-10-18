@@ -27,10 +27,9 @@ Gem::Specification.new do |spec|
   ] = 'https://github.com/dtcristo/carton/blob/main/CHANGELOG.md'
 
   # An explicit list, so packaging does not depend on git or ship examples.
+  # The carton command ships in carton-tools.
   spec.files =
-    Dir.glob(%w[exe/* lib/**/*.rb sig/**/*.rbs], base: __dir__) +
+    Dir.glob(%w[lib/**/*.rb sig/**/*.rbs], base: __dir__) +
       %w[CHANGELOG.md LICENSE.txt README.md]
-  spec.bindir = 'exe'
-  spec.executables = ['carton']
   spec.require_paths = ['lib']
 end

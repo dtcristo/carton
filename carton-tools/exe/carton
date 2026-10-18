@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative '../lib/carton/cli'
+require_relative '../lib/carton/tools'
 
-exit Carton::CLI.start(ARGV)
+exit Carton::Tools::CLI.start(ARGV)

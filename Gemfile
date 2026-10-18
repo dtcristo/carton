@@ -3,6 +3,7 @@
 source 'https://rubygems.org'
 
 gemspec
+gem 'carton-tools', path: 'carton-tools'
 
 gem 'minitest', '~> 5.16'
 gem 'rake', '~> 13.0'
