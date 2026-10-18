@@ -2,40 +2,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-18
+
+`export` now takes one value, which `import` returns as is. This release also adds the `carton-tools` gem, whose `carton` command checks imports and exports and writes RBS, and makes a Carton's autoloads load in its own Box.
+
 ### Breaking
 
 - `export` takes one value, which `import` returns as is, and replaces `export_default`: write `export Billing`. Named Exports are removed, since a Ruby module is already a namespace. Export a module of methods instead, or use keywords, which now export a plain Hash: `export version: '1.0'` returns `{ version: '1.0' }`, so read it with `[:version]` or a `=>` pattern. `export` may be called once per Entrypoint, and a Symbol, as in `export def add` or `export :Money`, raises `Carton::ExportError`.
 - `Carton::Exports` is renamed `Carton::Namespace`, and only Bare Cartons return it.
 
-### Fixed
-
-- An Entrypoint that starts a thread which imports another Carton, and waits for it, no longer blocks forever. The import cache held one global lock while running every Entrypoint; it now locks only its bookkeeping and makes a thread wait only for an Entrypoint another thread is loading.
-
-- `carton check` no longer reports `export` calls in different branches of one `if`, `unless`, or `case` as duplicates, since only one branch runs.
-
-- A shared gem Carton raises `Carton::ImportError` when a later importer locks a different version of a gem it loaded without declaring, such as an undeclared gem the first importer's lockfile allowed, including one it required lazily after its import. Before, only its declared dependencies were compared, so it could be shared silently.
-- A Bare Carton imported from a gem no longer exposes `Bundler`, `Psych`, `Date`, or `DateTime`, which Carton's gem activation loaded into its Box.
-- A gem Carton's default-gem dependencies, such as `json` and `date`, keep the importer's activated version when a newer one is installed.
-- The master_prelude example and Box docs no longer claim the Main Box is unaffected: patches loaded into Master can reach Main and existing Boxes, depending on Ruby's copy-on-write state.
-
-- An autoload a Carton defines, such as a lazy Zeitwerk constant, loads in the Carton's Box even when an importer references it first. It used to run in the importer's Box, often the Main Box, or raise `NameError` when the importer used another name. Autoloaded files also go through the Box's `Kernel#require`, so Zeitwerk's `on_load` callbacks and reloading see them.
-
-### Changed
-
-- The README and gem summary present Carton as the package system Ruby has been missing, with the tagline "Real boundaries for Ruby", and compare it with Bundler and Packwerk. The README states what a Box does and does not isolate next to its promises, and says where Carton fits today: an app's or monorepo's domains, plugin hosts with conflicting gem versions, Rails inside Cartons as experimental, and not file-by-file loading. Usage recommends exporting a root module, and the docs show shared imports' consequences early, with a plugin testing recipe. Rails in the Main Box is the recommended Rails setup.
-- A Bare Carton helper named like a method every `Carton::Namespace` has, such as `def fetch` or `def name`, raises `Carton::ExportError`. It used to replace the built-in method, so `namespace.fetch(:fetch)` broke. `carton check` reports these too.
-- A missing `import_relative` target's `LoadError` names the files Carton tried, and a name `import` cannot find says it searched `$LOAD_PATH`, suggesting `import_relative` when a matching file is beside the caller.
-- The Rails examples eager load their Cartons' Zeitwerk loaders, so `rails_in_main` no longer loads `Billing::Invoice` in the Main Box, and both gain a Development section on restarting after changes. Each example README now opens with the problem it solves, and `master_prelude` moved out of the README's examples table to an Experiments note.
-
 ### Added
 
+- The `carton-tools` gem, with a `carton` command that reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it the app's files; it follows imports into every Carton they reach. It is released with `carton` at exactly the same version, and `carton` itself stays the runtime only, with no dependencies and no executable.
 - `carton check --strict` fails on warnings as well as errors, and a `# carton:dynamic` comment marks an intentionally dynamic import, such as plugin discovery, to silence its warning.
 - `carton check` follows names bound to imports and reports, as errors, a key an exported Hash does not have, read with `fetch(:nope)` or a `=>` pattern, and a reference to an exported module's private constant (`Billing::Tax`).
 - `bench/scale.rb` (`rake bench`) measures import time and memory as Cartons and bundles grow; [docs/performance.md](docs/performance.md) has the results.
 - `Carton::Namespace#keys` and `#to_h`, and a readable `inspect`: `#<Carton::Namespace add, PI>`.
 - `examples/plugins`, a report runner whose two plugins load bigdecimal 3.3.1 and 4.1.1 in one process from their own bundles, while one plugin's `Float#to_s` patch stays out of the host and the other plugin.
-
-- The `carton-tools` gem, with a `carton` command that reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it the app's files; it follows imports into every Carton they reach. It is released with `carton` at exactly the same version, and `carton` itself stays the runtime only, with no dependencies and no executable.
 - `carton rbs` writes `sig/generated/carton.rbs` so Steep knows what each import returns: an exported constant's own type, a record type for a keyword export, or a generated `Carton::Namespace::*` module for a Bare Carton, typed from rbs-inline `#:` annotations and literal values.
 - `carton check` reports missing imports, imports of files inside a Carton, import cycles, `require` calls that load a second copy of an imported Carton, and invalid `export` calls, and exits non-zero on errors.
 - `carton check` treats a gem Carton's gemspec as its manifest: it reports each gem the Carton imports or requires that its gemspec does not declare.
@@ -45,6 +28,23 @@
 - The minimal example type-checks with Steep.
 - `examples/zeitwerk` shows a Carton whose loader uses Zeitwerk 2.8 nsfiles (`loader.nsfile = 'ns.rb'`): a lazy namespace defined in `ns.rb` loads in the Carton's Box when the app references it first, and reloads with the Carton's other files. Another Carton runs Zeitwerk 2.7.5, without nsfiles, in the same process.
 - `examples/zeitwerk` shows Zeitwerk with Cartons outside Rails: a Carton using `Zeitwerk::Loader.for_gem`, a separate Zeitwerk per Box, an app loader that ignores a Carton in its directory, eager loading so autoloads never run in an importer's Box, and reloading, which leaves importers' references stale.
+
+### Changed
+
+- The README and gem summary present Carton as the package system Ruby has been missing, with the tagline "Real boundaries for Ruby", and compare it with Bundler and Packwerk. The README states what a Box does and does not isolate next to its promises, and says where Carton fits today: an app's or monorepo's domains, plugin hosts with conflicting gem versions, Rails inside Cartons as experimental, and not file-by-file loading. Usage recommends exporting a root module, and the docs show shared imports' consequences early, with a plugin testing recipe. Rails in the Main Box is the recommended Rails setup.
+- A Bare Carton helper named like a method every `Carton::Namespace` has, such as `def fetch` or `def name`, raises `Carton::ExportError`. It used to replace the built-in method, so `namespace.fetch(:fetch)` broke. `carton check` reports these too.
+- A missing `import_relative` target's `LoadError` names the files Carton tried, and a name `import` cannot find says it searched `$LOAD_PATH`, suggesting `import_relative` when a matching file is beside the caller.
+- The Rails examples eager load their Cartons' Zeitwerk loaders, so `rails_in_main` no longer loads `Billing::Invoice` in the Main Box, and both gain a Development section on restarting after changes. Each example README now opens with the problem it solves, and `master_prelude` moved out of the README's examples table to an Experiments note.
+
+### Fixed
+
+- An Entrypoint that starts a thread which imports another Carton, and waits for it, no longer blocks forever. The import cache held one global lock while running every Entrypoint; it now locks only its bookkeeping and makes a thread wait only for an Entrypoint another thread is loading.
+- `carton check` no longer reports `export` calls in different branches of one `if`, `unless`, or `case` as duplicates, since only one branch runs.
+- A shared gem Carton raises `Carton::ImportError` when a later importer locks a different version of a gem it loaded without declaring, such as an undeclared gem the first importer's lockfile allowed, including one it required lazily after its import. Before, only its declared dependencies were compared, so it could be shared silently.
+- A Bare Carton imported from a gem no longer exposes `Bundler`, `Psych`, `Date`, or `DateTime`, which Carton's gem activation loaded into its Box.
+- A gem Carton's default-gem dependencies, such as `json` and `date`, keep the importer's activated version when a newer one is installed.
+- The master_prelude example and Box docs no longer claim the Main Box is unaffected: patches loaded into Master can reach Main and existing Boxes, depending on Ruby's copy-on-write state.
+- An autoload a Carton defines, such as a lazy Zeitwerk constant, loads in the Carton's Box even when an importer references it first. It used to run in the importer's Box, often the Main Box, or raise `NameError` when the importer used another name. Autoloaded files also go through the Box's `Kernel#require`, so Zeitwerk's `on_load` callbacks and reloading see them.
 
 ## [0.2.0] - 2026-10-17
 
@@ -95,6 +95,7 @@ Cartons are now gem-sized or domain-sized units: a file plus the directory named
 
 Initial release.
 
-[Unreleased]: https://github.com/dtcristo/carton/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/dtcristo/carton/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/dtcristo/carton/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/dtcristo/carton/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/dtcristo/carton/releases/tag/v0.1.0

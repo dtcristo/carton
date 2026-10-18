@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    carton (0.2.0)
+    carton (0.3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -17,7 +17,7 @@ DEPENDENCIES
   zeitwerk (= 2.8.3)
 
 CHECKSUMS
-  carton (0.2.0)
+  carton (0.3.0)
   zeitwerk (2.8.3) sha256=2c85125a8467ce069e20123d1e709a08955c9d29c118c25b46b7b7fafdbb92e5
 
 BUNDLED WITH
