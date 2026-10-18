@@ -15,14 +15,39 @@ Each Carton runs in its own
 [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so:
 
 - two parts of one app can use **different versions of the same gem**;
-- **monkey patches stay** in the Carton that makes them;
-- only what a Carton exports is reachable, so **boundaries hold at runtime**.
+- **monkey patches to builtin classes**, such as `String#blank?`, stay in the
+  Carton that makes them;
+- other Cartons reach **only what a Carton exports**.
 
-[examples/plugins](examples/plugins/README.md) shows this in one process:
-two plugins on incompatible `bigdecimal` versions, and a patch that stays put.
+A Box does not isolate everything. Classes and objects a Carton exports are
+shared, not copied, so reopening an exported class or changing a shared
+object affects every importer. A plain `require` of a Carton's files loads a
+second copy outside its boundary, which `carton check` reports. And each
+Carton loads once per process: its state lasts as long as the process, and
+its first importer fixes its gem versions.
+
+[examples/plugins](examples/plugins/README.md) shows the headline use: a
+plugin host whose plugins need incompatible `bigdecimal` versions, in one
+process.
 
 A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory, with
 no manifest. A gem, a path gem, a directory, or a single file can be one.
+
+## Where it fits
+
+- **Trusted plugin hosts whose plugins need conflicting gem versions.** The
+  best fit: plain Ruby cannot load both, and a handful of plugins easily
+  justifies each Box's cost.
+- **Coarse application domains**, such as the packages of a monorepo, or
+  plain-Ruby domain logic beside a Rails app that stays in the Main Box
+  ([examples/rails_in_main](examples/rails_in_main/README.md)). Rails itself
+  inside Cartons works but is experimental
+  ([examples/rails_in_cartons](examples/rails_in_cartons/README.md)).
+- **Not a file-by-file replacement for `require`.** Each Carton costs about
+  60 ms and 2.4 MB ([performance.md](docs/performance.md)), so aim for tens of
+  Cartons, not hundreds. To organize a Rails app by convention, without
+  runtime isolation, [Packwerk](https://github.com/Shopify/packwerk) and
+  [Packs](https://github.com/rubyatscale/packs) are established tools.
 
 ## Quick start
 
@@ -135,8 +160,8 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
 | [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
 | [zeitwerk](examples/zeitwerk/README.md) | Zeitwerk loaders inside Cartons and in the app, eager loading, and what reloading a Carton does to importers |
-| [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton |
-| [rails_in_cartons](examples/rails_in_cartons/README.md) | Rails loaded once in a Carton, models and controllers in domain Cartons |
+| [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton: the recommended way to use Carton with Rails |
+| [rails_in_cartons](examples/rails_in_cartons/README.md) | Experimental: Rails loaded once in a Carton, models and controllers in domain Cartons |
 
 **Experiments.** [master_prelude](examples/master_prelude/README.md) is an
 unsupported hack, not a pattern to copy. It loads Active Support once into
