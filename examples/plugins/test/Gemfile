@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+# The host's tests have a bundle; the host itself still needs none.
+gem 'carton', path: '../../..'
+gem 'minitest', '~> 5.16'

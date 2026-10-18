@@ -1,6 +1,6 @@
 # Bundler example
 
-An app's `Gemfile.lock` pins one version of each gem for all of its code, so upgrading a gem means upgrading it everywhere at once. A Carton can set up its own bundle instead and move to a new version, or stay on an old one, while the rest of the app does not. This small app-shaped example has:
+This example shows bundle setup across nested imports. Use [gems](../gems/README.md) for explicit version selection without Bundler, or [plugins](../plugins/README.md) for a host whose plugins require incompatible gem APIs. Here the focus is how each dependency loads:
 
 - a Carton that runs Bundler setup before requiring `bigdecimal`
 - a Carton that forwards to an Imported Carton with its own Bundler setup
@@ -18,6 +18,14 @@ An app's `Gemfile.lock` pins one version of each gem for all of its code, so upg
 Each local Carton is a gem-shaped directory, such as `cartons/billing/lib/billing.rb`, so `import_relative 'cartons/billing'` imports it without touching `$LOAD_PATH`. The support gem exercises the boxed path-gem boundary.
 
 ## Run
+
+From the repository root:
+
+```sh
+bundle exec rake example:bundler
+```
+
+After the task installs the app and nested bundles:
 
 ```sh
 RUBY_BOX=1 ruby examples/bundler/main.rb

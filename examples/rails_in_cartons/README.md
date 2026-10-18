@@ -9,7 +9,7 @@ In a Rails app, every model and controller shares one namespace, so domains coup
 | `framework` | Rails, Active Record, Action Controller, sqlite3 | `Framework`: `ApplicationRecord`, `ApplicationController`, `Rails`, `ActiveRecord`, `register` |
 | `customers` | `Customer` model, `CustomersController` | `Customers`: those classes, `create_schema` |
 | `orders` | `Order` model, `OrdersController`; imports `customers` | `Orders`: those classes, `create_schema` |
-| `shop` | the `Rails::Application`, routes, `config/database.yml` | `export Shop` |
+| `shop` | the `Rails::Application`, routes, `config/database.yml` | `Shop`, the Rack application |
 
 `main.rb` plays the server: the Main Box loads only Rack, imports `shop`, and sends requests to it.
 
@@ -38,34 +38,26 @@ components/
 - **Core extensions are per Box.** Domain code does not see Active Support's core extensions (`blank?`, `1.day`, ...), because they are monkey patches in the framework Box. A domain that wants some can `require` them, for example `require 'active_support/core_ext/object/blank'`, which loads just that part in its Box.
 - **Shared classes are shared definitions.** `ApplicationRecord` and every domain class are ordinary classes created in a Carton Box, so they have one definition. A Carton that reopens `ApplicationRecord` (or another domain's model) changes it for every Carton. Only patches to builtin classes such as `String` stay in the Box that makes them. To avoid it, a domain can subclass its own `ApplicationRecord < Framework::ApplicationRecord` (with `self.abstract_class = true`) instead of binding the shared one, and refine rather than reopen another domain's classes. Freezing these classes is not an option: Active Record writes class-level state at runtime. See [Sharing classes across Cartons](../../docs/usage.md#sharing-classes-across-cartons).
 - **Everything Rails needs by name must be registered.** That includes controllers, models, and anything else Rails constantizes, such as serializers or polymorphic types.
-- **No reloading.** Cartons load once per process, so restart after changes; [Development](#development) shows a restart loop. Zeitwerk reloading inside a domain Carton would not reach Rails, which holds every registered class, and [examples/zeitwerk](../zeitwerk/README.md#reloading) explains its other limits.
+- **No reloading.** Cartons load once per process, so restart after changes. Zeitwerk reloading inside a domain Carton would not reach Rails, which holds every registered class; see [Development](#development).
 - **No Rails CLI.** Generators, `rails console`, and migrations are not wired up; each domain creates its own tables at boot.
 
 Compare with [examples/rails_in_main](../rails_in_main/README.md), which keeps Rails in the Main Box and puts only plain-Ruby domain logic in a Carton.
 
 ## Development
 
-Each Carton loads once per process, and Carton never reloads an imported Carton, so restart the process to pick up a change. A file watcher can do it for you. This loop needs only Ruby. It starts the app, checks every `.rb` and `.yml` file twice a second, and restarts the app when one changes:
-
-```sh
-cd examples/rails_in_cartons
-ruby -e '
-  snapshot = -> { Dir["**/*.{rb,yml}"].to_h { [it, File.mtime(it)] } }
-  loop do
-    seen = snapshot.()
-    pid = spawn({ "RUBY_BOX" => "1" }, *ARGV)
-    sleep 0.5 while snapshot.() == seen
-    Process.kill(:TERM, pid)
-    Process.wait(pid)
-  end
-' ruby main.rb
-```
-
-`main.rb` sends a few requests and exits, so here each change runs it again. For a real app, put the server command in place of `ruby main.rb`. A watcher such as [watchexec](https://github.com/watchexec/watchexec) with `--restart` does the same job.
+`main.rb` sends a few requests and exits. Rerun it after editing; restart a long-running host to pick up changed Cartons. See [Editing code](../README.md#editing-code) for the shared development workflow.
 
 Restarting is the only workflow this example supports. Zeitwerk can reload code inside a Carton's Box, but importers keep the classes and objects they already hold. Here `Framework.register` binds each domain class's name in the framework Box once, at boot, so Rails would keep routing to the old classes after a reload. [examples/zeitwerk](../zeitwerk/README.md#reloading) covers when reloading works and its limits.
 
 ## Run
+
+From the repository root:
+
+```sh
+bundle exec rake example:rails_in_cartons
+```
+
+After setup:
 
 ```sh
 RUBY_BOX=1 ruby examples/rails_in_cartons/main.rb

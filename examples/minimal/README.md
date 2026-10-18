@@ -1,6 +1,6 @@
 # Minimal example
 
-In plain Ruby, any file can `require` any other file and reach any constant, so internal code turns into public API by accident. A Carton has one way in, its Entrypoint, and importers get only what it exports. This is the smallest example of that boundary, with no gems or Bundler, and it covers every idea in the [quick start](../../README.md#quick-start):
+This is the smallest working app with Carton boundaries, with no gems or Bundler. Start here for the module exports and imports in the [quick start](../../README.md#quick-start), then see [exports](../exports/README.md) for Hashes, callables, and Bare Cartons.
 
 ```
 main.rb              # imports billing and math
@@ -8,12 +8,13 @@ billing.rb           # the billing Carton's Entrypoint: export Billing
 billing/invoice.rb   # inside the billing Carton
 billing/tax.rb       # inside too; imports math
 math.rb              # a Carton of one file: export MathTools
+violations.rb        # deliberately invalid code for carton check
 ```
 
 - `billing.rb` loads its own files with `require_relative`, all inside the billing Carton's one Box, and exports `Billing`.
 - `Billing::Tax` is hidden with `private_constant`.
 - `billing/tax.rb` imports `math`, another Carton, across a boundary. The app imports `math` too and gets the same Carton.
-- `main.rb` shows that `import_relative 'billing/invoice'` raises `Carton::ImportError`: only a Carton's Entrypoint can be imported.
+- `main.rb` uses only the public API. `violations.rb` tries to reach the private `Billing::Tax` and import `billing/invoice` directly; both violate the boundary.
 
 ## Run
 
@@ -31,4 +32,13 @@ bundle exec carton rbs main.rb
 bundle exec steep check
 ```
 
-`bundle exec carton check main.rb` reports the deliberate import of `billing/invoice`.
+## Checks
+
+From the repository root, the working app passes static checks, while the separate diagnostic example reports two errors:
+
+```sh
+bundle exec carton check examples/minimal/main.rb
+bundle exec carton check examples/minimal/violations.rb # exits 1, as intended
+```
+
+The second command reports the private constant access and the import of a file inside the billing Carton without running either. Running `violations.rb` as Ruby instead stops at its first `NameError`.

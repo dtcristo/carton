@@ -7,7 +7,7 @@ Carton.setup_bundle
 require 'zeitwerk'
 
 # Prints a result, and raises if the behavior this example documents changed.
-def show(label, value, expected = value)
+def show(label, value, expected)
   unless value == expected
     raise "#{label}: expected #{expected.inspect}, got #{value.inspect}"
   end
@@ -100,9 +100,9 @@ show 'Billing::Archive loaded in the Main Box',
 puts
 
 puts '-- Reloading a Carton --'
-held = Shipping::Rate # an importer keeping a reference, like a constant
-rate = Shipping::Rate.new
-carriers = Shipping::Carriers
+held_rate_class = Shipping::Rate # an importer keeping a reference
+old_rate = Shipping::Rate.new
+old_carriers = Shipping::Carriers
 Shipping.reload!
 # Shipping is the same module, and its loader defined a fresh Rate in it.
 show 'Shipping is the same module',
@@ -112,12 +112,14 @@ show 'Shipping::Rate reloaded in the Main Box',
      Shipping::Rate::LOADED_IN.equal?(main_box),
      false
 show 'Shipping::Carriers reloaded from its nsfile',
-     !Shipping::Carriers.equal?(carriers) &&
+     !Shipping::Carriers.equal?(old_carriers) &&
        !Shipping::Carriers::LOADED_IN.equal?(main_box),
      true
 show 'Shipping::Rate is still the held class',
-     Shipping::Rate.equal?(held),
+     Shipping::Rate.equal?(held_rate_class),
      false
 # The held class is the old one: it still runs the code it was loaded with.
-show 'held class still answers', held.quote(1), 700
-show 'an older instance is a Shipping::Rate', rate.is_a?(Shipping::Rate), false
+show 'held class still answers', held_rate_class.quote(1), 700
+show 'an older instance is a Shipping::Rate',
+     old_rate.is_a?(Shipping::Rate),
+     false

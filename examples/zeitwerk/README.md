@@ -72,7 +72,7 @@ nsfiles organize a Carton's internals, not Carton boundaries. A Carton still nee
 
 - `Shipping` is the same module. Its Entrypoint defines it and the loader manages only `lib/shipping/` inside it, via `push_dir(..., namespace: Shipping)`.
 - `Shipping::Rate` is a new class, loaded again in the Carton's Box, and so is `Shipping::Carriers`, from its nsfile.
-- A reference the importer kept, such as `held = Shipping::Rate`, is the old class and still runs the old code. Instances made before the reload are instances of the old class, so `is_a?(Shipping::Rate)` is false for them.
+- A reference the importer kept, such as `held_rate_class = Shipping::Rate`, is the old class and still runs the old code. Instances made before the reload are instances of the old class, so `is_a?(Shipping::Rate)` is false for them.
 
 So reloading refreshes a Carton's internals for code that looks constants up through the Carton's root module each time. It does not update constants, instance variables, or objects an importer already holds. Carton caches each import, so `import` after a reload returns the same root module, not a new one.
 
@@ -81,6 +81,14 @@ One setup does not reload:
 - A `for_gem` loader manages the Entrypoint too. Reloading removes the top-level `Billing` from the Carton's Box, and the `Billing` module importers hold loses its autoloaded constants, so `Billing::Invoice` raises `NameError` for them. Loading `Billing` again re-runs the Entrypoint, which fails either way. Eager loading it calls `enable_reloading` while the loader is busy and raises `ThreadError` ("deadlock; recursive locking"); Zeitwerk does the same without Boxes, since a loader cannot reload the file that configures it. Autoloading it lazily reaches `export` a second time, which raises `Carton::ExportError`. Use `push_dir(..., namespace:)` for a reloadable Carton.
 
 ## Run
+
+From the repository root:
+
+```sh
+bundle exec rake example:zeitwerk
+```
+
+After the task installs the app and billing bundles:
 
 ```sh
 RUBY_BOX=1 ruby examples/zeitwerk/main.rb

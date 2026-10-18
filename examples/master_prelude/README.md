@@ -34,6 +34,14 @@ The alternative is to `require` the patches in every Carton that needs them. Tha
 
 ## Run
 
+From the repository root:
+
+```sh
+bundle exec rake example:master_prelude
+```
+
+After setup:
+
 ```sh
 RUBY_BOX=1 ruby examples/master_prelude/main.rb
 ```

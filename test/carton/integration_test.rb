@@ -466,6 +466,39 @@ class IntegrationTest < Minitest::Test
     assert_includes output, 'bigdecimal loaded in the Main Box: false'
   end
 
+  def test_exports_example_uses_values_and_legacy_helpers_across_boxes
+    output = run_boxed("load #{File.join(EXAMPLES, 'exports/main.rb').inspect}")
+
+    expected = [
+      'INV-0042: USD 42.00',
+      'Captured helper: INV-0007',
+      'Legacy prefix: INV',
+      'PREFIX defined in Main: false',
+    ]
+    assert_equal expected, output.lines(chomp: true)
+  end
+
+  def test_monorepo_leaf_gem_can_be_required_without_preloading_carton_or_boxes
+    gemfile = File.join(EXAMPLES, 'monorepo/Gemfile')
+    script = <<~RUBY
+      require 'pricing'
+      require 'shipping'
+      puts Pricing.total(%w[19.99 5.01]).to_s('F')
+      puts Shipping.quote(3)
+    RUBY
+    output, error, status =
+      Open3.capture3(
+        unbundled_env.merge('RUBY_BOX' => nil, 'BUNDLE_GEMFILE' => gemfile),
+        RbConfig.ruby,
+        '-rbundler/setup',
+        '-e',
+        script,
+      )
+
+    assert status.success?, error
+    assert_equal %w[25.0 12], output.lines(chomp: true)
+  end
+
   def test_imported_file_can_require_carton_by_name
     Dir.mktmpdir('carton-require') do |dir|
       entry = File.join(dir, 'requires_carton.rb')

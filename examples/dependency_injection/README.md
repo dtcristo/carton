@@ -7,8 +7,8 @@ main.rb                  # Main: sets up the bundle, imports checkout, wires ada
 adapters.rb              # Main: JSON order storage and simulated payments
 checkout.rb              # Carton Entrypoint: export Checkout
 checkout/service.rb      # Inside the Carton: Checkout::Service
-test/checkout_test.rb    # Imports checkout and supplies fakes
-test/host_test.rb        # Imports checkout and exercises the file-backed adapters
+test/checkout_test.rb     # Imports checkout and supplies fakes
+test/host_test.rb         # Imports checkout and exercises the file-backed adapters
 ```
 
 ## The boundary
@@ -44,6 +44,8 @@ The tests import the actual checkout Carton. `checkout_test.rb` supplies fakes a
 Imports share one module per process, but each `Checkout::Service.new` receives its own dependencies. The Carton keeps no module-level repository, payment client, or logger to reset between tests.
 
 ## Run
+
+From the repository root:
 
 ```sh
 bundle exec rake example:dependency_injection
