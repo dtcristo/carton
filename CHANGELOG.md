@@ -41,6 +41,13 @@
 
 ### Added
 
+- `carton check --strict` fails on warnings as well as errors, and a
+  `# carton:dynamic` comment marks an intentionally dynamic import, such as
+  plugin discovery, to silence its warning.
+- `carton check` follows names bound to imports and reports, as errors, a
+  Named Export that does not exist where using it would raise
+  (`MathTools.nope`, `MathTools::NOPE`, `fetch(:nope)`, a `=>` pattern), and
+  a reference to a Default Export's private constant (`Billing::Tax`).
 - `bench/scale.rb` (`rake bench`) measures import time and memory as
   Cartons and bundles grow; [docs/performance.md](docs/performance.md) has
   the results.
