@@ -19,10 +19,12 @@ RUBOCOP_FILES = %w[
   carton-tools/test/*.rb
   bench/*.rb
   examples/**/*.rb
+  examples/**/*.gemspec
   examples/**/Gemfile
 ].freeze
 EXAMPLES = %w[
   minimal
+  exports
   dependency_injection
   plugins
   gems

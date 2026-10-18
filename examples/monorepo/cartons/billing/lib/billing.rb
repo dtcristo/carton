@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
+# Define import/export for ordinary gem consumers too.
+require 'carton'
+
 module Billing
-  # A declared dependency, imported by gem name. Every importer of `pricing`
-  # shares this one Carton.
+  # Pricing is an Imported Carton, declared in billing's gemspec. Every
+  # Importer receives the same Export.
   Pricing = import 'pricing'
 
   def self.invoice(number, prices)

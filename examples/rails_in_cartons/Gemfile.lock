@@ -7,6 +7,7 @@ PATH
   remote: components/customers
   specs:
     customers (0.1.0)
+      carton
       framework
       zeitwerk
 
@@ -16,6 +17,7 @@ PATH
     framework (0.1.0)
       actionpack
       activerecord
+      carton
       railties
       sqlite3
 
@@ -23,6 +25,7 @@ PATH
   remote: components/orders
   specs:
     orders (0.1.0)
+      carton
       customers
       framework
       zeitwerk
@@ -31,6 +34,7 @@ PATH
   remote: components/shop
   specs:
     shop (0.1.0)
+      carton
       customers
       framework
       logger

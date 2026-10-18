@@ -14,7 +14,7 @@ Each plugin computes money with `bigdecimal`, and each is stuck on a different m
 Plain Ruby activates one version of a gem per process. Load `sales_tax` first and `growth` fails:
 
 ```
-Gem::LoadError: can't activate bigdecimal-4.1.3, already activated bigdecimal-3.3.1
+Gem::LoadError: can't activate bigdecimal-4.1.1, already activated bigdecimal-3.3.1
 ```
 
 Bundler can't help either, since no single lockfile satisfies both requirements. The usual fixes are to fork one plugin, run each in its own process, or wait for its maintainer to upgrade.
@@ -23,9 +23,9 @@ Bundler can't help either, since no single lockfile satisfies both requirements.
 
 ## How Carton solves it
 
-`main.rb` finds each directory in `plugins/`, imports it as a Carton, and calls the two methods of the plugin interface, `title` and `call(orders)`. Each import runs the plugin in its own `Ruby::Box`:
+`main.rb` finds each directory in `plugins/`, imports it as a Carton, and calls the two methods of the plugin interface, `title` and `call(orders)`. Each Import runs the plugin in its own Carton Box:
 
-- Each plugin's Entrypoint calls `Carton.setup_bundle`, which sets up the `Gemfile` beside it. `sales_tax` gets bigdecimal 3.3.1 and `growth` gets 4.1.1, side by side.
+- Each plugin's Entrypoint calls `Carton.setup_bundle`, which sets up its Carton Bundle. `sales_tax` gets bigdecimal 3.3.1 and `growth` gets 4.1.1, side by side.
 - The `Float#to_s` patch stays in `sales_tax`'s Box. `growth` prints `+8.0%` and the host prints `0.1 + 0.2` in full.
 - The host never loads bigdecimal and has no Gemfile. It only sees the module each plugin exports.
 
@@ -48,6 +48,11 @@ Neither plugin knows about the other, and adding a third is a new directory with
 
 ```sh
 bundle exec rake example:plugins   # installs each plugin's bundle, then runs
+```
+
+After setup:
+
+```sh
 RUBY_BOX=1 ruby examples/plugins/main.rb
 ```
 
@@ -72,30 +77,17 @@ BigDecimal defined: false
 
 ## Sharing a Carton between plugins
 
-A Carton loads once per process, keyed by its Entrypoint's path. If both plugins import the same third Carton, such as a shared path gem, they get one copy, built with the gem versions of whichever plugin imported it first. When the other plugin's bundle locks a different version of a gem that Carton uses, its import raises `Carton::ImportError`, naming the gem and both versions, rather than sharing a copy built against the wrong one. Either lock the same versions in both plugins, or give each plugin its own copy: a Carton at another path, such as a vendored copy or another installed version of the gem, is a separate Carton.
+A Carton loads once per process, keyed by its Entrypoint's path. If both plugins import the same third Carton, such as a shared path gem, they get one copy, built with the gem versions selected by its First Importer. When the other plugin's Carton Bundle locks a different version of a gem that Carton uses, its Import raises `Carton::ImportError`, naming the gem and both versions, rather than sharing a copy built against the wrong one. Either lock the same versions in both plugins, or give each plugin its own copy: a Carton at another path, such as a vendored copy or another installed version of the gem, is a separate Carton.
 
 ## Testing plugins
 
-Test a plugin the way the host uses it: import its directory and call its interface. Run the test with `RUBY_BOX=1`.
+Test a plugin the way the host uses it: import its directory and call its interface. [test/growth_test.rb](test/growth_test.rb) does this with minitest from `test/Gemfile`, separate from the plugin's Carton Bundle. The host itself still needs no Gemfile. `rake example:plugins` installs the test bundle and runs the test after the host. After setup, run it directly with:
 
-```ruby
-# test/growth_test.rb
-require 'minitest/autorun'
-require 'carton'
-
-class GrowthTest < Minitest::Test
-  ORDERS = [{ month: '2026-06', state: 'CA', amount: '100.00' }].freeze
-
-  def test_reports_each_month
-    growth = import_relative '../plugins/growth'
-
-    assert_match(/bigdecimal 4\.1\.1/, growth.title)
-    assert_equal 2, growth.call(ORDERS).size
-  end
-end
+```sh
+RUBY_BOX=1 ruby examples/plugins/test/growth_test.rb
 ```
 
-Imports last for the whole process, so a plugin's state carries from one test to the next. Keep plugins stateless, or run each plugin's tests in its own process. To test a plugin's internals, require its files directly without Boxes; see [Testing Cartons](../../docs/usage.md#testing-cartons).
+Each Carton loads once per process, so a plugin's state carries from one test to the next. Keep plugins stateless, or run each plugin's tests in its own process. To test a plugin's Interior, require its files directly without Boxes; see [Testing Cartons](../../docs/usage.md#testing-cartons).
 
 ## Limits
 

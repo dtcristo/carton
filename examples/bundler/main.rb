@@ -16,10 +16,10 @@ puts '-- Bundled require --'
 puts "math_helper bigdecimal version = #{MathHelper[:version]}"
 puts "math_helper number type = #{MathHelper[:number_type]}"
 puts
-puts '-- Transient bundled import --'
+puts '-- Transitive bundled import --'
 puts "billing summary = #{Billing[:summary]}"
 puts "billing rounds with bigdecimal = #{Billing[:rounding_version]}"
 puts
-puts '-- Cartoned gem --'
+puts '-- Path gem --'
 puts "cartoned_gem version = #{CartonedGem::VERSION}"
 puts "invoice label = #{CartonedGem.invoice_label('42')}"

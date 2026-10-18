@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 # Resolved by the app's lockfile, so every Carton sees the same version.
 require 'bigdecimal'
 
@@ -17,5 +19,5 @@ module Pricing
   def self.bigdecimal_version = BigDecimal::VERSION
 end
 
-# The Carton's Public Surface is its root module.
+# The Carton's Export is its root module.
 export Pricing

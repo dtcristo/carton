@@ -113,21 +113,7 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7+ and, with 
 - [internals/](docs/internals/): how `Ruby::Box`, RubyGems, and Bundler work, and upstream plans
 - [CONTEXT.md](CONTEXT.md): the glossary
 
-Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
-
-| Example | Shows |
-| --- | --- |
-| [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, the error for importing a file inside a Carton, and Steep types |
-| [dependency_injection](examples/dependency_injection/README.md) | A checkout Carton with host-owned order storage, payments, and logging, tested through its export with fakes |
-| [monorepo](examples/monorepo/README.md) | Cartons as path gems in one Gemfile, imported by gem name |
-| [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton: the recommended way to use Carton with Rails |
-| [plugins](examples/plugins/README.md) | A plugin host whose plugins need incompatible `bigdecimal` versions, each with its own bundle, and a `Float` patch that stays in one plugin |
-| [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |
-| [bundler](examples/bundler/README.md) | Cartons with their own Bundler setup, plus a path gem |
-| [zeitwerk](examples/zeitwerk/README.md) | Zeitwerk loaders inside Cartons and in the app, eager loading, and what reloading a Carton does to importers |
-| [rails_in_cartons](examples/rails_in_cartons/README.md) | Experimental: Rails loaded once in a Carton, models and controllers in domain Cartons |
-
-**Experiments.** [master_prelude](examples/master_prelude/README.md) is an unsupported hack, not a pattern to copy. It loads Active Support once into Ruby's internal Master Box so every Carton starts with it, relying on Ruby behavior that Ruby's docs say does not happen.
+The [examples guide](examples/README.md) lists every example by the question it answers, explains setup, and separates application patterns from experiments. Start with [minimal](examples/minimal/README.md), then [exports](examples/exports/README.md) for other return values or [monorepo](examples/monorepo/README.md) for an app split into Cartons. Run `bundle exec rake example:<name>` to install its dependencies and run it.
 
 ## Development
 

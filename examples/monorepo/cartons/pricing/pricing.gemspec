@@ -9,6 +9,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
-  # The Cartons this one may import.
+  # The runtime gems this Carton uses.
   spec.add_dependency 'bigdecimal'
+  spec.add_dependency 'carton'
 end

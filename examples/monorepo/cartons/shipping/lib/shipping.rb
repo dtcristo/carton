@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# A Carton with no dependencies of its own.
+require 'carton'
+
+# A Carton whose only runtime gem is carton.
 module Shipping
   RATE_PER_KG = 4
 

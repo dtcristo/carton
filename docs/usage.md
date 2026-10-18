@@ -383,4 +383,4 @@ Otherwise Carton raises what Ruby would: `LoadError` for a missing import target
 
 ## Examples
 
-The [README](../README.md#docs) lists every example. Run one with `RUBY_BOX=1 ruby examples/<name>/main.rb`.
+The [examples guide](../examples/README.md) lists every example and its setup. From the repository root, `bundle exec rake example:<name>` installs its bundles and runs it. After setup, `RUBY_BOX=1 ruby examples/<name>/main.rb` runs it directly.

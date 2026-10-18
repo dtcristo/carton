@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 Framework = import 'framework'
 ApplicationRecord = Framework::ApplicationRecord
 ApplicationController = Framework::ApplicationController

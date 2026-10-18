@@ -263,25 +263,33 @@ class CheckTest < Minitest::Test
     assert_match(/^main\.rb:1: error: /, output)
   end
 
-  # The minimal example imports a file inside billing on purpose, to show
-  # the runtime error, so the check reports it too.
-  # The minimal example imports a file inside billing on purpose, to show the
-  # runtime error, so the check reports it. Its Billing::Tax access rescues
-  # the NameError, so that one is not an error.
-  def test_minimal_example_reports_its_deliberate_deep_import
-    status, output = run_cli(EXAMPLES, 'check', 'minimal/main.rb')
+  # Keep the working app clean and teach diagnostics in a separate file.
+  def test_minimal_example_reports_its_deliberate_violations
+    status, output = run_cli(EXAMPLES, 'check', 'minimal/violations.rb')
 
     assert_equal 1, status
-    deep_import, summary = output.lines(chomp: true)
-    assert_equal 'minimal/main.rb:21: error: minimal/billing/invoice.rb is inside ' \
-                   'the Carton minimal/billing.rb: import that file, or require ' \
-                   'it from inside that Carton',
-                 deep_import
-    assert_match(/ files, 2 Cartons, 1 errors, 0 warnings\z/, summary)
+    assert_includes output,
+                    'Billing::Tax is a private constant of the billing Carton'
+    assert_includes output,
+                    'minimal/billing/invoice.rb is inside ' \
+                      'the Carton minimal/billing.rb: import that file, or require ' \
+                      'it from inside that Carton'
+    assert_match(
+      / files, 2 Cartons, 2 errors, 0 warnings\z/,
+      output.lines.last.chomp,
+    )
   end
 
-  def test_examples_without_bundles_are_clean
-    %w[gems master_prelude].each do |name|
+  def test_examples_with_relative_imports_are_clean
+    %w[
+      minimal
+      exports
+      dependency_injection
+      plugins
+      gems
+      master_prelude
+      zeitwerk
+    ].each do |name|
       status, output = run_cli(EXAMPLES, 'check', "#{name}/main.rb")
 
       assert_equal 0, status, output
