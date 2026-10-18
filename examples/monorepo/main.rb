@@ -2,11 +2,11 @@
 
 require_relative '../../lib/carton'
 
-# One Gemfile for the whole monorepo. Bundler puts each package's lib/ on the
-# load path, so packages are imported by gem name.
+# One Gemfile for the whole monorepo. Bundler puts each Carton's lib/ on the
+# load path, so Cartons are imported by gem name.
 Carton.setup_bundle
 
-# Each import loads one package in its own Box.
+# Each import loads one Carton in its own Box.
 Billing = import 'billing'
 Shipping = import 'shipping'
 Pricing = import 'pricing'

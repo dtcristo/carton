@@ -455,7 +455,7 @@ class IntegrationTest < Minitest::Test
                  output.lines(chomp: true)
   end
 
-  def test_monorepo_example_imports_path_gem_packages_by_name
+  def test_monorepo_example_imports_path_gem_cartons_by_name
     output =
       run_boxed("load #{File.join(EXAMPLES, 'monorepo/main.rb').inspect}")
 

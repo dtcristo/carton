@@ -75,7 +75,7 @@ class CheckGemsTest < Minitest::Test
     assert_empty problems
   end
 
-  # The monorepo's packages declare what they import, so it checks clean
+  # The monorepo's Cartons declare what they import, so it checks clean
   # under its own bundle.
   def test_monorepo_example_declares_its_imports
     dir = File.join(ROOT, 'examples/monorepo')
