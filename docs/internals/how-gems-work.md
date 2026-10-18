@@ -119,12 +119,12 @@ RubyGems and Bundler are mostly Ruby code running on top of that runtime, so the
 
 The most important Ruby 4.0.7 facts are:
 
-1. **Master Box is the copy source for Root, Main, and optional Boxes.**
+1. **Master Box is the copy source for Root, Main, and Optional Boxes.**
 2. **Root runs bootstrap/builtins; Main runs the application.**
-3. **Prelude helpers such as RubyGems are loaded into user Boxes independently.**
-4. Therefore `require "rubygems"` is already satisfied in a fresh optional Box without inheriting Main or Root state.
+3. **Prelude helpers such as RubyGems are loaded into User Boxes independently.**
+4. Therefore `require "rubygems"` is already satisfied in a fresh Optional Box without inheriting Main or Root state.
 5. **Bundler is not preloaded that way.** If the first `require "bundler"` happens inside a Box, that Box gets its own `Bundler` constant and module state.
-6. RubyGems definitions and activation state belong to each user Box.
+6. RubyGems definitions and activation state belong to each User Box.
 7. Per-Carton Bundler setup, path-gem imports, and boxed `bundle exec` work on 4.0.7 with Bundler 4.0.23.
 
 That is why running Bundler setup inside each Carton remains the right isolation shape.
@@ -137,7 +137,7 @@ On Ruby 4.0.7 with Bundler 4.0.23:
 - `Bundler` module state is Box-local if Bundler is first loaded inside the Box.
 - conflicting non-path bundles work in separate Boxes, including under an already-bundled Main Box.
 - app-bundle path gems import as Cartons; Imported Carton Gemfiles keep their intended versions without mutating Main Box.
-- fresh optional Boxes start with no gem load paths or gem loaded features, even when Main ran under `bundle exec`.
+- fresh Optional Boxes start with no gem load paths or gem loaded features, even when Main ran under `bundle exec`.
 - `RUBY_BOX=1 bundle exec` evaluates gemspecs and starts the app.
 - a fresh Box auto-activates the newest installed version of a gem on `require`, ignoring the importer's lockfile. Carton activates an imported gem's Gem Closure first to prevent this, default gems included, since a newer installed version would otherwise replace the importer's. Default gems are activated first, from the Box's own default specs: the YAML rebuild below loads Psych, whose requires (such as `date`) would otherwise activate the newest installed version before the caller's.
 - spec objects from another Box run that Box's methods, so calling `activate` on them updates the wrong Box. Carton rebuilds each spec with `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores `loaded_from` and `full_gem_path`, which also avoids re-evaluating gemspecs.
@@ -244,7 +244,7 @@ That means a new Box does **not** start from the caller, Main, or Root. It start
 
 This is why Carton resolves feature names in the importer's Box and only carries the matching load-path entry into the Carton Box when that feature root is needed.
 
-## 3. Ruby boot order: why RubyGems is local to each user Box
+## 3. Ruby boot order: why RubyGems is local to each User Box
 
 The key files are:
 
@@ -258,9 +258,9 @@ require "rubygems"
 require "bundled_gems"
 ```
 
-if `Gem` is defined. `rubygems.rb` ends by requiring `ENV["BUNDLER_SETUP"]` when it is set, which is how `bundle exec` sets up the bundle early. Since Ruby 4.0.7 the prelude skips that outside Main Box ([Bug #22123](https://bugs.ruby-lang.org/issues/22123)), so a new optional Box no longer runs the caller's `bundler/setup` while loading RubyGems.
+if `Gem` is defined. `rubygems.rb` ends by requiring `ENV["BUNDLER_SETUP"]` when it is set, which is how `bundle exec` sets up the bundle early. Since Ruby 4.0.7 the prelude skips that outside Main Box ([Bug #22123](https://bugs.ruby-lang.org/issues/22123)), so a new Optional Box no longer runs the caller's `bundler/setup` while loading RubyGems.
 
-Ruby loads these prelude helpers into Main and optional user Boxes independently. Thus `require "rubygems"` is already satisfied in each user Box, but not because its `$LOADED_FEATURES` was copied from Root. RubyGems definitions and activation state belong to that Box's environment.
+Ruby loads these prelude helpers into Main and optional User Boxes independently. Thus `require "rubygems"` is already satisfied in each User Box, but not because its `$LOADED_FEATURES` was copied from Root. RubyGems definitions and activation state belong to that Box's environment.
 
 ## 4. RubyGems: activation is spec selection plus load-path mutation
 

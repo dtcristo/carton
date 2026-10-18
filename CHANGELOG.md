@@ -9,7 +9,8 @@
 ### Changed
 
 - `examples/monorepo` keeps its Cartons under `cartons/` instead of `packages/`.
-- `CONTEXT.md` groups the glossary and adds Interior, Gem-shaped Directory, Root Box, Carton Box, Importer, First Importer, Second Copy, Dynamic Import, Helper, Gem Closure, Carton Bundle, and Undeclared Gem. The docs, comments, and `carton-tools` internals use these terms.
+- `CONTEXT.md` groups the glossary and adds Interior, Gem-shaped Directory, Root Box, User Box, Carton Box, Template Box, Importer, First Importer, Second Copy, Dynamic Import, Helper, Gem Closure, Carton Bundle, and Undeclared Gem. The docs, comments, and `carton-tools` internals use these terms.
+- `docs/internals/root-box-vs-main-box.md` is now `docs/internals/box-names.md`, which records upstream Ruby's Box names and how they were chosen.
 
 ## [0.3.0] - 2026-10-18
 

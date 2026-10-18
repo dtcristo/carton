@@ -22,9 +22,9 @@ Nothing blocks Carton. Carton patches nothing in RubyGems or Bundler, and its pa
 
 ## Open items
 
-### Ruby docs describe old Main Box creation
+### Ruby's Box docs are stale
 
-`doc/language/box.md` still says the Main Box is created "at the end of Ruby's bootstrap", on both v4.0.7 and master. Since 4.0.6, Ruby initializes Root and Main from Master before the prelude. The fix is one sentence, and [root-box-vs-main-box.md](root-box-vs-main-box.md) has the sources.
+On v4.0.7 and master, `doc/language/box.md` still says the Main Box is created "at the end of Ruby's bootstrap", though since 4.0.6 Ruby initializes Root and Main from Master before the prelude. The same section opens with an unfinished sentence, "Ruby bootstrap runs in the root box, and a". The `Ruby::Box` class docs also omit `Ruby::Box.master`, `.root`, and `.main`, which Ruby defines only when Boxes are enabled. Each fix is small; [box-names.md](box-names.md#stale-upstream-docs) has the sources.
 
 ### Resolve once, activate in many Boxes
 
@@ -57,7 +57,7 @@ Sharing monkey patches across Cartons costs a full load per Box (about 830ms for
 
 ## Ideas not pursued
 
-- **Per-Box copies for every class.** Classes created in user Boxes have one shared definition, so reopening a Carton's class from another Box changes it everywhere. Giving them per-Box copies like builtins would isolate reopens, but the same object would then behave differently depending on the calling Box. Recorded for context; raise it with the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) only if maintainers ask about class isolation.
+- **Per-Box copies for every class.** Classes created in User Boxes have one shared definition, so reopening a Carton's class from another Box changes it everywhere. Giving them per-Box copies like builtins would isolate reopens, but the same object would then behave differently depending on the calling Box. Recorded for context; raise it with the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) only if maintainers ask about class isolation.
 - **Constant binding in patterns** (`import(path) => { Name: }`). The syntax is free today, but Matz keeps pattern targets to locals and `{ X: }` already reads a constant. Carton uses `export` and plain constant assignment instead. See [constant-binding-patterns.md](constant-binding-patterns.md).
 
 ## Non-goals

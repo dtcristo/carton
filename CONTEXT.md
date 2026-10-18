@@ -16,17 +16,23 @@ Carton is a package system for Ruby: a small import and export language for gem-
 
 ### Boxes
 
-**Box**: A Ruby execution environment with isolated loading and definitions. Every Carton runs in its own Carton Box; the top-level application runs in the Main Box. _Avoid_: Carton instance, runtime carton, sandbox
+Ruby names three kinds of Box: the Master Box, the Root Box, and User Boxes. A User Box is the Main Box or an Optional Box, and Carton adds one kind of Optional Box, the Carton Box.
 
-**Root Box**: Ruby's internal Box for bootstrap and builtin code. Carton never runs code in it. _Avoid_: Main Box, Master Box
+**Box**: A Ruby execution environment with isolated loading and definitions. Every Carton runs in its own Carton Box; the top-level application runs in the Main Box. _Avoid_: Namespace (Ruby's pre-release name for Box), Carton instance, runtime carton, sandbox
 
-**Master Box**: Ruby's internal Box that every new Box is copied from. Carton never writes to it. _Avoid_: Template box, root box
+**Master Box**: Ruby's master copy of every Box: the Root Box and every User Box start as copies of it. Ruby intends no code to run in it, and Carton never writes to it. _Avoid_: Template box, source box, root box
 
-**Main Box**: The Box in which the top-level application runs and imports Cartons. It is not itself a Carton. _Avoid_: Root Box, root carton, main carton, app box
+**Root Box**: Ruby's single Box for bootstrap, where builtin classes are defined and their methods run. It is not a User Box. _Avoid_: Builtin box, bootstrap box
 
-**Optional Box**: Ruby's name for any Box created with `Ruby::Box.new`, separate from the Main Box. _Avoid_: Child box, sub-box
+**User Box**: A Box that runs user code rather than Ruby's bootstrap: the Main Box or an Optional Box. _Avoid_: Application box
+
+**Main Box**: The User Box Ruby creates for the program named on the `ruby` command line and its `-r` files. The top-level application runs and imports Cartons there; it is not itself a Carton. _Avoid_: Root Box, root carton, main carton, app box, `main` (Ruby's top-level object)
+
+**Optional Box**: A User Box created with `Ruby::Box.new`: every User Box except the Main Box. _Avoid_: Child box, sub-box, extra box
 
 **Carton Box**: The Optional Box Carton creates for a Carton's first Import, where the Carton's code and gems load. Importers never receive it. _Avoid_: Child box, Import box
+
+**Template Box**: A Box that other Boxes would start from, carrying a shared baseline such as patches to builtins. Ruby has none yet, and Carton asks for one; the Master Box is not one. _Avoid_: Prelude box, base box
 
 ### Importing
 
