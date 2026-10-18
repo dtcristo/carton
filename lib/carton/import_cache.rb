@@ -13,7 +13,7 @@ module Carton
     def initialize(&loader)
       @loader = loader
       @values = {}
-      @gem_versions = {}
+      @gem_usage = {}
       @loading = {}
       @lock = Thread::Mutex.new
     end
@@ -42,7 +42,7 @@ module Carton
       @loading[key] = true
       begin
         @values[key] = @loader.call(target)
-        @gem_versions[key] = versions(target.used_gems || target.gems)
+        @gem_usage[key] = target.gem_usage || -> { target.gems }
         @values[key]
       ensure
         @loading.delete(key)
@@ -50,19 +50,20 @@ module Carton
     end
 
     # A cached Carton keeps the gem versions its first importer gave it: its
-    # closure and the locked gems it loaded. Raise instead of silently sharing
-    # it with an importer that activates or locks another version of one.
+    # closure and the locked gems it has loaded, including any loaded lazily
+    # since. Raise instead of silently sharing it with an importer that
+    # activates or locks another version of one.
     def check_gem_versions(key, target)
       wanted = versions([*target.locked_gems, *target.gems])
-      @gem_versions
-        .fetch(key)
-        .each do |name, version|
-          next if wanted.fetch(name, version) == version
+      return if wanted.empty?
 
-          raise ImportError,
-                "#{key} was imported with #{name} #{version}, " \
-                  "but this import activates #{name} #{wanted[name]}"
-        end
+      versions(@gem_usage.fetch(key).call).each do |name, version|
+        next if wanted.fetch(name, version) == version
+
+        raise ImportError,
+              "#{key} was imported with #{name} #{version}, " \
+                "but this import activates #{name} #{wanted[name]}"
+      end
     end
 
     def versions(specs)

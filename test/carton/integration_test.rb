@@ -284,6 +284,54 @@ class IntegrationTest < Minitest::Test
     )
   end
 
+  # The same check when sloppy_gem's first import is nested in another
+  # Carton, whose Box is the loading Box while sloppy_gem loads.
+  def test_nested_first_import_still_records_undeclared_locked_gems
+    script = <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
+      import File.join(fixtures, 'wrapper/entry') # imports sloppy_gem, 3.3.1
+      begin
+        import File.join(fixtures, 'newer_sloppy/entry') # locks 4.1.1
+        puts 'no error'
+      rescue Carton::ImportError => e
+        puts e.message
+      end
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+
+    assert_match(
+      /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      run_boxed(script),
+    )
+  end
+
+  LAZY_SLOPPY = <<~RUBY
+    export def locked
+      require 'bigdecimal'
+      Gem.loaded_specs['bigdecimal'].version.to_s
+    end
+  RUBY
+
+  # A gem the Carton requires lazily, after its import, counts at the next
+  # import's check.
+  def test_lazily_loaded_locked_gems_count_at_later_imports
+    Dir.mktmpdir('carton-lazy-gem') do |dir|
+      FileUtils.cp_r(File.expand_path('../fixtures/shared_gems', __dir__), dir)
+      gems = File.join(dir, 'shared_gems')
+      File.write(File.join(gems, 'sloppy_gem/lib/sloppy_gem.rb'), LAZY_SLOPPY)
+
+      output = run_boxed(lazy_sloppy_script(gems))
+      assert_match(/\A3\.3\.1$/, output)
+      assert_match(
+        /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+        output,
+      )
+    end
+  end
+
   # Without Bundler, a gem Carton's default-gem dependency keeps the version
   # the caller activated, even when a newer one is installed: here a fake
   # json 99.0.0 in a temporary gem home.
@@ -514,6 +562,25 @@ class IntegrationTest < Minitest::Test
       spec.full_gem_path = #{probe.inspect}
       spec.activate
       puts [default.version, import('default_probe').json_version].join(' ')
+      STDOUT.flush
+      Process.exit!(0)
+    RUBY
+  end
+
+  # Calls the lazy sloppy_gem, then imports a Carton locking another
+  # bigdecimal.
+  def lazy_sloppy_script(gems)
+    <<~RUBY
+      require File.expand_path('lib/carton', Dir.pwd)
+
+      Carton.setup_bundle(gemfile: #{File.join(gems, 'Gemfile').inspect})
+      puts import('sloppy_gem').locked # requires bigdecimal 3.3.1 now
+      begin
+        import #{File.join(gems, 'newer_sloppy/entry').inspect} # locks 4.1.1
+        puts 'no error'
+      rescue Carton::ImportError => e
+        puts e.message
+      end
       STDOUT.flush
       Process.exit!(0)
     RUBY

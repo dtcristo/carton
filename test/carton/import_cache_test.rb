@@ -35,7 +35,7 @@ class ImportCacheTest < Minitest::Test
   # Locked gems the Carton loaded count too, not only its declared closure.
   def test_raises_when_import_locks_another_version_of_a_used_gem
     first = target
-    first.used_gems = [Spec.new('bigdecimal', '3.3.1')]
+    first.gem_usage = -> { [Spec.new('bigdecimal', '3.3.1')] }
     @cache.import(first)
 
     error =
@@ -48,7 +48,7 @@ class ImportCacheTest < Minitest::Test
   # A locked gem the Carton never loaded may differ between importers.
   def test_ignores_locked_gems_the_carton_did_not_use
     first = target
-    first.used_gems = []
+    first.gem_usage = -> { [] }
     @cache.import(first)
     @cache.import(locked_target('json' => '2.0.0'))
 

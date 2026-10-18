@@ -8,6 +8,8 @@ module Carton
   class Box
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
+    LOADED_FEATURES = File.expand_path('loaded_features.rb', __dir__)
+    private_constant :LOADED_FEATURES
     ERRORS = %i[Error ImportError ExportError GemfileNotFound].freeze
     private_constant :ERRORS
     IVAR = :@carton_import
@@ -42,13 +44,33 @@ module Carton
     end
 
     # The gems this Carton depends on: its closure, plus the locked gems whose
-    # files it loaded, such as an undeclared gem the caller's lockfile allows.
-    # A later importer must agree on these versions to share the Carton.
+    # files it has loaded, such as an undeclared gem the caller's lockfile
+    # allows. A later importer must agree on these versions to share the
+    # Carton, so they are read again at each check, after any lazy requires.
     def record_used_gems(target)
+      target.gem_usage = -> { used_gems(target) }
+    end
+
+    def used_gems(target)
       gems = target.gems || []
       locked = (target.locked_gems || []) - gems
-      features = @box.eval('$LOADED_FEATURES.to_a')
-      target.used_gems = gems + GemActivation.owning(locked, features)
+      return gems if locked.empty?
+
+      gems + GemActivation.owning(locked, loaded_features)
+    end
+
+    # `Ruby::Box#eval` does not switch the loading Box, so during a nested
+    # Import `$LOADED_FEATURES` there would be the importer's. A file loaded
+    # in this Box reads this Box's.
+    def loaded_features
+      @box.eval("load #{LOADED_FEATURES.inspect}")
+      features = @loaded_features
+      @loaded_features = nil
+      features
+    end
+
+    def receive_loaded_features(features)
+      @loaded_features = features
     end
 
     # Fresh boxes copy Master, so they start without the caller's gems. Load

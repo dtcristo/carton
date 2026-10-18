@@ -9,15 +9,16 @@ module Carton
     # load-path entry that matched a name-based Import, if any. The runtime
     # fills `gems` with the caller specs to activate in the new Box, and
     # `locked_gems` with the caller's locked specs when it ran Bundler setup.
-    # After loading, the Carton Box sets `used_gems`: the closure plus every
-    # locked gem whose files the Carton loaded.
+    # After loading, the Carton Box sets `gem_usage`, a callable returning the
+    # gems the Carton depends on at that moment: its closure plus every locked
+    # gem whose files it has loaded so far.
     Target =
       Struct.new(
         :feature,
         :load_path,
         :gems,
         :locked_gems,
-        :used_gems,
+        :gem_usage,
         keyword_init: true,
       )
 
