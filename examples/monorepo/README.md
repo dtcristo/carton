@@ -45,7 +45,7 @@ would work at runtime even though `billing.gemspec` does not declare it.
 
 ```sh
 cd examples/monorepo
-bundle exec ruby ../../exe/carton check main.rb
+bundle exec ruby ../../carton-tools/exe/carton check main.rb
 # packages/billing/lib/billing.rb:7: error: import 'shipping' loads the
 # shipping gem, which billing's gemspec does not declare: add
 # spec.add_dependency 'shipping'

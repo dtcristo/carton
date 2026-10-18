@@ -500,8 +500,15 @@ the app's lockfile pins every version. See
 
 ## Types and checks
 
-The `carton` command reads code with Prism and never runs it, so it needs no
-`RUBY_BOX=1`. Give it the app's files or directories; it follows each import
+The `carton` command ships in the `carton-tools` gem, released with `carton`
+at the same version, so apps and gems built on Carton do not install it.
+Add it where your checks run:
+
+```ruby
+gem 'carton-tools', group: :development
+```
+
+It reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it the app's files or directories; it follows each import
 into the Cartons it reaches. Named imports resolve against `-I DIR` and then
 the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app.
 

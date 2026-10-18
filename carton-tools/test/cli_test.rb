@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
-require 'carton/cli'
+require_relative 'test_helper'
 require 'stringio'
 
 class CliTest < Minitest::Test
@@ -56,7 +55,7 @@ class CliTest < Minitest::Test
   def run_cli(*argv)
     out = StringIO.new
     err = StringIO.new
-    status = Carton::CLI.start(argv, out:, err:)
+    status = Carton::Tools::CLI.start(argv, out:, err:)
     [status, out.string, err.string]
   end
 end

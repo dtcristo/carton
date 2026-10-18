@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
-require 'carton/cli'
+require_relative 'test_helper'
 require 'fileutils'
 require 'stringio'
 require 'tmpdir'
@@ -175,7 +174,11 @@ class CheckUsesTest < Minitest::Test
       out = StringIO.new
       status =
         Dir.chdir(dir) do
-          Carton::CLI.start(['check', *, 'main.rb'], out:, err: StringIO.new)
+          Carton::Tools::CLI.start(
+            ['check', *, 'main.rb'],
+            out:,
+            err: StringIO.new,
+          )
         end
       [status, out.string]
     end

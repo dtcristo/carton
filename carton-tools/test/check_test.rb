@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
-require 'carton/cli'
+require_relative 'test_helper'
 require 'fileutils'
 require 'stringio'
 require 'tmpdir'
@@ -320,7 +319,7 @@ class CheckTest < Minitest::Test
   def run_cli(dir, *argv)
     out = StringIO.new
     err = StringIO.new
-    status = Dir.chdir(dir) { Carton::CLI.start(argv, out:, err:) }
+    status = Dir.chdir(dir) { Carton::Tools::CLI.start(argv, out:, err:) }
     assert_empty err.string
     [status, out.string]
   end
