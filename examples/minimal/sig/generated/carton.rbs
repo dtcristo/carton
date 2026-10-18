@@ -2,18 +2,8 @@
 
 module Kernel
   private
-  def import_relative: ("../math" path) -> singleton(::Carton::Exports::Math)
+  def import_relative: ("../math" path) -> singleton(::MathTools)
                      | ("billing" path) -> singleton(::Billing)
-                     | ("math" path) -> singleton(::Carton::Exports::Math)
+                     | ("math" path) -> singleton(::MathTools)
                      | ...
 end
-
-# math.rb
-module Carton::Exports::Math
-  extend ::Carton::ExportMethods
-  def self.percent: (Numeric amount, Numeric rate) -> Float
-  VERSION: ::String
-end
-
-# Constants bound to imports
-module MathTools = ::Carton::Exports::Math

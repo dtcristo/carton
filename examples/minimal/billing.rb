@@ -12,5 +12,5 @@ module Billing
   def self.invoice(subtotal) = Invoice.new(subtotal, Tax.on(subtotal))
 end
 
-# The Default Export: importing billing returns this module.
+# The export: importing billing returns this module.
 export Billing

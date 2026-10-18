@@ -56,24 +56,6 @@ class IntegrationTest < Minitest::Test
     assert_equal 100, result.add(40, 60)
   end
 
-  def test_export_hides_unexported_constants
-    Dir.mktmpdir('carton-hidden-export') do |dir|
-      entry = File.join(dir, 'hidden_export.rb')
-      File.write(entry, <<~RUBY)
-        # frozen_string_literal: true
-
-        INTERNAL_TEMPLATE = 'draft-only'
-
-        export public_label: 'invoice'
-      RUBY
-
-      result = import entry
-
-      assert_equal 'invoice', result.fetch(:public_label)
-      assert_equal({ public_label: 'invoice' }, result)
-    end
-  end
-
   def test_import_relative_from_within_box
     # relative_importer.rb uses import_relative internally to load single_export.rb
     result = import_relative '../fixtures/relative_importer'

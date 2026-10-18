@@ -2,9 +2,6 @@
 
 require 'carton'
 
-# This constant stays inside the Carton: only the exported module crosses.
-INTERNAL_TEMPLATE = 'draft invoice'
-
 module CartonedGem
   VERSION = '0.1.0'
 

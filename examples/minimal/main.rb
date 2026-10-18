@@ -6,7 +6,7 @@ require_relative '../../lib/carton'
 Billing = import_relative 'billing'
 puts "Invoice total: #{Billing.invoice(40).total}"
 
-# A Bare Carton comes back as a Carton::Namespace of what it defines.
+# billing imports math too, and both get the same MathTools module.
 MathTools = import_relative 'math'
 puts "10% of 40: #{MathTools.percent(40, 10)} (math #{MathTools::VERSION})"
 

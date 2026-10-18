@@ -23,4 +23,3 @@ puts
 puts '-- Cartoned gem --'
 puts "cartoned_gem version = #{CartonedGem::VERSION}"
 puts "invoice label = #{CartonedGem.invoice_label('42')}"
-puts "INTERNAL_TEMPLATE defined? #{Object.const_defined?(:INTERNAL_TEMPLATE)}"
