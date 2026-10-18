@@ -1,6 +1,6 @@
 # Carton
 
-Carton provides a small import and export language for gem-sized and domain-sized units of Ruby code.
+Carton is a package system for Ruby: a small import and export language for gem-sized and domain-sized units of Ruby code, with boundaries Ruby enforces at runtime.
 
 ## Language
 

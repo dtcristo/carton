@@ -4,6 +4,7 @@ Ordered by priority within each section.
 
 ## Library
 
+- Spike Rails inside Cartons, the biggest gap to the North Star in [AGENTS.md](../AGENTS.md): reload changed domain Cartons by evicting them and the Cartons that import them from the import cache, add a Carton-aware `rails console`, and measure what Active Support's core extensions cost each domain Box.
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
 - If large Cartons need lazy parts, let a Carton declare public sub-entrypoints that can be imported, like the `exports` field in Node's `package.json`. Today a file inside a Carton cannot be imported.
 - Stop loading Psych into each gem Carton's Box: rebuilding specs from YAML costs about 86 ms of a gem Carton's 195 ms ([performance.md](performance.md)). Avoid a `Marshal` round trip, which RubyGems had to special-case across Boxes. If Boxes can start from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)), spec rebuilding goes away entirely.
