@@ -7,4 +7,4 @@ module Ledger
   def self.entry = Entry.new
 end
 
-export_default Ledger
+export Ledger

@@ -6,4 +6,4 @@ module Ledger
 end
 
 # Inert: only the Entrypoint declares the Carton's exports.
-export_default Ledger::Entry
+export Ledger::Entry

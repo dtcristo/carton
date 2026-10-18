@@ -16,7 +16,7 @@ class IntegrationTest < Minitest::Test
     result = import_relative '../fixtures/math_tools/advanced'
     assert_in_delta 314.159, result.circle_area(10)
     assert_equal 20, result.add(8, 12)
-    assert_equal '2.0.0', result.version
+    assert_equal '2.0.0', result::VERSION
   end
 
   def test_single_export_is_shared
@@ -34,10 +34,10 @@ class IntegrationTest < Minitest::Test
 
   def test_mixed_import_styles
     # Use import with absolute path
-    user_class = import("#{FIXTURES}/single_export")::User
+    user_class = import("#{FIXTURES}/single_export")
 
     # Use import_relative
-    math = import_relative '../fixtures/hash_export'
+    math = import_relative '../fixtures/bare_math'
 
     # Both work correctly in the same context
     alice = user_class.new('Alice')
@@ -46,7 +46,7 @@ class IntegrationTest < Minitest::Test
   end
 
   def test_destructuring_with_rename
-    import("#{FIXTURES}/hash_export") => { add: sum }
+    import("#{FIXTURES}/bare_math") => { add: sum }
     assert_equal 42, sum.(20, 22)
   end
 
@@ -56,7 +56,7 @@ class IntegrationTest < Minitest::Test
     assert_equal 100, result.add(40, 60)
   end
 
-  def test_named_export_hides_unexported_constants
+  def test_export_hides_unexported_constants
     Dir.mktmpdir('carton-hidden-export') do |dir|
       entry = File.join(dir, 'hidden_export.rb')
       File.write(entry, <<~RUBY)
@@ -70,8 +70,7 @@ class IntegrationTest < Minitest::Test
       result = import entry
 
       assert_equal 'invoice', result.fetch(:public_label)
-      refute result.key?(:INTERNAL_TEMPLATE)
-      refute result.const_defined?(:INTERNAL_TEMPLATE, false)
+      assert_equal({ public_label: 'invoice' }, result)
     end
   end
 
@@ -158,8 +157,8 @@ class IntegrationTest < Minitest::Test
       resolved = $LOAD_PATH.resolve_feature_path('cartoned_gem')
 
       puts JSON.generate(
-        version: cartoned_gem.fetch(:version),
-        label: cartoned_gem.fetch(:invoice_label).call('42'),
+        version: cartoned_gem::VERSION,
+        label: cartoned_gem.invoice_label('42'),
         resolved: resolved&.last,
         main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
         main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
@@ -194,8 +193,8 @@ class IntegrationTest < Minitest::Test
       priced_gem = import 'priced_gem'
 
       puts JSON.generate(
-        bigdecimal_version: priced_gem.bigdecimal_version,
-        activated: priced_gem.activated,
+        bigdecimal_version: priced_gem[:bigdecimal_version],
+        activated: priced_gem[:activated],
         main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
         main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
         main_bigdecimal_required: $LOADED_FEATURES.any? { _1.end_with?('/bigdecimal.rb') },
@@ -227,8 +226,8 @@ class IntegrationTest < Minitest::Test
       sloppy_gem = import 'sloppy_gem'
 
       puts JSON.generate(
-        locked: sloppy_gem.locked,
-        unlocked: sloppy_gem.unlocked,
+        locked: sloppy_gem[:locked],
+        unlocked: sloppy_gem[:unlocked],
         main_minitest: Gem.loaded_specs.key?('minitest'),
       )
       STDOUT.flush
@@ -309,10 +308,13 @@ class IntegrationTest < Minitest::Test
   end
 
   LAZY_SLOPPY = <<~RUBY
-    export def locked
-      require 'bigdecimal'
-      Gem.loaded_specs['bigdecimal'].version.to_s
+    module SloppyGem
+      def self.locked
+        require 'bigdecimal'
+        Gem.loaded_specs['bigdecimal'].version.to_s
+      end
     end
+    export SloppyGem
   RUBY
 
   # A gem the Carton requires lazily, after its import, counts at the next
@@ -371,7 +373,7 @@ class IntegrationTest < Minitest::Test
       # entry.rb sets up its own bundle and imports priced_gem from its Box.
       entry = import File.expand_path('test/fixtures/shared_gems/newer/entry', Dir.pwd)
       gem 'minitest' # not in any Carton's lockfile
-      puts "#{entry.priced_gem.bigdecimal_version} #{Gem.loaded_specs['minitest'] ? 'ok' : 'missing'}"
+      puts "#{entry[:priced_gem][:bigdecimal_version]} #{Gem.loaded_specs['minitest'] ? 'ok' : 'missing'}"
       STDOUT.flush
       Process.exit!(0)
     RUBY
@@ -428,7 +430,7 @@ class IntegrationTest < Minitest::Test
       puts JSON.generate(
         math_helper_version: math_helper.fetch(:version),
         billing_rounding_version: billing.fetch(:rounding_version),
-        cartoned_gem_version: cartoned_gem.fetch(:version),
+        cartoned_gem_version: cartoned_gem::VERSION,
         main_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
         main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
         main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
@@ -564,7 +566,7 @@ class IntegrationTest < Minitest::Test
       end
       spec.full_gem_path = #{probe.inspect}
       spec.activate
-      puts [default.version, import('default_probe').version].join(' ')
+      puts [default.version, import('default_probe')[:version]].join(' ')
       STDOUT.flush
       Process.exit!(0)
     RUBY

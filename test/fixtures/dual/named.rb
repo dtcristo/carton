@@ -1,5 +1,4 @@
 # frozen_string_literal: true
 
 def shout = 'hi'
-
-export :shout, VERSION: '1.0'
+VERSION = '1.0'

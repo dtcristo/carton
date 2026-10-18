@@ -32,4 +32,4 @@ Customers.create_schema(connection)
 Orders.create_schema(connection)
 
 # The application is a Rack app; only it crosses back to the importer.
-export_default Shop
+export Shop

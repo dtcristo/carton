@@ -50,4 +50,4 @@ module Growth
 end
 
 # Export boundary: the plugin interface is this module's `title` and `call`.
-export_default Growth
+export Growth

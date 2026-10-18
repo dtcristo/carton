@@ -6,4 +6,4 @@ module Reports
   end
 end
 
-export_default Reports
+export Reports

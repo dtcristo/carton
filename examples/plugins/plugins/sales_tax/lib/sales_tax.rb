@@ -54,4 +54,4 @@ module SalesTax
 end
 
 # Export boundary: the plugin interface is this module's `title` and `call`.
-export_default SalesTax
+export SalesTax

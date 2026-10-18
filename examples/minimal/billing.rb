@@ -13,4 +13,4 @@ module Billing
 end
 
 # The Default Export: importing billing returns this module.
-export_default Billing
+export Billing

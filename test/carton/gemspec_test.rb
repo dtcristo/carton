@@ -56,7 +56,7 @@ class GemspecTest < Minitest::Test
   def test_built_gem_installs_and_imports
     Dir.mktmpdir('carton-gem') do |dir|
       home = install_built_gem(dir)
-      File.write(File.join(dir, 'greeting.rb'), "export_default 'hello'\n")
+      File.write(File.join(dir, 'greeting.rb'), "export 'hello'\n")
       env = { 'GEM_HOME' => home, 'GEM_PATH' => home, 'RUBY_BOX' => '1' }
 
       output = run_ruby(dir, '-e', INSTALLED_IMPORT, env:)

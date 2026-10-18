@@ -10,17 +10,17 @@ Carton.setup_bundle
 # so it imports by its directory. The path gem imports by name.
 MathHelper = import_relative 'cartons/math_helper'
 Billing = import_relative 'cartons/billing'
-CartonedGemExports = import 'cartoned_gem'
+CartonedGem = import 'cartoned_gem'
 
 puts '-- Bundled require --'
-puts "math_helper bigdecimal version = #{MathHelper.version}"
-puts "math_helper number type = #{MathHelper.number_type}"
+puts "math_helper bigdecimal version = #{MathHelper[:version]}"
+puts "math_helper number type = #{MathHelper[:number_type]}"
 puts
 puts '-- Transient bundled import --'
-puts "billing summary = #{Billing.summary}"
-puts "billing rounds with bigdecimal = #{Billing.rounding_version}"
+puts "billing summary = #{Billing[:summary]}"
+puts "billing rounds with bigdecimal = #{Billing[:rounding_version]}"
 puts
 puts '-- Cartoned gem --'
-puts "cartoned_gem version = #{CartonedGemExports.version}"
-puts "invoice label = #{CartonedGemExports.invoice_label('42')}"
-puts "INTERNAL_TEMPLATE defined? #{CartonedGemExports.const_defined?(:INTERNAL_TEMPLATE, false)}"
+puts "cartoned_gem version = #{CartonedGem::VERSION}"
+puts "invoice label = #{CartonedGem.invoice_label('42')}"
+puts "INTERNAL_TEMPLATE defined? #{Object.const_defined?(:INTERNAL_TEMPLATE)}"

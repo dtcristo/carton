@@ -5,14 +5,21 @@ require_relative '../test_helper'
 FIXTURES = File.expand_path('../fixtures', __dir__)
 
 class ExportTest < Minitest::Test
-  def test_default_export_returns_the_value_itself
+  def test_export_returns_the_value_itself
     pricing = import "#{FIXTURES}/root_module_export"
 
     assert_instance_of Module, pricing
     assert_equal 'Pricing', pricing.name
   end
 
-  def test_default_hash_export_returns_hash
+  def test_export_of_a_class_returns_the_class
+    user = import "#{FIXTURES}/single_export"
+
+    assert_equal 'User', user.name
+    assert_equal 'Hello, Alice!', user.new('Alice').greet
+  end
+
+  def test_hash_export_returns_the_hash
     result = import "#{FIXTURES}/default_hash_export"
 
     assert_instance_of Hash, result
@@ -20,36 +27,40 @@ class ExportTest < Minitest::Test
     assert_same result, result[:itself]
   end
 
-  def test_default_nil_and_false_are_exports
+  # Keywords are Ruby's own braceless Hash argument, so destructuring needs
+  # nothing from Carton.
+  def test_keyword_export_is_a_hash
+    result = import "#{FIXTURES}/hash_export"
+
+    assert_equal({ PI: 3.14159, nothing: nil, version: '1.0.0' }, result)
+    result => { version: }
+    assert_equal '1.0.0', version
+  end
+
+  def test_nil_and_false_are_exports
     assert_nil import("#{FIXTURES}/default_nil_export")
     assert_equal false, import("#{FIXTURES}/default_false_export")
   end
 
-  def test_export_default_may_be_called_once
+  def test_export_may_be_called_once
     error =
       assert_raises(Carton::ExportError) do
-        import "#{FIXTURES}/repeated_default_export"
+        import "#{FIXTURES}/repeated_export"
       end
-    assert_equal 'export_default may be called only once per file',
+    assert_equal 'export may be called only once per Entrypoint', error.message
+  end
+
+  # `def` returns a Symbol, so `export def add` would export :add itself.
+  def test_export_rejects_a_symbol
+    error =
+      assert_raises(Carton::ExportError) { import "#{FIXTURES}/symbol_export" }
+    assert_equal 'export takes the value to export, not a name like :add: ' \
+                   'export a module, or keywords for a Hash',
                  error.message
   end
 
-  def test_export_default_cannot_be_combined_with_export
-    %w[default_then_export export_then_default].each do |fixture|
-      error =
-        assert_raises(Carton::ExportError) { import "#{FIXTURES}/#{fixture}" }
-      assert_equal 'export_default cannot be combined with export; ' \
-                     'put the other names inside the default value',
-                   error.message
-    end
-  end
-
-  def test_constant_symbol_exports_the_class_itself
-    result = import "#{FIXTURES}/single_export"
-
-    assert_kind_of Carton::Exports, result
-    assert_equal 'User', result::User.name
-    assert_equal 'Hello, Alice!', result::User.new('Alice').greet
+  def test_export_requires_a_value
+    assert_raises(ArgumentError) { import "#{FIXTURES}/empty_export" }
   end
 
   def test_root_module_export_keeps_private_constants_private
@@ -61,125 +72,26 @@ class ExportTest < Minitest::Test
     assert_match(/private constant/, error.message)
   end
 
-  def test_export_calls_accumulate_into_one_namespace
-    result = import "#{FIXTURES}/multiple_export"
-
-    assert_equal 'Widget', result::Widget.name
-    assert_equal 9, result.area(3)
-    assert_equal '1.0.0', result::VERSION
-    assert_equal 'widgets', result.label
-    assert_equal %i[VERSION Widget area label],
-                 result.deconstruct_keys(nil).keys.sort
-  end
-
   def test_errors_from_any_box_are_the_importers_classes
     error =
       assert_raises(Carton::ExportError) do
-        import "#{FIXTURES}/duplicate_name_export"
+        import "#{FIXTURES}/repeated_export"
       end
     assert_same Carton::ExportError, error.class
     assert_same Carton::ExportError,
                 import("#{FIXTURES}/rescues_nested_export_error")
   end
 
-  def test_export_rejects_a_name_repeated_across_calls
-    error =
-      assert_raises(Carton::ExportError) do
-        import "#{FIXTURES}/repeated_name_export"
-      end
-    assert_equal 'export name given more than once: add', error.message
-  end
-
-  def test_constant_symbol_export_missing_constant_raises_name_error
-    error =
-      assert_raises(NameError) { import "#{FIXTURES}/missing_constant_export" }
-    assert_equal :Missing, error.name
-  end
-
-  def test_export_with_nil_and_false_values
-    result = import "#{FIXTURES}/hash_export"
-
-    assert_nil result.nothing
-    assert result.key?(:nothing)
-  end
-
-  def test_export_namespace_does_not_expose_its_stored_values
-    result = import "#{FIXTURES}/export_return"
-
-    assert_equal '1.0.0', result.version
-  end
-
-  def test_hash_export_returns_module_with_methods
-    result = import "#{FIXTURES}/hash_export"
-    assert_kind_of Carton::Exports, result
-    assert_equal 10, result.add(3, 7)
-    assert_equal 6, result.subtract(10, 4)
-    assert_equal '1.0.0', result.version
-  end
-
-  def test_hash_export_returns_module_with_constants
-    result = import "#{FIXTURES}/hash_export"
-    assert_in_delta 3.14159, result::PI
-  end
-
-  def test_symbol_export_lookups_return_method_objects
-    result = import "#{FIXTURES}/hash_export"
-
-    assert_instance_of Method, result[:add]
-    assert_same result[:add], result.fetch(:add)
-    assert_equal :add, result[:add].name
-    assert_equal 5, result[:add].call(2, 3)
-    result => { add: }
-    assert_same result[:add], add
-  end
-
-  def test_symbol_export_forwards_arguments_keywords_and_block
-    result = import "#{FIXTURES}/method_export"
-
-    assert_equal 'HI?', result.decorate('hi', suffix: '?', &:upcase)
-    assert_equal 'HI!', result.decorate('hi', &:upcase)
-  end
-
-  def test_callable_keyword_value_is_not_invoked
-    result = import "#{FIXTURES}/method_export"
-    handler = result.handler
-
-    assert_instance_of Proc, handler
-    assert_same handler, result[:handler]
-    assert_equal 6, handler.call(3)
-    assert_raises(ArgumentError) { result.handler(3) }
-  end
-
-  def test_symbol_export_missing_method_raises_name_error
-    error =
-      assert_raises(NameError) { import "#{FIXTURES}/missing_method_export" }
-    assert_equal :missing, error.name
-  end
-
-  def test_export_rejects_duplicate_names
-    error =
-      assert_raises(Carton::ExportError) do
-        import "#{FIXTURES}/duplicate_name_export"
-      end
-    assert_equal 'export name given more than once: add', error.message
-  end
-
-  def test_export_requires_names_or_values
-    error = assert_raises(ArgumentError) { import "#{FIXTURES}/empty_export" }
-    assert_equal 'export takes Symbols naming methods or constants, and keyword values',
-                 error.message
-  end
-
-  def test_bare_export_returns_exports_not_its_box
+  def test_bare_carton_returns_a_namespace_not_its_box
     result = import "#{FIXTURES}/bare"
 
-    assert_kind_of Carton::Exports, result
+    assert_kind_of Carton::Namespace, result
     refute_kind_of Ruby::Box, result
     refute_respond_to result, :eval
     refute_respond_to result, :require
   end
 
-  def test_bare_export_exposes_constants_and_callable_helpers
+  def test_bare_carton_exposes_constants_and_callable_helpers
     result = import "#{FIXTURES}/bare"
 
     assert_equal 'hello from bare', result::GREETING
@@ -187,12 +99,19 @@ class ExportTest < Minitest::Test
     assert_empty result.lookup_calls
   end
 
-  def test_bare_export_fetch_constant
+  def test_bare_carton_helpers_forward_arguments_keywords_and_block
+    result = import "#{FIXTURES}/method_export"
+
+    assert_equal 'HI?', result.decorate('hi', suffix: '?', &:upcase)
+    assert_equal 'HI!', result.decorate('hi', &:upcase)
+  end
+
+  def test_bare_carton_fetch_constant
     result = import "#{FIXTURES}/bare"
     assert_equal 'hello from bare', result.fetch(:GREETING)
   end
 
-  def test_bare_export_fetch_method
+  def test_bare_carton_fetch_method
     result = import "#{FIXTURES}/bare"
     helper = result.fetch(:helper)
 
@@ -201,14 +120,14 @@ class ExportTest < Minitest::Test
     assert_equal 42, helper.call
   end
 
-  def test_bare_export_index_lookup
+  def test_bare_carton_index_lookup
     result = import "#{FIXTURES}/bare"
     assert_equal 'hello from bare', result[:GREETING]
     assert_equal 42, result[:helper].call
     assert_nil result[:missing]
   end
 
-  def test_bare_export_lookup_does_not_invoke_helpers
+  def test_bare_carton_lookup_does_not_invoke_helpers
     result = import "#{FIXTURES}/bare"
 
     result[:effectful_helper]
@@ -216,7 +135,7 @@ class ExportTest < Minitest::Test
     assert_empty result.fetch(:lookup_calls).call
   end
 
-  def test_bare_export_does_not_evaluate_expressions
+  def test_bare_carton_does_not_evaluate_expressions
     result = import "#{FIXTURES}/bare"
 
     assert_nil result['1 + 1']
@@ -225,14 +144,14 @@ class ExportTest < Minitest::Test
     refute result.key?('nil')
   end
 
-  def test_bare_export_key_query_does_not_invoke_helpers
+  def test_bare_carton_key_query_does_not_invoke_helpers
     result = import "#{FIXTURES}/bare"
 
     assert result.key?(:effectful_helper)
     assert_empty result.fetch(:lookup_calls).call
   end
 
-  def test_bare_export_preserves_nil_and_false_values
+  def test_bare_carton_preserves_nil_and_false_values
     result = import "#{FIXTURES}/bare"
 
     assert result.key?(:NIL_VALUE)
@@ -241,7 +160,7 @@ class ExportTest < Minitest::Test
     assert_equal false, result.fetch(:FALSE_VALUE)
   end
 
-  def test_bare_export_helper_errors_propagate_when_called
+  def test_bare_carton_helper_errors_propagate_when_called
     result = import "#{FIXTURES}/bare"
 
     name_error =
@@ -255,7 +174,7 @@ class ExportTest < Minitest::Test
     assert_equal :missing_from_helper, method_error.name
   end
 
-  def test_bare_export_excludes_runtime_constants_and_box_methods
+  def test_bare_carton_excludes_runtime_constants_and_box_methods
     result = import "#{FIXTURES}/bare"
 
     refute result.key?(:Object)
@@ -263,7 +182,7 @@ class ExportTest < Minitest::Test
     refute result.key?(:require_in_box)
   end
 
-  def test_bare_export_destructuring_enumerates_its_public_surface
+  def test_bare_carton_destructuring_enumerates_its_public_surface
     import("#{FIXTURES}/bare_deconstruct") => {
       BARE_LABEL: label, effectful_helper:, **rest
     }
@@ -276,18 +195,11 @@ class ExportTest < Minitest::Test
     assert_equal 42, rest.fetch(:helper).call
   end
 
-  def test_bare_export_destructuring_does_not_invoke_helpers
+  def test_bare_carton_destructuring_does_not_invoke_helpers
     result = import "#{FIXTURES}/bare_deconstruct_error"
     broken_helper = result.deconstruct_keys(nil).fetch(:broken_helper)
 
     error = assert_raises(NameError) { broken_helper.call }
     assert_equal :MISSING_FROM_DECONSTRUCTION, error.name
-  end
-
-  def test_export_rejects_a_module_argument
-    error =
-      assert_raises(ArgumentError) { import "#{FIXTURES}/legacy_single_export" }
-    assert_equal 'export takes Symbols naming methods or constants, and keyword values',
-                 error.message
   end
 end

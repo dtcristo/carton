@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Carton
-  # Hash-like lookup helpers for `Carton::Exports`.
-  module ExportMethods
+  # Hash-like lookup helpers for `Carton::Namespace`.
+  module NamespaceMethods
     # Support destructuring like `import('math') => { add: }`.
     def deconstruct_keys(keys)
       keys.each_with_object({}) do |key, hash|
@@ -11,20 +11,20 @@ module Carton
       end
     end
 
-    # Return the exported value or `nil`.
+    # Return the member or `nil`.
     def [](key)
       found, value = lookup_entry(key)
       found ? value : nil
     end
 
-    # Check whether the export lookup will succeed.
+    # Check whether the lookup will succeed.
     def key?(key)
       lookup_entry(key).first
     end
 
     alias has_key? key?
 
-    # Fetch an exported value with the same default/block semantics as `Hash#fetch`.
+    # Fetch a member with the same default/block semantics as `Hash#fetch`.
     def fetch(key, *default)
       if default.size > 1
         raise ArgumentError,
@@ -39,18 +39,18 @@ module Carton
       raise KeyError, "key not found: #{key.inspect}"
     end
 
-    # Exported names as Symbols, in the order they were exported.
+    # Member names as Symbols: helpers first, then constants.
     def keys = lookup_names.map(&:to_sym)
 
-    # Every export by name: methods as `Method` objects, values as exported.
+    # Every member by name: helpers as `Method` objects, constants as set.
     def to_h = keys.to_h { |key| [key, self[key]] }
 
-    # Fetch several exported values and raise if any are missing.
+    # Fetch several members and raise if any are missing.
     def fetch_values(*keys)
       keys.map { |key| fetch(key) }
     end
 
-    # Return several exported values, using `nil` for missing keys.
+    # Return several members, using `nil` for missing keys.
     def values_at(*keys)
       keys.map { |key| self[key] }
     end

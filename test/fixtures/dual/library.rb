@@ -5,4 +5,4 @@ module Library
   def self.name = :library
 end
 
-export :Library
+export Library

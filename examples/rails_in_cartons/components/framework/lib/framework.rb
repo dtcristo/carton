@@ -11,20 +11,23 @@ require 'action_controller/railtie'
 require_relative '../app/models/application_record'
 require_relative '../app/controllers/application_controller'
 
-# Rails finds controllers (`orders#index`) and associations
-# (`belongs_to :customer`) by constant name, and it does that lookup in this
-# Box. Registering a domain's exported classes defines them here too.
-def register(*cartons)
-  cartons.each do |carton|
-    carton.constants.each do |name|
-      constant = carton.const_get(name)
-      Object.const_set(name, constant) if constant.is_a?(Module)
+module Framework
+  ApplicationRecord = ::ApplicationRecord
+  ApplicationController = ::ApplicationController
+  Rails = ::Rails
+  ActiveRecord = ::ActiveRecord
+
+  # Rails finds controllers (`orders#index`) and associations
+  # (`belongs_to :customer`) by constant name, and it does that lookup in
+  # this Box. Registering a domain's classes defines them here too.
+  def self.register(*domains)
+    domains.each do |domain|
+      domain.constants.each do |name|
+        constant = domain.const_get(name)
+        Object.const_set(name, constant) if constant.is_a?(Module)
+      end
     end
   end
 end
 
-export :ApplicationRecord,
-       :ApplicationController,
-       :register,
-       Rails:,
-       ActiveRecord:
+export Framework

@@ -14,11 +14,16 @@ loader.push_dir(File.expand_path('../app/controllers', __dir__))
 loader.setup
 loader.eager_load # load app/ at boot; see customers.rb
 
-def create_schema(connection)
-  connection.create_table(:orders) do |t|
-    t.references :customer, null: false
-    t.integer :total_cents, null: false
+module Orders
+  Order = ::Order
+  OrdersController = ::OrdersController
+
+  def self.create_schema(connection)
+    connection.create_table(:orders) do |t|
+      t.references :customer, null: false
+      t.integer :total_cents, null: false
+    end
   end
 end
 
-export :Order, :OrdersController, :create_schema
+export Orders

@@ -13,4 +13,4 @@ module Pricing
   private_constant :Internal
 end
 
-export_default Pricing
+export Pricing

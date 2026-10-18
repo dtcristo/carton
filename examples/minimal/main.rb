@@ -6,7 +6,7 @@ require_relative '../../lib/carton'
 Billing = import_relative 'billing'
 puts "Invoice total: #{Billing.invoice(40).total}"
 
-# Named Exports come back as a Carton::Exports namespace.
+# A Bare Carton comes back as a Carton::Namespace of what it defines.
 MathTools = import_relative 'math'
 puts "10% of 40: #{MathTools.percent(40, 10)} (math #{MathTools::VERSION})"
 

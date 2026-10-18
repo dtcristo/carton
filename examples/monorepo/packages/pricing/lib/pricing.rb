@@ -18,4 +18,4 @@ module Pricing
 end
 
 # The package's public surface is its root module.
-export_default Pricing
+export Pricing

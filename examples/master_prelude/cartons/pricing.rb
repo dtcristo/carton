@@ -8,4 +8,4 @@ module Pricing
   def self.trial_ends(start) = start + 14.days
 end
 
-export_default Pricing
+export Pricing

@@ -2,16 +2,13 @@
 
 require 'carton'
 
-# This constant stays private because the file exports a smaller public surface.
+# This constant stays inside the Carton: only the exported module crosses.
 INTERNAL_TEMPLATE = 'draft invoice'
 
 module CartonedGem
   VERSION = '0.1.0'
+
+  def self.invoice_label(number) = "INV-#{number.to_s.rjust(4, '0')}"
 end
 
-def invoice_label(number)
-  "INV-#{number.to_s.rjust(4, '0')}"
-end
-
-# `:invoice_label` exports the top-level method; `version:` is a plain value.
-export :invoice_label, version: CartonedGem::VERSION
+export CartonedGem
