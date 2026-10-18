@@ -332,32 +332,35 @@ class IntegrationTest < Minitest::Test
     end
   end
 
-  # Without Bundler, a gem Carton's default-gem dependency keeps the version
-  # the caller activated, even when a newer one is installed: here a fake
-  # json 99.0.0 in a temporary gem home.
-  def test_gem_carton_keeps_the_callers_default_gem_version
-    Dir.mktmpdir('carton-default-gem') do |home|
-      install_fake_newer_json(home)
-      probe = File.join(home, 'probe')
-      FileUtils.mkdir_p(File.join(probe, 'lib'))
-      File.write(
-        File.join(probe, 'lib', 'default_probe.rb'),
-        "require 'json'\nexport json_version: JSON::VERSION\n",
-      )
-      gem_path = [home, *Gem.path].join(File::PATH_SEPARATOR)
-
-      output, error, status =
-        Open3.capture3(
-          unbundled_env.merge('GEM_PATH' => gem_path),
-          RbConfig.ruby,
-          '-Ilib',
-          '-e',
-          default_probe_script(probe),
+  # Without Bundler, a gem Carton's default-gem dependencies keep the
+  # versions the caller activated, even when newer ones are installed: here
+  # fake json and date 99.0.0 in a temporary gem home. date is also one of
+  # Psych's requires, so it must be activated before any YAML spec rebuild.
+  def test_gem_carton_keeps_the_callers_default_gem_versions
+    %w[json date].each do |name|
+      Dir.mktmpdir('carton-default-gem') do |home|
+        install_fake_newer_default_gem(home, name)
+        probe = File.join(home, 'probe')
+        FileUtils.mkdir_p(File.join(probe, 'lib'))
+        File.write(
+          File.join(probe, 'lib', 'default_probe.rb'),
+          "require '#{name}'\nexport version: Gem.loaded_specs['#{name}'].version.to_s\n",
         )
+        gem_path = [home, *Gem.path].join(File::PATH_SEPARATOR)
 
-      assert status.success?, [output, error].reject(&:empty?).join("\n")
-      default_version, carton_version = output.split
-      assert_equal default_version, carton_version
+        output, error, status =
+          Open3.capture3(
+            unbundled_env.merge('GEM_PATH' => gem_path),
+            RbConfig.ruby,
+            '-Ilib',
+            '-e',
+            default_probe_script(name, probe),
+          )
+
+        assert status.success?, [output, error].reject(&:empty?).join("\n")
+        default_version, carton_version = output.split
+        assert_equal default_version, carton_version, name
+      end
     end
   end
 
@@ -525,43 +528,43 @@ class IntegrationTest < Minitest::Test
   # Runs `script` in a fresh `RUBY_BOX=1` Ruby outside the dev bundle, as a
   # real process so native extensions and process exit are exercised, asserts
   # it succeeded, and returns its stdout.
-  def install_fake_newer_json(home)
-    lib = File.join(home, 'gems', 'json-99.0.0', 'lib')
+  # A newer `name` that loads the real default gem's files, so code that
+  # requires it still works and only the activated version tells them apart.
+  def install_fake_newer_default_gem(home, name)
+    lib = File.join(home, 'gems', "#{name}-99.0.0", 'lib')
     FileUtils.mkdir_p([lib, File.join(home, 'specifications')])
-    File.write(
-      File.join(lib, 'json.rb'),
-      "module JSON; VERSION = '99.0.0'; end\n",
-    )
+    real = File.join(RbConfig::CONFIG['rubylibdir'], "#{name}.rb")
+    File.write(File.join(lib, "#{name}.rb"), "require #{real.inspect}\n")
     spec =
       Gem::Specification.new do |s|
-        s.name = 'json'
+        s.name = name
         s.version = '99.0.0'
         s.summary = 'fake'
         s.authors = ['Carton']
-        s.files = ['lib/json.rb']
+        s.files = ["lib/#{name}.rb"]
       end
     File.write(
-      File.join(home, 'specifications', 'json-99.0.0.gemspec'),
+      File.join(home, 'specifications', "#{name}-99.0.0.gemspec"),
       spec.to_ruby,
     )
   end
 
-  # Activates the default json, then imports a gem Carton that requires it.
-  def default_probe_script(probe)
+  # Activates the default `name`, then imports a gem Carton that requires it.
+  def default_probe_script(name, probe)
     <<~RUBY
       require File.expand_path('lib/carton', Dir.pwd)
-      default = Gem::Specification.find { |s| s.name == 'json' && s.default_gem? }
-      gem 'json', default.version.to_s
+      default = Gem::Specification.find { |s| s.name == #{name.inspect} && s.default_gem? }
+      default.activate
       spec = Gem::Specification.new do |s|
         s.name = 'default_probe'
         s.version = '0.1.0'
         s.summary = 'probe'
         s.authors = ['Carton']
-        s.add_runtime_dependency('json')
+        s.add_runtime_dependency(#{name.inspect})
       end
       spec.full_gem_path = #{probe.inspect}
       spec.activate
-      puts [default.version, import('default_probe').json_version].join(' ')
+      puts [default.version, import('default_probe').version].join(' ')
       STDOUT.flush
       Process.exit!(0)
     RUBY

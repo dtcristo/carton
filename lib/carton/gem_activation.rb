@@ -54,15 +54,33 @@ module Carton
     # Bundler's restricted view. Spec objects come from another Box, so their
     # own `activate` would update that Box; a YAML round trip builds this Box's
     # `Gem::Specification` without re-evaluating gemspec files.
+    #
+    # Default gems come first, from this Box's own default specs: the YAML
+    # round trip loads Psych, whose requires (date, for one) would otherwise
+    # activate the newest installed version before the caller's.
     def activate(specs, locked = nil)
-      rebuilt = (locked || specs).map { |source| rebuild(source) }
-      restrict_to(rebuilt) if locked
+      defaults, others = (locked || specs).partition(&:default_gem?)
+      defaults.each { |source| activate_spec(default_spec(source)) }
 
-      rebuilt.each do |spec|
-        loaded = Gem.loaded_specs[spec.name]
-        spec.activate unless loaded && loaded.version == spec.version
-      end
+      rebuilt = others.map { |source| rebuild(source) }
+      restrict_to(rebuilt) if locked
+      rebuilt.each { |spec| activate_spec(spec) }
     end
+
+    def activate_spec(spec)
+      loaded = Gem.loaded_specs[spec.name]
+      spec.activate unless loaded && loaded.version == spec.version
+    end
+    private_class_method :activate_spec
+
+    def default_spec(source)
+      stub =
+        Gem::Specification.default_stubs(
+          "#{source.name}-#{source.version}.gemspec",
+        ).first
+      stub ? stub.to_spec : rebuild(source)
+    end
+    private_class_method :default_spec
 
     def rebuild(source)
       spec = Gem::Specification.from_yaml(source.to_spec.to_yaml)
