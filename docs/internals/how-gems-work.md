@@ -150,6 +150,9 @@ On Ruby 4.0.7 with Bundler 4.0.23:
   `require`, ignoring the caller's lockfile. Carton activates an imported
   gem's dependency closure first to prevent this, default gems included,
   since a newer installed version would otherwise replace the caller's.
+  Default gems are activated first, from the Box's own default specs: the
+  YAML rebuild below loads Psych, whose requires (such as `date`) would
+  otherwise activate the newest installed version before the caller's.
 - spec objects from another Box run that Box's methods, so calling `activate`
   on them updates the wrong Box. Carton rebuilds each spec with
   `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores

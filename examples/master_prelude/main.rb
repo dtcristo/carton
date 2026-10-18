@@ -49,9 +49,9 @@ puts format(
      )
 puts format('both Cartons imported: %.0fms', (imported - loaded) * 1000)
 puts
-puts '-- The prelude also reaches Main --'
-# Main reads Master's copy of a builtin class until it changes that class
-# itself. Main already has its own String, so blank? stays out, but Integer
-# still comes from Master and picks up Active Support's patches.
-show "Main sees ''.blank?", ''.respond_to?(:blank?), false
-show 'Main sees 1.day', 1.respond_to?(:day), true
+puts '-- The prelude can reach Main --'
+# Main sees a Master patch to a builtin class only until Ruby copies that
+# class's state for Main, which method calls as well as changes can trigger,
+# so which patches show up here is not guaranteed.
+puts "Main sees ''.blank?: #{''.respond_to?(:blank?)}"
+puts "Main sees 1.day: #{1.respond_to?(:day)}"

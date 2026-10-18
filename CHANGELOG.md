@@ -6,15 +6,16 @@
 
 - A shared gem Carton raises `Carton::ImportError` when a later importer
   locks a different version of a gem it loaded without declaring, such as an
-  undeclared gem the first importer's lockfile allowed. Before, only its
-  declared dependencies were compared, so it could be shared silently.
+  undeclared gem the first importer's lockfile allowed, including one it
+  required lazily after its import. Before, only its declared dependencies
+  were compared, so it could be shared silently.
 - A Bare Carton imported from a gem no longer exposes `Bundler`, `Psych`,
   `Date`, or `DateTime`, which Carton's gem activation loaded into its Box.
-- A gem Carton's default-gem dependencies, such as `json`, keep the
-  importer's activated version when a newer one is installed.
+- A gem Carton's default-gem dependencies, such as `json` and `date`, keep
+  the importer's activated version when a newer one is installed.
 - The master_prelude example and Box docs no longer claim the Main Box is
-  unaffected: patches loaded into Master reach Main and existing Boxes for
-  builtin classes they have not changed.
+  unaffected: patches loaded into Master can reach Main and existing Boxes,
+  depending on Ruby's copy-on-write state.
 
 - An autoload a Carton defines, such as a lazy Zeitwerk constant, loads in
   the Carton's Box even when an importer references it first. It used to run

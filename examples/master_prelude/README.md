@@ -28,10 +28,10 @@ Pricing = import_relative 'cartons/pricing' # its Box already has blank?, 14.day
 `to_sentence` without requiring Active Support.
 
 The prelude is not confined to later Boxes. Main and any Box that already
-exists read Master's copy of a builtin class until they change that class
-themselves, so they see the prelude's patches too. Here Main already has its
-own `String`, so `''.blank?` stays undefined, but `1.day` works in Main.
-`main.rb` checks both.
+exists may see its patches too, depending on whether Ruby has already copied
+each builtin class's state for that Box, which ordinary method calls can
+trigger. On Ruby 4.0.7 this example's Main does not see `''.blank?` but does
+see `1.day`; `main.rb` prints both.
 
 The alternative is to `require` the patches in every Carton that needs them.
 That is supported and keeps each Box fully isolated, but it loads them once per
@@ -42,8 +42,8 @@ bundle, against a single load here.
 
 - **Unsupported.** It depends on `Ruby::Box.master` accepting code. A future
   Ruby could freeze Master or reject this.
-- **Leaks into Main.** Patches reach Main and existing Boxes for builtin
-  classes they have not changed, as above.
+- **Leaks into Main.** Patches can reach Main and existing Boxes, as above,
+  and which ones do depends on Ruby's copy-on-write state.
 - **Shared state.** Objects and module state created by the prelude are the
   same objects in every Carton. Keep the prelude to monkey patches and
   stateless helpers. A Carton's own patches to builtins such as `String`

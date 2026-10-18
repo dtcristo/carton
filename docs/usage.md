@@ -437,10 +437,12 @@ Pricing = import 'pricing' # pricing's `require 'bigdecimal'` gets 3.3.1
 ```
 
 - A gem Carton loads once per process, so its first importer fixes its gem
-  versions: its dependency closure, plus any locked gem it loaded without
-  declaring. A later importer that activates or locks a different version of
-  one of those raises `Carton::ImportError` naming the gem and both
-  versions, instead of sharing a Carton built against other versions.
+  versions: its dependency closure, plus any locked gem it has loaded
+  without declaring, including one required lazily after its import. A
+  later importer that activates or locks a different version of one of
+  those raises `Carton::ImportError` naming the gem and both versions,
+  instead of sharing a Carton built against other versions. A gem the
+  Carton first loads after that later import cannot be checked.
 - Default gems in the closure keep the importer's activated version too, so
   a newer installed version does not replace it inside the Carton.
 - If the importer ran Bundler setup (`Carton.setup_bundle`, `bundler/setup`,
