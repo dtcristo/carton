@@ -34,12 +34,15 @@
 
 ### Changed
 
-- The README states what a Box does and does not isolate next to its
-  promises, and says where Carton fits: plugin hosts with conflicting gem
-  versions first, coarse domains second, not file-by-file loading. Usage
+- The README and gem summary present Carton as the package system Ruby has
+  been missing, with the tagline "Real boundaries for Ruby", and compare it
+  with Bundler and Packwerk. The README states what a Box does and does not
+  isolate next to its promises, and says where Carton fits today: an app's
+  or monorepo's domains, plugin hosts with conflicting gem versions, Rails
+  inside Cartons as experimental, and not file-by-file loading. Usage
   recommends Default Exports first, and the docs show shared imports'
   consequences early, with a plugin testing recipe. Rails in the Main Box is
-  the recommended Rails setup; Rails inside Cartons is marked experimental.
+  the recommended Rails setup.
 - A lowercase export named like a method every `Carton::Exports` has, such as
   `export fetch: 42` or `export def name`, raises `Carton::ExportError`. It
   used to replace the built-in method, so `exports.fetch(:fetch)` broke. A
