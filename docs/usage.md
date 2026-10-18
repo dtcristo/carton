@@ -22,7 +22,7 @@ lib/billing/models/charge.rb  # inside too: models/ has no models.rb
 - Only the Entrypoint can be imported. Importing a file inside a Carton raises `Carton::ImportError` naming the import to use, because loading it on its own would create a second copy of the Carton's classes.
 - Directories without their own `.rb` file, like Zeitwerk implicit namespaces, belong to the Carton above them, so the outermost Entrypoint wins.
 - A file with no directory beside it is a Carton of one file.
-- Cartons can nest in another Carton's tree, as long as they sit outside its namespace directory. In `billing/cartons/tax/lib/tax.rb`, `tax` is its own Carton, which `billing.rb` can `import_relative '../cartons/tax'`. Anything under `billing/lib/billing/` belongs to `billing`, so put nested Cartons beside that directory, not in it.
+- Cartons can nest in another Carton's tree, as long as they sit outside its Interior. In `billing/cartons/tax/lib/tax.rb`, `tax` is its own Carton, which `billing.rb` can `import_relative '../cartons/tax'`. Anything under `billing/lib/billing/` belongs to `billing`, so put nested Cartons beside that directory, not in it.
 - No gemspec, Gemfile, or manifest is required. A Carton may be a gem, a path gem, a gem-shaped directory, or a plain file.
 
 ### Zeitwerk
@@ -138,11 +138,11 @@ Money.equal?(import('money')) # => true
 This is an architectural choice to plan around, not a cache to forget:
 
 - A Carton's module state lasts the whole process, including from one test to the next.
-- A shared gem Carton's first importer fixes its gem versions. An importer whose bundle locks a different version of one of its gems raises `Carton::ImportError` (see [Gem Cartons](#gem-cartons)). To give two importers different versions, give each its own copy: a Carton at another path is another Carton.
+- A shared Gem Carton's First Importer fixes its gem versions. An importer whose bundle locks a different version of one of its gems raises `Carton::ImportError` (see [Gem Cartons](#gem-cartons)). To give two importers different versions, give each its own copy: a Carton at another path is another Carton.
 
 A failed load is not cached, so a later import tries again. A Carton that imports itself, directly or through other Cartons, raises `Carton::ImportError` (`circular import`).
 
-Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own caller is still loading waits for it, as `require` would, so do not join such a thread from that Carton's Entrypoint.
+Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own importer is still loading waits for it, as `require` would, so do not join such a thread from that Carton's Entrypoint.
 
 ### Rakefiles
 
@@ -150,7 +150,7 @@ Rake defines its own `import` on the Rakefile's top-level object, which shadows 
 
 ## Bare Cartons
 
-A file that never calls `export` is a Bare Carton. Importing it returns a `Carton::Namespace` of the constants and top-level helper methods the file defines, as if it had exported them all. Its Box stays private, so an importer cannot `eval` or `require` inside it. Bare Cartons suit existing code you want to load in a Box without changing it; new Cartons should export deliberately.
+A file that never calls `export` is a Bare Carton. Importing it returns a `Carton::Namespace` of the constants and top-level methods, called Helpers, that the file defines, as if it had exported them all. Its Box stays private, so an importer cannot `eval` or `require` inside it. Bare Cartons suit existing code you want to load in a Box without changing it; new Cartons should export deliberately.
 
 ```ruby
 Toolbox = import 'some_script'
@@ -163,10 +163,10 @@ Toolbox => { helper:, **rest }
 Toolbox                  # => #<Carton::Namespace helper, SomeConstant>
 ```
 
-- Only constants and helpers the Entrypoint introduces count, not constants the runtime already defined.
+- Only constants and Helpers the Entrypoint introduces count, not constants the runtime already defined.
 - Constants are read when the import finishes, so an autoloaded top-level constant loads then rather than on first use.
-- `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, `keys`, `to_h`, and destructuring look members up by name. Keys are names, not Ruby expressions, and helper lookups return the `Method` object, so they never call a helper.
-- A helper named like a `Carton::Namespace` method, such as `fetch`, `keys`, or `name`, raises `Carton::ExportError` instead of hiding it.
+- `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, `keys`, `to_h`, and destructuring look members up by name. Keys are names, not Ruby expressions, and Helper lookups return the `Method` object, so they never call a Helper.
+- A Helper named like a `Carton::Namespace` method, such as `fetch`, `keys`, or `name`, raises `Carton::ExportError` instead of hiding it.
 
 ## Sharing classes across Cartons
 
@@ -259,7 +259,7 @@ Carton works with or without Bundler. Each Box has its own RubyGems state, so a 
 
 ### A Carton's own bundle
 
-A Carton that needs its own gems sets up its bundle in its Entrypoint. Other Cartons need no setup.
+A Carton that needs its own gems sets up a Carton Bundle, from its own Gemfile, in its Entrypoint. Other Cartons need no setup.
 
 ```ruby
 # cartons/math_helper/lib/math_helper.rb
@@ -295,17 +295,17 @@ Carton.setup_bundle
 Pricing = import 'pricing' # pricing's `require 'bigdecimal'` gets 3.3.1
 ```
 
-- A gem Carton loads once per process, so its first importer fixes its gem versions: its dependency closure, plus any locked gem it has loaded without declaring, including one required lazily after its import. A later importer that activates or locks a different version of one of those raises `Carton::ImportError` naming the gem and both versions, instead of sharing a Carton built against other versions. A gem the Carton first loads after that later import cannot be checked.
-- Default gems in the closure keep the importer's activated version too, so a newer installed version does not replace it inside the Carton.
-- If the importer ran Bundler setup (`Carton.setup_bundle`, `bundler/setup`, or `bundle exec`), the gem Carton's Box is restricted to that bundle, as `Bundler.setup` restricts the Main Box. Every locked gem loads at its locked version, even one the gemspec forgot to declare, and a gem outside the lockfile raises `LoadError`.
+- A Gem Carton loads once per process, so its First Importer fixes its gem versions: its Gem Closure, plus any locked gem it has loaded without declaring, including one required lazily after its import. A later importer that activates or locks a different version of one of those raises `Carton::ImportError` naming the gem and both versions, instead of sharing a Carton built against other versions. A gem the Carton first loads after that later import cannot be checked.
+- Default gems in the Gem Closure keep the importer's activated version too, so a newer installed version does not replace it inside the Carton.
+- If the importer ran Bundler setup (`Carton.setup_bundle`, `bundler/setup`, or `bundle exec`), the Gem Carton's Box is restricted to that bundle, as `Bundler.setup` restricts the Main Box. Every locked gem loads at its locked version, even one the gemspec forgot to declare, and a gem outside the lockfile raises `LoadError`.
 - Without Bundler, only declared dependencies the importer activated are shared. Anything else falls back to RubyGems picking the newest installed version inside the Box.
-- If the gem Carton also calls `setup_bundle`, its Gemfile must agree with the importer's versions, or Bundler raises `Gem::LoadError`.
+- If the Gem Carton also calls `setup_bundle`, its Gemfile must agree with the importer's versions, or Bundler raises `Gem::LoadError`.
 
-Because a bundled importer exposes its whole lockfile, a gem Carton can load a gem it never declared and still work, until it is installed somewhere without that gem. `carton check` reports each undeclared gem, so the gemspec stays an accurate manifest; run it under `bundle exec` so it sees the bundle's gems. Default gems and Carton itself need no declaration.
+Because a bundled importer exposes its whole lockfile, a Gem Carton can load a gem it never declared and still work, until it is installed somewhere without that gem. `carton check` reports each Undeclared Gem, so the gemspec stays an accurate manifest; run it under `bundle exec` so it sees the bundle's gems. Default gems and Carton itself need no declaration.
 
 ### Monorepos
 
-To split an app into packages, make each package a path gem in one Gemfile and import it by gem name. Each gemspec lists the package's dependencies, and the app's lockfile pins every version. See [examples/monorepo](../examples/monorepo/README.md).
+To split an app into Cartons, make each one a path gem in one Gemfile and import it by gem name. Each gemspec lists the Carton's dependencies, and the app's lockfile pins every version. See [examples/monorepo](../examples/monorepo/README.md).
 
 [how-gems-work.md](internals/how-gems-work.md) has the runtime background, and [upstream.md](internals/upstream.md) the upstream status.
 
@@ -325,7 +325,7 @@ It reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it
 
 - An exported constant, such as `export Billing`, types as `singleton(::Billing)`. The Carton declares `Billing` in its own RBS, as a gem would; Steep reports a missing declaration as an unknown type.
 - A keyword export, such as `export version: '1.0'`, types as a record, `{ version: ::String }`.
-- A Bare Carton gets a module, such as `Carton::Namespace::Util`, with a singleton method per helper and a constant per constant. A helper's type comes from an [rbs-inline](https://github.com/soutaro/rbs-inline) `#:` annotation on the line above it, and a constant's from a `#:` annotation after it or a literal value; otherwise they are `untyped`.
+- A Bare Carton gets a module, such as `Carton::Namespace::Util`, with a singleton method per Helper and a constant per constant. A Helper's type comes from an [rbs-inline](https://github.com/soutaro/rbs-inline) `#:` annotation on the line above it, and a constant's from a `#:` annotation after it or a literal value; otherwise they are `untyped`.
 - `Billing = import 'billing'` needs nothing more, and a local variable, `billing = import 'billing'`, types through a `Kernel#import` overload on the literal path.
 
 Load Carton's own signatures and the generated file in the Steepfile, and regenerate the file whenever an import or export changes:
@@ -345,7 +345,7 @@ RBS has one global namespace, so the app's target should check the app's own fil
 
 `carton check main.rb` prints each problem as `file:line: level: message` and exits non-zero on any error, so it can run in CI. Errors are certain to fail or misbehave when the code runs; warnings are things a dynamic program could still get right. `--strict` fails on warnings too, for a codebase that wants every import followed.
 
-An import found at runtime, such as plugin discovery, cannot be followed. Mark it with `# carton:dynamic`, on its line or the line above, to say so and silence its warning:
+A Dynamic Import, whose path is found at runtime as in plugin discovery, cannot be followed. Mark it with `# carton:dynamic`, on its line or the line above, to say so and silence its warning:
 
 ```ruby
 Dir.glob('plugins/*/').each do |dir|
@@ -360,8 +360,8 @@ end
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
-| error | `export` twice in calls that can both run (calls in different branches of one `if` or `case` cannot), `export` of a Symbol, or a Bare Carton method that would hide a `Carton::Namespace` method |
-| error | A gem Carton importing or requiring a gem its gemspec does not declare |
+| error | `export` twice in calls that can both run (calls in different branches of one `if` or `case` cannot), `export` of a Symbol, or a Bare Carton Helper that would hide a `Carton::Namespace` method |
+| error | A Gem Carton importing or requiring a gem its gemspec does not declare |
 | error | A key a keyword or Hash literal export does not have, read with `fetch(:nope)` or a `=>` pattern. `[]`, `key?` and `in` patterns return nil or false instead |
 | error | A private constant of an exported module, such as `Billing::Tax` when `Billing` calls `private_constant :Tax` |
 | error | A syntax error |
@@ -376,7 +376,7 @@ Carton's own errors subclass `Carton::Error`:
 | Error | Raised when |
 | --- | --- |
 | `Carton::ImportError` | Boxes are disabled (run with `RUBY_BOX=1`), the target is a file inside a Carton, a Carton imports itself, or a shared Carton was built against other gem versions |
-| `Carton::ExportError` | `export` is called twice in one Entrypoint or given a Symbol, or a Bare Carton helper would hide a `Carton::Namespace` method |
+| `Carton::ExportError` | `export` is called twice in one Entrypoint or given a Symbol, or a Bare Carton Helper would hide a `Carton::Namespace` method |
 | `Carton::GemfileNotFound` | `setup_bundle` finds no Gemfile |
 
 Otherwise Carton raises what Ruby would: `LoadError` for a missing import target and `ArgumentError` for `export` without exactly one value. Every Box shares these classes, so `rescue Carton::Error` works in the app and inside any Carton.

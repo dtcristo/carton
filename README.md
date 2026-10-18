@@ -20,7 +20,7 @@ Carton is the package system Ruby has been missing. Split code into Cartons that
 
 A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory, with no manifest. A gem, a path gem, a directory, or a single file can be one, and a Carton with a gemspec can leave the app as a published gem unchanged.
 
-A Box does not isolate everything. Classes and objects a Carton exports are shared, not copied, so reopening an exported class or changing a shared object affects every importer. A plain `require` of a Carton's files loads a second copy outside its boundary, which `carton check` reports. And each Carton loads once per process: its state lasts as long as the process, and its first importer fixes its gem versions.
+A Box does not isolate everything. Classes and objects a Carton exports are shared, not copied, so reopening an exported class or changing a shared object affects every importer. A plain `require` of a Carton's files loads a Second Copy outside its boundary, which `carton check` reports. And each Carton loads once per process: its state lasts as long as the process, and its First Importer fixes its gem versions.
 
 ## Why Carton
 
@@ -82,7 +82,7 @@ Billing.invoice(42)
 RUBY_BOX=1 ruby main.rb
 ```
 
-`import_relative 'billing/invoice'` raises `Carton::ImportError`: the file is inside the `billing` Carton, so only `billing` can be imported. `import 'name'` searches `$LOAD_PATH` like `require`, so gems and path gems import by name, and a gem-shaped directory (`components/billing/lib/billing.rb`) imports by its path. Each Carton loads once per process, and every later import returns the same value.
+`import_relative 'billing/invoice'` raises `Carton::ImportError`: the file is in the `billing` Carton's Interior, so only `billing` can be imported. `import 'name'` searches `$LOAD_PATH` like `require`, so gems and path gems import by name, and a Gem-shaped Directory (`components/billing/lib/billing.rb`) imports by its path. Each Carton loads once per process, and every later import returns the same value.
 
 ## Gems and Bundler
 
@@ -94,11 +94,11 @@ Carton.setup_bundle # uses cartons/reports/Gemfile
 require 'bigdecimal'
 ```
 
-A gem in the app's bundle imports as a Carton and gets its dependencies at the app's locked versions. For a monorepo, make each package a path gem in one Gemfile and import it by name; see [examples/monorepo](examples/monorepo/README.md).
+A gem in the app's bundle imports as a Carton and gets its dependencies at the app's locked versions. For a monorepo, make each Carton a path gem in one Gemfile and import it by name; see [examples/monorepo](examples/monorepo/README.md).
 
 ## Types and checks
 
-The `carton` command, in the [`carton-tools`](carton-tools/README.md) gem, reads code without running it; add `gem 'carton-tools', group: :development` beside `carton`. `carton rbs main.rb` writes RBS so [Steep](https://github.com/soutaro/steep) knows what each import returns, and `carton check main.rb` reports missing imports, cycles, `require` calls that reach into a Carton, and gems a gem Carton uses without declaring them. See [Types and checks](docs/usage.md#types-and-checks).
+The `carton` command, in the [`carton-tools`](carton-tools/README.md) gem, reads code without running it; add `gem 'carton-tools', group: :development` beside `carton`. `carton rbs main.rb` writes RBS so [Steep](https://github.com/soutaro/steep) knows what each import returns, and `carton check main.rb` reports missing imports, cycles, `require` calls that reach into a Carton, and Undeclared Gems in a Gem Carton. See [Types and checks](docs/usage.md#types-and-checks).
 
 ## Status
 
@@ -106,7 +106,7 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7+ and, with 
 
 ## Docs
 
-- [usage.md](docs/usage.md): exports, imports, Bundler, gem Cartons, testing, types, and checks
+- [usage.md](docs/usage.md): exports, imports, Bundler, Gem Cartons, testing, types, and checks
 - [design.md](docs/design.md): how an import runs
 - [performance.md](docs/performance.md): import time and memory as Cartons and bundles grow
 - [todo.md](docs/todo.md): planned work and open questions
@@ -119,7 +119,7 @@ Examples, each runnable with `RUBY_BOX=1 ruby examples/<name>/main.rb`:
 | --- | --- |
 | [minimal](examples/minimal/README.md) | A Carton with its own directory, a single-file Carton, the error for importing a file inside a Carton, and Steep types |
 | [dependency_injection](examples/dependency_injection/README.md) | A checkout Carton with host-owned order storage, payments, and logging, tested through its export with fakes |
-| [monorepo](examples/monorepo/README.md) | Packages as path gems in one Gemfile, imported by gem name |
+| [monorepo](examples/monorepo/README.md) | Cartons as path gems in one Gemfile, imported by gem name |
 | [rails_in_main](examples/rails_in_main/README.md) | Rails in the Main Box, domain logic in a Carton: the recommended way to use Carton with Rails |
 | [plugins](examples/plugins/README.md) | A plugin host whose plugins need incompatible `bigdecimal` versions, each with its own bundle, and a `Float` patch that stays in one plugin |
 | [gems](examples/gems/README.md) | Two Cartons using different `bigdecimal` versions without Bundler |

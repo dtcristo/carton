@@ -38,7 +38,7 @@ bundle exec ruby ../../carton-tools/exe/carton check main.rb
 # spec.add_dependency 'shipping'
 ```
 
-Enforcing it at runtime too is proposed in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) as strict gem Cartons.
+Enforcing it at runtime too is proposed in [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) as strict Gem Cartons.
 
 ## Tests
 

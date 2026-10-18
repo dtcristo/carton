@@ -7,21 +7,21 @@ Ordered by priority within each section.
 - Spike Rails inside Cartons, the biggest gap to the North Star in [AGENTS.md](../AGENTS.md): reload changed domain Cartons by evicting them and the Cartons that import them from the import cache, add a Carton-aware `rails console`, and measure what Active Support's core extensions cost each domain Box.
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
 - Deferred until nsfiles are more common in Ruby: `Carton.nsfile = 'ns.rb'`, off by default and working like Zeitwerk's `nsfile`, so a directory's `shipping/ns.rb` can be its Entrypoint and `import_relative 'shipping'` finds it. A Carton setting, not Zeitwerk's config, since the Carton's loader is set up by the Entrypoint being resolved; `carton check` would need the same setting. Today the Entrypoint must sit beside its directory ([examples/zeitwerk](../examples/zeitwerk/README.md#namespaces-in-nsfiles)).
-- If large Cartons need lazy parts, let a Carton declare public sub-entrypoints that can be imported, like the `exports` field in Node's `package.json`. Today a file inside a Carton cannot be imported.
-- Stop loading Psych into each gem Carton's Box: rebuilding specs from YAML costs about 86 ms of a gem Carton's 195 ms ([performance.md](performance.md)). Avoid a `Marshal` round trip, which RubyGems had to special-case across Boxes. If Boxes can start from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)), spec rebuilding goes away entirely.
+- If large Cartons need lazy parts, let a Carton declare public sub-entrypoints in its Interior that can be imported, like the `exports` field in Node's `package.json`. Today no Interior file can be imported.
+- Stop loading Psych into each Gem Carton's Box: rebuilding specs from YAML costs about 86 ms of a Gem Carton's 195 ms ([performance.md](performance.md)). Avoid a `Marshal` round trip, which RubyGems had to special-case across Boxes. If Boxes can start from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)), spec rebuilding goes away entirely.
 - Drop the autoload `require` workaround in `Carton::Box` once the minimum Ruby includes [ruby/ruby#18534](https://github.com/ruby/ruby/pull/18534) ([Bug #21830](https://bugs.ruby-lang.org/issues/21830)).
-- Parked: strict gem Cartons, which load only a gem Carton's declared dependencies at runtime. Wait for [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) to settle whether Boxes get resolved load paths, which would make this a load-path choice instead of more Bundler internals. `carton check` already reports undeclared gems.
-- Decide what non-gem Cartons (plain `import_relative` directories) should see from the caller's bundle; today they see nothing unless they call `setup_bundle`.
-- Consider a fresh-Import escape hatch (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
+- Parked: strict Gem Cartons, which load only a Gem Carton's declared dependencies at runtime. Wait for [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) to settle whether Boxes get resolved load paths, which would make this a load-path choice instead of more Bundler internals. `carton check` already reports undeclared gems.
+- Decide what non-Gem Cartons (plain `import_relative` directories) should see from the importer's bundle; today they see nothing unless they call `setup_bundle`.
+- Consider an escape hatch from Shared Imports (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
 - Consider a small helper for the `register` pattern in `examples/rails_in_cartons` if more framework integrations need it.
 - Test that the gem builds, installs into a clean gem home, and can be required and imported.
 
 ## Tooling
 
-`carton rbs` and `carton check` exist; the rest of [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) is still open. Packages as gems are proposed in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
+`carton rbs` and `carton check` exist; the rest of [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) is still open. Cartons as gems are proposed in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
 
 - `carton check`: report unused exports and dead imports.
-- `carton check`: resolve imports inside a Carton that calls `setup_bundle` against its own `Gemfile.lock`, then report a gem Carton shared by importers whose lockfiles lock its dependencies at different versions (a runtime `Carton::ImportError` today).
+- `carton check`: resolve imports inside a Carton that calls `setup_bundle` against its own `Gemfile.lock`, then report a Gem Carton shared by importers whose lockfiles lock its dependencies at different versions (a runtime `Carton::ImportError` today).
 - `carton rbs`: read exported top-level method types from a Carton's own RBS, not only rbs-inline `#:` annotations.
 - `carton rbs`: optionally write Steepfile targets, one per Carton, so Cartons' internal constants cannot clash in RBS's single namespace.
 - Sorbet through a Tapioca DSL compiler, if `tapioca dsl` works under `RUBY_BOX=1`.

@@ -160,7 +160,7 @@ class IntegrationTest < Minitest::Test
     assert payload.fetch('main_load_path_unchanged')
   end
 
-  # bigdecimal 4.1.1 is also installed, so without sharing the gem Carton's
+  # bigdecimal 4.1.1 is also installed, so without sharing the Gem Carton's
   # Box would auto-activate the newest version instead of the locked 3.3.1.
   def test_gem_carton_uses_importer_locked_dependency_versions
     script = <<~RUBY
@@ -195,7 +195,7 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_bigdecimal_required')
   end
 
-  # A bundled Importer's lockfile bounds what a gem Carton can load, as
+  # A bundled Importer's lockfile bounds what a Gem Carton can load, as
   # `Bundler.setup` does for Main: undeclared locked gems load at their
   # locked version and unlocked gems fail.
   def test_gem_carton_of_bundled_importer_only_sees_locked_gems
@@ -316,7 +316,7 @@ class IntegrationTest < Minitest::Test
     end
   end
 
-  # Without Bundler, a gem Carton's default-gem dependencies keep the
+  # Without Bundler, a Gem Carton's default-gem dependencies keep the
   # versions the Importer activated, even when newer ones are installed: here
   # fake json and date 99.0.0 in a temporary gem home. date is also one of
   # Psych's requires, so it must be activated before any YAML spec rebuild.
@@ -371,7 +371,7 @@ class IntegrationTest < Minitest::Test
       fixtures = File.expand_path('test/fixtures/shared_gems', Dir.pwd)
       Carton.setup_bundle(gemfile: File.join(fixtures, 'Gemfile'))
 
-      import 'priced_gem' # first importer locks bigdecimal 3.3.1
+      import 'priced_gem' # First Importer locks bigdecimal 3.3.1
       begin
         import File.join(fixtures, 'newer/entry') # its bundle locks 4.1.1
         puts 'no error'
@@ -533,7 +533,7 @@ class IntegrationTest < Minitest::Test
     )
   end
 
-  # Activates the default `name`, then imports a gem Carton that requires it.
+  # Activates the default `name`, then imports a Gem Carton that requires it.
   def default_probe_script(name, probe)
     <<~RUBY
       require File.expand_path('lib/carton', Dir.pwd)

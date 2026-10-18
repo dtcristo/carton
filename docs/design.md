@@ -12,11 +12,11 @@ What a package system needs, and where Carton stands:
 | --- | --- |
 | Units with a private interior | Done. Only an Entrypoint can be imported, only exports cross, and `private_constant` hides the rest. |
 | Imports bound where they are used | Done. `import` returns a value and defines nothing in the importer. |
-| Gem versions per unit | Done. `Carton.setup_bundle` gives a Carton its own bundle, and gem Cartons get the importer's versions. A shared Carton keeps its first importer's versions. |
+| Gem versions per unit | Done. `Carton.setup_bundle` gives a Carton its own bundle, and Gem Cartons get the importer's versions. A shared Carton keeps its First Importer's versions. |
 | Contained side effects | Partly. Patches to builtins stay in their Carton, but exported classes are shared and can be reopened. |
-| Declared dependencies | Partly. A gem Carton's gemspec declares them and `carton check` reports undeclared ones, but the runtime gives it the importer's whole lockfile. |
+| Declared dependencies | Partly. A Gem Carton's gemspec declares them and `carton check` reports Undeclared Gems, but the runtime gives it the importer's whole lockfile. |
 | Graph tooling | Partly. `carton check` and `carton rbs` exist; a dependency graph and a baseline file do not. |
-| Distribution | Done by design. A Carton is gem-shaped, and a monorepo package is a path gem ([dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32)). |
+| Distribution | Done by design. A Carton is gem-shaped, and each Carton in a monorepo is a path gem ([dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32)). |
 | Public sub-entrypoints | Missing. Only the Entrypoint can be imported. |
 | Cheap enough for many units | Missing. About 60 ms and 2.4 MB per Carton, most of it `Ruby::Box.new`, so tens of Cartons, not hundreds ([performance.md](performance.md)). |
 | Works with Rails | Partly. Rails in the Main Box works; Rails inside Cartons has no reloading or Rails CLI, and domain Cartons load Active Support's core extensions themselves. |
@@ -34,10 +34,10 @@ The model fits. The biggest gaps are cost, Rails inside Cartons, and Box's exper
 | `lib/carton/runtime.rb` | Resolves an Import, checks the cache, and builds a Carton Box; validates `export` calls |
 | `lib/carton/resolver.rb` | Maps an Import path to a Carton's Entrypoint, given a load path, without evaluating code |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
-| `lib/carton/box.rb` | The Carton Box: wraps a plain `Ruby::Box`, runs one Import from boot to Public Surface, and holds its exported value |
-| `lib/carton/namespace.rb` | `Carton::Namespace`, the module a Bare Carton's importers receive |
+| `lib/carton/box.rb` | The Carton Box: wraps a plain `Ruby::Box`, runs one Import from boot to Public Surface, and holds its Export |
+| `lib/carton/namespace.rb` | `Carton::Namespace`, the module a Bare Carton's Importers receive |
 | `lib/carton/namespace_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring |
-| `lib/carton/gem_activation.rb` | Gem Carton activation; the only place Carton calls Bundler internals |
+| `lib/carton/gem_activation.rb` | Gem Closure activation for Gem Cartons; the only place Carton calls Bundler internals |
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` and Gemfile discovery from the calling file |
 
@@ -55,17 +55,17 @@ The `carton` command ships in the `carton-tools` gem, under `carton-tools/`, as 
 ## Import flow
 
 1. `import` or `import_relative` calls `Carton::Runtime.import`.
-2. `Carton::Resolver` resolves the target: `import_relative` from the calling file's directory, `import` from an absolute path or the calling Box's `$LOAD_PATH`. A gem-shaped directory resolves to `<dir>/lib/<dir>.rb`. A file inside a Carton, under the directory named after an Entrypoint, raises `Carton::ImportError`. The resolver never checks the current directory and reads only the file system, so static tools can reuse it.
-3. If the target is already imported, the cached value is returned. Otherwise Carton creates a new `Carton::Box`, which holds the Import's state and wraps a plain `Ruby::Box`. A subclass would let the Carton's autoloads run in the importer's Box.
+2. `Carton::Resolver` resolves the target: `import_relative` from the calling file's directory, `import` from an absolute path or the importer's `$LOAD_PATH`. A Gem-shaped Directory resolves to `<dir>/lib/<dir>.rb`. A file in a Carton's Interior raises `Carton::ImportError`. The resolver never checks the current directory and reads only the file system, so static tools can reuse it.
+3. If the target is already imported, the cached value is returned. Otherwise Carton creates a new Carton Box, a `Carton::Box`, which holds the Import's state and wraps a plain `Ruby::Box`. A subclass would let the Carton's autoloads run in the importer's Box.
 4. Carton requires its own `lib/carton.rb` inside the Box, so the Carton can call `import` and `export`, then points that copy's error classes at the importer's, so `rescue Carton::Error` matches errors from any Box.
 5. If the target was found by name, only the load-path entry that matched is added to the new Box.
-6. If an activated gem in the caller owns the target, that gem and its activated runtime dependencies are activated in the new Box at the caller's versions, dependencies first. If the caller ran Bundler setup, the Box is first restricted to the caller's locked gems and all of them are activated, as `Bundler.setup` does.
+6. If an activated gem in the importer owns the target, Carton activates that gem's Gem Closure in the new Box at the importer's versions, dependencies first. If the importer ran Bundler setup, the Box is first restricted to the importer's locked gems and all of them are activated, as `Bundler.setup` does.
 7. The target file is required inside the Box.
-8. The exported value is returned as is. With no export, the constants and top-level helpers the Entrypoint defined are wrapped in a `Carton::Namespace` instead. The Box itself never leaves Carton.
+8. The Export is returned as is. With no export, the constants and Helpers the Entrypoint defined are wrapped in a `Carton::Namespace` instead. The Box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Namespace`, whichever Carton imports it first. Ruby objects are shared across Boxes, so cached values cross Box boundaries unchanged.
 
-Each cache entry records the gem versions activated for it. A later import of the same Entrypoint whose caller has different versions activated raises instead of reusing the entry, so one shared Carton never serves two lockfiles.
+Each cache entry records the gem versions activated for it. A later import of the same Entrypoint whose importer has different versions activated raises instead of reusing the entry, so one shared Carton never serves two lockfiles.
 
 A mutex guards only the cache's bookkeeping, never a running Entrypoint, so an Entrypoint can start threads that import other Cartons. Each Entrypoint records the thread loading it. Another thread importing it waits for that load; the same thread importing it again raises `circular import`. Failed loads are not cached, and a waiting thread then tries the load itself. Targets that do not resolve to an absolute path, such as builtin features, load uncached.
 
@@ -74,17 +74,17 @@ A mutex guards only the cache's bookkeeping, never a running Entrypoint, so an E
 There are two return shapes:
 
 - Export: the value given to `export`, returned as is
-- Bare Carton: a `Carton::Namespace` of the discovered Public Surface
+- Bare Carton: a `Carton::Namespace` of its constants and Helpers
 
 `export` takes one value, once per Entrypoint, so the import returns exactly what the author exported. Keywords are Ruby's own braceless Hash argument, so `export version: '1.0'` exports a plain Hash. A Symbol raises, since `export def add` would otherwise export `:add` itself. `KernelPatch#export` passes the calling file to `Runtime`, which declares only when that file is the importing Box's Entrypoint; elsewhere `export` validates its argument, returns it, and does nothing else. The Box keeps the one exported value.
 
-A Bare Carton's Public Surface is the constants and top-level helpers its Entrypoint introduced; constants the runtime defined beforehand are excluded. Carton reads the constants when the import finishes and builds a `Carton::Namespace`: a `Module` with a forwarding singleton method for each helper and a constant for each constant. Lookups through `NamespaceMethods` return the recorded `Method` object without calling it, and full deconstruction enumerates every member without calling one.
+A Bare Carton's Public Surface is the constants and Helpers its Entrypoint introduced; constants the runtime defined beforehand are excluded. Carton reads the constants when the import finishes and builds a `Carton::Namespace`: a `Module` with a forwarding singleton method for each Helper and a constant for each constant. Lookups through `NamespaceMethods` return the recorded `Method` object without calling it, and full deconstruction enumerates every member without calling one.
 
 ## Load path model
 
-Ruby 4.0.7 creates the Root Box, the Main Box, and every optional Box from its internal Master Box, not from the calling Box. `require` resolves against the loading Box's own `$LOAD_PATH` and `$LOADED_FEATURES`.
+Ruby 4.0.7 creates the Root Box, the Main Box, and every Optional Box, including each Carton Box, from its internal Master Box, not from the importer's Box. `require` resolves against the loading Box's own `$LOAD_PATH` and `$LOADED_FEATURES`.
 
-Carton therefore does not copy the caller's whole load path forward. It resolves the feature in the calling Box, then adds only the matching load-path entry to the new Box, so the Carton's own nested `require` calls work. Gems in the caller's bundle are already on its load path; local Cartons that are not gems need their `lib/` directories added before `import 'name'`.
+Carton therefore does not copy the importer's whole load path forward. It resolves the feature in the importer's Box, then adds only the matching load-path entry to the new Box, so the Carton's own nested `require` calls work. Gems in the importer's bundle are already on its load path; local Cartons that are not gems need their `lib/` directories added before `import 'name'`.
 
 ## Bundler model
 
@@ -98,6 +98,6 @@ Carton patches nothing in RubyGems or Bundler. They do their activation work in 
 
 `ENV` is the exception, because it is process-global. Bundler reads `BUNDLE_GEMFILE` and `BUNDLE_LOCKFILE` to find the bundle and exports subprocess variables such as `RUBYOPT`. `setup_bundle` sets the Gemfile from the calling file, clears the lockfile, and restores all of `ENV` after setup, so importing a Carton never changes the environment the Main Box's subprocesses see.
 
-Gem Cartons need no setup of their own; step 6 of the import flow carries the caller's activated versions into their Box.
+Gem Cartons need no setup of their own; step 6 of the import flow carries the importer's activated versions into their Box.
 
 See [how-gems-work.md](internals/how-gems-work.md) and [how-boxes-work.md](internals/how-boxes-work.md) for the runtime model, and [upstream.md](internals/upstream.md) for upstream status.

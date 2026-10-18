@@ -14,7 +14,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 ## Decisions
 
 - Importers never get another Carton's Box; Bare Cartons return `Carton::Namespace`.
-- A Carton is an Entrypoint `x.rb` plus the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Files inside a Carton cannot be imported; the outermost Entrypoint wins.
+- A Carton is an Entrypoint `x.rb` plus its Interior, the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Interior files cannot be imported; the outermost Entrypoint wins.
 - Imports are cached process-wide by Entrypoint real path.
 - `Carton::Box` wraps a plain `Ruby::Box`; never subclass `Ruby::Box` (autoloads would load in the importer's Box).
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.

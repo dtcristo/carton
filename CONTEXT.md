@@ -48,7 +48,7 @@ Carton is a package system for Ruby: a small import and export language for gem-
 
 ### Exporting
 
-**Export**: The one value a Carton's Entrypoint gives `export`, returned as is when the Carton is imported: usually its root module, or a Hash from keywords. Calls in any other file, including files loaded by plain `require`, declare nothing. A Bare Carton has none. _Avoid_: Default export, named exports, export declaration, exported value wrapper
+**Export**: The one value a Carton's Entrypoint gives `export`, returned as is when the Carton is imported: usually its root module, or a Hash from keywords. Calls in any other file, including files loaded by plain `require`, declare nothing. A Bare Carton has none. _Avoid_: Default export, named exports, export declaration
 
 **Public Surface**: Everything a Carton deliberately makes reachable across its boundary: its Export or Namespace, and what those expose. _Avoid_: API, public API, exports
 

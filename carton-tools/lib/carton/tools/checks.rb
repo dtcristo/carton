@@ -137,7 +137,7 @@ module Carton
         end
       end
 
-      # A gem Carton's gemspec is its manifest: every other gem it imports or
+      # A Gem Carton's gemspec is its manifest: every other gem it imports or
       # requires must be a runtime dependency there. Under a bundled app it
       # still loads today, since the Carton sees the app's whole lockfile, but
       # it fails wherever the gem is installed without that dependency. Default

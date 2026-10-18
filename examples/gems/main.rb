@@ -2,7 +2,7 @@
 
 require_relative '../../lib/carton'
 
-# Both cartons live next to main.rb, so import_relative is enough here.
+# Both Cartons live next to main.rb, so import_relative is enough here.
 bigdecimal3 = import_relative 'bigdecimal3'
 bigdecimal4 = import_relative 'bigdecimal4'
 

@@ -85,7 +85,7 @@ Ruby 4.0.7 distinguishes these roles:
 | Main Box | user Box that runs the command-line program and `-r` loads |
 | optional Box | extra user Box created by `Ruby::Box.new` |
 
-Main and optional Boxes are both user Boxes. Carton runs each imported Carton inside an optional Box; the application that imports them runs in Main.
+Main and optional Boxes are both user Boxes. Carton runs each imported Carton inside its own Carton Box, an optional Box; the application that imports them runs in Main.
 
 ## Boot sequence and the Master Box
 
@@ -161,7 +161,7 @@ Two consequences matter a lot:
 
 This is why a Box created deep inside another Box does **not** automatically inherit the caller's custom `$LOAD_PATH`.
 
-Carton handles that by carrying forward only the caller load-path entry that resolved the imported feature.
+Carton handles that by carrying forward only the importer's load-path entry that resolved the imported feature.
 
 ### 2. Root and Main state are not inherited
 
@@ -405,9 +405,9 @@ Carton is aligned with the parts of `Ruby::Box` that are already strong:
 
 But the internals also explain Carton's current constraints:
 
-### Why Carton resolves imports in the caller Box first
+### Why Carton resolves imports in the importer's Box first
 
-Because new Boxes copy **Master**, not the current caller Box. Carton therefore asks the caller Box to resolve the feature name, then carries only the matched load-path entry into the imported Box when that feature needs its own load-path root.
+Because new Boxes copy **Master**, not the Box that creates them. Carton therefore asks the importer's Box to resolve the feature name, then carries only the matched load-path entry into the Carton Box when that feature needs its own load-path root.
 
 ### Why Bundler setup inside the Box is the right shape
 
@@ -442,6 +442,6 @@ Carton needs no upstream change today. [upstream.md](upstream.md) tracks the sma
 
 If you want one sentence that stays accurate:
 
-> `Ruby::Box` already isolates file loading, RubyGems activation state, and monkey patches to builtins. Carton manages the process-global `ENV`, carries a gem Carton's dependencies into its Box, and leaves classes it defines shared.
+> `Ruby::Box` already isolates file loading, RubyGems activation state, and monkey patches to builtins. Carton manages the process-global `ENV`, carries a Gem Carton's dependencies into its Box, and leaves classes it defines shared.
 
 That is the lens to keep while designing Carton.
