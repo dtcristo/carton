@@ -32,7 +32,7 @@ See [upstream.md](internals/upstream.md) for detail.
 - Comment on [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) with Carton's use case, supporting Boxes created from a resolved load path (proposed there on 2026-09-25), and reframe [dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16) around it.
 - Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: official template Box support, framed as requirements derived from how Box copy-on-write works, leaving Master clean.
 - Send a one-line fix for `doc/language/box.md`, which still says Main is created at the end of bootstrap.
-- Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals ([#18408](https://bugs.ruby-lang.org/issues/18408)); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export_default` and plain assignment already cover it.
+- Idea, low odds: constant binding in patterns (`import(path) => { Name: }`). Matz limits pattern targets to locals ([#18408](https://bugs.ruby-lang.org/issues/18408)); see [constant-binding-patterns.md](internals/constant-binding-patterns.md). `export` and plain assignment already cover it.
 
 ## Docs
 

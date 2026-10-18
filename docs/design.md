@@ -11,14 +11,13 @@ imports of gem-sized and domain-sized units feel like part of Ruby.
 | --- | --- |
 | `lib/carton.rb` | Entry point; loads the pieces below |
 | `lib/carton/error.rb` | `Carton::Error` and its subclasses |
-| `lib/carton/kernel_patch.rb` | Private `Kernel#import`, `#import_relative`, `#export`, and `#export_default` |
+| `lib/carton/kernel_patch.rb` | Private `Kernel#import`, `#import_relative`, and `#export` |
 | `lib/carton/runtime.rb` | Resolves an Import, checks the cache, and builds a Carton Box; validates `export` calls |
 | `lib/carton/resolver.rb` | Maps an Import path to a Carton's Entrypoint, given a load path, without evaluating code |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
-| `lib/carton/box.rb` | The Carton Box: wraps a plain `Ruby::Box`, runs one Import from boot to Public Surface, and holds its Export Declaration |
-| `lib/carton/export_declaration.rb` | One Entrypoint's exports: uniqueness, Default Export versus Export Namespace, and the Public Surface |
-| `lib/carton/exports.rb` | `Carton::Exports`, the module-like namespace importers receive |
-| `lib/carton/export_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring |
+| `lib/carton/box.rb` | The Carton Box: wraps a plain `Ruby::Box`, runs one Import from boot to Public Surface, and holds its exported value |
+| `lib/carton/namespace.rb` | `Carton::Namespace`, the module a Bare Carton's importers receive |
+| `lib/carton/namespace_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring |
 | `lib/carton/gem_activation.rb` | Gem Carton activation; the only place Carton calls Bundler internals |
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` and Gemfile discovery from the calling file |
@@ -62,15 +61,15 @@ executable, since every gem built on Carton depends on it.
    Box is first restricted to the caller's locked gems and all of them are
    activated, as `Bundler.setup` does.
 7. The target file is required inside the Box.
-8. A Default Export is returned as is. Named Exports are wrapped in
-   `Carton::Exports`. With no exports, the constants and top-level helpers the
-   Entrypoint defined are wrapped instead. The Box itself never leaves Carton.
+8. The exported value is returned as is. With no export, the constants and
+   top-level helpers the Entrypoint defined are wrapped in a
+   `Carton::Namespace` instead. The Box itself never leaves Carton.
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The
 Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it
 builds, so nested imports hit the same cache. The cache also holds the Main
 Box's loader, so every Carton is built with the Main Box's `Carton::Box` and
-`Carton::Exports`, whichever Carton imports it first. Ruby objects are shared
+`Carton::Namespace`, whichever Carton imports it first. Ruby objects are shared
 across Boxes, so cached values cross Box boundaries unchanged.
 
 Each cache entry records the gem versions activated for it. A later import of
@@ -88,39 +87,26 @@ load uncached.
 
 ## Export model
 
-There are three return shapes:
+There are two return shapes:
 
-- Default Export: the `export_default` value itself
-- Export Namespace: `Carton::Exports` of the Named Exports from every `export`
-  call
-- Bare Carton: `Carton::Exports` of the discovered Public Surface
+- Export: the value given to `export`, returned as is
+- Bare Carton: a `Carton::Namespace` of the discovered Public Surface
 
-`export_default` may be called once and never alongside `export`, so the
-author's choice decides the shape and no name becomes unreachable.
-
-`export` takes positional Symbols plus keyword values. A capitalized Symbol
-names a top-level constant, read with `Object.const_get(name, false)`; any
-other Symbol names a top-level method, captured with `method(name)` on the
-Carton's top-level object. Both are looked up at the call, so a missing name
-raises `NameError` there. Each call adds to an immutable Export Declaration,
-which rejects a name exported twice. `KernelPatch#export` passes the calling
-file to `Runtime`, which declares only when that file is the importing Box's
-Entrypoint; elsewhere `export` validates its arguments and does nothing.
-
-`Carton::Exports` defines a forwarding singleton method for each exported
-method, exposes capitalized value keys as constants, and exposes lowercase
-value keys as readers that return the value unchanged, even when it responds
-to `call`. Lookups through `ExportMethods` return the `Method` object for
-method exports.
+`export` takes one value, once per Entrypoint, so the import returns exactly
+what the author exported. Keywords are Ruby's own braceless Hash argument, so
+`export version: '1.0'` exports a plain Hash. A Symbol raises, since
+`export def add` would otherwise export `:add` itself. `KernelPatch#export`
+passes the calling file to `Runtime`, which declares only when that file is
+the importing Box's Entrypoint; elsewhere `export` validates its argument,
+returns it, and does nothing else. The Box keeps the one exported value.
 
 A Bare Carton's Public Surface is the constants and top-level helpers its
 Entrypoint introduced; constants the runtime defined beforehand are excluded.
-Carton reads the constants when the import finishes and builds the same
-`Carton::Exports` an Export Namespace uses. Helper lookups return the recorded
-`Method` object without calling it.
-
-Full deconstruction enumerates every Named Export, or every member of a Bare
-Carton's Public Surface, and never calls a method.
+Carton reads the constants when the import finishes and builds a
+`Carton::Namespace`: a `Module` with a forwarding singleton method for each
+helper and a constant for each constant. Lookups through `NamespaceMethods`
+return the recorded `Method` object without calling it, and full
+deconstruction enumerates every member without calling one.
 
 ## Load path model
 

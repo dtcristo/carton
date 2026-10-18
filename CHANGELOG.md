@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Breaking
+
+- `export` takes one value, which `import` returns as is, and replaces
+  `export_default`: write `export Billing`. Named Exports are removed, since
+  a Ruby module is already a namespace. Export a module of methods instead,
+  or use keywords, which now export a plain Hash: `export version: '1.0'`
+  returns `{ version: '1.0' }`, so read it with `[:version]` or a `=>`
+  pattern. `export` may be called once per Entrypoint, and a Symbol, as in
+  `export def add` or `export :Money`, raises `Carton::ExportError`.
+- `Carton::Exports` is renamed `Carton::Namespace`, and only Bare Cartons
+  return it.
+
 ### Fixed
 
 - An Entrypoint that starts a thread which imports another Carton, and
@@ -9,9 +21,8 @@
   lock while running every Entrypoint; it now locks only its bookkeeping
   and makes a thread wait only for an Entrypoint another thread is loading.
 
-- `carton check` no longer reports `export_default` or `export` calls in
-  different branches of one `if`, `unless`, or `case` as duplicates or as
-  mixing both forms, since only one branch runs.
+- `carton check` no longer reports `export` calls in different branches of
+  one `if`, `unless`, or `case` as duplicates, since only one branch runs.
 
 - A shared gem Carton raises `Carton::ImportError` when a later importer
   locks a different version of a gem it loaded without declaring, such as an
@@ -40,11 +51,10 @@
   recommends Default Exports first, and the docs show shared imports'
   consequences early, with a plugin testing recipe. Rails in the Main Box is
   the recommended Rails setup; Rails inside Cartons is marked experimental.
-- A lowercase export named like a method every `Carton::Exports` has, such as
-  `export fetch: 42` or `export def name`, raises `Carton::ExportError`. It
-  used to replace the built-in method, so `exports.fetch(:fetch)` broke. A
-  Bare Carton's top-level methods follow the same rule. `carton check`
-  reports these too.
+- A Bare Carton helper named like a method every `Carton::Namespace` has,
+  such as `def fetch` or `def name`, raises `Carton::ExportError`. It used to
+  replace the built-in method, so `namespace.fetch(:fetch)` broke.
+  `carton check` reports these too.
 - A missing `import_relative` target's `LoadError` names the files Carton
   tried, and a name `import` cannot find says it searched `$LOAD_PATH`,
   suggesting `import_relative` when a matching file is beside the caller.
@@ -60,14 +70,14 @@
   `# carton:dynamic` comment marks an intentionally dynamic import, such as
   plugin discovery, to silence its warning.
 - `carton check` follows names bound to imports and reports, as errors, a
-  Named Export that does not exist where using it would raise
-  (`MathTools.nope`, `MathTools::NOPE`, `fetch(:nope)`, a `=>` pattern), and
-  a reference to a Default Export's private constant (`Billing::Tax`).
+  key an exported Hash does not have, read with `fetch(:nope)` or a `=>`
+  pattern, and a reference to an exported module's private constant
+  (`Billing::Tax`).
 - `bench/scale.rb` (`rake bench`) measures import time and memory as
   Cartons and bundles grow; [docs/performance.md](docs/performance.md) has
   the results.
-- `Carton::Exports#keys` and `#to_h`, and a readable `inspect`:
-  `#<Carton::Exports add, PI, version>`.
+- `Carton::Namespace#keys` and `#to_h`, and a readable `inspect`:
+  `#<Carton::Namespace add, PI>`.
 - `examples/plugins`, a report runner whose two plugins load bigdecimal
   3.3.1 and 4.1.1 in one process from their own bundles, while one plugin's
   `Float#to_s` patch stays out of the host and the other plugin.
@@ -78,12 +88,12 @@
   with `carton` at exactly the same version, and `carton` itself stays the
   runtime only, with no dependencies and no executable.
 - `carton rbs` writes `sig/generated/carton.rbs` so Steep knows what each
-  import returns: a Default Export's own type, or a generated
-  `Carton::Exports::*` module for Named Exports, typed from rbs-inline `#:`
-  annotations and literal values.
+  import returns: an exported constant's own type, a record type for a
+  keyword export, or a generated `Carton::Namespace::*` module for a Bare
+  Carton, typed from rbs-inline `#:` annotations and literal values.
 - `carton check` reports missing imports, imports of files inside a Carton,
   import cycles, `require` calls that load a second copy of an imported
-  Carton, and invalid export declarations, and exits non-zero on errors.
+  Carton, and invalid `export` calls, and exits non-zero on errors.
 - `carton check` treats a gem Carton's gemspec as its manifest: it reports
   each gem the Carton imports or requires that its gemspec does not declare.
 - `examples/monorepo/test` shows both ways to test a Carton: a unit test that
@@ -92,8 +102,8 @@
   `rake example:<name>` runs an example's `test/**/*_test.rb` after `main.rb`.
 - `examples/rails_in_cartons` declares the `logger` dependency its `shop`
   Carton requires.
-- `sig/carton.rbs` declares `Carton::ExportMethods`, which `Carton::Exports`
-  includes.
+- `sig/carton.rbs` declares `Carton::NamespaceMethods`, which
+  `Carton::Namespace` includes.
 - The minimal example type-checks with Steep.
 - `examples/zeitwerk` shows Zeitwerk with Cartons outside Rails: a Carton
   using `Zeitwerk::Loader.for_gem`, a separate Zeitwerk per Box, an app loader

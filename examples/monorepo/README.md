@@ -11,7 +11,7 @@ dependencies and runs as a Carton in its own Box, and Bundler is the manifest
 - One `Gemfile` and `Gemfile.lock` cover the whole monorepo and pin every
   third-party version.
 - `import 'billing'` loads a package by gem name in its own Box. Only its
-  `export_default` value crosses back.
+  `export` value crosses back.
 - `billing` imports `pricing`, its declared dependency. Imports are cached per
   process, so `billing` and the app share one `pricing` Carton.
 - `Pricing::Rounding` is hidden with `private_constant`.
@@ -24,7 +24,7 @@ main.rb                    # Carton.setup_bundle, then import each package
 packages/
   pricing/
     pricing.gemspec        # depends on bigdecimal
-    lib/pricing.rb         # Entrypoint: export_default Pricing
+    lib/pricing.rb         # Entrypoint: export Pricing
   billing/
     billing.gemspec        # depends on pricing
     lib/billing.rb         # Pricing = import 'pricing'

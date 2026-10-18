@@ -14,10 +14,10 @@ Main Box:
 
 | Carton | Box contains | Exports |
 | --- | --- | --- |
-| `framework` | Rails, Active Record, Action Controller, sqlite3 | `ApplicationRecord`, `ApplicationController`, `register`, `Rails`, `ActiveRecord` |
-| `customers` | `Customer` model, `CustomersController` | those classes, `create_schema` |
-| `orders` | `Order` model, `OrdersController`; imports `customers` | those classes, `create_schema` |
-| `shop` | the `Rails::Application`, routes, `config/database.yml` | `export_default Shop` |
+| `framework` | Rails, Active Record, Action Controller, sqlite3 | `Framework`: `ApplicationRecord`, `ApplicationController`, `Rails`, `ActiveRecord`, `register` |
+| `customers` | `Customer` model, `CustomersController` | `Customers`: those classes, `create_schema` |
+| `orders` | `Order` model, `OrdersController`; imports `customers` | `Orders`: those classes, `create_schema` |
+| `shop` | the `Rails::Application`, routes, `config/database.yml` | `export Shop` |
 
 `main.rb` plays the server: the Main Box loads only Rack, imports `shop`, and
 sends requests to it.

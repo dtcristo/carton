@@ -57,8 +57,8 @@ Carton needs Ruby 4.0.7+ with Boxes enabled (`RUBY_BOX=1`). Install it:
 gem install carton   # or add `gem 'carton'` to your Gemfile
 ```
 
-A Carton's Entrypoint loads its own files and exports one value with
-`export_default`:
+A Carton's Entrypoint loads its own files and exports one value, usually its
+root module:
 
 ```
 billing.rb          # the Entrypoint
@@ -73,19 +73,10 @@ module Billing
   def self.invoice(total) = Invoice.new(total)
 end
 
-export_default Billing
+export Billing
 ```
 
-Or it exports several names with `export`. Capitalized Symbols name
-constants, other Symbols name methods, and keywords are plain values:
-
-```ruby
-# math.rb
-export def add(a, b) = a + b
-export PI: 3.14159
-```
-
-Import them:
+Import it:
 
 ```ruby
 # main.rb
@@ -93,10 +84,6 @@ require 'carton'
 
 Billing = import_relative 'billing'
 Billing.invoice(42)
-
-MathTools = import_relative 'math'
-MathTools.add(2, 3) # => 5
-MathTools::PI       # => 3.14159
 ```
 
 ```sh

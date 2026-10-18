@@ -48,12 +48,12 @@ main.rb                      # the host: finds, imports, and runs plugins
 plugins/
   sales_tax/
     Gemfile, Gemfile.lock    # bigdecimal 3.3.1
-    lib/sales_tax.rb         # Entrypoint: setup_bundle, export_default SalesTax
+    lib/sales_tax.rb         # Entrypoint: setup_bundle, export SalesTax
     lib/sales_tax/
       float_as_money.rb      # the Float#to_s patch, inside the Carton
   growth/
     Gemfile, Gemfile.lock    # bigdecimal 4.1.1
-    lib/growth.rb            # Entrypoint: setup_bundle, export_default Growth
+    lib/growth.rb            # Entrypoint: setup_bundle, export Growth
 ```
 
 Neither plugin knows about the other, and adding a third is a new directory

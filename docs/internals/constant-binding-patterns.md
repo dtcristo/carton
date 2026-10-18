@@ -17,8 +17,8 @@ Can Ruby grow a pattern form that defines constants, so Carton could write
 - The grammar change is small. The semantics are not: `{ Billing: }` reads
   naturally as "match against `Billing`", by analogy with the hash literal
   `{ X: }`, which reads constant `X`.
-- Chances upstream are low. Carton covers the common case with
-  `export_default`, and plain constant assignment covers the rest.
+- Chances upstream are low. Carton covers the common case with `export`,
+  and plain constant assignment covers the rest.
 
 ## Current behavior on Ruby 4.0.7
 
@@ -209,10 +209,9 @@ Carton briefly had name selection (`Money, Tax = import 'pricing', :Money,
 above, it was dropped in favour of a smaller API that already reads well:
 
 ```ruby
-Billing = import 'billing'                 # a Carton whose Entrypoint calls export_default Billing
-Pricing = import 'pricing'                 # a namespace of named exports
-Money = import('pricing')::Money           # one constant from a namespace
-import('math') => { add:, PI: pi }         # locals via patterns, including capitalized keys
+Billing = import 'billing'                 # a Carton whose Entrypoint calls export Billing
+Money = import('pricing')::Money           # one constant from an exported module
+import('info') => { version: }             # locals from an exported Hash
 ```
 
 Ordinary constant assignment already gives the cref, the `def`
