@@ -29,7 +29,7 @@ A Carton's Box starts from Ruby's clean Master Box, so the app's `ApplicationRec
 
 ## Development
 
-`main.rb` sends one request and exits. Rerun it after editing; restart a long-running host to pick up changed Cartons. See [Editing code](../README.md#editing-code) for the shared development workflow.
+`main.rb` sends one request and exits. Rerun it after editing; restart a long-running host to pick up changed Cartons. See [Editing code](../README.md#editing-code) for restart and reloading guidance.
 
 Zeitwerk can reload code inside a Carton's Box, but importers keep the classes and objects they already hold, and this Carton's `Zeitwerk::Loader.for_gem` loader cannot reload at all. [examples/zeitwerk](../zeitwerk/README.md#reloading) covers when reloading works and its limits.
 
