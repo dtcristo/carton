@@ -16,10 +16,17 @@ require 'zeitwerk'
 module Shipping
   # This Box's Zeitwerk, not the app's.
   def self.zeitwerk_dirs = Zeitwerk::Loader.all_dirs
+  def self.zeitwerk_nsfiles? = Zeitwerk::Loader.method_defined?(:nsfile=)
 end
 
 loader = Zeitwerk::Loader.new
+# Zeitwerk 2.8+: a directory's ns.rb defines its namespace, so
+# shipping/carriers/ns.rb defines Shipping::Carriers.
+loader.nsfile = 'ns.rb'
 loader.push_dir(File.join(__dir__, 'shipping'), namespace: Shipping)
+# Carriers stays lazy, so its autoload, which points at its ns.rb, is
+# triggered from the Main Box; see the README.
+loader.do_not_eager_load(File.join(__dir__, 'shipping', 'carriers'))
 loader.enable_reloading
 loader.setup
 loader.eager_load

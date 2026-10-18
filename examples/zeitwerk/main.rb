@@ -47,6 +47,9 @@ show 'billing loader dirs',
      relative(Billing.zeitwerk_dirs),
      %w[cartons/billing/lib]
 show 'shipping loader dirs', relative(Shipping.zeitwerk_dirs), %w[lib/shipping]
+# nsfiles arrived in Zeitwerk 2.8, so only the shipping Box has them.
+show 'billing zeitwerk has nsfiles', Billing.zeitwerk_nsfiles?, false
+show 'shipping zeitwerk has nsfiles', Shipping.zeitwerk_nsfiles?, true
 puts
 
 puts '-- Eager loading runs in the Carton\'s Box --'
@@ -61,6 +64,24 @@ app_loader.eager_load
 show 'Carton files in the Main Box\'s $LOADED_FEATURES',
      $LOADED_FEATURES.grep(%r{/(billing|shipping)(/|\.rb)}).size,
      0
+puts
+
+puts '-- A lazy namespace defined in an nsfile --'
+# Shipping::Carriers is excluded from eager loading, so this line triggers its
+# autoload, which points at carriers/ns.rb, from the Main Box. ns.rb runs in
+# the shipping Carton's Box, and Zeitwerk then defines Post's autoload there.
+show 'Shipping::Carriers autoloads',
+     relative([Shipping.autoload?(:Carriers)]).first,
+     'lib/shipping/carriers/ns.rb'
+show 'Shipping::Carriers loaded in the Main Box',
+     Shipping::Carriers::LOADED_IN.equal?(main_box),
+     false
+show 'Shipping::Carriers::Post loaded in the Main Box',
+     Shipping::Carriers::Post::LOADED_IN.equal?(main_box),
+     false
+show 'ns.rb defines a constant of its own',
+     Shipping::Carriers.const_defined?(:Ns, false),
+     false
 puts
 
 puts '-- The app\'s own code, autoloaded in the Main Box --'
@@ -81,6 +102,7 @@ puts
 puts '-- Reloading a Carton --'
 held = Shipping::Rate # an importer keeping a reference, like a constant
 rate = Shipping::Rate.new
+carriers = Shipping::Carriers
 Shipping.reload!
 # Shipping is the same module, and its loader defined a fresh Rate in it.
 show 'Shipping is the same module',
@@ -89,6 +111,10 @@ show 'Shipping is the same module',
 show 'Shipping::Rate reloaded in the Main Box',
      Shipping::Rate::LOADED_IN.equal?(main_box),
      false
+show 'Shipping::Carriers reloaded from its nsfile',
+     !Shipping::Carriers.equal?(carriers) &&
+       !Shipping::Carriers::LOADED_IN.equal?(main_box),
+     true
 show 'Shipping::Rate is still the held class',
      Shipping::Rate.equal?(held),
      false
