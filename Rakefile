@@ -23,6 +23,7 @@ RUBOCOP_FILES = %w[
 ].freeze
 EXAMPLES = %w[
   minimal
+  dependency_injection
   plugins
   gems
   bundler

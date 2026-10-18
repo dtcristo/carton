@@ -189,6 +189,20 @@ Box is not a security boundary, so this cannot be prevented outright. These habi
 
 [how-boxes-work.md](internals/how-boxes-work.md#which-classes-get-per-box-copies-ruby-407) explains why only builtins get per-Box copies.
 
+## Passing application services
+
+A Carton cannot see the application's constants, but it can call objects the application passes in. Use ordinary constructor arguments to supply a repository, payment client, or logger:
+
+```ruby
+Checkout = import_relative 'checkout'
+checkout = Checkout::Service.new(orders:, payments:, logger:)
+checkout.call(order_id: 42)
+```
+
+An injected object's methods run in the Box where they were defined, with that Box's constants and gems. The Carton needs only the methods it calls, so tests can pass fakes through the same interface. Objects are shared, not copied; keep per-instance dependencies on instances instead of the cached exported module. Prefer plain values for inputs and results when each side loads its own gem classes.
+
+[examples/dependency_injection](../examples/dependency_injection/README.md) runs this checkout with file-backed host adapters and tests it through its export with fakes.
+
 ## Testing Cartons
 
 A Carton has two kinds of test. An integration test imports the Carton and sees only its Public Surface. A unit test loads the Carton's files with plain `require` and can reach its internals.
