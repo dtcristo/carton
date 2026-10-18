@@ -108,6 +108,11 @@
 - `sig/carton.rbs` declares `Carton::NamespaceMethods`, which
   `Carton::Namespace` includes.
 - The minimal example type-checks with Steep.
+- `examples/zeitwerk` shows a Carton whose loader uses Zeitwerk 2.8 nsfiles
+  (`loader.nsfile = 'ns.rb'`): a lazy namespace defined in `ns.rb` loads in
+  the Carton's Box when the app references it first, and reloads with the
+  Carton's other files. Another Carton runs Zeitwerk 2.7.5, without nsfiles,
+  in the same process.
 - `examples/zeitwerk` shows Zeitwerk with Cartons outside Rails: a Carton
   using `Zeitwerk::Loader.for_gem`, a separate Zeitwerk per Box, an app loader
   that ignores a Carton in its directory, eager loading so autoloads never run

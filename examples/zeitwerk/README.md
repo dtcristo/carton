@@ -11,8 +11,9 @@ things then need care:
 - Reloading a Carton replaces its classes, but importers keep the old ones.
 
 Lazy autoloading needs no care: a constant a Carton leaves to autoload loads
-in the Carton's Box even when the app references it first. This example
-shows all three, with no Rails involved. `main.rb` raises if any
+in the Carton's Box even when the app references it first, including a
+namespace defined in a Zeitwerk nsfile. This example shows each case, with no
+Rails involved. `main.rb` raises if any
 behavior below stops holding.
 
 ```
@@ -20,8 +21,10 @@ Gemfile                      # carton, zeitwerk 2.8.3 for the app
 main.rb                      # the app's loader for lib/, then the imports
 lib/
   order_summary.rb           # the app's own code, autoloaded in the Main Box
-  shipping.rb                # shipping Carton's Entrypoint: reloadable loader
+  shipping.rb                # shipping Carton's Entrypoint: reloadable loader with nsfiles
   shipping/rate.rb           # inside the shipping Carton
+  shipping/carriers/ns.rb    # nsfile: defines Shipping::Carriers, left lazy
+  shipping/carriers/post.rb  # Shipping::Carriers::Post
 cartons/billing/
   Gemfile                    # zeitwerk 2.7.5 for this Carton only
   lib/billing.rb             # billing Carton's Entrypoint: Zeitwerk::Loader.for_gem
@@ -44,11 +47,14 @@ loader registry, and `Kernel#require` patch. The billing Carton runs zeitwerk
 up the app's Gemfile in its own Box and gets a second copy of 2.8.3.
 `Zeitwerk::Loader.all_dirs` in each Box lists only that Box's loaders:
 
-| Box | `Zeitwerk::VERSION` | `Zeitwerk::Loader.all_dirs` |
-| --- | --- | --- |
-| Main | 2.8.3 | `lib` |
-| billing | 2.7.5 | `cartons/billing/lib` |
-| shipping | 2.8.3 | `lib/shipping` |
+| Box | `Zeitwerk::VERSION` | `Zeitwerk::Loader.all_dirs` | nsfiles |
+| --- | --- | --- | --- |
+| Main | 2.8.3 | `lib` | yes |
+| billing | 2.7.5 | `cartons/billing/lib` | no |
+| shipping | 2.8.3 | `lib/shipping` | yes |
+
+So a Carton can use a Zeitwerk feature, such as nsfiles, that the app's or
+another Carton's version lacks.
 
 ## The app's loader and a Carton in its directory
 
@@ -90,6 +96,25 @@ does in production: a broken file then fails at boot, not on first use.
 `Billing::Invoice` and `Shipping::Rate` record `Ruby::Box.current` when their
 files run, and neither is the Main Box.
 
+## Namespaces in nsfiles
+
+Zeitwerk 2.8 added nsfiles: with `loader.nsfile = 'ns.rb'`, a directory's
+`ns.rb` defines the directory's namespace, so a self-contained unit needs no
+file beside its directory. The shipping Carton's loader sets one, and
+`lib/shipping/carriers/ns.rb` defines `Shipping::Carriers`, not
+`Shipping::Carriers::Ns`.
+
+`Shipping::Carriers` is left lazy, so its autoload points at `ns.rb` until
+`main.rb` references it from the Main Box. `ns.rb` still runs in the shipping
+Carton's Box, and Zeitwerk then defines `Post`'s autoload there, so
+`Shipping::Carriers::Post` loads in the Carton's Box too. Reloading reloads
+the nsfile like any other file.
+
+nsfiles organize a Carton's internals, not Carton boundaries. A Carton still
+needs its Entrypoint beside its directory, `lib/shipping.rb` beside
+`lib/shipping/`. A directory whose namespace is defined by its own `ns.rb`,
+with no file beside it, cannot be imported by its directory as a Carton.
+
 ## Reloading
 
 `Shipping.reload!` calls `loader.reload` and `loader.eager_load`. The block
@@ -99,7 +124,8 @@ was defined in the shipping Carton's Box, so it runs there even though
 - `Shipping` is the same module. Its Entrypoint defines it and the loader
   manages only `lib/shipping/` inside it, via
   `push_dir(..., namespace: Shipping)`.
-- `Shipping::Rate` is a new class, loaded again in the Carton's Box.
+- `Shipping::Rate` is a new class, loaded again in the Carton's Box, and so
+  is `Shipping::Carriers`, from its nsfile.
 - A reference the importer kept, such as `held = Shipping::Rate`, is the old
   class and still runs the old code. Instances made before the reload are
   instances of the old class, so `is_a?(Shipping::Rate)` is false for them.
