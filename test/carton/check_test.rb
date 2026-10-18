@@ -54,6 +54,28 @@ class CheckTest < Minitest::Test
     assert_match(/1 Cartons, 0 errors, 0 warnings/, output)
   end
 
+  def test_strict_fails_on_warnings
+    files = { 'main.rb' => "import_relative(ENV['X'])\n" }
+
+    assert_equal 0, check(files).first
+    assert_equal 1, check(files, '--strict').first
+  end
+
+  # `# carton:dynamic`, on the import's line or the line above, marks an
+  # intended dynamic import.
+  def test_dynamic_marker_silences_import_warnings
+    main = <<~RUBY
+      import_relative(ENV['X']) # carton:dynamic
+      # carton:dynamic
+      import 'some_gem'
+    RUBY
+
+    status, output = check({ 'main.rb' => main }, '--strict')
+
+    assert_equal 0, status, output
+    assert_match(/0 errors, 0 warnings/, output)
+  end
+
   def test_dynamic_import_is_a_warning
     status, output = check('main.rb' => "import_relative(ENV['X'])\n")
 

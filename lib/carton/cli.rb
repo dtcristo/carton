@@ -79,7 +79,13 @@ module Carton
     end
 
     def check(args)
-      project = project(args, 'check')
+      strict = false
+      project =
+        project(args, 'check') do |o|
+          o.on('--strict', 'Fail on warnings too, not only errors') do
+            strict = true
+          end
+        end
       return 2 unless project
 
       problems = Checks.new(project).problems
@@ -92,7 +98,8 @@ module Carton
       errors = problems.count(&:error?)
       @out.puts "#{project.files.size} files, #{project.units.size} Cartons, " \
                   "#{errors} errors, #{problems.size - errors} warnings"
-      errors.zero? ? 0 : 1
+      failures = strict ? problems.size : errors
+      failures.zero? ? 0 : 1
     end
 
     # Parse options shared by every command, then scan PATHs. Named imports

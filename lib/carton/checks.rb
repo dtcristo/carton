@@ -40,12 +40,15 @@ module Carton
 
     # Missing paths and files inside a Carton raise at runtime. A name not on
     # the load path may come from a gem activated at runtime, and a path
-    # built at runtime cannot be followed.
+    # built at runtime cannot be followed. `# carton:dynamic` on an import
+    # says either is intended, such as plugin discovery.
     def import_problems
       @project.edges.filter_map do |edge|
         call = edge.call
         if edge.error
           error(call.file, call.line, edge.error)
+        elsif @project.files.fetch(call.file).dynamic_marker?(call.line)
+          next
         elsif edge.unfound
           warning(
             call.file,
