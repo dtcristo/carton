@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module Carton
-  # One Import's state, attached to the plain `Ruby::Box` it runs in. It wraps
-  # a `Ruby::Box` rather than subclassing it, because Ruby keeps autoloads in
-  # the Box that registered them only for a plain `Ruby::Box`. Code in any Box
-  # finds the Import from `Ruby::Box.current` with `Box.for`.
+  # A Carton Box: one Import's state, attached to the plain `Ruby::Box` it
+  # runs in. It wraps a `Ruby::Box` rather than subclassing it, because Ruby
+  # keeps autoloads in the Box that registered them only for a plain
+  # `Ruby::Box`. Code in any Box finds the Import from `Ruby::Box.current`
+  # with `Box.for`.
   class Box
     ACTIVATE_GEMS = File.expand_path('activate_gems.rb', __dir__)
     private_constant :ACTIVATE_GEMS
@@ -32,10 +33,10 @@ module Carton
     private
 
     # The whole Import lifecycle, in order: boot Carton in this Box, load the
-    # target, then build its public surface with `build`. Runtime calls only
+    # target, then build its Public Surface with `build`. Runtime calls only
     # this, so the ordering lives here.
-    def import_target(target, carton_entrypoint:, import_cache:, &build)
-      configure_for_import(entrypoint: carton_entrypoint, import_cache:)
+    def import_target(target, library:, import_cache:, &build)
+      configure_for_import(library:, import_cache:)
       load_import(
         target.feature,
         load_path: target.load_path,
@@ -46,10 +47,11 @@ module Carton
       export_public_surface(&build)
     end
 
-    # The gems this Carton depends on: its closure, plus the locked gems whose
-    # files it has loaded, such as an undeclared gem the caller's lockfile
-    # allows. A later importer must agree on these versions to share the
-    # Carton, so they are read again at each check, after any lazy requires.
+    # The gems this Carton depends on: its Gem Closure, plus the locked gems
+    # whose files it has loaded, such as an Undeclared Gem the Importer's
+    # lockfile allows. A later Importer must agree on these versions to share
+    # the Carton, so they are read again at each check, after any lazy
+    # requires.
     def record_used_gems(target)
       target.gem_usage = -> { used_gems(target) }
     end
@@ -63,7 +65,7 @@ module Carton
     end
 
     # `Ruby::Box#eval` does not switch the loading Box, so during a nested
-    # Import `$LOADED_FEATURES` there would be the importer's. A file loaded
+    # Import `$LOADED_FEATURES` there would be the Importer's. A file loaded
     # in this Box reads this Box's.
     def loaded_features
       @box.eval("load #{LOADED_FEATURES.inspect}")
@@ -76,30 +78,30 @@ module Carton
       @loaded_features = features
     end
 
-    # Fresh boxes copy Master, so they start without the caller's gems. Load
-    # Carton's own entrypoint so the imported file gets `import`,
-    # `import_relative`, and `export`. Nested imports reuse the caller's
+    # New Boxes copy Master, so they start without the Importer's gems. Load
+    # Carton's own library so the imported file gets `import`,
+    # `import_relative`, and `export`. Nested imports reuse the Importer's
     # process-wide import cache.
-    def configure_for_import(entrypoint:, import_cache:)
+    def configure_for_import(library:, import_cache:)
       @import_cache = import_cache
       reset_export
-      add_import_load_path(File.dirname(entrypoint))
-      require_in_box(entrypoint)
+      add_import_load_path(File.dirname(library))
+      require_in_box(library)
       share_error_classes
       self
     end
 
-    # Activate the caller's gems for the target, then load it inside the box.
+    # Activate the Importer's gems for the target, then load it in this Box.
     def load_import(feature, load_path: nil, gems: [], locked_gems: nil)
       activate_gems(gems, locked_gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
       # After activation, which loads Bundler and Psych here: a Bare
-      # Carton's surface is only what its Entrypoint adds.
-      snapshot_import_support
+      # Carton's Public Surface is only what its Entrypoint adds.
+      snapshot_preloaded_names
 
       @entrypoint = real_path(feature)
       result = require_in_box(feature)
-      discover_public_entries
+      discover_bare_surface
       result
     end
 
@@ -125,7 +127,7 @@ module Carton
     # Box methods run in the Box that defined them, so this Box's own copy of
     # Carton activates gems in this Box's RubyGems. `$LOAD_PATH` resolves to
     # the Box of the file being loaded, which during a nested Import is the
-    # importing Carton, so activation runs from a file required here.
+    # Importer, so activation runs from a file required here.
     def activate_gems(gems, locked_gems)
       @pending_gems = [gems, locked_gems]
       require_in_box(ACTIVATE_GEMS)
@@ -135,7 +137,7 @@ module Carton
 
     # This Box just loaded its own copy of Carton, whose error classes are new
     # objects that `rescue Carton::Error` in another Box would never match.
-    # Point them at the importer's classes, so one rescue catches errors
+    # Point them at the Importer's classes, so one rescue catches errors
     # raised in any Carton.
     def share_error_classes
       carton = @box.const_get(:Carton, false)
@@ -150,7 +152,7 @@ module Carton
       load_path.unshift(path) unless load_path.include?(path)
     end
 
-    # Only the imported Entrypoint declares this Carton's exports. Other files
+    # Only the imported Entrypoint declares this Carton's Export. Other files
     # it requires may call `export` for their own imports; here it is inert.
     def entrypoint?(file)
       !@entrypoint.nil? && real_path(file) == @entrypoint
@@ -170,34 +172,32 @@ module Carton
       @export = value
     end
 
-    # The exported value, or for a Bare Carton the constants and top-level
-    # helpers its Entrypoint defined, which `build` wraps, so importers never
-    # receive the Box itself.
+    # The Export, or for a Bare Carton the constants and Helpers its
+    # Entrypoint defined, which `build` wraps, so Importers never receive the
+    # Box itself.
     def export_public_surface
       NO_EXPORT.equal?(@export) ? yield(*bare_surface) : @export
     end
 
     def bare_surface
       constants =
-        @public_constant_names.to_h do |name|
-          [name, @box.const_get(name, false)]
-        end
-      [@public_method_entries, constants]
+        @constant_names.to_h { |name| [name, @box.const_get(name, false)] }
+      [@helpers, constants]
     end
 
     def reset_export
       @export = NO_EXPORT
     end
 
-    def snapshot_import_support
-      @import_constant_names = @box.constants(false).map(&:to_s)
-      @import_method_names = top_level_methods.keys
+    def snapshot_preloaded_names
+      @preloaded_constant_names = @box.constants(false).map(&:to_s)
+      @preloaded_method_names = top_level_methods.keys
     end
 
-    def discover_public_entries
-      @public_constant_names =
-        @box.constants(false).map(&:to_s) - @import_constant_names
-      @public_method_entries = top_level_methods.except(*@import_method_names)
+    def discover_bare_surface
+      @constant_names =
+        @box.constants(false).map(&:to_s) - @preloaded_constant_names
+      @helpers = top_level_methods.except(*@preloaded_method_names)
     end
 
     def top_level_methods

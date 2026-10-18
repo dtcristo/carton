@@ -54,7 +54,7 @@ Carton is a package system for Ruby: a small import and export language for gem-
 
 **Bare Carton**: A Carton whose Entrypoint never calls `export`. The constants and Helpers its Entrypoint defines are its Public Surface, returned as a Namespace. _Avoid_: Unexported carton, script carton
 
-**Helper**: A top-level method a Bare Carton's Entrypoint defines, callable through its Namespace. _Avoid_: Function, Bare Carton method, top-level method
+**Helper**: A top-level method a Bare Carton's Entrypoint defines, callable through its Namespace. _Avoid_: Function, Bare Carton method
 
 **Namespace**: The `Carton::Namespace` module a Bare Carton's Importers receive, holding its constants and Helpers. _Avoid_: Exports, export namespace
 

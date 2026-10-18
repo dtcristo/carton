@@ -2,16 +2,16 @@
 
 module Carton
   # Maps an Import path to the file that should load, without evaluating any
-  # code or reading Box state. The runtime passes the caller Box's
+  # code or reading Box state. The runtime passes the Importer's
   # `$LOAD_PATH`; a static analyzer can pass any load path it has computed.
   module Resolver
-    # `feature` is what the new Box requires. `load_path` is the single caller
+    # `feature` is what the new Box requires. `load_path` is the single Importer
     # load-path entry that matched a name-based Import, if any. The runtime
-    # fills `gems` with the caller specs to activate in the new Box, and
-    # `locked_gems` with the caller's locked specs when it ran Bundler setup.
+    # fills `gems` with the Gem Closure to activate in the new Box, and
+    # `locked_gems` with the Importer's locked specs when it ran Bundler setup.
     # After loading, the Carton Box sets `gem_usage`, a callable returning the
-    # gems the Carton depends on at that moment: its closure plus every locked
-    # gem whose files it has loaded so far.
+    # gems the Carton depends on at that moment: its Gem Closure plus every
+    # locked gem whose files it has loaded so far.
     Target =
       Struct.new(
         :feature,

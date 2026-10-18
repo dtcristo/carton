@@ -2,9 +2,9 @@
 
 module Carton
   # What importing a Bare Carton returns: a module of the constants and
-  # top-level helpers its Entrypoint defined. Helpers become singleton
-  # methods that forward to the Carton's method, and lookup helpers return
-  # the `Method` object or the constant.
+  # Helpers its Entrypoint defined. Helpers become singleton methods that
+  # forward to the Carton's method, and lookups such as `[]` return the
+  # `Method` object or the constant.
   class Namespace < ::Module
     include NamespaceMethods
 
@@ -25,11 +25,11 @@ module Carton
               "Carton::Namespace##{name}: rename it, or export a module"
     end
 
-    def initialize(methods = {}, constants = {})
+    def initialize(helpers = {}, constants = {})
       super()
-      Namespace.check_names(methods.keys)
+      Namespace.check_names(helpers.keys)
       @lookup = {}
-      define_methods(methods)
+      define_helpers(helpers)
       define_constants(constants)
     end
 
@@ -49,11 +49,11 @@ module Carton
 
     private
 
-    def define_methods(methods)
-      methods.each do |name, method|
-        @lookup[name.to_s] = method
+    def define_helpers(helpers)
+      helpers.each do |name, helper|
+        @lookup[name.to_s] = helper
         define_singleton_method(name) do |*args, **kwargs, &block|
-          method.call(*args, **kwargs, &block)
+          helper.call(*args, **kwargs, &block)
         end
       end
     end

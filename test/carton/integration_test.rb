@@ -162,7 +162,7 @@ class IntegrationTest < Minitest::Test
 
   # bigdecimal 4.1.1 is also installed, so without sharing the gem Carton's
   # Box would auto-activate the newest version instead of the locked 3.3.1.
-  def test_gem_carton_uses_caller_locked_dependency_versions
+  def test_gem_carton_uses_importer_locked_dependency_versions
     script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
@@ -195,10 +195,10 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_bigdecimal_required')
   end
 
-  # A bundled caller's lockfile bounds what a gem Carton can load, as
+  # A bundled Importer's lockfile bounds what a gem Carton can load, as
   # `Bundler.setup` does for Main: undeclared locked gems load at their
   # locked version and unlocked gems fail.
-  def test_gem_carton_of_bundled_caller_only_sees_locked_gems
+  def test_gem_carton_of_bundled_importer_only_sees_locked_gems
     script = <<~RUBY
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
@@ -317,10 +317,10 @@ class IntegrationTest < Minitest::Test
   end
 
   # Without Bundler, a gem Carton's default-gem dependencies keep the
-  # versions the caller activated, even when newer ones are installed: here
+  # versions the Importer activated, even when newer ones are installed: here
   # fake json and date 99.0.0 in a temporary gem home. date is also one of
   # Psych's requires, so it must be activated before any YAML spec rebuild.
-  def test_gem_carton_keeps_the_callers_default_gem_versions
+  def test_gem_carton_keeps_the_importers_default_gem_versions
     %w[json date].each do |name|
       Dir.mktmpdir('carton-default-gem') do |home|
         install_fake_newer_default_gem(home, name)
