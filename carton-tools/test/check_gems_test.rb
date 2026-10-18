@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
-require 'carton/cli'
+require_relative 'test_helper'
 require 'fileutils'
 require 'open3'
 require 'rbconfig'
@@ -9,8 +8,8 @@ require 'tmpdir'
 
 # `carton check` treats a gem Carton's gemspec as its manifest.
 class CheckGemsTest < Minitest::Test
-  Checks = Carton.const_get(:Checks)
-  Project = Carton.const_get(:Project)
+  Checks = Carton::Tools.const_get(:Checks)
+  Project = Carton::Tools.const_get(:Project)
   ROOT = File.expand_path('../..', __dir__)
 
   def test_undeclared_gem_is_an_error
@@ -87,7 +86,7 @@ class CheckGemsTest < Minitest::Test
         'bundle',
         'exec',
         RbConfig.ruby,
-        File.join(ROOT, 'exe/carton'),
+        File.join(ROOT, 'carton-tools/exe/carton'),
         'check',
         'main.rb',
         chdir: dir,

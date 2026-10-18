@@ -4,15 +4,19 @@ require 'shellwords'
 require 'rubocop/rake_task'
 
 STREE_FILES =
-  '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile" "**/Steepfile" exe/carton'
+  '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile" "**/Steepfile" ' \
+    'carton-tools/exe/carton'
 RUBOCOP_FILES = %w[
   Gemfile
   Rakefile
   *.gemspec
-  exe/carton
   lib/**/*.rb
   test/*.rb
   test/carton/**/*.rb
+  carton-tools/*.gemspec
+  carton-tools/exe/carton
+  carton-tools/lib/**/*.rb
+  carton-tools/test/*.rb
   bench/*.rb
   examples/**/*.rb
   examples/**/Gemfile
@@ -76,9 +80,13 @@ end
 
 desc 'Run all tests'
 task :test do
-  test_files = Dir.glob('test/**/*_test.rb').map { |f| File.expand_path(f) }
+  test_files =
+    Dir
+      .glob(%w[test/**/*_test.rb carton-tools/test/*_test.rb])
+      .map { |f| File.expand_path(f) }
   command = [
-    "RUBY_BOX=1 ruby -Ilib -Itest -e #{Shellwords.escape(test_runner)}",
+    'RUBY_BOX=1 ruby -Ilib -Icarton-tools/lib -Itest ' \
+      "-e #{Shellwords.escape(test_runner)}",
     *test_files.map { |file| Shellwords.escape(file) },
   ].join(' ')
 

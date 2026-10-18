@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
-require 'carton/cli'
+require_relative 'test_helper'
 require 'tmpdir'
 
 class SourceFileTest < Minitest::Test
-  SourceFile = Carton.const_get(:SourceFile)
+  SourceFile = Carton::Tools.const_get(:SourceFile)
 
   def test_finds_imports_with_their_constants
     file = parse(<<~RUBY)

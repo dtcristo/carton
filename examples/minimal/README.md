@@ -39,7 +39,7 @@ RUBY_BOX=1 ruby examples/minimal/main.rb
 
 ```sh
 cd examples/minimal
-ruby ../../exe/carton rbs main.rb
+bundle exec carton rbs main.rb
 bundle exec steep check
 ```
 
