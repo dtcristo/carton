@@ -471,7 +471,7 @@ class IntegrationTest < Minitest::Test
 
     expected = [
       'INV-0042: USD 42.00',
-      'Captured helper: INV-0007',
+      'Captured Helper: INV-0007',
       'Legacy prefix: INV',
       'PREFIX defined in Main: false',
     ]

@@ -13,7 +13,7 @@ test/host_test.rb        # Imports checkout and exercises the file-backed adapte
 
 ## The boundary
 
-`main.rb` loads the adapters with `require_relative`, then imports `checkout`. The Carton never requires the host or sets up a bundle. Its public interface is a Ruby constructor and a method:
+`main.rb` loads the adapters with `require_relative`, then imports `checkout`. The Carton never requires the host or sets up a bundle. Its Public Surface exposes a Ruby constructor and a method:
 
 ```ruby
 Checkout = import_relative 'checkout'
@@ -35,13 +35,13 @@ These are shared Ruby objects, not copies or remote proxies. Their methods execu
 
 The demo host stores orders in JSON and records simulated charges in a local file. It creates and removes both files in a temporary directory. No real payments, network, or credentials are involved. A real application would supply its database repository and payment client through the same methods. This example omits payment retries, idempotency, and recovery if saving fails after charging.
 
-If a dependency raises, the exception reaches the caller unchanged. A declined payment does not save the order or log success. Tests define the payment error in Main and rescue it there after it passes through the Carton.
+If a dependency raises, the exception reaches the Importer unchanged. A declined payment does not save the order or log success. Tests define the payment error in Main and rescue it there after it passes through the Carton.
 
 ## Tests
 
-The tests import the actual checkout Carton. `checkout_test.rb` supplies fakes and checks totals, adapter calls, and failure behavior without files or a payment provider. `host_test.rb` supplies the demo adapters and checks the stored order, charge, and log output. Neither test needs access to the Carton's internals.
+The tests import the actual checkout Carton. `checkout_test.rb` supplies fakes and checks totals, adapter calls, and failure behavior without files or a payment provider. `host_test.rb` supplies the demo adapters and checks the stored order, charge, and log output. Neither test needs to load the Carton's Interior directly.
 
-Imports share one module per process, but each `Checkout::Service.new` receives its own dependencies. The Carton keeps no module-level repository, payment client, or logger to reset between tests.
+Every Shared Import returns the same Export module, but each `Checkout::Service.new` receives its own dependencies. The Carton keeps no module-level repository, payment client, or logger to reset between tests.
 
 ## Run
 

@@ -11,10 +11,10 @@ math.rb              # a Carton of one file: export MathTools
 violations.rb        # deliberately invalid code for carton check
 ```
 
-- `billing.rb` loads its own files with `require_relative`, all inside the billing Carton's one Box, and exports `Billing`.
+- `billing.rb` loads its own files with `require_relative`, all inside the billing Carton Box, and exports `Billing`.
 - `Billing::Tax` is hidden with `private_constant`.
-- `billing/tax.rb` imports `math`, another Carton, across a boundary. The app imports `math` too and gets the same Carton.
-- `main.rb` uses only the public API. `violations.rb` tries to reach the private `Billing::Tax` and import `billing/invoice` directly; both violate the boundary.
+- `billing/tax.rb` imports `math`, another Carton, across a boundary. The app makes a Shared Import of `math` and gets the same Export.
+- `main.rb` uses only the Public Surface. `violations.rb` tries to reach the private `Billing::Tax` and import `billing/invoice` directly; both violate the boundary.
 
 ## Run
 
@@ -41,4 +41,4 @@ bundle exec carton check examples/minimal/main.rb
 bundle exec carton check examples/minimal/violations.rb # exits 1, as intended
 ```
 
-The second command reports the private constant access and the import of a file inside the billing Carton without running either. Running `violations.rb` as Ruby instead stops at its first `NameError`.
+The second command reports the private constant access and the Import of a file in the billing Interior without running either. Running `violations.rb` as Ruby instead stops at its first `NameError`.

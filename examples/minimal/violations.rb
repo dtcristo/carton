@@ -5,8 +5,8 @@ require_relative '../../lib/carton'
 
 Billing = import_relative 'billing'
 
-# Ruby's private_constant keeps this internal module out of the public API.
+# Ruby's private_constant keeps Tax out of billing's Public Surface.
 puts Billing::Tax
 
-# Only the Entrypoint can be imported, never a file inside its directory.
+# Only the Entrypoint can be imported, never an Interior file.
 import_relative 'billing/invoice'

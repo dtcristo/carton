@@ -4,7 +4,7 @@
 
 ### Added
 
-- `examples/exports` demonstrates Hash and callable exports, Bare Carton helpers, and Ruby pattern matching without gems or Bundler. The plugin testing recipe is now a runnable test with its own bundle.
+- `examples/exports` demonstrates Hash and callable exports, Bare Carton Helpers, and Ruby pattern matching without gems or Bundler. The plugin testing recipe is now a runnable test with its own bundle.
 - `examples/dependency_injection`: a checkout Carton receives order storage, payments, and logging from its host through constructor arguments. File-backed demo adapters stay in Main, and integration tests import the Carton with fakes.
 
 ### Changed
@@ -12,7 +12,7 @@
 - `examples/monorepo` keeps its Cartons under `cartons/` instead of `packages/`.
 - `CONTEXT.md` groups the glossary and adds Interior, Gem-shaped Directory, Root Box, User Box, Carton Box, Template Box, Importer, First Importer, Second Copy, Dynamic Import, Helper, Gem Closure, Carton Bundle, and Undeclared Gem. The docs, comments, and `carton-tools` internals use these terms.
 - `docs/internals/root-box-vs-main-box.md` is now `docs/internals/box-names.md`, which records upstream Ruby's Box names and how they were chosen.
-- The examples guide explains each example's purpose and setup. The minimal app now contains only working imports, with intentional violations in a separate file for static checks. The Rails guides share restart guidance, and Bundler and Zeitwerk examples use clearer labels and names.
+- The examples guide explains each example's purpose and setup. The minimal app now contains only working Imports, with intentional violations in a separate file for static checks. The guides and comments follow `CONTEXT.md`, including Interior, Public Surface, Importer, Carton Bundle, and Helper. The Rails guides share restart guidance, and Bundler and Zeitwerk examples use clearer labels and names.
 
 ### Fixed
 

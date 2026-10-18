@@ -47,7 +47,7 @@ Compare with [examples/rails_in_main](../rails_in_main/README.md), which keeps R
 
 `main.rb` sends a few requests and exits. Rerun it after editing; restart a long-running host to pick up changed Cartons. See [Editing code](../README.md#editing-code) for restart and reloading guidance.
 
-Restarting is the only workflow this example supports. Zeitwerk can reload code inside a Carton's Box, but importers keep the classes and objects they already hold. Here `Framework.register` binds each domain class's name in the framework Box once, at boot, so Rails would keep routing to the old classes after a reload. [examples/zeitwerk](../zeitwerk/README.md#reloading) covers when reloading works and its limits.
+Restarting is the only workflow this example supports. Zeitwerk can reload code inside a Carton Box, but Importers keep the classes and objects they already hold. Here `Framework.register` binds each domain class's name in the framework Box once, at boot, so Rails would keep routing to the old classes after a reload. [examples/zeitwerk](../zeitwerk/README.md#reloading) covers when reloading works and its limits.
 
 ## Run
 
