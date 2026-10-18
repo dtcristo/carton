@@ -135,6 +135,76 @@ class SourceFileTest < Minitest::Test
     )
   end
 
+  def test_records_how_bound_names_are_used
+    file = parse(<<~RUBY)
+      MathTools = import 'math'
+      m = import 'math'
+      MathTools.add(1, 2)
+      MathTools::PI
+      MathTools.fetch(:a)
+      MathTools.fetch(:b, nil)
+      MathTools.values_at(:c, :d)
+      m.sub
+      use(MathTools)
+      MathTools => { e:, **rest }
+    RUBY
+
+    assert_equal [nil, 'm'], file.imports.map(&:local)
+    uses =
+      file.references.reject do |ref|
+        ref.name.include?('::') || %w[rest e].include?(ref.name)
+      end
+    expected = [
+      ['MathTools', :call, 'add'],
+      ['MathTools', :const, 'PI'],
+      ['MathTools', :fetch, 'a'],
+      ['MathTools', :lookup, 'b'],
+      ['MathTools', :lookup, 'c'],
+      ['MathTools', :lookup, 'd'],
+      ['m', :call, 'sub'],
+      ['MathTools', :value, nil],
+      ['MathTools', :fetch, 'e'],
+      ['MathTools', :value, nil],
+    ]
+    assert_equal(expected, uses.map { |ref| [ref.name, ref.kind, ref.member] })
+  end
+
+  def test_records_patterns_matched_against_an_import
+    file = parse("import('math') => { add:, **rest }\n")
+
+    pattern = file.imports.first.pattern
+    assert_equal :fetch, pattern.kind
+    assert_equal %w[add **], pattern.keys
+  end
+
+  def test_class_definitions_are_not_uses
+    file = parse("class Billing::Invoice; end\n")
+
+    assert_empty file.references
+  end
+
+  def test_records_private_constants
+    file = parse(<<~RUBY)
+      module Billing
+        private_constant :Tax
+      end
+      Billing.private_constant :Rate
+    RUBY
+
+    assert_equal %w[Billing::Tax Billing::Rate], file.private_constants
+  end
+
+  def test_dynamic_marker_on_the_line_or_above
+    file =
+      parse(
+        "import(x) # carton:dynamic\n# carton:dynamic\nimport(y)\nimport(z)\n",
+      )
+
+    assert file.dynamic_marker?(1)
+    assert file.dynamic_marker?(3)
+    refute file.dynamic_marker?(4)
+  end
+
   def test_records_parse_errors
     file = parse("def broken(\n")
 
