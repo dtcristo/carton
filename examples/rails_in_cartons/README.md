@@ -1,5 +1,10 @@
 # Rails in Cartons example
 
+> **Experimental.** This example shows that Rails can run inside Cartons, but
+> it needs constant registration, has no reloading, and has no Rails CLI. For
+> a real app, prefer [examples/rails_in_main](../rails_in_main/README.md):
+> Rails in the Main Box, with plain-Ruby domains as Cartons.
+
 In a Rails app, every model and controller shares one namespace, so domains
 couple through each other's internals without anyone deciding they should.
 This Rails API app is split into domain Cartons instead. Each owns its
