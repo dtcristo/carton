@@ -236,15 +236,18 @@ class CheckTest < Minitest::Test
 
   # The minimal example imports a file inside billing on purpose, to show
   # the runtime error, so the check reports it too.
+  # The minimal example imports a file inside billing on purpose, to show the
+  # runtime error, so the check reports it. Its Billing::Tax access rescues
+  # the NameError, so that one is not an error.
   def test_minimal_example_reports_its_deliberate_deep_import
     status, output = run_cli(EXAMPLES, 'check', 'minimal/main.rb')
 
     assert_equal 1, status
-    problem, summary = output.lines(chomp: true)
+    deep_import, summary = output.lines(chomp: true)
     assert_equal 'minimal/main.rb:21: error: minimal/billing/invoice.rb is inside ' \
                    'the Carton minimal/billing.rb: import that file, or require ' \
                    'it from inside that Carton',
-                 problem
+                 deep_import
     assert_match(/ files, 2 Cartons, 1 errors, 0 warnings\z/, summary)
   end
 
