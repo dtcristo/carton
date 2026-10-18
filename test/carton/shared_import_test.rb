@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'tmpdir'
 
 SHARED_DIR = File.expand_path('../fixtures/shared', __dir__)
 
@@ -51,6 +52,20 @@ class SharedImportTest < Minitest::Test
     assert_equal :loaded, import("#{SHARED_DIR}/flaky").status
   ensure
     ENV.delete('CARTON_FLAKY_FAIL')
+  end
+
+  # An Entrypoint may start a thread that imports another Carton and wait
+  # for it, as it could with require.
+  def test_entrypoint_thread_can_import_another_carton
+    Dir.mktmpdir('carton-thread') do |dir|
+      File.write(File.join(dir, 'other.rb'), "export_default :other\n")
+      File.write(File.join(dir, 'threaded.rb'), <<~RUBY)
+        thread = Thread.new { import_relative 'other' }
+        export_default thread.join(5) ? thread.value : :timed_out
+      RUBY
+
+      assert_equal :other, import(File.join(dir, 'threaded.rb'))
+    end
   end
 
   def test_concurrent_imports_share_one_load

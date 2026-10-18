@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- An Entrypoint that starts a thread which imports another Carton, and
+  waits for it, no longer blocks forever. The import cache held one global
+  lock while running every Entrypoint; it now locks only its bookkeeping
+  and makes a thread wait only for an Entrypoint another thread is loading.
+
 - `carton check` no longer reports `export_default` or `export` calls in
   different branches of one `if`, `unless`, or `case` as duplicates or as
   mixing both forms, since only one branch runs.

@@ -217,6 +217,12 @@ A failed load is not cached, so a later import tries again. A Carton that
 imports itself, directly or through other Cartons, raises
 `Carton::ImportError` (`circular import`).
 
+Imports are thread-safe. Threads importing the same Carton share one load,
+and an Entrypoint can start threads that import other Cartons, as it could
+with `require`. A thread that imports a Carton its own caller is still
+loading waits for it, as `require` would, so do not join such a thread from
+that Carton's Entrypoint.
+
 ### Rakefiles
 
 Rake defines its own `import` on the Rakefile's top-level object, which

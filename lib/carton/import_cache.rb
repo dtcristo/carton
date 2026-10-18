@@ -10,42 +10,73 @@ module Carton
   # value or `Carton::Exports` from the Main Box regardless of which
   # Carton imported it first.
   class ImportCache
+    # Returned by `claim` when the calling thread should load the Entrypoint.
+    LOAD = Object.new.freeze
+    private_constant :LOAD
+
     def initialize(&loader)
       @loader = loader
       @values = {}
       @gem_usage = {}
+      # The thread loading each Entrypoint, while it loads.
       @loading = {}
       @lock = Thread::Mutex.new
+      @loaded = Thread::ConditionVariable.new
     end
 
     # Load `target` once per Entrypoint path. Targets without an absolute
-    # path are loaded uncached. Nested imports on the owning thread re-enter
-    # without waiting on the lock.
+    # path are loaded uncached.
+    #
+    # The lock only guards this bookkeeping and is never held while an
+    # Entrypoint runs, so an Entrypoint can start threads that import other
+    # Cartons. An import of an Entrypoint another thread is loading waits
+    # for that load; one the same thread is loading is a cycle.
     def import(target)
       return @loader.call(target) unless File.absolute_path?(target.feature)
 
       key = File.realpath(target.feature)
-      return fetch(key, target) if @lock.owned?
+      cached = claim(key)
+      return load_entry(key, target) if cached.equal?(LOAD)
 
-      @lock.synchronize { fetch(key, target) }
+      check_gem_versions(key, target)
+      cached
     end
 
     private
 
-    def fetch(key, target)
-      if @values.key?(key)
-        check_gem_versions(key, target)
-        return @values[key]
-      end
-      raise ImportError, "circular import: #{key}" if @loading.key?(key)
+    # The cached value, or LOAD once this thread owns loading `key`.
+    def claim(key)
+      @lock.synchronize do
+        loop do
+          return @values[key] if @values.key?(key)
 
-      @loading[key] = true
-      begin
-        @values[key] = @loader.call(target)
+          owner = @loading[key]
+          if owner.nil?
+            @loading[key] = Thread.current
+            return LOAD
+          end
+          if owner == Thread.current
+            raise ImportError, "circular import: #{key}"
+          end
+
+          @loaded.wait(@lock)
+        end
+      end
+    end
+
+    # A failed load is not cached: the next import, or a thread waiting on
+    # this one, tries again.
+    def load_entry(key, target)
+      value = @loader.call(target)
+      @lock.synchronize do
+        @values[key] = value
         @gem_usage[key] = target.gem_usage || -> { target.gems }
-        @values[key]
-      ensure
+      end
+      value
+    ensure
+      @lock.synchronize do
         @loading.delete(key)
+        @loaded.broadcast
       end
     end
 
@@ -57,7 +88,8 @@ module Carton
       wanted = versions([*target.locked_gems, *target.gems])
       return if wanted.empty?
 
-      versions(@gem_usage.fetch(key).call).each do |name, version|
+      usage = @lock.synchronize { @gem_usage.fetch(key) }
+      versions(usage.call).each do |name, version|
         next if wanted.fetch(name, version) == version
 
         raise ImportError,
