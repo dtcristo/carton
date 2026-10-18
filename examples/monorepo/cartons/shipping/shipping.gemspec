@@ -8,4 +8,6 @@ Gem::Specification.new do |spec|
   spec.files = ['lib/shipping.rb']
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
+
+  spec.add_dependency 'carton'
 end

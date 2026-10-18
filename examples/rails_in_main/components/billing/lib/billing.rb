@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 # The Carton's Entrypoint, running in its own Box. This Box's own Zeitwerk
 # loader manages lib/billing/, independently of the Rails app's loader in Main.
 require 'zeitwerk'

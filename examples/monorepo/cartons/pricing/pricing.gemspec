@@ -11,4 +11,5 @@ Gem::Specification.new do |spec|
 
   # The Cartons this one may import.
   spec.add_dependency 'bigdecimal'
+  spec.add_dependency 'carton'
 end

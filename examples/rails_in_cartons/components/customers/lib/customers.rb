@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 # Rails base classes come from the framework Carton; Rails is not loaded in
 # this Box.
 Framework = import 'framework'

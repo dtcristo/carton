@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 # The composition root: assembles the Rails application from domain Cartons.
 require 'logger' # Rails' own `require 'logger'` ran in the framework Box only
 

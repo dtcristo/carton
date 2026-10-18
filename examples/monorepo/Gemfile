@@ -4,8 +4,8 @@ source 'https://rubygems.org'
 
 gem 'carton', path: '../..'
 
-# Each Carton is a path gem. Its gemspec is its manifest: name, version, and
-# the dependencies it may import.
+# Each Carton is a path gem. Its gemspec declares carton and the other
+# runtime gems it uses.
 gem 'billing', path: 'cartons/billing'
 gem 'pricing', path: 'cartons/pricing'
 gem 'shipping', path: 'cartons/shipping'

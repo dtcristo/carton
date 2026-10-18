@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 # Rails loads once, in this Carton's Box. Domain Cartons subclass the base
 # classes it shares: their own methods run in their Boxes, while inherited Rails
 # methods run here, next to Rails and its core extensions.

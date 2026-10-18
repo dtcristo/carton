@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'carton'
+
 # Resolved by the app's lockfile, so every Carton sees the same version.
 require 'bigdecimal'
 
