@@ -32,6 +32,7 @@ The `carton` command (`exe/carton`) reads code with Prism and never runs it.
 | `lib/carton/source_file.rb` | One file's imports, requires, exports, and top-level definitions |
 | `lib/carton/project.rb` | Follows imports and `require_relative` from the given files to every Carton, resolving with `Resolver` |
 | `lib/carton/signatures.rb` | RBS for what each import returns |
+| `lib/carton/bindings.rb` | Names bound to imports, and each use of them |
 | `lib/carton/checks.rb` | Problems `carton check` reports |
 
 ## Import flow

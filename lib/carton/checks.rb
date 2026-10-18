@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'bindings'
 require_relative 'export_methods'
 require_relative 'exports'
 require_relative 'project'
@@ -16,6 +17,7 @@ module Carton
 
     def initialize(project)
       @project = project
+      @bindings = Bindings.new(project)
     end
 
     def problems
@@ -27,6 +29,8 @@ module Carton
         *undeclared_gems,
         *export_problems,
         *bare_collisions,
+        *missing_exports,
+        *private_constant_references,
       ].sort_by { |problem| [problem.file, problem.line, problem.message] }
     end
 
@@ -40,12 +44,15 @@ module Carton
 
     # Missing paths and files inside a Carton raise at runtime. A name not on
     # the load path may come from a gem activated at runtime, and a path
-    # built at runtime cannot be followed.
+    # built at runtime cannot be followed. `# carton:dynamic` on an import
+    # says either is intended, such as plugin discovery.
     def import_problems
       @project.edges.filter_map do |edge|
         call = edge.call
         if edge.error
           error(call.file, call.line, edge.error)
+        elsif @project.files.fetch(call.file).dynamic_marker?(call.line)
+          next
         elsif edge.unfound
           warning(
             call.file,
@@ -177,39 +184,43 @@ module Carton
       end
     end
 
-    # The same rules `Carton::ExportError` enforces at runtime.
+    # The same rules `Carton::ExportError` enforces at runtime, for calls
+    # that can both run: calls in different branches of one `if` or `case`
+    # never do.
     def declaration_problems(file)
       defaults, named =
         file.exports.partition { |e| e.kind == 'export_default' }
       problems =
-        defaults
-          .drop(1)
-          .map do |export|
-            error(
-              file.path,
-              export.line,
-              'export_default may be called only once per file',
-            )
-          end
-      if defaults.any? && named.any?
+        defaults.each_with_index.filter_map do |export, index|
+          next unless defaults.first(index).any? { |e| !e.exclusive?(export) }
+
+          error(
+            file.path,
+            export.line,
+            'export_default may be called only once per file',
+          )
+        end
+      combined = named.find { |n| defaults.any? { |d| !d.exclusive?(n) } }
+      if combined
         problems << error(
           file.path,
-          named.first.line,
+          combined.line,
           'export_default cannot be combined with export; ' \
             'put the other names inside the default value',
         )
       end
-      seen = {}
-      named.each do |export|
+      named.each_with_index do |export, index|
+        earlier = named.first(index).reject { |e| e.exclusive?(export) }
+        seen = earlier.flat_map { |e| e.names + e.values.keys }
         (export.names + export.values.keys).each do |name|
-          if seen.key?(name)
+          if seen.include?(name)
             problems << error(
               file.path,
               export.line,
               "export name given more than once: #{name}",
             )
           end
-          seen[name] = true
+          seen << name
           if Exports.reserved?(name)
             problems << error(file.path, export.line, collision(name))
           end
@@ -241,6 +252,146 @@ module Carton
     def collision(name)
       "export name #{name} would hide Carton::Exports##{name}: " \
         'rename it, or export it inside a Default Export'
+    end
+
+    # A use of a Named Export that raises because the Carton does not export
+    # that name: a method call, a constant path, `fetch`, or a `=>` pattern.
+    # Lookups that return nil instead, such as `[]` or an `in` pattern, are
+    # not errors. Default Exports and Bare Cartons are not checked, since
+    # their names are not declared in one place.
+    def missing_exports
+      from_bindings =
+        @bindings.all.flat_map do |binding|
+          names = named_exports(binding.unit) or next []
+          binding.uses.filter_map do |use|
+            reference = use.reference
+            next unless raises?(reference)
+            next if names.include?(reference.member)
+
+            error(
+              use.file,
+              reference.line,
+              missing_message(
+                written(reference.name, reference),
+                reference.member,
+                binding.unit,
+                names,
+              ),
+            )
+          end
+        end
+      from_bindings + missing_pattern_keys
+    end
+
+    def missing_pattern_keys
+      @bindings.patterns.flat_map do |call, unit|
+        names = named_exports(unit)
+        next [] unless names && call.pattern.kind == :fetch
+
+        (call.pattern.keys - ['**'] - names).map do |key|
+          error(
+            call.file,
+            call.line,
+            missing_message(
+              "#{call.kind}('#{call.path}') => { #{key}: }",
+              key,
+              unit,
+              names,
+            ),
+          )
+        end
+      end
+    end
+
+    # A use raises unless an enclosing `rescue` catches what it raises, as
+    # the examples do to show that private constants stay private.
+    def raises?(reference)
+      raised =
+        case reference.kind
+        when :const
+          %w[NameError]
+        when :call
+          return false if Exports.reserved?(reference.member)
+
+          %w[NoMethodError NameError]
+        when :fetch
+          %w[
+            KeyError
+            IndexError
+            NoMatchingPatternKeyError
+            NoMatchingPatternError
+          ]
+        else
+          return false
+        end
+      !rescued?(reference, raised)
+    end
+
+    def rescued?(reference, raised)
+      caught = reference.rescued.map { |name| name.delete_prefix('::') }
+      caught.intersect?([*raised, 'StandardError', 'Exception'])
+    end
+
+    def written(name, reference)
+      case reference.kind
+      when :const
+        "#{name}::#{reference.member}"
+      when :call
+        "#{name}.#{reference.member}"
+      else
+        "#{name}.fetch(:#{reference.member})"
+      end
+    end
+
+    def missing_message(code, name, unit, names)
+      "#{code}: the #{unit.name} Carton has no export #{name} " \
+        "(it exports #{names.join(', ')})"
+    end
+
+    # The names a Carton exports with `export`, or nil when they cannot be
+    # known statically.
+    def named_exports(unit)
+      exports = @project.files.fetch(unit.entrypoint).exports
+      if exports.empty? ||
+           exports.any? { |e| e.kind == 'export_default' || e.dynamic }
+        return
+      end
+
+      exports.flat_map { |export| export.names + export.values.keys }
+    end
+
+    # `Billing::Tax`, where the billing Carton's Default Export `Billing`
+    # makes `Tax` private, raises NameError.
+    def private_constant_references
+      @bindings.all.flat_map do |binding|
+        default = default_export(binding.unit) or next []
+        privates =
+          binding.unit.files.flat_map do |path|
+            @project.files.fetch(path).private_constants
+          end
+        binding.uses.filter_map do |use|
+          reference = use.reference
+          next unless reference.kind == :const
+          next unless privates.include?("#{default}::#{reference.member}")
+          next if rescued?(reference, %w[NameError])
+
+          error(
+            use.file,
+            reference.line,
+            "#{reference.name}::#{reference.member} is a private constant " \
+              "of the #{binding.unit.name} Carton",
+          )
+        end
+      end
+    end
+
+    def default_export(unit)
+      @project
+        .files
+        .fetch(unit.entrypoint)
+        .exports
+        .find { |e| e.kind == 'export_default' }
+        &.default
     end
 
     def display(path) = Project.relative(path)

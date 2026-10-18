@@ -530,18 +530,37 @@ in different files gets no overload.
 `carton check main.rb` prints each problem as `file:line: level: message` and
 exits non-zero on any error, so it can run in CI. Errors are certain to fail
 or misbehave when the code runs; warnings are things a dynamic program could
-still get right.
+still get right. `--strict` fails on warnings too, for a codebase that wants
+every import followed.
+
+An import found at runtime, such as plugin discovery, cannot be followed. Mark
+it with `# carton:dynamic`, on its line or the line above, to say so and
+silence its warning:
+
+```ruby
+Dir.glob('plugins/*/').each do |dir|
+  import_relative dir # carton:dynamic
+end
+```
+
+`carton check` follows a name bound to an import, `MathTools = import 'math'`
+or `math = import 'math'`, to its uses: method calls, constant paths,
+lookups, and hash patterns. A constant binding is followed in every file of
+the same Box, a local only in its own file and only when nothing reassigns
+it.
 
 | Level | Problem |
 | --- | --- |
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
-| error | `export_default` twice, `export_default` with `export`, a name exported twice, or a lowercase export (or Bare Carton method) that would hide a `Carton::Exports` method |
+| error | `export_default` twice, `export_default` with `export`, or a name exported twice, in calls that can both run (calls in different branches of one `if` or `case` cannot), or a lowercase export (or Bare Carton method) that would hide a `Carton::Exports` method |
 | error | A gem Carton importing or requiring a gem its gemspec does not declare |
+| error | A Named Export that does not exist, used where it would raise: `MathTools.nope`, `MathTools::NOPE`, `fetch(:nope)`, or a `=>` pattern. `[]`, `key?` and `in` patterns return nil or false instead, and Default Exports and Bare Cartons are not checked |
+| error | A private constant of a Default Export, such as `Billing::Tax` when `Billing` calls `private_constant :Tax` |
 | error | A syntax error |
 | warning | A named import not found on the load path, which a gem activated at runtime may provide |
-| warning | An import whose path is not a string literal |
+| warning | An import whose path is not a string literal, unless marked `# carton:dynamic` |
 | warning | `export` in a file inside a Carton, where it does nothing |
 
 ## Errors

@@ -29,8 +29,9 @@ plugin_dirs = Dir.glob('plugins/*/', base: __dir__).sort
 plugins =
   plugin_dirs.map do |dir|
     # Carton boundary: each import loads one plugin, and its gems, in a new
-    # Box. Only its export comes back.
-    plugin = import_relative dir
+    # Box. Only its export comes back. The path is found at runtime, so mark
+    # it for `carton check`.
+    plugin = import_relative dir # carton:dynamic
 
     missing = PLUGIN_METHODS.reject { plugin.respond_to?(it) }
     raise "#{dir} lacks #{missing.join(', ')}" if missing.any?
