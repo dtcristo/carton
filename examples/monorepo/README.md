@@ -2,12 +2,14 @@
 
 When a large app splits its code into packages by directory alone, nothing stops one package from calling another's internals, and the dependency graph lives only in people's heads. Here each package is a Carton: a gem that declares its dependencies and runs in its own Box, and Bundler is the manifest ([dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32)):
 
-- Each Carton under `cartons/` is a path gem. Its gemspec names it and declares Carton and the other runtime gems it uses. Its Entrypoint requires Carton so `export` is defined for ordinary `require` consumers too.
+- Each Carton under `cartons/` is a path gem. Its gemspec names it and declares Carton and the other runtime gems it uses.
 - One `Gemfile` and `Gemfile.lock` cover the whole monorepo and pin every third-party version.
 - `import 'billing'` loads a Carton by gem name in its own Box. Only its Export crosses back.
 - `billing` imports `pricing`, its declared dependency. Each Carton loads once per process, so `billing` and the app share one `pricing` Carton.
 - `Pricing::Rounding` is hidden with `private_constant`.
 - `bigdecimal` loads inside `pricing`'s Box at the locked version, not in the Main Box.
+
+Each Entrypoint requires Carton to define `import` and `export`. The leaf Cartons `pricing` and `shipping` also work with ordinary `require` without Boxes enabled. `billing` imports `pricing`, so it needs `RUBY_BOX=1` even when loaded with `require`.
 
 ```
 Gemfile                    # carton, the three Cartons, bigdecimal 4.1.1
