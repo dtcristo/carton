@@ -157,7 +157,86 @@ class CheckUsesTest < Minitest::Test
     assert_equal [expected], errors(output)
   end
 
+  def test_unused_import_is_a_warning
+    main =
+      "MathTools = import_relative 'math'\nlocal = import_relative 'math'\n"
+
+    status, output = check('main.rb' => main, 'math.rb' => MATH)
+
+    assert_equal 0, status
+    expected = [
+      'main.rb:1: warning: MathTools is bound to an import of the math Carton but never used',
+      'main.rb:2: warning: local is bound to an import of the math Carton but never used',
+    ]
+    assert_equal expected, warnings(output).first(2)
+  end
+
+  # A Bare Carton's top-level constants are its surface, and `export` names
+  # count as uses.
+  def test_exported_and_bare_surface_bindings_are_used
+    files = {
+      'main.rb' => "import_relative 'bare'\nimport_relative 'named'\n",
+      'bare.rb' => "MathTools = import_relative 'math'\n",
+      'named.rb' => "MathTools = import_relative 'math'\nexport :MathTools\n",
+      'math.rb' => MATH,
+    }
+
+    _, output = check(files)
+
+    refute_match(/never used\z/, output.lines.grep(/bound to an import/).join)
+  end
+
+  def test_unused_named_export_is_a_warning
+    main = "MathTools = import_relative 'math'\nMathTools.add(1, 2)\n"
+
+    _, output = check('main.rb' => main, 'math.rb' => MATH)
+
+    expected =
+      'math.rb:2: warning: export PI of the math Carton is never used by an importer'
+    assert_equal [expected], warnings(output)
+  end
+
+  # When the namespace is passed on, or an import is not bound, its uses
+  # cannot all be seen.
+  def test_unused_exports_are_not_reported_when_uses_escape
+    [
+      'MathTools = import_relative "math"\nuse(MathTools)\n',
+      "import_relative 'math'\n",
+    ].each do |main|
+      _, output = check('main.rb' => main, 'math.rb' => MATH)
+
+      refute_match(/never used by an importer/, output, main)
+    end
+  end
+
+  def test_reopening_an_imported_class_is_a_warning
+    main = <<~RUBY
+      Billing = import_relative 'billing'
+      class Billing::Invoice
+        def extra = 1
+      end
+      module Billing; end
+    RUBY
+    billing =
+      "module Billing\n  class Invoice; end\nend\nexport_default Billing\n"
+
+    _, output = check('main.rb' => main, 'billing.rb' => billing)
+
+    reopens = warnings(output).grep(/reopens/)
+    assert_equal 2, reopens.size
+    assert_match(
+      /\Amain\.rb:2: warning: class Billing::Invoice reopens Billing from the billing Carton/,
+      reopens.first,
+    )
+    assert_match(
+      /\Amain\.rb:5: warning: module Billing reopens Billing/,
+      reopens.last,
+    )
+  end
+
   private
+
+  def warnings(output) = output.lines(chomp: true).grep(/: warning: /)
 
   def missing(line, code, name, file: 'main.rb')
     "#{file}:#{line}: error: #{code}: the math Carton has no export #{name} " \

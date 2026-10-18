@@ -37,6 +37,10 @@ module Carton
     Reference =
       Data.define(:name, :local, :scope, :kind, :member, :line, :rescued)
 
+    # A class or module definition: the constant path as written, the
+    # namespace it is in, and :class or :module.
+    Definition = Data.define(:name, :scope, :kind, :line)
+
     # A hash pattern matched directly against an import: its Reference
     # `kind` (:fetch for `=>`, :lookup for `in`) and the keys it reads, with
     # `'**'` for a rest pattern.
@@ -82,6 +86,7 @@ module Carton
                 :constants,
                 :definitions,
                 :references,
+                :definition_sites,
                 :private_constants,
                 :local_writes,
                 :errors
@@ -99,6 +104,7 @@ module Carton
       # Every class and module defined, by full name: :class or :module.
       @definitions = {}
       @references = []
+      @definition_sites = []
       # Full names made private with `private_constant`.
       @private_constants = []
       # How many times each local variable is assigned, so a local bound to
@@ -583,6 +589,13 @@ module Carton
         mark_defining(node.constant_path)
         name = constant_name(node.constant_path)
         return nest(:@defs, 0, &) unless name
+
+        @file.definition_sites << Definition.new(
+          name:,
+          scope: @namespace.last,
+          kind:,
+          line: node.location.start_line,
+        )
 
         name = qualify(name)
         @file.definitions[name] ||= kind

@@ -19,9 +19,24 @@ module Carton
     def initialize(project)
       @project = project
       @by_key = {}
+      @by_call = {}
       @all = []
       bind_imports
       collect_uses
+    end
+
+    # The Binding an import call's result is assigned to, if followed.
+    def for(call) = @by_call[call]
+
+    # The Binding the constant `name`, written in `scope` in `path`, refers
+    # to, if any.
+    def constant(path, name, scope)
+      box = box_of(path)
+      candidates(name, scope).each do |candidate|
+        binding = @by_key[[:constant, box, candidate]]
+        return binding if binding
+      end
+      nil
     end
 
     # Imports matched directly against a pattern, `import('math') => { add: }`,
@@ -57,6 +72,10 @@ module Carton
       end
       clashing.each_key { |key| @by_key.delete(key) }
       @all = @by_key.values
+      @project.edges.each do |edge|
+        key = edge.unit && binding_key(edge.call)
+        @by_call[edge.call] = @by_key[key] if key && @by_key[key]
+      end
     end
 
     def binding_key(call)
@@ -82,19 +101,13 @@ module Carton
     def lookup(path, reference)
       return @by_key[[:local, path, reference.name]] if reference.local
 
-      box = box_of(path)
-      candidates(reference).each do |name|
-        binding = @by_key[[:constant, box, name]]
-        return binding if binding
-      end
-      nil
+      constant(path, reference.name, reference.scope)
     end
 
-    def candidates(reference)
-      name = reference.name
+    def candidates(name, scope)
       return [name.delete_prefix('::')] if name.start_with?('::')
 
-      parts = reference.scope.to_s.split('::')
+      parts = scope.to_s.split('::')
       [
         *parts.size.downto(1).map { |n| [*parts.first(n), name].join('::') },
         name,
