@@ -1,0 +1,115 @@
+/*
+ * Carton theme.
+ *
+ * Young Serif for the wordmark and section titles, Plus Jakarta Sans (as on
+ * ruby-lang.org) for reading, IBM Plex Mono for code. Colour is a cut ruby
+ * on cool, violet-tinted paper; verdigris marks a Carton boundary and is used
+ * for nothing else.
+ */
+@import '@fontsource/young-serif/400.css';
+@import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
+:root {
+  --carton-ruby: #e0325b;
+  --carton-garnet: #8a0f31;
+  --carton-boundary: #4fc1ac;
+  --carton-boundary-soft: rgb(79 193 172 / 0.12);
+  --carton-panel: #221a29;
+  --carton-panel-edge: #3a3042;
+
+  --carton-display: 'Young Serif', Georgia, serif;
+  --sl-font: 'Plus Jakarta Sans Variable';
+  --sl-font-mono: 'IBM Plex Mono';
+
+  /* Dark mode: aubergine ink, lit like the inside of a gem. */
+  --sl-color-white: #fbf8fc;
+  --sl-color-gray-1: #ece6ef;
+  --sl-color-gray-2: #cbc2d0;
+  --sl-color-gray-3: #998e9f;
+  --sl-color-gray-4: #64596c;
+  --sl-color-gray-5: #3e3446;
+  --sl-color-gray-6: #2a2231;
+  --sl-color-black: #19131f;
+
+  --sl-color-accent-low: #4b1125;
+  --sl-color-accent: #e0325b;
+  --sl-color-accent-high: #ffb4c5;
+
+  --sl-hue-red: 345;
+}
+
+:root[data-theme='light'] {
+  --carton-boundary: #1d7a6c;
+  --carton-boundary-soft: rgb(29 122 108 / 0.08);
+  --carton-panel: #f6f2f7;
+  --carton-panel-edge: #e3dbe6;
+
+  /* Light mode: cool paper, garnet ink for links and actions. */
+  --sl-color-white: #1a1420;
+  --sl-color-gray-1: #2a2231;
+  --sl-color-gray-2: #3e3446;
+  --sl-color-gray-3: #5c5164;
+  --sl-color-gray-4: #8b8192;
+  --sl-color-gray-5: #cbc2d0;
+  --sl-color-gray-6: #efe9f1;
+  --sl-color-gray-7: #f8f5f9;
+  --sl-color-black: #fdfcfe;
+
+  --sl-color-accent-low: #fde3e9;
+  --sl-color-accent: #c8173f;
+  --sl-color-accent-high: #8a0f31;
+}
+
+/* Page and section titles in the display serif; smaller headings stay sans. */
+.sl-markdown-content :is(h1, h2),
+h1#_top {
+  font-family: var(--carton-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content :is(h3, h4) {
+  font-weight: 700;
+}
+
+.site-title {
+  font-family: var(--carton-display);
+  font-weight: 400;
+  font-size: var(--sl-text-2xl);
+}
+
+.site-title img {
+  height: 2.25rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+/* Homepage prose keeps a readable measure inside the wide splash layout. */
+[data-has-hero] .sl-markdown-content > :is(p, ul, ol) {
+  max-width: 42rem;
+}
+
+[data-has-hero] .sl-markdown-content > h2 {
+  margin-top: 3.5rem;
+}
+
+[data-has-hero] .sl-markdown-content > p:first-child {
+  font-size: var(--sl-text-xl);
+  line-height: 1.6;
+  color: var(--sl-color-gray-1);
+}
+
+/* Full-bleed bands are 100vw wide; never let them add a horizontal scroll. */
+html {
+  overflow-x: clip;
+}
+
+/* The homepage ends on the closing band, flush with the bottom of the page. */
+[data-has-hero] main {
+  padding-bottom: 0;
+}

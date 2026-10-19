@@ -1,0 +1,46 @@
+---
+title: Sharing classes and services
+description: What crosses a Carton boundary by reference, how to avoid reopening shared classes, and how to pass application services in.
+sidebar:
+  order: 5
+---
+
+Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. Classes a Carton defines are different. An exported class is one object with one definition, shared by every importer, as in ordinary Ruby. Reopening it from another Carton changes it for every Carton.
+
+Box is not a security boundary, so this cannot be prevented outright. These habits avoid it by accident.
+
+## Subclass instead of reopening
+
+Give each Carton its own base classes rather than binding a shared one to a bare name:
+
+```ruby
+# customers/lib/customers.rb: the customers Carton's own base class
+class ApplicationRecord < Framework::ApplicationRecord
+  self.abstract_class = true
+end
+```
+
+Changes to a subclass never reach its parent.
+
+## Refine to extend another Carton's class
+
+A refinement applies only to files that activate it with `using`, so the owning Carton never sees it.
+
+## Freeze plain-Ruby exports
+
+`export Pricing.freeze` makes any reopen raise `FrozenError` while still allowing subclasses. Do not freeze Active Record models or their base classes: Rails writes class-level state at runtime, so even `create!` raises once a model's class is frozen.
+
+## Passing application services
+
+A Carton cannot see the application's constants, but it can call objects the application passes in. Use ordinary constructor arguments to supply a repository, payment client, or logger:
+
+```ruby
+# main.rb: the application owns the services and passes them in
+Checkout = import_relative 'checkout'
+checkout = Checkout::Service.new(orders:, payments:, logger:)
+checkout.call(order_id: 42)
+```
+
+An injected object's methods run in the Box where they were defined, with that Box's constants and gems. The Carton needs only the methods it calls, so tests can pass fakes through the same interface. Objects are shared, not copied; keep per-instance dependencies on instances instead of the shared exported module. Prefer plain values for inputs and results when each side loads its own gem classes.
+
+The [dependency_injection example](https://github.com/dtcristo/carton/tree/main/examples/dependency_injection) runs this checkout with file-backed adapters and tests it through its export with fakes.

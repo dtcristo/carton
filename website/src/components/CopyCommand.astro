@@ -1,0 +1,73 @@
+---
+// A shell command with a copy button. The button confirms with "Copied".
+interface Props {
+  command: string;
+}
+const { command } = Astro.props;
+---
+
+<div class="copy-command not-content">
+  <code><span class="prompt" aria-hidden="true">$</span> {command}</code>
+  <button type="button" data-command={command}>Copy</button>
+</div>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.copy-command button')) {
+    button.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(button.dataset.command ?? '');
+      button.textContent = 'Copied';
+      button.dataset.copied = '';
+      setTimeout(() => {
+        button.textContent = 'Copy';
+        delete button.dataset.copied;
+      }, 1600);
+    });
+  }
+</script>
+
+<style>
+  .copy-command {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.4rem 0.4rem 0.4rem 1rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--carton-panel-edge);
+    background: var(--carton-panel);
+  }
+
+  code {
+    background: none;
+    padding: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-white);
+    font-family: var(--__sl-font-mono);
+  }
+
+  .prompt {
+    color: var(--sl-color-gray-3);
+    user-select: none;
+  }
+
+  button {
+    padding: 0.3rem 0.7rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: var(--sl-color-gray-5);
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: var(--sl-text-xs);
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color 150ms;
+  }
+
+  button:hover {
+    background: var(--sl-color-gray-4);
+  }
+
+  button[data-copied] {
+    background: var(--carton-boundary);
+    color: var(--sl-color-black);
+  }
+</style>

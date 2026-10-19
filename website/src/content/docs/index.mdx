@@ -1,0 +1,42 @@
+---
+title: Carton
+description: Real boundaries for Ruby. Cartons import and export like modules, and Ruby enforces the boundary while the code runs.
+template: splash
+# The homepage hero is src/components/Hero.astro; Starlight renders it for any page with `hero`.
+hero:
+  title: Carton
+editUrl: false
+lastUpdated: false
+---
+
+import Compartments from '../../components/Compartments.astro';
+import Shape from '../../components/Shape.astro';
+import Closing from '../../components/Closing.astro';
+
+Ruby has gems to share code and Bundler to pick their versions, but nothing inside an app draws a boundary. Every file loads into one namespace: any code can reach any constant, a monkey patch applies everywhere, and one Gemfile fixes one version of each gem for the whole process. Carton turns that convention into a boundary Ruby keeps.
+
+<Compartments />
+
+<Shape />
+
+## How Carton compares
+
+| | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
+| --- | --- | --- | --- |
+| Boundaries inside an app | No | Checked statically, in CI | Enforced at runtime, and checked statically by `carton check` |
+| Private internals | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
+| Gem versions | One per app | One per app | One per Carton |
+| Monkey patches to builtins | Global | Global | Stay in their Carton |
+| Unit of distribution | A gem | A pack, which stays in the app | A gem-shaped Carton, which can become a gem |
+
+Static checks see only what they can parse. A Carton's boundary is the Box it runs in, so what `carton check` reports ahead of time is also what Ruby enforces. [Why Carton](/project/why-carton/) goes further.
+
+## Where it fits today
+
+- **The domains of an app or a monorepo**, as tens of Cartons, beside Rails or without it.
+- **Plugin hosts** whose plugins need conflicting gem versions, which plain Ruby cannot load together.
+- **Not yet file by file.** Each Carton costs about 60 ms and 2.4 MB, so aim for tens of Cartons, not hundreds.
+
+Carton is experimental, and so is `Ruby::Box`. It needs Ruby 4.0.7 or later, run with `RUBY_BOX=1`. [Status](/project/status/) tracks what is done and what is missing.
+
+<Closing />
