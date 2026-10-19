@@ -19,7 +19,7 @@ What a package system needs, and where Carton stands:
 | Distribution | Done by design. A Carton is gem-shaped, and each Carton in a monorepo is a path gem ([dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32)). |
 | Public sub-entrypoints | Missing. Only the Entrypoint can be imported. |
 | Cheap enough for many units | Missing. About 60 ms and 2.4 MB per Carton, most of it `Ruby::Box.new`, so tens of Cartons, not hundreds ([performance.md](performance.md)). |
-| Works with Rails | Partly. Rails in the Main Box works; Rails inside Cartons has no reloading or Rails CLI, and domain Cartons load Active Support's core extensions themselves. |
+| Works with Rails | Partly. Rails in the Main Box works; Rails inside Cartons has no supported reloading or Rails CLI, and domain Cartons load Active Support's core extensions themselves. A [scratch-copy spike](../examples/rails_in_cartons/spike/README.md) verifies serial domain reloads with explicit host callbacks. |
 | On by default | Missing. Ruby needs `RUBY_BOX=1`, and `Ruby::Box` is experimental. |
 
 The model fits. The biggest gaps are cost, Rails inside Cartons, and Box's experimental status; Ruby itself would close most of the cost gap, through cheaper Boxes, template Boxes ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)), and Boxes started from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)). [todo.md](todo.md) orders the work.
