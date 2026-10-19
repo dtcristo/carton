@@ -1,0 +1,75 @@
+---
+title: Exporting
+description: Export one value from a Carton's Entrypoint, hide private constants, and export a few values as a Hash.
+sidebar:
+  order: 2
+---
+
+An Entrypoint exports one value with `export`, and importing the Carton returns that value itself. Most Cartons have one main class or module, so they export it, as `require` would leave a constant behind:
+
+```ruby
+# user.rb: the Entrypoint
+class User
+  def initialize(name) = @name = name
+end
+
+export User # importers receive User itself
+```
+
+```ruby
+# main.rb
+User = import_relative 'user'
+User.new('Alice')
+```
+
+- The value may be anything, including a Hash, `nil`, or `false`.
+- Call `export` once per Entrypoint; a second call raises `Carton::ExportError`. Put other names inside the exported value instead, such as `User::VERSION`.
+- A Symbol raises `Carton::ExportError`, so `export def add` cannot export `:add` by mistake. To export functions, define them on a module and export the module.
+- Bind the import to its own name, `User = import 'user'`. Rename only to resolve a clash between Cartons: `Module#name`, `inspect`, and backtraces keep the original name.
+
+## A root module with private constants
+
+Export the root module and hide everything else with Ruby's own `private_constant`, which holds across Boxes:
+
+```ruby
+# lib/pricing.rb: the Entrypoint
+module Pricing
+  class Calculator
+  end
+
+  module Internal
+  end
+  private_constant :Internal # stays inside the Carton
+end
+
+export Pricing
+```
+
+```ruby
+# main.rb
+Pricing = import 'pricing'
+Pricing::Calculator # public
+Pricing::Internal   # NameError: private constant Pricing::Internal referenced
+```
+
+## A few values
+
+Keywords export a plain Hash, for values that need no module of their own:
+
+```ruby
+# info.rb: the Entrypoint
+export version: '1.0', built_on: 'ci'
+```
+
+```ruby
+# main.rb
+Info = import_relative 'info'
+Info[:version] # => "1.0"
+import_relative('info') => { version: }
+```
+
+## Exports under plain `require`
+
+Only the imported Entrypoint's `export` counts. In any other file, including one loaded with plain `require` by an app or by another Carton, `export` checks its argument, returns it, and does nothing else.
+
+A gem can add `export MyGem` and keep working for apps that just `require 'my_gem'`, as long as `require 'carton'` comes first so the method exists.

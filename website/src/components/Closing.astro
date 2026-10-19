@@ -1,0 +1,104 @@
+---
+// The homepage's last word: a full-bleed ruby band pointing at the tutorial.
+import CopyCommand from './CopyCommand.astro';
+---
+
+<section class="closing not-content" aria-labelledby="closing">
+  <h2 id="closing">Draw your first boundary</h2>
+  <p>Install the gem, export a module from one file, and import it from another. It takes about five minutes.</p>
+  <div class="actions">
+    <a class="button" href="/start/getting-started/">Read Getting started</a>
+    <CopyCommand command="gem install carton" />
+  </div>
+</section>
+
+<style>
+  .closing {
+    position: relative;
+    isolation: isolate;
+    margin-block: 5rem -1.5rem;
+    padding-block: 4.5rem;
+    color: #fff;
+  }
+
+  /* The band spans the window, past the content column. */
+  .closing::before,
+  .closing::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0 auto;
+    left: 50%;
+    width: 100vw;
+    translate: -50% 0;
+  }
+
+  .closing::before {
+    background:
+      radial-gradient(50rem 24rem at 85% 0%, rgb(255 255 255 / 0.18), transparent 70%),
+      linear-gradient(135deg, #b0123d, #6d0b2a 60%, #3a0a24);
+  }
+
+  .closing::after {
+    --facet: rgb(255 255 255 / 0.07);
+    background:
+      repeating-linear-gradient(60deg, var(--facet) 0 1px, transparent 1px 56px),
+      repeating-linear-gradient(-60deg, var(--facet) 0 1px, transparent 1px 56px),
+      repeating-linear-gradient(0deg, var(--facet) 0 1px, transparent 1px 48.5px);
+    mask-image: linear-gradient(to left, #000, transparent 80%);
+  }
+
+  h2 {
+    margin: 0;
+    font-family: var(--carton-display);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: #fff;
+  }
+
+  p {
+    margin: 1rem 0 2rem;
+    max-width: 34rem;
+    font-size: var(--sl-text-lg);
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .button {
+    display: inline-flex;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    background: #fff;
+    color: #6d0b2a;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 150ms;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .button:focus-visible {
+    outline-color: #fff;
+  }
+
+  /* The copy command reads on the band in both themes. */
+  .actions :global(.copy-command) {
+    --carton-panel: rgb(0 0 0 / 0.28);
+    --carton-panel-edge: rgb(255 255 255 / 0.18);
+  }
+
+  .actions :global(.copy-command code) {
+    color: #fff;
+  }
+</style>

@@ -4,6 +4,7 @@
 
 ### Added
 
+- A website, [carton.dtcristo.com](https://carton.dtcristo.com), in `website/`: an Astro and Starlight homepage, guides, and a hand-written reference, deployed from `main` to Cloudflare Workers. Its Glossary is generated from `CONTEXT.md`.
 - An experimental Rails-in-Cartons reloading spike rebuilds changed domain Cartons and their Importers in a scratch copy, explicitly refreshes a retained Rails host's domain references and registered classes, and verifies requests after two reloads without losing records. It adds no runtime reload interface.
 - `examples/exports` demonstrates Hash and callable exports, Bare Carton Helpers, and Ruby pattern matching without gems or Bundler. The plugin testing recipe is now a runnable test with its own bundle.
 - `examples/dependency_injection`: a checkout Carton receives order storage, payments, and logging from its host through constructor arguments. File-backed demo adapters stay in Main, and integration tests import the Carton with fakes.

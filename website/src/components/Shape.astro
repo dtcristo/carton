@@ -1,0 +1,109 @@
+---
+// A Carton is shaped like a gem: an Entrypoint plus the directory beside it.
+---
+
+<section class="shape not-content" aria-labelledby="shape">
+  <div class="words">
+    <h2 id="shape">Shaped like a gem</h2>
+    <p>A Carton is an Entrypoint, <code>billing.rb</code>, plus its Interior, the <code>billing/</code> directory beside it. That's the layout of a gem's <code>lib/</code> and a Zeitwerk namespace, so most code is already in shape.</p>
+    <p>There is no manifest. A gem, a path gem, a directory, or a single file can be a Carton, and a Carton with a gemspec can leave the app as a published gem unchanged.</p>
+  </div>
+  <ol class="tree" aria-label="Files in the billing Carton">
+    <li class="entry"><span>billing.rb</span><em>Entrypoint: importable, exports Billing</em></li>
+    <li class="dir"><span>billing/</span><em>Interior: loads inside the Carton</em></li>
+    <li class="inner"><span>invoice.rb</span></li>
+    <li class="inner"><span>tax.rb</span></li>
+    <li class="inner"><span>models/charge.rb</span></li>
+  </ol>
+</section>
+
+<style>
+  .shape {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+    padding-block: 3.5rem 1rem;
+  }
+
+  @media (min-width: 56rem) {
+    .shape {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+    }
+  }
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: var(--sl-text-h2);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    font-family: var(--carton-display);
+    color: var(--sl-color-white);
+  }
+
+  p {
+    margin: 0 0 1rem;
+    max-width: 34rem;
+    color: var(--sl-color-gray-2);
+    line-height: 1.65;
+  }
+
+  p code {
+    font-size: 0.875em;
+    padding: 0.05em 0.3em;
+    border-radius: 0.25rem;
+    background: var(--sl-color-bg-inline-code);
+  }
+
+  .tree {
+    list-style: none;
+    margin: 0;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--carton-panel-edge);
+    background: var(--carton-panel);
+    font-size: var(--sl-text-sm);
+    font-family: var(--__sl-font-mono);
+  }
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    padding-block: 0.35rem;
+    color: var(--sl-color-gray-1);
+  }
+
+  li em {
+    font-style: normal;
+    color: var(--sl-color-gray-3);
+  }
+
+  .entry span {
+    color: var(--sl-color-white);
+    font-weight: 700;
+  }
+
+  .entry em {
+    color: var(--sl-color-accent-high);
+  }
+
+  :root[data-theme='light'] .entry em {
+    color: var(--sl-color-accent);
+  }
+
+  /* The Interior sits inside the boundary. */
+  .dir {
+    margin-top: 0.5rem;
+    padding-top: 0.85rem;
+    border-top: 2px dashed var(--carton-boundary);
+  }
+
+  .inner {
+    padding-left: 1.5rem;
+    border-left: 2px dashed var(--carton-boundary);
+    margin-left: 0.4rem;
+  }
+</style>
