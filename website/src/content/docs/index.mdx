@@ -24,12 +24,12 @@ Ruby has gems to share code and Bundler to pick their versions, but nothing insi
 | | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
 | --- | --- | --- | --- |
 | Boundaries inside an app | No | Checked statically, in CI | Enforced at runtime, and checked statically by `carton check` |
-| Private internals | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
+| Private code | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
 | Gem versions | One per app | One per app | One per Carton |
 | Monkey patches to builtins | Global | Global | Stay in their Carton |
 | Unit of distribution | A gem | A pack, which stays in the app | A gem-shaped Carton, which can become a gem |
 
-Static checks see only what they can parse. A Carton's boundary is the Box it runs in, so what `carton check` reports ahead of time is also what Ruby enforces. [Why Carton](/project/why-carton/) goes further.
+Static checks see only what they can parse. A Carton's boundary is the Box it runs in, so Ruby holds it even for code no tool can follow, and `carton check` catches what the runtime cannot, such as Second Copies and Undeclared Gems, before the code runs. [Why Carton](/project/why-carton/) goes further.
 
 ## Where it fits today
 

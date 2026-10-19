@@ -1,11 +1,11 @@
 ---
 title: Testing
-description: Test a Carton through its export in integration tests, and reach its internals with plain require in unit tests.
+description: Test a Carton through its export in integration tests, and reach its private code with plain require in unit tests.
 sidebar:
   order: 6
 ---
 
-A Carton has two kinds of test. An integration test imports the Carton and sees only its Public Surface. A unit test loads the Carton's files with plain `require` and can reach its internals.
+A Carton has two kinds of test. An integration test imports the Carton and sees only its Public Surface. A unit test loads the Carton's files with plain `require` and can reach its private code.
 
 ## Integration tests
 
@@ -49,6 +49,6 @@ end
 ```
 
 - Keep unit and integration tests in separate files, and run each file in its own process. A plain `require` loads a second copy of the Carton beside the imported one.
-- Private code can stay private instead of moving into a Carton of its own. A test names it once with `const_get`, or `send` for a private method, so each reach into internals is easy to find.
+- Private code can stay private instead of moving into a Carton of its own. A test names it once with `const_get`, or `send` for a private method, so each reach into private code is easy to find.
 
 The [monorepo example's tests](https://github.com/dtcristo/carton/tree/main/examples/monorepo/test) have both kinds.

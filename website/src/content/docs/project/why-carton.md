@@ -18,13 +18,13 @@ Carton splits code into Cartons that import and export like modules. Each Carton
 | | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
 | --- | --- | --- | --- |
 | Boundaries inside an app | No | Checked statically, in CI | Enforced at runtime, and checked statically by `carton check` |
-| Private internals | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
+| Private code | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
 | Constants loaded dynamically | n/a | Not seen | Inside the boundary like any other |
 | Gem versions | One per app | One per app | One per Carton |
 | Monkey patches to builtins | Global | Global | Stay in their Carton |
 | Unit of distribution | A gem | A pack, which stays in the app | A gem-shaped Carton, which can become a gem |
 
-Static checks only see what they can parse. Packwerk's authors note that a package with zero violations "may actually crash with name errors when its code is executed" ([A Packwerk Retrospective](https://shopify.engineering/a-packwerk-retrospective)). A Carton's boundary is the Box it runs in, so what `carton check` reports ahead of time is also what Ruby enforces.
+Static checks only see what they can parse. Packwerk's authors note that a package with zero violations "may actually crash with name errors when its code is executed" ([A Packwerk Retrospective](https://shopify.engineering/a-packwerk-retrospective)). A Carton's boundary is the Box it runs in, so Ruby holds it even for code no tool can follow. `carton check` adds what the runtime cannot enforce, such as Second Copies from plain `require` and Undeclared Gems, before the code runs.
 
 ## What a Box does not isolate
 

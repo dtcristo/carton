@@ -57,7 +57,7 @@ import CopyCommand from './CopyCommand.astro';
       <p class="file-label">main.rb</p>
       <pre class="code"><code><span class="k">require</span> <span class="s">'carton'</span>
 
-<span class="arrive"><span class="c">Billing</span> = <span class="n">import</span> <span class="s">'billing'</span></span>
+<span class="arrive"><span class="c">Billing</span> = <span class="n">import_relative</span> <span class="s">'billing'</span></span>
 <span class="c">Billing</span>.invoice(<span class="m">42</span>)
 <span class="result"><span class="r"># =&gt; #&lt;Billing::Invoice&gt;</span></span>
 <span class="c">Billing</span>::<span class="c">Tax</span>
@@ -232,9 +232,10 @@ import CopyCommand from './CopyCommand.astro';
     border-color: var(--sl-color-gray-3);
   }
 
+  /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
   .button.primary {
-    background: var(--sl-color-accent);
-    border-color: var(--sl-color-accent);
+    background: #c8173f;
+    border-color: #c8173f;
     color: #fff;
   }
 

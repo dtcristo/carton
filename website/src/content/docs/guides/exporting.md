@@ -1,6 +1,6 @@
 ---
 title: Exporting
-description: Export one value from a Carton's Entrypoint, hide internals with private_constant, and export a few values as a Hash.
+description: Export one value from a Carton's Entrypoint, hide private constants, and export a few values as a Hash.
 sidebar:
   order: 2
 ---
@@ -27,9 +27,9 @@ User.new('Alice')
 - A Symbol raises `Carton::ExportError`, so `export def add` cannot export `:add` by mistake. To export functions, define them on a module and export the module.
 - Bind the import to its own name, `User = import 'user'`. Rename only to resolve a clash between Cartons: `Module#name`, `inspect`, and backtraces keep the original name.
 
-## A root module with private internals
+## A root module with private constants
 
-Export the root module and hide internals with Ruby's own `private_constant`, which holds across Boxes:
+Export the root module and hide everything else with Ruby's own `private_constant`, which holds across Boxes:
 
 ```ruby
 # lib/pricing.rb: the Entrypoint

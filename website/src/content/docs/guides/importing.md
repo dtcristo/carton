@@ -20,7 +20,7 @@ A path that names a gem-shaped directory imports its `lib/<name>.rb` Entrypoint.
 
 ## `import`
 
-`import path` takes an absolute path, or searches the current Box's `$LOAD_PATH` like `require`. It never checks the current directory. A missing path or name raises `LoadError`; when the name matches a file beside the caller, the message suggests `import_relative` instead.
+`import path` takes an absolute path, or searches the current Box's `$LOAD_PATH` like `require`. It never checks the current directory. A missing path or name raises `LoadError`; when the name matches a file beside the calling file, the message suggests `import_relative` instead.
 
 ```ruby
 Billing = import 'billing'                     # a gem or path gem in the bundle
