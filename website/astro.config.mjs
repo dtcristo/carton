@@ -25,6 +25,19 @@ export default defineConfig({
         baseUrl: 'https://github.com/dtcristo/carton/edit/main/website/',
       },
       customCss: ['./src/styles/theme.css'],
+      // Rosé Pine's violet-tinted palette sits with the ruby theme where
+      // Starlight's blue and purple tokens did not; panels use the site's own.
+      expressiveCode: {
+        themes: ['rose-pine', 'rose-pine-dawn'],
+        defaultProps: { frame: 'none' },
+        styleOverrides: {
+          borderRadius: '0.6rem',
+          borderColor: 'var(--carton-panel-edge)',
+          codeBackground: 'var(--carton-panel)',
+          codeFontFamily: 'var(--sl-font-mono)',
+          codeFontSize: '0.875rem',
+        },
+      },
       components: {
         Hero: './src/components/Hero.astro',
         SocialIcons: './src/components/SocialIcons.astro',
