@@ -11,6 +11,7 @@
 
 ### Changed
 
+- Bundler support now starts at 4.0.20, the first release with the gemspec evaluation fix Carton needs inside Boxes. CI and the example bundles use that minimum.
 - `examples/monorepo` keeps its Cartons under `cartons/` instead of `packages/`.
 - `CONTEXT.md` groups the glossary and adds Interior, Gem-shaped Directory, Root Box, User Box, Carton Box, Template Box, Importer, First Importer, Second Copy, Dynamic Import, Helper, Gem Closure, Carton Bundle, and Undeclared Gem. The docs, comments, and `carton-tools` internals use these terms.
 - `docs/internals/root-box-vs-main-box.md` is now `docs/internals/box-names.md`, which records upstream Ruby's Box names and how they were chosen.

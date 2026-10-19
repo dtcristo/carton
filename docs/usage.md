@@ -5,7 +5,7 @@ Carton splits an app into gem-sized or domain-sized units called Cartons. Each C
 ## Requirements
 
 - Ruby 4.0.7+, run with `RUBY_BOX=1` (e.g. `RUBY_BOX=1 ruby main.rb`)
-- Bundler 4.0.23+, if you use Bundler
+- Bundler 4.0.20+, if you use Bundler
 - `require 'carton'` before calling `import`, `import_relative`, or `export`
 
 ## What a Carton is

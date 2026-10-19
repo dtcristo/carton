@@ -23,7 +23,7 @@ Start with [minimal](minimal/README.md). Each example is a separate program; sim
 
 ## Run
 
-Use Ruby 4.0.7+ and Bundler 4.0.23+. From the repository root, install the development bundle once, then choose a task:
+Use Ruby 4.0.7+ and Bundler 4.0.20+. From the repository root, install the development bundle once, then choose a task:
 
 ```sh
 bundle install
