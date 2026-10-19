@@ -5,6 +5,8 @@ import starlightLinksValidator from 'starlight-links-validator';
 
 export default defineConfig({
   site: 'https://carton.dtcristo.com',
+  // Prebuilt HTML only: no adapter, no server runtime.
+  output: 'static',
   integrations: [
     starlight({
       title: 'Carton',

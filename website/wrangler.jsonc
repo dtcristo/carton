@@ -1,11 +1,17 @@
-// A static site on Cloudflare Workers: no Worker script, only assets.
+// Static assets only: there is no Worker script (no `main`), no Node.js
+// compatibility, and nothing runs on a request. Cloudflare serves the files in
+// `dist/` straight from its network.
+//
+// The Worker and its carton.dtcristo.com custom domain are created once in
+// the Cloudflare dashboard, so deploying only uploads assets to that Worker
+// and the deploy token needs no permission to create Workers or edit zones.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "carton",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
-  },
-  "routes": [{ "pattern": "carton.dtcristo.com", "custom_domain": true }]
+    "not_found_handling": "404-page",
+    "run_worker_first": false
+  }
 }
