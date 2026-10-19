@@ -18,6 +18,8 @@
   --carton-boundary-soft: rgb(79 193 172 / 0.12);
   --carton-panel: #221a29;
   --carton-panel-edge: #3a3042;
+  /* Errors in code samples: a lighter ruby that keeps 4.5:1 on panels. */
+  --carton-error: #ff5577;
 
   --carton-display: 'Young Serif', Georgia, serif;
   --sl-font: 'Plus Jakarta Sans Variable';
@@ -43,8 +45,9 @@
 :root[data-theme='light'] {
   --carton-boundary: #1d7a6c;
   --carton-boundary-soft: rgb(29 122 108 / 0.08);
-  --carton-panel: #f6f2f7;
+  --carton-panel: #ffffff;
   --carton-panel-edge: #e3dbe6;
+  --carton-error: #c8173f;
 
   /* Light mode: cool paper, garnet ink for links and actions. */
   --sl-color-white: #1a1420;
