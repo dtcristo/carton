@@ -49,6 +49,8 @@ Compare with [examples/rails_in_main](../rails_in_main/README.md), which keeps R
 
 Restarting is the only workflow this example supports. Zeitwerk can reload code inside a Carton Box, but Importers keep the classes and objects they already hold. Here `Framework.register` binds each domain class's name in the framework Box once, at boot, so Rails would keep routing to the old classes after a reload. [examples/zeitwerk](../zeitwerk/README.md#reloading) covers when reloading works and its limits.
 
+The separate [reloading spike](spike/README.md) tests rebuilding domain Cartons in a scratch copy while retaining the Rails application. It replaces the host's domain references and Rails' registered classes explicitly, and verifies requests after two edits. It is an experiment, not a supported development workflow.
+
 ## Run
 
 From the repository root:

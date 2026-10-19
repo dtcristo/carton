@@ -29,6 +29,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 
 ## Rules
 
+- For Rails reloading work, read [the spike's findings and limits](examples/rails_in_cartons/spike/README.md). Its private runtime inspection is experimental; ordinary apps still restart on change.
 - Before Box/gem/Bundler work, read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md`; read `docs/internals/upstream.md` for upstream questions.
 - Test everything. Run `bundle exec rake format` after changes; `bundle exec rake` (tests, rubocop, examples) before finishing.
 - Update the relevant docs, `CHANGELOG.md` (Unreleased), and this file when behavior or durable guidance changes.
