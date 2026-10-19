@@ -1,7 +1,7 @@
 ---
 // Replaces Starlight's hero on the homepage (the only page with `hero` set).
-// The figure plays once on load: the billing Carton's export crosses its
-// boundary into main.rb, and its private constant does not.
+// The figure shows Carton's whole idea at small scale: main.rb imports billing,
+// billing imports tax, and Tax is not reachable from main.rb.
 import { Image } from 'astro:assets';
 import logo from '../assets/carton.png';
 import CopyCommand from './CopyCommand.astro';
@@ -10,11 +10,7 @@ import CopyCommand from './CopyCommand.astro';
 <section class="hero not-content">
   <div class="pitch">
     <div class="lockup">
-      <div class="mark">
-        <Image src={logo} alt="" width={320} class="logo" loading="eager" />
-        <span class="glint one" aria-hidden="true"></span>
-        <span class="glint two" aria-hidden="true"></span>
-      </div>
+      <Image src={logo} alt="" width={320} class="logo" loading="eager" />
       <div>
         <h1>Carton</h1>
         <p class="tagline">Real boundaries for Ruby</p>
@@ -30,38 +26,36 @@ import CopyCommand from './CopyCommand.astro';
     <CopyCommand command="gem install carton" />
   </div>
 
-  <figure class="boundary" aria-label="The billing Carton exports Billing to main.rb; its private constant Tax stays inside.">
-    <div class="carton">
-      <p class="carton-label">billing Carton</p>
-      <ul class="tree">
-        <li><span>billing.rb</span><em>Entrypoint</em></li>
-        <li><span>billing/invoice.rb</span><em>Interior</em></li>
-        <li><span>billing/tax.rb</span><em>Interior</em></li>
-      </ul>
-      <pre class="code"><code><span class="n">require_relative</span> <span class="s">'billing/invoice'</span>
-<span class="n">require_relative</span> <span class="s">'billing/tax'</span>
-
-<span class="k">module</span> <span class="c">Billing</span>
-  <span class="k">def</span> <span class="k">self</span>.invoice(total) = <span class="c">Invoice</span>.new(total)
-  <span class="n">private_constant</span> <span class="s">:Tax</span>
-<span class="k">end</span>
-
-<span class="export"><span class="n">export</span> <span class="c">Billing</span></span></code></pre>
-    </div>
-
-    <div class="crossing" aria-hidden="true">
-      <span class="token">Billing</span>
-    </div>
-
-    <div class="importer">
+  <figure class="demo" aria-label="main.rb imports the billing Carton, which imports the tax Carton. main.rb can call Billing but cannot reach Tax.">
+    <div class="file importer">
       <p class="file-label">main.rb</p>
       <pre class="code"><code><span class="k">require</span> <span class="s">'carton'</span>
 
-<span class="arrive"><span class="c">Billing</span> = <span class="n">import_relative</span> <span class="s">'billing'</span></span>
-<span class="c">Billing</span>.invoice(<span class="m">42</span>)
-<span class="result"><span class="r"># =&gt; #&lt;Billing::Invoice&gt;</span></span>
-<span class="c">Billing</span>::<span class="c">Tax</span>
-<span class="denied"><span class="r"># NameError: private constant</span></span></code></pre>
+<span class="c">Billing</span> = <span class="n">import_relative</span> <span class="s">'billing'</span>
+<span class="c">Billing</span>.invoice(<span class="m">100</span>) <span class="r"># =&gt; 110.0</span>
+<span class="c">Tax</span>                  <span class="x"># NameError</span></code></pre>
+    </div>
+
+    <div class="carton">
+      <p class="carton-label">billing Carton</p>
+      <p class="file-label">billing.rb</p>
+      <pre class="code"><code><span class="c">Tax</span> = <span class="n">import_relative</span> <span class="s">'tax'</span>
+
+<span class="k">module</span> <span class="c">Billing</span>
+  <span class="k">def</span> <span class="k">self</span>.invoice(total) = total + <span class="c">Tax</span>.on(total)
+<span class="k">end</span>
+
+<span class="n">export</span> <span class="c">Billing</span></code></pre>
+
+      <div class="carton inner">
+        <p class="carton-label">tax Carton</p>
+        <p class="file-label">tax.rb</p>
+        <pre class="code"><code><span class="k">module</span> <span class="c">Tax</span>
+  <span class="k">def</span> <span class="k">self</span>.on(total) = total * <span class="m">0.1</span>
+<span class="k">end</span>
+
+<span class="n">export</span> <span class="c">Tax</span></code></pre>
+      </div>
     </div>
   </figure>
 </section>
@@ -134,13 +128,9 @@ import CopyCommand from './CopyCommand.astro';
     gap: clamp(1rem, 3vw, 1.75rem);
   }
 
-  .mark {
-    position: relative;
-    flex: none;
-  }
-
   .logo {
     display: block;
+    flex: none;
     width: clamp(6rem, 4rem + 7vw, 9rem);
     height: auto;
     filter: drop-shadow(0 12px 20px rgb(0 0 0 / 0.28));
@@ -154,32 +144,6 @@ import CopyCommand from './CopyCommand.astro';
     line-height: 0.95;
     letter-spacing: -0.02em;
     color: var(--sl-color-white);
-  }
-
-  /* Four-point sparkles that catch the light once the logo lands. */
-  .glint {
-    position: absolute;
-    width: 1.1rem;
-    aspect-ratio: 1;
-    background: #fff;
-    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
-    filter: drop-shadow(0 0 6px #fff);
-    opacity: 0;
-  }
-
-  .glint.one { top: 8%; right: 4%; }
-  .glint.two { bottom: 22%; left: 6%; width: 0.75rem; }
-
-  /* The wordmark: a light sweep crosses it once, like a glint off a gem. */
-  h1 {
-    background: linear-gradient(100deg, var(--sl-color-white) 42%, var(--sl-color-accent-high) 50%, var(--sl-color-white) 58%) 100% 0 / 300% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-
-  :root[data-theme='light'] h1 {
-    background-image: linear-gradient(100deg, var(--sl-color-white) 42%, var(--sl-color-accent) 50%, var(--sl-color-white) 58%);
   }
 
   .tagline {
@@ -246,31 +210,24 @@ import CopyCommand from './CopyCommand.astro';
 
   /* The figure */
 
-  .boundary {
-    position: relative;
-    isolation: isolate;
+  .demo {
     margin: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto 3.5rem auto;
+    gap: 1rem;
     font-size: var(--sl-text-sm);
   }
 
-  @media (min-width: 48rem) and (max-width: 63.99rem) {
-    .boundary {
-      grid-template-rows: none;
-      grid-template-columns: minmax(0, 1.15fr) 5rem minmax(0, 1fr);
-      align-items: center;
-    }
-  }
-
-  .carton,
-  .importer {
+  .file,
+  .carton {
     position: relative;
     min-width: 0;
     padding: 1.25rem;
     border-radius: 0.9rem;
     background: var(--carton-panel);
+  }
+
+  .file {
+    border: 1px solid var(--carton-panel-edge);
   }
 
   .carton {
@@ -280,22 +237,9 @@ import CopyCommand from './CopyCommand.astro';
       var(--carton-panel);
   }
 
-  .importer {
-    border: 1px solid var(--carton-panel-edge);
-  }
-
-  /* Stacked, the two files step down and across, like the import itself. */
-  @media (min-width: 64rem) {
-    .carton { margin-inline-end: 3rem; }
-    .importer { margin-inline-start: 3rem; }
-  }
-
-  .carton-label,
-  .file-label {
-    margin: 0 0 0.75rem;
-    font-size: var(--sl-text-xs);
-    font-weight: 700;
-    font-family: var(--__sl-font-mono);
+  .carton.inner {
+    margin-top: 1.25rem;
+    border-radius: 0.7rem;
   }
 
   .carton-label {
@@ -307,31 +251,17 @@ import CopyCommand from './CopyCommand.astro';
     border-radius: 999px;
     background: var(--carton-boundary);
     color: var(--sl-color-black);
+    font-family: var(--__sl-font-mono);
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
   }
 
   .file-label {
+    margin: 0 0 0.6rem;
     color: var(--sl-color-gray-3);
-  }
-
-  .tree {
-    list-style: none;
-    margin: 0.4rem 0 1rem;
-    padding: 0 0 0.9rem;
-    border-bottom: 1px dashed var(--carton-panel-edge);
     font-family: var(--__sl-font-mono);
-  }
-
-  .tree li {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    line-height: 1.8;
-    color: var(--sl-color-gray-1);
-  }
-
-  .tree em {
-    font-style: normal;
-    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
   }
 
   .code {
@@ -352,159 +282,25 @@ import CopyCommand from './CopyCommand.astro';
   .k { color: var(--sl-color-accent-high); }
   .c { color: var(--sl-color-white); font-weight: 650; }
   .n { color: var(--carton-boundary); }
-  .s { color: #e8b04b; }
-  .m { color: #e8b04b; }
+  .s, .m { color: #e8b04b; }
   .r { color: var(--sl-color-gray-3); }
+  .x { color: var(--sl-color-accent); }
 
   :root[data-theme='light'] .k { color: var(--carton-garnet); }
   :root[data-theme='light'] .s,
   :root[data-theme='light'] .m { color: #9a5b00; }
 
-  .export,
-  .arrive {
-    display: inline-block;
-    border-radius: 0.3rem;
-    padding-inline: 0.25rem;
-    margin-inline: -0.25rem;
-  }
-
-  .export { box-shadow: inset 0 -2px 0 var(--sl-color-accent); }
-  .arrive { background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent); }
-  .denied .r { color: var(--sl-color-accent); }
-
-  /* A faint ruby glow behind the figure, as light through a cut stone. */
-  .boundary::before {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    inset: -10% 0;
-    background:
-      radial-gradient(closest-side at 70% 70%, color-mix(in srgb, var(--sl-color-accent) 22%, transparent), transparent),
-      radial-gradient(closest-side at 25% 25%, var(--carton-boundary-soft), transparent);
-    filter: blur(24px);
-    pointer-events: none;
-  }
-
-  @media (min-width: 72rem) {
-    .boundary::before { inset: -12% -8%; }
-  }
-
-  :root[data-theme='light'] .boundary::before {
-    opacity: 0.55;
-  }
-
-  /* The crossing between the two files. */
-  .crossing {
-    position: relative;
-    display: grid;
-    place-items: center;
-  }
-
-  .crossing::before {
-    content: '';
-    position: absolute;
-    inset: 0.5rem calc(50% - 1px);
-    border-left: 2px dotted var(--sl-color-gray-4);
-  }
-
-  .token {
-    position: relative;
-    z-index: 1;
-    padding: 0.15rem 0.6rem;
-    border-radius: 999px;
-    background: var(--sl-color-accent);
-    color: #fff;
-    font-size: var(--sl-text-xs);
-    font-weight: 700;
-    font-family: var(--__sl-font-mono);
-    opacity: 0;
-  }
-
-  @media (min-width: 48rem) and (max-width: 63.99rem) {
-    .crossing::before {
-      inset: calc(50% - 1px) 0.25rem;
-      border-left: 0;
-      border-top: 2px dotted var(--sl-color-gray-4);
-    }
-  }
-
-  /* One orchestrated sequence on load. Without motion, show the end state. */
+  /* One quiet entrance: the three panels fade in, a beat apart. */
   @media (prefers-reduced-motion: no-preference) {
-    .logo { animation: land 800ms cubic-bezier(0.3, 1.4, 0.5, 1) both; }
-    .glint.one { animation: twinkle 700ms ease-out 750ms; }
-    .glint.two { animation: twinkle 700ms ease-out 950ms; }
-    h1 { animation: sweep 1400ms ease-in-out 600ms both; }
-    .importer { animation: settle 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 250ms both; }
-    .tree li { animation: appear 400ms ease-out both; }
-    .tree li:nth-child(1) { animation-delay: 500ms; }
-    .tree li:nth-child(2) { animation-delay: 620ms; }
-    .tree li:nth-child(3) { animation-delay: 740ms; }
-    .export { animation: underline 500ms ease-out 1000ms both; }
-    .token { animation: cross-down 900ms cubic-bezier(0.5, 0, 0.3, 1) 1350ms both; }
-    .arrive { animation: arrive 700ms ease-out 2150ms both; }
-    .result { animation: appear 400ms ease-out 2500ms both; }
-    .denied { animation: appear 400ms ease-out 3000ms both; }
-    .carton {
-      animation: settle 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 100ms both, hold 500ms ease-in-out 3000ms;
+    .importer,
+    .carton:not(.inner) {
+      animation: fade-in 500ms ease-out both;
     }
 
-    @media (min-width: 48rem) and (max-width: 63.99rem) {
-      .token { animation-name: cross-right; }
-    }
+    .carton:not(.inner) { animation-delay: 120ms; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .token { opacity: 1; }
-  }
-
-  @keyframes land {
-    from { opacity: 0; transform: translateY(-1.25rem) rotate(-8deg) scale(0.92); }
-  }
-
-  @keyframes twinkle {
-    0% { opacity: 0; transform: scale(0) rotate(0deg); }
-    40% { opacity: 1; transform: scale(1.15) rotate(45deg); }
-    100% { opacity: 0; transform: scale(0) rotate(90deg); }
-  }
-
-  @keyframes sweep {
-    from { background-position: 100% 0; }
-    to { background-position: 0 0; }
-  }
-
-  @keyframes settle {
-    from { opacity: 0; transform: translateY(0.75rem) scale(0.98); }
-  }
-
-  @keyframes appear {
+  @keyframes fade-in {
     from { opacity: 0; }
-  }
-
-  @keyframes underline {
-    from { box-shadow: inset 0 0 0 var(--sl-color-accent); }
-  }
-
-  @keyframes arrive {
-    from { background: transparent; }
-    40% { background: color-mix(in srgb, var(--sl-color-accent) 40%, transparent); }
-  }
-
-  @keyframes cross-down {
-    0% { opacity: 0; transform: translateY(-1.5rem); }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes cross-right {
-    0% { opacity: 0; transform: translateX(-1.75rem); }
-    20% { opacity: 1; }
-    100% { opacity: 1; transform: translateX(0); }
-  }
-
-  /* The boundary flexes when Tax tries to leave, and holds. */
-  @keyframes hold {
-    0%, 100% { border-color: var(--carton-boundary); }
-    35% { border-color: var(--sl-color-accent); }
   }
 </style>
