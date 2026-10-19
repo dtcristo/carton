@@ -27,7 +27,7 @@
 
 ## [0.3.0] - 2026-10-18
 
-`export` now takes one value, which `import` returns as is. This release also adds the `carton-tools` gem, whose `carton` command checks imports and exports and writes RBS, and makes a Carton's autoloads load in its own Box (#48, #58, #59).
+`export` now takes one value, which `import` returns as is. This release also adds the `carton-tools` gem, whose `carton` command checks imports and exports and writes RBS, and makes a Carton's autoloads load in its own Box (#41, #48, #58, #59).
 
 ### Breaking
 
@@ -71,7 +71,7 @@
 
 ## [0.2.0] - 2026-10-17
 
-Cartons are now gem-sized or domain-sized units: a file plus the directory named after it. This release also redesigns exports, shares imports across the process, adds gem and Bundler support, and requires Ruby 4.0.7 (#10, #11, #14, #15, #19, #36).
+Cartons are now gem-sized or domain-sized units: a file plus the directory named after it. This release also redesigns exports, shares imports across the process, adds gem and Bundler support, and requires Ruby 4.0.7 (#9, #10, #11, #14, #15, #17, #18, #19, #20, #36).
 
 ### Breaking
 
@@ -90,7 +90,7 @@ Cartons are now gem-sized or domain-sized units: a file plus the directory named
 - `import_relative` and absolute `import` accept a gem-shaped directory: `import_relative 'components/billing'` loads `components/billing/lib/billing.rb` with that `lib/` on the Carton's load path (#36).
 - `Carton::Error`, the base class of every error Carton raises itself, with `Carton::ImportError` (circular imports, gem version mismatches) and `Carton::ExportError` (repeated or conflicting exports). They replace plain `RuntimeError`s and `ArgumentError`s, and are the same classes in every Box. `Carton::GemfileNotFound` is now a `Carton::Error` (#35).
 - `Carton.setup_bundle(*groups, gemfile: nil)` sets up a Carton's own bundle. Without `gemfile:` it searches upward from the calling file for `gems.rb` or `Gemfile`. It clears any stale `BUNDLE_LOCKFILE` and restores all of `ENV` after setup, so a Carton's bundle variables never reach the rest of the process. `Carton::GemfileNotFound` is raised when there is no Gemfile (#11, #12).
-- Public RBS signatures in `sig/carton.rbs` ([0b7d16c](https://github.com/dtcristo/carton/commit/0b7d16c)).
+- Public RBS signatures in `sig/carton.rbs` ([0b7d16c](https://github.com/dtcristo/carton/commit/0b7d16c6e251931759edbc65f518b11377635f5d)).
 - `examples/monorepo`: packages as path gems in one Gemfile, imported by gem name (#33).
 - `examples/rails_in_main`: a Rails API app whose domain logic is a Zeitwerk-loaded path-gem Carton (#21, #23).
 - `examples/rails_in_cartons`: Rails loaded once in a framework Carton, with models and controllers spread across domain Cartons. The Main Box runs only Rack (#22, #23).
@@ -101,7 +101,7 @@ Cartons are now gem-sized or domain-sized units: a file plus the directory named
 - `export` and `export_default` only declare exports from the imported Entrypoint. Under plain `require`, or in other files a Carton requires, they validate their arguments and do nothing, so Carton-aware files and gems also load with `require` (#18).
 - Importing a file from an activated gem activates that gem and its runtime dependencies in the Carton's Box at the caller's versions. When the caller ran Bundler setup, the Box is also restricted to the caller's bundle: every locked gem loads at its locked version, and gems outside the lockfile raise `LoadError` (#14, #15).
 - `import`, `import_relative`, `export`, and `export_default` are private Kernel methods, like `require`, so `"str".import(...)` raises `NoMethodError` and objects no longer `respond_to?` them (#8).
-- `import 'name'` resolves the feature in the caller's Box and carries only the matching load-path entry into the imported Box, instead of copying the caller's whole `$LOAD_PATH` ([110dfb6](https://github.com/dtcristo/carton/commit/110dfb6)).
+- `import 'name'` resolves the feature in the caller's Box and carries only the matching load-path entry into the imported Box, instead of copying the caller's whole `$LOAD_PATH` ([110dfb6](https://github.com/dtcristo/carton/commit/110dfb68c7488e2e32de3e71c01fcecccbc893f8)).
 - `RUBY_BOX=1 bundle exec` works, including Gemfiles that evaluate a gemspec. Carton no longer patches RubyGems or Bundler (#11).
 
 ### Fixed
