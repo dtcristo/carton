@@ -1,23 +1,33 @@
 ---
-// The homepage's last word: a full-bleed ruby band pointing at the tutorial.
+// The homepage's last word and its footer: a full-bleed ruby band pointing at
+// the tutorial, flush with the bottom of the page.
 import CopyCommand from './CopyCommand.astro';
 ---
 
 <section class="closing not-content" aria-labelledby="closing">
   <h2 id="closing">Draw your first boundary</h2>
-  <p>Install the gem, export a module from one file, and import it from another. It takes about five minutes.</p>
+  <p>Install the gem, export a module from one file, and import it from another. Carton is experimental and needs Ruby 4.0.7 or later, run with <code>RUBY_BOX=1</code>.</p>
   <div class="actions">
     <a class="button" href="/start/getting-started/">Read Getting started</a>
     <CopyCommand command="gem install carton" />
   </div>
+  <footer>
+    <nav aria-label="Footer">
+      <a href="/project/why-carton/">Why Carton</a>
+      <a href="/project/status/">Status</a>
+      <a href="/reference/kernel/">Reference</a>
+      <a href="https://github.com/dtcristo/carton">GitHub</a>
+    </nav>
+    <p>MIT License</p>
+  </footer>
 </section>
 
 <style>
   .closing {
     position: relative;
     isolation: isolate;
-    margin-block: 5rem -1.5rem;
-    padding-block: 4.5rem;
+    margin-block: 4rem 0;
+    padding-block: 4.5rem 2rem;
     color: #fff;
   }
 
@@ -66,6 +76,14 @@ import CopyCommand from './CopyCommand.astro';
     color: rgb(255 255 255 / 0.82);
   }
 
+  p code {
+    font-size: 0.875em;
+    padding: 0.05em 0.35em;
+    border-radius: 0.25rem;
+    background: rgb(0 0 0 / 0.25);
+    color: #fff;
+  }
+
   .actions {
     display: flex;
     flex-wrap: wrap;
@@ -88,8 +106,43 @@ import CopyCommand from './CopyCommand.astro';
     transform: translateY(-1px);
   }
 
-  .button:focus-visible {
+  .closing :focus-visible {
     outline-color: #fff;
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem 2rem;
+    margin-top: 4.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(255 255 255 / 0.18);
+    font-size: var(--sl-text-sm);
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+  }
+
+  nav a {
+    color: #fff;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  footer p {
+    margin: 0;
+    font-size: inherit;
+    color: rgb(255 255 255 / 0.7);
   }
 
   /* The copy command reads on the band in both themes. */
