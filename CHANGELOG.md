@@ -27,7 +27,7 @@
 
 ## [0.3.0] - 2026-10-18
 
-`export` now takes one value, which `import` returns as is. This release also adds the `carton-tools` gem, whose `carton` command checks imports and exports and writes RBS, and makes a Carton's autoloads load in its own Box.
+`export` now takes one value, which `import` returns as is. This release also adds the `carton-tools` gem, whose `carton` command checks imports and exports and writes RBS, and makes a Carton's autoloads load in its own Box (#48, #58, #59).
 
 ### Breaking
 
@@ -71,7 +71,7 @@
 
 ## [0.2.0] - 2026-10-17
 
-Cartons are now gem-sized or domain-sized units: a file plus the directory named after it. This release also redesigns exports, shares imports across the process, adds gem and Bundler support, and requires Ruby 4.0.7.
+Cartons are now gem-sized or domain-sized units: a file plus the directory named after it. This release also redesigns exports, shares imports across the process, adds gem and Bundler support, and requires Ruby 4.0.7 (#10, #11, #14, #15, #19, #36).
 
 ### Breaking
 
@@ -116,7 +116,7 @@ Cartons are now gem-sized or domain-sized units: a file plus the directory named
 
 ## [0.1.0] - 2026-04-16
 
-Initial release.
+Initial release ([9925397](https://github.com/dtcristo/carton/commit/99253978dd73b70698341d04314e3ccf86b37c16)).
 
 [Unreleased]: https://github.com/dtcristo/carton/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/dtcristo/carton/compare/v0.2.0...v0.3.0
