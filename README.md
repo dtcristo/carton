@@ -106,6 +106,8 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7+ and, with 
 
 ## Docs
 
+The website, [carton.dtcristo.com](https://carton.dtcristo.com), has the guides and reference; its source is in [website/](website/README.md). The repository's own docs go deeper:
+
 - [usage.md](docs/usage.md): exports, imports, Bundler, Gem Cartons, testing, types, and checks
 - [design.md](docs/design.md): how an import runs
 - [performance.md](docs/performance.md): import time and memory as Cartons and bundles grow

@@ -33,6 +33,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 - Before Box/gem/Bundler work, read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md`; read `docs/internals/upstream.md` for upstream questions.
 - Test everything. Run `bundle exec rake format` after changes; `bundle exec rake` (tests, rubocop, examples) before finishing.
 - Update the relevant docs, `CHANGELOG.md` (Unreleased), and this file when behavior or durable guidance changes.
+- The website in `website/` (Astro + Starlight, Node pinned in `.mise.toml`) is the user-facing guide and reference; `docs/` is for contributors. When public behavior changes, update both `docs/usage.md` and the matching pages under `website/src/content/docs/`, and check the reference against `sig/carton.rbs`. Run `npm run build` in `website/` after site changes; it checks every internal link. Never deploy it by hand.
 - Keep `CONTEXT.md` current: when a domain concept is added, renamed, or redefined, update it in the same change. Keep code (identifiers, comments, test names, messages) and docs in step with it, using its terms and never the ones it lists under _Avoid_.
 - Comment examples so Carton, export, and bundle boundaries are visible.
 - Don't hard-wrap Markdown: write each paragraph, list item, and blockquote on one line.
