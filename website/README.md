@@ -24,10 +24,12 @@ The reference pages are written by hand. Check them against `sig/carton.rbs` and
 
 ## Deploy
 
-`.github/workflows/website.yml` builds the site for every change, and deploys it from `main` with `wrangler deploy` (configured by `wrangler.jsonc`). One-time setup:
+The site is static assets only: `wrangler.jsonc` has no Worker script, no Node.js compatibility, and no routes, and Astro builds plain HTML. `.github/workflows/website.yml` builds the site for every change and deploys it from `main` with `wrangler deploy`, which only uploads `dist/` to the existing `carton` Worker.
 
-1. Create a Cloudflare API token from the **Edit Cloudflare Workers** template, scoped to the account and the `dtcristo.com` zone.
-2. In the GitHub repository settings, create an environment named `website`, limited to the `main` branch, with secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
-3. Merge to `main`, or run the workflow by hand. The first deploy creates the `carton` Worker and attaches the `carton.dtcristo.com` custom domain.
+The Worker and its `carton.dtcristo.com` custom domain were created once and live in Cloudflare, so the deploy token can be narrow. One-time setup:
 
-Moving to another domain later means adding its route to `wrangler.jsonc` and updating `site` in `astro.config.mjs`.
+1. Create the `carton` Worker and attach the custom domain, from the Cloudflare dashboard (Workers & Pages) or with a one-off local `wrangler deploy` that has a broader login.
+2. Create an account-owned API token (Manage Account, Account API Tokens) scoped to the specified Worker `carton`, with the **Editor** role. It needs no zone permissions and cannot create Workers.
+3. In the GitHub repository settings, create an environment named `website`, limited to the `main` branch, with secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+
+Moving to another domain later means attaching it in the dashboard and updating `site` in `astro.config.mjs`.

@@ -101,4 +101,18 @@ import CopyCommand from './CopyCommand.astro';
   .actions :global(.copy-command code) {
     color: #fff;
   }
+
+  .actions :global(.copy-command button) {
+    background: rgb(255 255 255 / 0.16);
+    color: #fff;
+  }
+
+  .actions :global(.copy-command button:hover) {
+    background: rgb(255 255 255 / 0.26);
+  }
+
+  .actions :global(.copy-command button[data-copied]) {
+    background: var(--carton-boundary);
+    color: #19131f;
+  }
 </style>

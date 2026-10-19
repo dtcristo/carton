@@ -113,3 +113,42 @@ html {
 [data-has-hero] main {
   padding-bottom: 0;
 }
+
+/* Code inside a heading reads as part of it, not as a highlighted chip. */
+.sl-markdown-content :is(h2, h3, h4) code {
+  padding: 0;
+  background: none;
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: inherit;
+}
+
+/* The current page in the sidebar: a tint and a ruby edge, not a solid fill. */
+.sidebar-content [aria-current='page'],
+.sidebar-content [aria-current='page']:hover,
+.sidebar-content [aria-current='page']:focus {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+  font-weight: 650;
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
+}
+
+/* On the comparison table, the Carton column is the one to read. */
+[data-has-hero] .sl-markdown-content table :is(th, td):last-child {
+  background: color-mix(in srgb, var(--sl-color-accent) 9%, transparent);
+}
+
+[data-has-hero] .sl-markdown-content table th:last-child {
+  color: var(--sl-color-accent-high);
+  font-weight: 700;
+}
+
+:root[data-theme='light'] [data-has-hero] .sl-markdown-content table th:last-child {
+  color: var(--sl-color-accent);
+}
+
+/* Rosé Pine italicises constants; keep code upright, with colour doing the work. */
+.expressive-code .ec-line span[style*='font-style'] {
+  font-style: normal !important;
+}
