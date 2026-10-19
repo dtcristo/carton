@@ -27,6 +27,7 @@ export default defineConfig({
       customCss: ['./src/styles/theme.css'],
       components: {
         Hero: './src/components/Hero.astro',
+        SocialIcons: './src/components/SocialIcons.astro',
       },
       plugins: [starlightLinksValidator()],
       sidebar: [

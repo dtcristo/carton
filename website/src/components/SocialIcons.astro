@@ -1,0 +1,23 @@
+---
+// Starlight's header has no link slot, so the Docs link rides with the
+// social icons, ahead of the GitHub icon.
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+---
+
+<a class="docs-link" href="/start/getting-started/">Docs</a>
+<Default />
+
+<style>
+  .docs-link {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    color: var(--sl-color-white);
+    font-weight: 650;
+    text-decoration: none;
+    transition: background-color 150ms;
+  }
+
+  .docs-link:hover {
+    background: var(--sl-color-gray-6);
+  }
+</style>
