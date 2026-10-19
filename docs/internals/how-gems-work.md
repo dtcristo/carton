@@ -142,7 +142,7 @@ On Ruby 4.0.7 with Bundler 4.0.23:
 - a fresh Box auto-activates the newest installed version of a gem on `require`, ignoring the importer's lockfile. Carton activates an imported gem's Gem Closure first to prevent this, default gems included, since a newer installed version would otherwise replace the importer's. Default gems are activated first, from the Box's own default specs: the YAML rebuild below loads Psych, whose requires (such as `date`) would otherwise activate the newest installed version before the caller's.
 - spec objects from another Box run that Box's methods, so calling `activate` on them updates the wrong Box. Carton rebuilds each spec with `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores `loaded_from` and `full_gem_path`, which also avoids re-evaluating gemspecs.
 - a bundled importer's restriction carries into a Carton Box through `Bundler.rubygems.replace_entrypoints(specs)` on the rebuilt specs: locked gems load at their versions, default gems still load, and unlocked gems raise `LoadError`. Under that restriction RubyGems does not auto-activate, so every locked spec must be activated, as `Bundler.setup` does.
-- the `bundler` spec is never shared: the Box loads its own Bundler to apply the restriction, which can be the Ruby default (4.0.20 on CI) while the importer runs the locked 4.0.23, and activating both raises `Gem::LoadError`.
+- the `bundler` spec is never shared: the Box loads its own Bundler to apply the restriction, which can be a different version from the Importer's, and activating both raises `Gem::LoadError`.
 - activation costs well under a millisecond per gem; `Ruby::Box.new` itself is about 70ms.
 
 That is why Carton's per-Carton Bundler pattern is one line, the same as the top-level app's:

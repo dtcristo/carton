@@ -8,7 +8,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 
 - Make Carton feel built into Ruby: small, Ruby-like API; simple over clever.
 - Works with or without Bundler; keep Bundler/RubyGems support separate from the core runtime.
-- Target Ruby 4.0.7+ and Bundler 4.0.23+. Raise minimum versions instead of carrying workarounds.
+- Target Ruby 4.0.7+ and Bundler 4.0.20+. Raise minimum versions instead of carrying workarounds.
 - Upstream changes must be strictly necessary and reproduce on current releases.
 
 ## Decisions

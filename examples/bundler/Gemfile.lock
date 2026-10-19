@@ -22,9 +22,9 @@ DEPENDENCIES
   cartoned_gem!
 
 CHECKSUMS
-  bundler (4.0.23) sha256=407ba8a1d928f412847f819aa5f8b6aef7c59fb51feb517112af8a165487287b
+  bundler (4.0.20) sha256=7978a8ac648767f5e635bc522445b79e80a52b907a39a36c2d8085ed6bc762ae
   carton (0.3.0)
   cartoned_gem (0.1.0)
 
 BUNDLED WITH
-  4.0.23
+  4.0.20

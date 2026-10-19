@@ -10,7 +10,7 @@ Carton splits an app into gem-sized or domain-sized units called Cartons. Each C
 ## Requirements
 
 - Ruby 4.0.7 or later, run with Boxes enabled: `RUBY_BOX=1`
-- Bundler 4.0.23 or later, if you use Bundler
+- Bundler 4.0.20 or later, if you use Bundler
 
 ## Install
 

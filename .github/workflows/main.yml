@@ -24,6 +24,18 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          rubygems: "4.0.20"
+          bundler: "4.0.20"
           bundler-cache: true
+      - name: Verify the minimum Bundler in both Boxes
+        run: |
+          RUBY_BOX=1 bundle exec ruby <<'RUBY'
+          require "bundler"
+          abort "Main Box loaded Bundler #{Bundler::VERSION}" unless Bundler::VERSION == "4.0.20"
+          box = Ruby::Box.new
+          box.require "bundler"
+          version = box.eval("Bundler::VERSION")
+          abort "Optional Box loaded Bundler #{version}" unless version == "4.0.20"
+          RUBY
       - name: Run the default task
         run: bundle exec rake

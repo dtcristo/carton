@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7 or later and, with Bundler, Bundler 4.0.23 or later.
+Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7 or later and, with Bundler, Bundler 4.0.20 or later.
 
 | Need | Status |
 | --- | --- |
