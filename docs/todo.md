@@ -18,7 +18,7 @@ Ordered by priority within each section.
 
 ## Tooling
 
-`carton rbs` and `carton check` exist; the rest of [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) is still open. Cartons as gems are proposed in [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32).
+`carton rbs`, `carton check`, and the Gem Carton monorepo example have shipped. The remaining tooling work from [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) and [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32) is listed below; strict Gem Cartons remain parked under Library.
 
 - `carton check`: report unused exports and dead imports.
 - `carton check`: resolve imports inside a Carton that calls `setup_bundle` against its own `Gemfile.lock`, then report a Gem Carton shared by importers whose lockfiles lock its dependencies at different versions (a runtime `Carton::ImportError` today).
