@@ -27,7 +27,7 @@ The reference pages are written by hand. Check them against `sig/carton.rbs` and
 `.github/workflows/website.yml` builds the site for every change, and deploys it from `main` with `wrangler deploy` (configured by `wrangler.jsonc`). One-time setup:
 
 1. Create a Cloudflare API token from the **Edit Cloudflare Workers** template, scoped to the account and the `dtcristo.com` zone.
-2. In the GitHub repository settings, create an environment named `production`, limited to the `main` branch, with secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+2. In the GitHub repository settings, create an environment named `website`, limited to the `main` branch, with secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 3. Merge to `main`, or run the workflow by hand. The first deploy creates the `carton` Worker and attaches the `carton.dtcristo.com` custom domain.
 
 Moving to another domain later means adding its route to `wrangler.jsonc` and updating `site` in `astro.config.mjs`.

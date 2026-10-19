@@ -1,7 +1,7 @@
 name: Website
 
 # Builds the site on every change to it, and deploys to Cloudflare Workers
-# only from main. The deploy job's `production` environment holds the
+# only from main. The deploy job's `website` environment holds the
 # Cloudflare secrets; restrict it to the main branch in the repository
 # settings so pull requests can never reach them.
 on:
@@ -52,7 +52,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: website
       url: https://carton.dtcristo.com
     concurrency:
       group: website-deploy
