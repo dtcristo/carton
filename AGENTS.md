@@ -26,10 +26,10 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 - No `carton run` or `carton exec`: `RUBY_BOX=1` is the interface (user decision). The `carton` command only reads code (Prism).
 - Two gems, released together at one version: `carton` is the runtime only, with no dependencies and no executable, since every gem built on Carton depends on it; `carton-tools` (`carton-tools/`, `Carton::Tools`) holds the `carton` command and static analysis, depends on exactly the same `carton`, and may use its internals (user decision).
 - Master Box stays clean: only `examples/master_prelude` writes to it, and upstream asks only for an official template Box API.
-- For Rails reloading work, read [the spike's findings and limits](examples/rails_in_cartons/spike/README.md). Its private runtime inspection is experimental; ordinary apps still restart on change.
 
 ## Rules
 
+- For Rails reloading work, read [the spike's findings and limits](examples/rails_in_cartons/spike/README.md). Its private runtime inspection is experimental; ordinary apps still restart on change.
 - Before Box/gem/Bundler work, read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md`; read `docs/internals/upstream.md` for upstream questions.
 - Test everything. Run `bundle exec rake format` after changes; `bundle exec rake` (tests, rubocop, examples) before finishing.
 - Update the relevant docs, `CHANGELOG.md` (Unreleased), and this file when behavior or durable guidance changes.

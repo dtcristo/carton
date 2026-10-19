@@ -106,8 +106,8 @@ class RailsReloadingSpikeTest < Minitest::Test
     assert_same framework, import('framework')
     assert_equal 'Ada', old_customer.name
 
-    # A second edit must rebuild both domains again, even though their Imports
-    # of framework and customers were Shared Imports on the first pass.
+    # A second edit rebuilds the already-rebuilt domains and registers their
+    # new classes with the retained framework again.
     File.write(file, File.read(file).sub('super.upcase', 'super.downcase'))
     imports.reload(
       File.join(ROOT, 'components/customers/lib/customers.rb'),
