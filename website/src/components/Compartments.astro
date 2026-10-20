@@ -1,6 +1,6 @@
 ---
 // What a Carton boundary holds, as compartments of one box: each is
-// separate, and the dashed walls between them are the boundaries.
+// separate, and the walls between them are the boundaries.
 ---
 
 <section class="compartments not-content" aria-labelledby="holds">
@@ -9,23 +9,23 @@
     <article>
       <h3>Only exports cross</h3>
       <p>Other Cartons reach what a Carton exports and nothing else. Ruby's own <code>private_constant</code> hides the rest, across Boxes.</p>
-      <pre><code><span class="c">Billing</span>::<span class="c">Invoice</span> <span class="r"># public</span>
+      <pre><code><span class="c">Billing</span>::<span class="c">Invoice</span> <span class="o"># public</span>
 <span class="c">Billing</span>::<span class="c">Tax</span>     <span class="x"># NameError</span></code></pre>
     </article>
     <article>
       <h3>Monkey patches stay put</h3>
       <p>A patch to a builtin class, such as <code>String#blank?</code>, applies only inside the Carton that makes it.</p>
-      <pre><code><span class="r"># in the cms Carton</span>
+      <pre><code><span class="o"># in the cms Carton</span>
 <span class="s">''</span>.blank?  <span class="r"># =&gt; true</span>
-<span class="r"># everywhere else</span>
+<span class="o"># everywhere else</span>
 <span class="s">''</span>.blank?  <span class="x"># NoMethodError</span></code></pre>
     </article>
     <article>
       <h3>Gem versions per Carton</h3>
       <p>Each Carton can set up its own bundle, so two Cartons can load different versions of the same gem in one process.</p>
-      <pre><code><span class="r"># reports/Gemfile.lock</span>
+      <pre><code><span class="o"># reports/Gemfile.lock</span>
 bigdecimal (<span class="s">3.3.1</span>)
-<span class="r"># pricing/Gemfile.lock</span>
+<span class="o"># pricing/Gemfile.lock</span>
 bigdecimal (<span class="s">4.1.1</span>)</code></pre>
     </article>
   </div>
@@ -37,20 +37,20 @@ bigdecimal (<span class="s">4.1.1</span>)</code></pre>
   }
 
   h2 {
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.75rem;
     font-size: var(--sl-text-h2);
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    font-family: var(--carton-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
     color: var(--sl-color-white);
   }
 
+  /* One ruby-tinted tray, its compartments split by ruby walls. */
   .box {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    border: 2px dashed var(--carton-boundary);
-    border-radius: 1rem;
-    background: var(--carton-boundary-soft);
+    border: 1.5px solid var(--carton-tray-edge);
+    border-radius: 1.25rem;
+    background: var(--carton-tray);
   }
 
   @media (min-width: 56rem) {
@@ -62,62 +62,65 @@ bigdecimal (<span class="s">4.1.1</span>)</code></pre>
   article {
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
+    padding: 1.75rem 1.5rem 1.5rem;
   }
 
   article + article {
-    border-top: 2px dashed var(--carton-boundary);
+    border-top: 1.5px solid var(--carton-tray-edge);
   }
 
   @media (min-width: 56rem) {
     article + article {
       border-top: 0;
-      border-left: 2px dashed var(--carton-boundary);
+      border-left: 1.5px solid var(--carton-tray-edge);
     }
   }
 
   h3 {
     margin: 0;
     font-size: var(--sl-text-xl);
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.014em;
     color: var(--sl-color-white);
   }
 
   p {
-    margin: 0.6rem 0 1.25rem;
+    margin: 0.6rem 0 1.5rem;
     color: var(--sl-color-gray-2);
     line-height: 1.6;
   }
 
   p code {
-    font-size: 0.875em;
-    padding: 0.05em 0.3em;
-    border-radius: 0.25rem;
-    background: var(--sl-color-bg-inline-code);
+    padding: 0.1em 0.3em;
+    border-radius: 0.35rem;
+    background: var(--carton-ruby-wash);
+    color: var(--sl-color-accent-high);
+    font-size: 0.86em;
+    font-weight: 500;
   }
 
   pre {
     margin: auto 0 0;
-    padding: 0.9rem 1rem;
-    border-radius: 0.6rem;
-    background: var(--carton-panel);
-    border: 1px solid var(--carton-panel-edge);
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--carton-line);
+    border-radius: 0.9rem;
+    background: var(--carton-card);
+    box-shadow: var(--carton-shadow);
     font-size: var(--sl-text-sm);
-    line-height: 1.7;
-    color: var(--sl-color-gray-1);
+    line-height: 1.65;
+    color: var(--code-text);
     overflow-x: auto;
   }
 
   pre code {
-    background: none;
     padding: 0;
+    background: none;
     font-size: inherit;
   }
 
-  .c { color: var(--sl-color-white); font-weight: 650; }
-  .s { color: #e8b04b; }
-  .r { color: var(--sl-color-gray-3); }
-  .x { color: var(--carton-error); }
-
-  :root[data-theme='light'] .s { color: #9a5b00; }
+  .c { color: var(--code-constant); }
+  .s { color: var(--code-string); }
+  .o { color: var(--code-comment); }
+  .r { color: var(--code-result); font-weight: 700; }
+  .x { color: var(--code-error); font-weight: 700; }
 </style>

@@ -19,11 +19,13 @@ import CopyCommand from './CopyCommand.astro';
     <p class="lede">
       Split an app into Cartons that import and export like modules. Each Carton runs in its own <code>Ruby::Box</code>, so Ruby enforces the boundary while your code runs.
     </p>
-    <div class="actions">
-      <a class="button primary" href="/start/getting-started/">Get started</a>
-      <a class="button" href="https://github.com/dtcristo/carton">View on GitHub</a>
+    <div class="cta">
+      <div class="actions">
+        <a class="button primary" href="/start/getting-started/">Get started</a>
+        <a class="button" href="https://github.com/dtcristo/carton">View on GitHub</a>
+      </div>
+      <CopyCommand command="gem install carton" />
     </div>
-    <CopyCommand command="gem install carton" />
   </div>
 
   <figure class="demo" aria-label="main.rb imports the billing Carton, which imports the tax Carton. main.rb can call Billing but cannot reach Tax.">
@@ -38,23 +40,27 @@ import CopyCommand from './CopyCommand.astro';
 
     <div class="carton">
       <p class="carton-label">billing Carton</p>
-      <p class="file-label">billing.rb</p>
-      <pre class="code"><code><span class="c">Tax</span> = <span class="n">import_relative</span> <span class="s">'tax'</span>
+      <div class="file">
+        <p class="file-label">billing.rb</p>
+        <pre class="code"><code><span class="c">Tax</span> = <span class="n">import_relative</span> <span class="s">'tax'</span>
 
 <span class="k">module</span> <span class="c">Billing</span>
   <span class="k">def</span> <span class="k">self</span>.invoice(total) = total + <span class="c">Tax</span>.on(total)
 <span class="k">end</span>
 
 <span class="n">export</span> <span class="c">Billing</span></code></pre>
+      </div>
 
       <div class="carton inner">
         <p class="carton-label">tax Carton</p>
-        <p class="file-label">tax.rb</p>
-        <pre class="code"><code><span class="k">module</span> <span class="c">Tax</span>
+        <div class="file">
+          <p class="file-label">tax.rb</p>
+          <pre class="code"><code><span class="k">module</span> <span class="c">Tax</span>
   <span class="k">def</span> <span class="k">self</span>.on(total) = total * <span class="m">0.1</span>
 <span class="k">end</span>
 
 <span class="n">export</span> <span class="c">Tax</span></code></pre>
+        </div>
       </div>
     </div>
   </figure>
@@ -62,67 +68,27 @@ import CopyCommand from './CopyCommand.astro';
 
 <style>
   .hero {
-    position: relative;
-    isolation: isolate;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 3rem;
     align-items: center;
-    padding-block: 1.5rem 3.5rem;
+    padding-block: 2rem 4rem;
   }
 
   @media (min-width: 64rem) {
     .hero {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 4rem;
-      padding-block: 3rem 3.5rem;
+      gap: 4.5rem;
+      padding-block: 4rem 5rem;
     }
-  }
-
-  /* The band behind the hero spans the window: light through a cut ruby,
-     over a faint faceted lattice that fades out toward the edges. */
-  .hero::before,
-  .hero::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    top: -1.5rem;
-    bottom: 0;
-    left: 50%;
-    width: 100vw;
-    translate: -50% 0;
-    pointer-events: none;
-  }
-
-  .hero::before {
-    background:
-      radial-gradient(60rem 32rem at 78% 30%, color-mix(in srgb, var(--sl-color-accent) 26%, transparent), transparent 70%),
-      radial-gradient(40rem 24rem at 8% 55%, var(--carton-boundary-soft), transparent 70%);
-    mask-image: linear-gradient(to bottom, #000 60%, transparent);
-  }
-
-  .hero::after {
-    --facet: color-mix(in srgb, var(--sl-color-white) 7%, transparent);
-    background:
-      repeating-linear-gradient(60deg, var(--facet) 0 1px, transparent 1px 56px),
-      repeating-linear-gradient(-60deg, var(--facet) 0 1px, transparent 1px 56px),
-      repeating-linear-gradient(0deg, var(--facet) 0 1px, transparent 1px 48.5px);
-    mask-image: radial-gradient(50rem 30rem at 72% 35%, #000, transparent 75%);
-  }
-
-  :root[data-theme='light'] .hero::before {
-    background:
-      radial-gradient(60rem 32rem at 78% 30%, color-mix(in srgb, var(--sl-color-accent) 12%, transparent), transparent 70%),
-      radial-gradient(40rem 24rem at 8% 55%, var(--carton-boundary-soft), transparent 70%);
-  }
-
-  :root[data-theme='light'] .hero::after {
-    --facet: color-mix(in srgb, var(--sl-color-accent) 9%, transparent);
   }
 
   /* The illustrated logo carries the brand, so it gets real size here and
      sits beside the wordmark rather than as a small badge above it. */
   .lockup {
+    /* The tagline's size is a fixed share of the wordmark's, so the two lines
+       set to the same width at every size. */
+    --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
     display: flex;
     align-items: center;
     gap: clamp(1rem, 3vw, 1.75rem);
@@ -133,33 +99,36 @@ import CopyCommand from './CopyCommand.astro';
     flex: none;
     width: clamp(6rem, 4rem + 7vw, 9rem);
     height: auto;
-    filter: drop-shadow(0 12px 20px rgb(0 0 0 / 0.28));
+    filter: drop-shadow(0 18px 22px rgb(90 60 30 / 0.34)) drop-shadow(0 4px 6px rgb(90 60 30 / 0.12));
+  }
+
+  :root:not([data-theme='light']) .logo {
+    filter: drop-shadow(0 18px 22px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 6px rgb(0 0 0 / 0.25));
   }
 
   h1 {
     margin: 0;
-    font-family: var(--carton-display);
-    font-size: clamp(3.25rem, 2rem + 4.5vw, 5.5rem);
-    font-weight: 400;
+    font-size: var(--wordmark);
+    font-weight: 600;
     line-height: 0.95;
+    /* Any tighter and overlapping glyphs show a seam, as between r and t. */
     letter-spacing: -0.02em;
+    white-space: nowrap;
     color: var(--sl-color-white);
   }
 
   .tagline {
     margin: 0.6rem 0 0;
-    font-size: clamp(1.15rem, 0.9rem + 0.9vw, 1.5rem);
-    font-weight: 650;
-    line-height: 1.25;
-    color: var(--sl-color-accent-high);
-  }
-
-  :root[data-theme='light'] .tagline {
-    color: var(--sl-color-accent);
+    font-size: calc(var(--wordmark) * 0.275);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: var(--carton-ink-soft);
   }
 
   .lede {
-    margin-block: 2rem 0;
+    margin-block: 2.25rem 0;
     max-width: 34rem;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
@@ -167,103 +136,115 @@ import CopyCommand from './CopyCommand.astro';
   }
 
   .lede code {
-    font-size: 0.9em;
-    padding: 0.05em 0.3em;
-    border-radius: 0.25rem;
-    background: var(--sl-color-bg-inline-code);
+    padding: 0.1em 0.3em;
+    border-radius: 0.35rem;
+    background: var(--carton-ruby-wash);
+    color: var(--sl-color-accent-high);
+    font-size: 0.86em;
+    font-weight: 500;
+  }
+
+  /* The install command spans the same width as the two buttons above it. */
+  .cta {
+    display: grid;
+    gap: 2rem;
+    width: fit-content;
+    margin-top: 2.5rem;
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-block: 2rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .cta :global(.copy-command) {
+    display: flex;
+    justify-content: space-between;
   }
 
   .button {
     display: inline-flex;
     align-items: center;
-    padding: 0.7rem 1.35rem;
+    padding: 0.9rem 1.75rem;
     border-radius: 999px;
-    border: 1px solid var(--sl-color-gray-5);
+    border: 1px solid var(--carton-line);
+    background: var(--carton-card);
     color: var(--sl-color-white);
-    font-weight: 650;
+    font-weight: 600;
     text-decoration: none;
-    transition: border-color 150ms, background-color 150ms;
+    transition: border-color 150ms;
   }
 
   .button:hover {
-    border-color: var(--sl-color-gray-3);
+    border-color: var(--sl-color-gray-4);
   }
 
   /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
   .button.primary {
-    background: #c8173f;
-    border-color: #c8173f;
+    background: #cc342d;
+    border-color: #cc342d;
     color: #fff;
   }
 
   .button.primary:hover {
-    background: var(--carton-garnet);
-    border-color: var(--carton-garnet);
+    background: #9e2520;
+    border-color: #9e2520;
   }
 
-  /* The figure */
+  /* The figure: code cards like the docs', each Carton a ruby-tinted tray. */
 
   .demo {
     margin: 0;
     display: grid;
-    gap: 1rem;
+    gap: 2rem;
     font-size: var(--sl-text-sm);
   }
 
-  .file,
+  .file {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--carton-line);
+    border-radius: 0.9rem;
+    background: var(--carton-card);
+    box-shadow: var(--carton-shadow);
+  }
+
   .carton {
     position: relative;
+    display: grid;
+    gap: 1.75rem;
     min-width: 0;
-    padding: 1.25rem;
-    border-radius: 0.9rem;
-    background: var(--carton-panel);
+    padding: 2rem 1.5rem 1.5rem;
+    border: 1.5px solid var(--carton-tray-edge);
+    border-radius: 1.25rem;
+    background: var(--carton-tray);
   }
 
-  .file,
-  .carton:not(.inner) {
-    box-shadow: 0 28px 48px -28px rgb(0 0 0 / 0.55);
-  }
-
-  .file {
-    border: 1px solid var(--carton-panel-edge);
-  }
-
-  .carton {
-    border: 2px dashed var(--carton-boundary);
-    background:
-      linear-gradient(var(--carton-boundary-soft), var(--carton-boundary-soft)),
-      var(--carton-panel);
-  }
-
+  /* A nested Carton sits a shade deeper. */
   .carton.inner {
-    margin-top: 1.25rem;
-    border-radius: 0.7rem;
+    background: var(--carton-tray-deep);
   }
 
   .carton-label {
     position: absolute;
-    top: -0.8rem;
+    top: -0.85rem;
     left: 1rem;
     margin: 0;
-    padding: 0.1rem 0.6rem;
+    padding: 0.15rem 0.65rem;
     border-radius: 999px;
-    background: var(--carton-boundary);
-    color: var(--sl-color-black);
-    font-family: var(--__sl-font-mono);
+    background: #cc342d;
+    color: #fff;
     font-size: var(--sl-text-xs);
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .file-label {
-    margin: 0 0 0.6rem;
-    color: var(--sl-color-gray-3);
+    margin: 0;
+    padding: 0.6rem 1.25rem;
+    border-bottom: 1px solid var(--carton-line);
+    background: var(--carton-tab);
+    color: var(--carton-ink-soft);
     font-family: var(--__sl-font-mono);
     font-size: var(--sl-text-xs);
     font-weight: 600;
@@ -271,31 +252,29 @@ import CopyCommand from './CopyCommand.astro';
 
   .code {
     margin: 0;
+    padding: 1rem 1.25rem;
     overflow-x: auto;
-    line-height: 1.7;
-    color: var(--sl-color-gray-1);
+    line-height: 1.65;
+    color: var(--code-text);
     font-family: var(--__sl-font-mono);
     white-space: pre;
   }
 
   .code code {
-    font-size: inherit;
-    background: none;
     padding: 0;
+    background: none;
+    font-size: inherit;
   }
 
-  .k { color: var(--sl-color-accent-high); }
-  .c { color: var(--sl-color-white); font-weight: 650; }
-  .n { color: var(--carton-boundary); }
-  .s, .m { color: #e8b04b; }
-  .r { color: var(--sl-color-gray-3); }
-  .x { color: var(--carton-error); }
+  .k { color: var(--code-keyword); font-weight: 700; }
+  .c { color: var(--code-constant); }
+  .n { color: var(--code-call); }
+  .s { color: var(--code-string); }
+  .m { color: var(--code-literal); }
+  .r { color: var(--code-result); font-weight: 700; }
+  .x { color: var(--code-error); font-weight: 700; }
 
-  :root[data-theme='light'] .k { color: var(--carton-garnet); }
-  :root[data-theme='light'] .s,
-  :root[data-theme='light'] .m { color: #9a5b00; }
-
-  /* One quiet entrance: the three panels fade in, a beat apart. */
+  /* One quiet entrance: the two outer panels fade in, a beat apart. */
   @media (prefers-reduced-motion: no-preference) {
     .importer,
     .carton:not(.inner) {

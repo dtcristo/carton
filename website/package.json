@@ -12,14 +12,14 @@
     "build": "npm run glossary && astro build",
     "preview": "astro preview",
     "check": "npm run glossary && astro check",
+    "test": "node --test",
     "deploy": "wrangler deploy",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.6",
-    "@fontsource-variable/plus-jakarta-sans": "5.3.0",
-    "@fontsource/ibm-plex-mono": "5.3.0",
-    "@fontsource/young-serif": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource-variable/onest": "5.3.1",
     "astro": "7.4.0",
     "sharp": "0.35.5"
   },

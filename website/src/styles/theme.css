@@ -1,95 +1,270 @@
 /*
- * Carton theme.
- *
- * Young Serif for the wordmark and section titles, Plus Jakarta Sans (as on
- * ruby-lang.org) for reading, IBM Plex Mono for code. Colour is a cut ruby
- * on cool, violet-tinted paper; verdigris marks a Carton boundary and is used
- * for nothing else.
+ * Carton theme, inspired by the Ruby::Box talk's deck: Ruby red on warm paper,
+ * Onest for every word and JetBrains Mono for code. Ruby is the only
+ * accent, and a ruby-tinted tray marks a Carton boundary. Code colours live in
+ * src/expressive-code.mjs.
  */
-@import '@fontsource/young-serif/400.css';
-@import '@fontsource-variable/plus-jakarta-sans/wght.css';
-@import '@fontsource/ibm-plex-mono/400.css';
-@import '@fontsource/ibm-plex-mono/600.css';
+@import '@fontsource-variable/onest/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 
 :root {
-  --carton-ruby: #e0325b;
-  --carton-garnet: #8a0f31;
-  --carton-boundary: #4fc1ac;
-  --carton-boundary-soft: rgb(79 193 172 / 0.12);
-  --carton-panel: #221a29;
-  --carton-panel-edge: #3a3042;
-  /* Errors in code samples: a lighter ruby that keeps 4.5:1 on panels. */
-  --carton-error: #ff5577;
+  /* Dark mode: warm ink, with the paper's colours turned down. The page is a
+     mid-dark brown rather than near-black, so body text stays comfortable. */
+  --carton-ruby: #e8574f;
+  --carton-ruby-wash: #44211c;
+  /* A Carton boundary: a ruby-tinted tray with a soft ruby edge. */
+  --carton-tray: color-mix(in srgb, var(--carton-ruby-wash) 70%, transparent);
+  --carton-tray-deep: color-mix(in srgb, var(--carton-ruby-wash) 90%, var(--carton-ruby) 10%);
+  --carton-tray-edge: color-mix(in srgb, var(--carton-ruby) 40%, transparent);
+  --carton-card: #2f2a25;
+  --carton-tab: #221e1a;
+  --carton-header: #1e1b17;
+  --carton-line: #423a33;
+  --carton-ink-soft: #c9c0b2;
+  --carton-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 18px 40px -24px rgb(0 0 0 / 0.6);
+  /* Hand-built code panels on the homepage use the same colours as
+     src/expressive-code.mjs. */
+  --code-text: #ece5d7;
+  --code-comment: #c9a065;
+  --code-keyword: #f07a6f;
+  --code-call: #bba3ea;
+  --code-constant: #82b4ec;
+  --code-string: #8fcfa6;
+  --code-literal: #f2a06a;
+  --code-operator: #a39a8d;
+  --code-result: #f8f5ee;
+  --code-error: #f07a6f;
 
-  --carton-display: 'Young Serif', Georgia, serif;
-  --sl-font: 'Plus Jakarta Sans Variable';
-  --sl-font-mono: 'IBM Plex Mono';
+  --sl-font: 'Onest Variable', 'Helvetica Neue', Arial, sans-serif;
+  --sl-font-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, monospace;
+  --sl-text-base: 1rem;
+  --sl-line-height: 1.7;
+  --sl-line-height-headings: 1.12;
+  --sl-content-gap-y: 1.25rem;
 
-  /* Dark mode: aubergine ink, lit like the inside of a gem. */
-  --sl-color-white: #fbf8fc;
-  --sl-color-gray-1: #ece6ef;
-  --sl-color-gray-2: #cbc2d0;
-  --sl-color-gray-3: #998e9f;
-  --sl-color-gray-4: #64596c;
-  --sl-color-gray-5: #3e3446;
-  --sl-color-gray-6: #2a2231;
-  --sl-color-black: #19131f;
+  --sl-color-white: #f8f5ee;
+  --sl-color-gray-1: #ece5d7;
+  --sl-color-gray-2: #ddd5c8;
+  --sl-color-gray-3: #aba295;
+  --sl-color-gray-4: #7a7167;
+  --sl-color-gray-5: #423a33;
+  --sl-color-gray-6: #2f2a25;
+  --sl-color-black: #26221e;
+  --sl-color-bg-sidebar: var(--sl-color-bg);
 
-  --sl-color-accent-low: #4b1125;
-  --sl-color-accent: #e0325b;
-  --sl-color-accent-high: #ffb4c5;
+  --sl-color-accent-low: #44211c;
+  --sl-color-accent: #e8574f;
+  --sl-color-accent-high: #f4a39c;
 
-  --sl-hue-red: 345;
+  --sl-hue-red: 3;
 }
 
 :root[data-theme='light'] {
-  --carton-boundary: #1d7a6c;
-  --carton-boundary-soft: rgb(29 122 108 / 0.08);
-  --carton-panel: #ffffff;
-  --carton-panel-edge: #e3dbe6;
-  --carton-error: #c8173f;
+  --carton-ruby: #cc342d;
+  --carton-ruby-wash: #fbe9e6;
+  --carton-card: #fffdf9;
+  --carton-tab: #f1ebdf;
+  --carton-header: #f1ebdf;
+  --carton-line: #e4dccb;
+  --carton-ink-soft: #57504a;
+  --carton-shadow: 0 1px 2px rgb(60 40 20 / 0.05), 0 18px 40px -24px rgb(90 60 30 / 0.28);
 
-  /* Light mode: cool paper, garnet ink for links and actions. */
-  --sl-color-white: #1a1420;
-  --sl-color-gray-1: #2a2231;
-  --sl-color-gray-2: #3e3446;
-  --sl-color-gray-3: #5c5164;
-  --sl-color-gray-4: #8b8192;
-  --sl-color-gray-5: #cbc2d0;
-  --sl-color-gray-6: #efe9f1;
-  --sl-color-gray-7: #f8f5f9;
-  --sl-color-black: #fdfcfe;
+  --code-text: #1f1b18;
+  --code-comment: #8a6528;
+  --code-keyword: #b3261f;
+  --code-call: #6d4aa8;
+  --code-constant: #1f5fa8;
+  --code-string: #2f7a55;
+  --code-literal: #b23c0a;
+  --code-operator: #776e64;
+  --code-result: #1f1b18;
+  --code-error: #b3261f;
 
-  --sl-color-accent-low: #fde3e9;
-  --sl-color-accent: #c8173f;
-  --sl-color-accent-high: #8a0f31;
+  /* Light mode: the deck's warm paper, ink, and ruby. */
+  --sl-color-white: #1f1b18;
+  --sl-color-gray-1: #2e2925;
+  --sl-color-gray-2: #3b3530;
+  --sl-color-gray-3: #57504a;
+  --sl-color-gray-4: #776e64;
+  --sl-color-gray-5: #e4dccb;
+  --sl-color-gray-6: #efe9dd;
+  --sl-color-gray-7: #f8f5ee;
+  --sl-color-black: #f8f5ee;
+
+  --sl-color-accent-low: #fbe9e6;
+  --sl-color-accent: #cc342d;
+  --sl-color-accent-high: #9e2520;
 }
 
-/* Page and section titles in the display serif; smaller headings stay sans. */
-.sl-markdown-content :is(h1, h2),
+/* Type: one family, semibold and a little tight for headings. */
+.sl-markdown-content :is(h1, h2, h3, h4):not(:where(.not-content *)),
+h1#_top,
+.site-title {
+  font-weight: 600;
+  letter-spacing: -0.014em;
+}
+
 h1#_top {
-  font-family: var(--carton-display);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
-.sl-markdown-content :is(h3, h4) {
+.sl-markdown-content h2:not(:where(.not-content *)) {
+  font-size: var(--sl-text-2xl);
+}
+
+.sl-markdown-content h3:not(:where(.not-content *)) {
+  font-size: var(--sl-text-xl);
+}
+
+/* Rhythm: a heading sits close to what it introduces and far from what came
+   before, and code cards get room on both sides. */
+.sl-markdown-content :not(h1, h2, h3, h4, h5, h6, .sl-heading-wrapper) + .sl-heading-wrapper.level-h2 {
+  margin-top: 3rem;
+}
+
+.sl-markdown-content :not(h1, h2, h3, h4, h5, h6, .sl-heading-wrapper) + .sl-heading-wrapper.level-h3 {
+  margin-top: 2.25rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper + * {
+  margin-top: 0.85rem;
+}
+
+.sl-markdown-content .expressive-code,
+.sl-markdown-content * + .expressive-code {
+  margin-block: 1.5rem;
+}
+
+.sl-markdown-content .expressive-code + * {
+  margin-top: 1.5rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper + .expressive-code {
+  margin-top: 1rem;
+}
+
+/* Comfortable line lengths for prose; code cards keep the full column. */
+.sl-markdown-content :is(p, ul, ol, blockquote, dl):not(:where(.not-content *)) {
+  max-width: 68ch;
+}
+
+/* JetBrains Mono's ligatures would turn `=>` into an arrow and space out `::`. */
+code,
+kbd,
+pre,
+.expressive-code {
+  font-variant-ligatures: none;
+}
+
+/* Inline code reads as a ruby-tinted word, not a grey chip. */
+.sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+  padding: 0.1em 0.3em;
+  border: 0;
+  border-radius: 0.35rem;
+  background: var(--carton-ruby-wash);
+  color: var(--sl-color-accent-high);
+  font-size: 0.86em;
+  font-weight: 500;
+}
+
+/* Code inside a heading reads as part of it. */
+.sl-markdown-content :is(h1, h2, h3, h4) code:not(:where(.not-content *)) {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 0.92em;
   font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+/* Header and wordmark */
+/* The header is a darker strip above the page, like a code card's filename
+   strip. */
+header.header {
+  border-bottom-color: var(--carton-line);
+  background: var(--carton-header);
 }
 
 .site-title {
-  font-family: var(--carton-display);
-  font-weight: 400;
+  gap: 0.6rem;
+  color: var(--sl-color-white);
   font-size: var(--sl-text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .site-title img {
   height: 2.25rem;
 }
 
+/* Sidebar: a little more air, and the current page as a ruby tint and edge. */
+.sidebar-content a {
+  padding-block: 0.35em;
+}
+
+.sidebar-content [aria-current='page'],
+.sidebar-content [aria-current='page']:hover,
+.sidebar-content [aria-current='page']:focus {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
+}
+
 :focus-visible {
   outline: 2px solid var(--sl-color-accent);
   outline-offset: 2px;
+}
+
+/* Code cards: the filename tab is the deck's strip of paper above the code. */
+.expressive-code .frame.has-title .header {
+  padding-inline: 0;
+}
+
+.expressive-code .frame.has-title .title {
+  padding: 0.6rem 1.35rem;
+  border: 0;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* One flat strip: drop Expressive Code's tab shape, which breaks the strip's
+   bottom line under the filename. */
+.expressive-code .frame.has-title .title::after {
+  display: none;
+}
+
+/* Shell commands read as a terminal line with a ruby prompt, styled like the
+   homepage's copy command: a code card in light mode, near-black in dark. */
+:root {
+  --carton-shell-bg: #14110f;
+  --carton-shell-edge: rgb(248 245 238 / 0.1);
+  --carton-shell-text: #f8f5ee;
+  --carton-shell-prompt: #f28b84;
+}
+
+:root[data-theme='light'] {
+  --carton-shell-bg: var(--carton-card);
+  --carton-shell-edge: var(--carton-line);
+  --carton-shell-text: var(--sl-color-white);
+  --carton-shell-prompt: #cc342d;
+}
+
+.expressive-code:has(pre[data-language='sh']) .frame pre {
+  background: var(--carton-shell-bg);
+  border-color: var(--carton-shell-edge);
+}
+
+.expressive-code pre[data-language='sh'] .ec-line span {
+  color: var(--carton-shell-text) !important;
+  font-weight: 400 !important;
+}
+
+.expressive-code pre[data-language='sh'] .ec-line .code::before {
+  content: '$ ';
+  color: var(--carton-shell-prompt);
+  user-select: none;
 }
 
 /* Full-bleed bands are 100vw wide; never let them add a horizontal scroll. */
@@ -110,29 +285,4 @@ html {
 
 html[data-has-hero] {
   overscroll-behavior-y: none;
-}
-
-/* Code inside a heading reads as part of it, not as a highlighted chip. */
-.sl-markdown-content :is(h2, h3, h4) code {
-  padding: 0;
-  background: none;
-  font-size: 0.85em;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: inherit;
-}
-
-/* The current page in the sidebar: a tint and a ruby edge, not a solid fill. */
-.sidebar-content [aria-current='page'],
-.sidebar-content [aria-current='page']:hover,
-.sidebar-content [aria-current='page']:focus {
-  background: var(--sl-color-accent-low);
-  color: var(--sl-color-accent-high);
-  font-weight: 650;
-  box-shadow: inset 3px 0 0 var(--sl-color-accent);
-}
-
-/* Rosé Pine italicises constants; keep code upright, with colour doing the work. */
-.expressive-code .ec-line span[style*='font-style'] {
-  font-style: normal !important;
 }

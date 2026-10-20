@@ -8,7 +8,7 @@ sidebar:
 An Entrypoint exports one value with `export`, and importing the Carton returns that value itself. Most Cartons have one main class or module, so they export it, as `require` would leave a constant behind:
 
 ```ruby
-# user.rb: the Entrypoint
+# user.rb
 class User
   def initialize(name) = @name = name
 end
@@ -32,7 +32,7 @@ User.new('Alice')
 Export the root module and hide everything else with Ruby's own `private_constant`, which holds across Boxes:
 
 ```ruby
-# lib/pricing.rb: the Entrypoint
+# lib/pricing.rb
 module Pricing
   class Calculator
   end
@@ -57,7 +57,7 @@ Pricing::Internal   # NameError: private constant Pricing::Internal referenced
 Keywords export a plain Hash, for values that need no module of their own:
 
 ```ruby
-# info.rb: the Entrypoint
+# info.rb
 export version: '1.0', built_on: 'ci'
 ```
 

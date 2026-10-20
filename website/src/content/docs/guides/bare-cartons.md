@@ -10,8 +10,8 @@ A file that never calls `export` is a Bare Carton. Importing it returns a [`Cart
 Its Box stays private, so an importer cannot `eval` or `require` inside it. Bare Cartons suit existing code you want to load in a Box without changing it; new Cartons should export deliberately.
 
 ```ruby
-# main.rb: some_script.rb never calls export
-Toolbox = import 'some_script'
+# main.rb
+Toolbox = import 'some_script' # some_script.rb never calls export
 
 Toolbox::SomeConstant
 Toolbox.helper

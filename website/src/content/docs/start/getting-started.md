@@ -20,8 +20,7 @@ gem install carton
 
 Or add it to your Gemfile:
 
-```ruby
-# Gemfile
+```ruby title="Gemfile"
 gem 'carton'
 ```
 
@@ -35,7 +34,7 @@ billing/invoice.rb  # the Interior: inside the billing Carton
 ```
 
 ```ruby
-# billing/invoice.rb: inside the billing Carton
+# billing/invoice.rb
 module Billing
   class Invoice
     def initialize(total) = @total = total
@@ -44,7 +43,7 @@ end
 ```
 
 ```ruby
-# billing.rb: the Entrypoint, which draws the boundary
+# billing.rb
 require_relative 'billing/invoice'
 
 module Billing
@@ -56,8 +55,10 @@ export Billing # the only value that leaves this Carton
 
 ## Import it
 
+The application imports the Carton from the Main Box:
+
 ```ruby
-# main.rb: the application, in the Main Box
+# main.rb
 require 'carton'
 
 Billing = import_relative 'billing' # runs billing.rb in its own Box
