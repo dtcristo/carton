@@ -67,11 +67,51 @@ export const themes = [theme('dark'), theme('light')];
 // Ruby's grammar leaves Carton's own methods as plain text when they are
 // called without parentheses, so colour them as calls. `export` and the
 // imports only count at the start of a line or after an assignment.
-const carton = /(^\s*|=\s*)(import_relative|import|export)\b/;
+const carton = /(^\s*|=\s*)(import_relative|import|export)\b/g;
 // A trailing `# => value` comment is what an example returns, and a trailing
 // `# NameError` is what it raises.
-const result = /#\s*=>.*$/;
-const error = /#\s*[A-Z]\w*(?:::\w+)*(?:Error|Exception)\b.*$/;
+const result = /^#\s*=>/;
+const error = /^#\s*[A-Z]\w*(?:::\w+)*(?:Error|Exception)\b/;
+
+// Splits a line of Ruby into its code and its trailing comment, skipping
+// quoted strings, so a `#` or `import` inside a string never counts.
+const scan = (text) => {
+  const strings = [];
+  let quote = null;
+  let opened = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (quote) {
+      if (char === '\\') i++;
+      else if (char === quote) {
+        strings.push([opened, i + 1]);
+        quote = null;
+      }
+    } else if (char === "'" || char === '"') {
+      quote = char;
+      opened = i;
+    } else if (char === '#') {
+      return { strings, comment: i };
+    }
+  }
+  if (quote) strings.push([opened, text.length]);
+  return { strings, comment: text.length };
+};
+
+// The ranges to restyle in one line: Carton calls, and a result or error.
+export const marks = (text) => {
+  const { strings, comment } = scan(text);
+  const inString = (i) => strings.some(([a, b]) => i >= a && i < b);
+  const found = [];
+  for (const call of text.slice(0, comment).matchAll(carton)) {
+    const start = call.index + call[1].length;
+    if (!inString(start)) found.push({ key: 'call', start, end: start + call[2].length });
+  }
+  const tail = text.slice(comment);
+  if (error.test(tail)) found.push({ key: 'error', start: comment, end: text.length, bold: true });
+  else if (result.test(tail)) found.push({ key: 'result', start: comment, end: text.length, bold: true });
+  return found;
+};
 
 const style = (key, start, end, extra = {}) =>
   themes.map(
@@ -92,17 +132,9 @@ export const cartonCode = () =>
       postprocessAnalyzedCode: ({ codeBlock }) => {
         if (codeBlock.language !== 'ruby') return;
         for (const line of codeBlock.getLines()) {
-          const annotations = [];
-          const call = line.text.match(carton);
-          if (call) {
-            const start = call.index + call[1].length;
-            annotations.push(...style('call', start, start + call[2].length));
+          for (const { key, start, end, bold } of marks(line.text)) {
+            for (const a of style(key, start, end, { bold })) line.addAnnotation(a);
           }
-          const raised = line.text.match(error);
-          const res = raised ? null : line.text.match(result);
-          if (raised) annotations.push(...style('error', raised.index, line.text.length, { bold: true }));
-          if (res) annotations.push(...style('result', res.index, line.text.length, { bold: true }));
-          for (const a of annotations) line.addAnnotation(a);
         }
       },
     },

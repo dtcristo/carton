@@ -12,6 +12,7 @@
     "build": "npm run glossary && astro build",
     "preview": "astro preview",
     "check": "npm run glossary && astro check",
+    "test": "node --test",
     "deploy": "wrangler deploy",
     "astro": "astro"
   },
