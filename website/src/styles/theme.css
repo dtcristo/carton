@@ -273,16 +273,11 @@ html {
 }
 
 /* The homepage ends on the closing band, which carries its own footer: drop
-   Starlight's empty one and the padding under it, and stop the page bouncing
-   past the band so no blank strip shows beneath it. */
+   Starlight's empty one and the padding under it. */
 [data-has-hero] :is(main, .content-panel) {
   padding-bottom: 0;
 }
 
 [data-has-hero] .content-panel > .sl-container > footer {
   display: none;
-}
-
-html[data-has-hero] {
-  overscroll-behavior-y: none;
 }
