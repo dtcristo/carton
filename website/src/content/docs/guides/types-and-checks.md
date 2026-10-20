@@ -37,7 +37,7 @@ RBS has one global namespace, so the app's target should check the app's own fil
 
 ## Static checks
 
-`carton check main.rb` prints each problem as `file:line: level: message` and exits non-zero on any error, so it can run in CI. Errors are certain to fail or misbehave when the code runs; warnings are things a dynamic program could still get right. `--strict` fails on warnings too, for a codebase that wants every import followed.
+`carton check main.rb` prints each problem as `file:line: level: message` and exits non-zero on any error, so it can run in CI. Errors are certain to fail or misbehave when the code runs; warnings are things a dynamic program could still get right. `--strict` fails on warnings too.
 
 It reports, among others:
 
@@ -46,10 +46,14 @@ It reports, among others:
 - a `require` that reaches into another Carton and would load a second copy
 - a private constant of an exported module used from outside
 - a gem a Gem Carton uses without declaring it in its gemspec
+- an unused import binding, excluding constants exposed on a Carton's Public Surface
+- a class/module definition opening a directly imported shared class or module
 
 It follows a name bound to an import, `Info = import 'info'` or `info = import 'info'`, to its uses: method calls, constant paths, lookups, and hash patterns. A constant binding is followed in every file of the same Box, a local only in its own file and only when nothing reassigns it.
 
 The [CLI reference](/reference/cli/#carton-check) lists every check.
+
+Use `carton check --format json main.rb` for a machine-readable report of problems and counts. The default text output and exit statuses stay the same. Static checks cannot see every reflective or generated use of an import, and reopening warnings do not guard runtime mutations. Carton does not infer unused members of an exported module or Hash.
 
 ## Dynamic imports
 

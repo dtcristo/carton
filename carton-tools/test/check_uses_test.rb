@@ -151,6 +151,182 @@ class CheckUsesTest < Minitest::Test
     assert_equal [expected], errors(output)
   end
 
+  def test_unused_import_bindings_are_warnings
+    main = <<~RUBY
+      MathTools = import_relative 'math'
+      math = import_relative 'math'
+    RUBY
+    files = { 'main.rb' => main, 'math.rb' => MATH }
+
+    status, output = check(files)
+
+    assert_equal 0, status
+    expected = [
+      'main.rb:1: warning: MathTools is bound to an import of the math Carton but never used',
+      'main.rb:2: warning: math is bound to an import of the math Carton but never used',
+    ]
+    assert_equal expected, warnings(output)
+    assert_equal 1, check(files, '--strict').first
+  end
+
+  def test_imports_on_a_cartons_public_surface_are_not_unused
+    files = {
+      'main.rb' =>
+        "import_relative 'bare'\nimport_relative 'app'\nimport_relative 'forward'\n",
+      'bare.rb' => "MathTools = import_relative 'math'\n",
+      'app.rb' =>
+        "module App\n  MathTools = import_relative 'math'\nend\nexport ::App\n",
+      'forward.rb' => "MathTools = import_relative 'math'\nexport MathTools\n",
+      'math.rb' => MATH,
+    }
+
+    status, output = check(files, '--strict')
+
+    assert_equal 0, status, output
+    assert_empty warnings(output)
+  end
+
+  def test_a_bare_cartons_unused_local_is_not_part_of_its_public_surface
+    files = {
+      'main.rb' => "import_relative 'bare'\n",
+      'bare.rb' => "math = import_relative 'math'\n",
+      'math.rb' => MATH,
+    }
+
+    _, output = check(files)
+
+    expected = [
+      'bare.rb:1: warning: math is bound to an import of the math Carton but never used',
+    ]
+    assert_equal expected, warnings(output)
+  end
+
+  def test_side_effect_imports_and_opaque_uses_do_not_warn
+    main = <<~RUBY
+      import_relative 'math'
+      math = import_relative 'math'
+      consume(math)
+      MathTools = import_relative 'math'
+      MathTools.public_send(:keys)
+    RUBY
+
+    status, output = check({ 'main.rb' => main, 'math.rb' => MATH }, '--strict')
+
+    assert_equal 0, status, output
+    assert_empty warnings(output)
+  end
+
+  def test_constant_imports_used_in_other_files_are_not_unused
+    files = {
+      'main.rb' =>
+        "module App\n  MathTools = import_relative 'math'\nend\nrequire_relative 'use'\n",
+      'use.rb' => "module App\n  def self.math = MathTools\nend\n",
+      'math.rb' => MATH,
+    }
+
+    status, output = check(files, '--strict')
+
+    assert_equal 0, status, output
+    assert_empty warnings(output)
+  end
+
+  def test_reopening_an_imported_namespace_warns_without_an_unused_warning
+    main = <<~RUBY
+      Billing = import_relative 'billing'
+      class Billing::Invoice; end
+      module Billing; end
+    RUBY
+    files = {
+      'main.rb' => main,
+      'billing.rb' =>
+        "module Billing\n  class Invoice; end\nend\nexport Billing\n",
+    }
+
+    status, output = check(files)
+
+    assert_equal 0, status
+    expected = [
+      'main.rb:2: warning: class Billing::Invoice opens Billing from the billing Carton, ' \
+        'changing a shared class or module: subclass it or use a refinement instead',
+      'main.rb:3: warning: module Billing opens Billing from the billing Carton, changing a ' \
+        'shared class or module: subclass it or use a refinement instead',
+    ]
+    assert_equal expected, warnings(output)
+    assert_equal 1, check(files, '--strict').first
+  end
+
+  def test_reopenings_resolve_qualified_absolute_and_lexical_bindings
+    files = {
+      'main.rb' => <<~RUBY,
+        Billing = import_relative 'billing'
+        module App
+          Billing = import_relative 'other'
+        end
+        require_relative 'extensions'
+      RUBY
+      'extensions.rb' => <<~RUBY,
+        module App
+          class Billing::Invoice; end
+          class ::Billing::Invoice; end
+        end
+        class App::Billing::Invoice; end
+      RUBY
+      'billing.rb' =>
+        "module Billing\n  class Invoice; end\nend\nexport Billing\n",
+      'other.rb' => "module Other\n  class Invoice; end\nend\nexport Other\n",
+    }
+
+    _, output = check(files)
+
+    expected = [
+      'extensions.rb:2: warning: class Billing::Invoice opens App::Billing from the other ' \
+        'Carton, changing a shared class or module: subclass it or use a refinement instead',
+      'extensions.rb:3: warning: class ::Billing::Invoice opens Billing from the billing ' \
+        'Carton, changing a shared class or module: subclass it or use a refinement instead',
+      'extensions.rb:5: warning: class App::Billing::Invoice opens App::Billing from the other ' \
+        'Carton, changing a shared class or module: subclass it or use a refinement instead',
+    ]
+    assert_equal expected, warnings(output)
+  end
+
+  def test_reopening_an_imported_class_is_a_warning
+    files = {
+      'main.rb' => "Invoice = import_relative 'invoice'\nclass Invoice; end\n",
+      'invoice.rb' => "class Invoice; end\nexport Invoice\n",
+    }
+
+    _, output = check(files)
+
+    expected = [
+      'main.rb:2: warning: class Invoice opens Invoice from the invoice Carton, changing a ' \
+        'shared class or module: subclass it or use a refinement instead',
+    ]
+    assert_equal expected, warnings(output)
+  end
+
+  def test_subclassing_and_defining_local_classes_do_not_warn
+    files = {
+      'main.rb' => <<~RUBY,
+        Billing = import_relative 'billing'
+        class Invoice < Billing::Invoice; end
+        module Local
+          module Billing
+            class Invoice; end
+          end
+          module Billing; end
+          class Billing::Invoice; end
+        end
+      RUBY
+      'billing.rb' =>
+        "module Billing\n  class Invoice; end\nend\nexport Billing\n",
+    }
+
+    status, output = check(files, '--strict')
+
+    assert_equal 0, status, output
+    assert_empty warnings(output)
+  end
+
   private
 
   def missing(line, code, name, file: 'main.rb')
@@ -159,6 +335,8 @@ class CheckUsesTest < Minitest::Test
   end
 
   def errors(output) = output.lines(chomp: true).grep(/: error: /)
+
+  def warnings(output) = output.lines(chomp: true).grep(/: warning: /)
 
   def check(files, *)
     Dir.mktmpdir do |dir|

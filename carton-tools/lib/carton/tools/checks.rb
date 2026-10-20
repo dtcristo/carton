@@ -19,6 +19,7 @@ module Carton
       def initialize(project)
         @project = project
         @bindings = Bindings.new(project)
+        @reopenings = @bindings.reopenings
       end
 
       def problems
@@ -32,6 +33,8 @@ module Carton
           *bare_collisions,
           *missing_exports,
           *private_constant_references,
+          *unused_imports,
+          *reopened_classes,
         ].sort_by { |problem| [problem.file, problem.line, problem.message] }
       end
 
@@ -347,6 +350,53 @@ module Carton
       def exported_constant(carton)
         exports = @project.files.fetch(carton.entrypoint).exports
         exports.first.value if exports.size == 1
+      end
+
+      # A binding with no reads may be dead code. Constants on a Carton's
+      # Public Surface are also used implicitly by its Importers.
+      def unused_imports
+        @bindings.all.filter_map do |binding|
+          next unless binding.uses.empty?
+          next if public_binding?(binding)
+          next if @reopenings.any? { |_, _, used| used.equal?(binding) }
+
+          warning(
+            binding.file,
+            binding.line,
+            "#{binding.name} is bound to an import of the #{binding.carton.name} " \
+              'Carton but never used',
+          )
+        end
+      end
+
+      def public_binding?(binding)
+        return false if binding.local
+
+        carton = @project.owner(binding.file) or return false
+        exports = @project.files.fetch(carton.entrypoint).exports
+        return !binding.name.include?('::') if exports.empty?
+
+        exports.any? do |export|
+          name = export.value&.delete_prefix('::')
+          name &&
+            (binding.name == name || binding.name.start_with?("#{name}::"))
+        end
+      end
+
+      # Classes and modules returned by Imports are shared objects. Opening
+      # one, or defining a constant beneath it, mutates that shared object.
+      def reopened_classes
+        @reopenings.filter_map do |path, site, binding|
+          next if binding.carton == @project.owner(path)
+
+          warning(
+            path,
+            site.line,
+            "#{site.kind} #{site.name} opens #{binding.name} from the " \
+              "#{binding.carton.name} Carton, changing a shared class or module: " \
+              'subclass it or use a refinement instead',
+          )
+        end
       end
 
       def display(path) = Project.relative(path)

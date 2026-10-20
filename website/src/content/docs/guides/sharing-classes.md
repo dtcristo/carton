@@ -9,6 +9,8 @@ Boxes isolate monkey patches to builtin classes: patching `String` in one Carton
 
 Box is not a security boundary, so this cannot be prevented outright. These habits avoid it by accident.
 
+`carton check` warns about class/module definitions that open a directly imported value or a constant beneath it, such as `class Billing::Invoice`. This is a static warning, not a runtime guard: aliases and dynamic mutation through `class_eval` or `define_method` are not followed. Subclassing does not warn.
+
 ## Subclass instead of reopening
 
 Give each Carton its own base classes rather than binding a shared one to a bare name:

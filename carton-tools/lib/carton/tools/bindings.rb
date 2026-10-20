@@ -10,7 +10,7 @@ module Carton
     # a local binding only in its own file, and only when nothing reassigns it.
     class Bindings
       # A name bound to an imported Carton, with each Use of it.
-      Binding = Data.define(:name, :carton, :file, :line, :uses)
+      Binding = Data.define(:name, :local, :carton, :file, :line, :uses)
 
       # One Reference to a binding, and the file it is in.
       Use = Data.define(:file, :reference)
@@ -21,6 +21,12 @@ module Carton
         @project = project
         @by_key = {}
         @all = []
+        @defined = Hash.new { |hash, box| hash[box] = {} }
+        @project.files.each_value do |file|
+          (file.definitions.keys + file.constants.keys).each do |name|
+            @defined[box_of(file.path)][name] = true
+          end
+        end
         bind_imports
         collect_uses
       end
@@ -30,6 +36,17 @@ module Carton
       def patterns
         @project.edges.filter_map do |edge|
           [edge.call, edge.carton] if edge.carton && edge.call.pattern
+        end
+      end
+
+      # Definitions that open an imported value or a constant beneath it,
+      # as [path, definition, binding] triples. A definition is a use, too.
+      def reopenings
+        @project.files.each_value.flat_map do |file|
+          file.definition_sites.filter_map do |site|
+            binding = reopened_binding(file.path, site)
+            [file.path, site, binding] if binding
+          end
         end
       end
 
@@ -50,6 +67,7 @@ module Carton
 
           @by_key[key] = Binding.new(
             name: call.constant || call.local,
+            local: !call.local.nil?,
             carton: edge.carton,
             file: call.file,
             line: call.line,
@@ -83,23 +101,45 @@ module Carton
       def lookup(path, reference)
         return @by_key[[:local, path, reference.name]] if reference.local
 
+        constant(path, reference.name, reference.scope)
+      end
+
+      def constant(path, name, scope)
         box = box_of(path)
-        candidates(reference).each do |name|
-          binding = @by_key[[:constant, box, name]]
+        candidates(name, scope).each do |candidate|
+          binding = @by_key[[:constant, box, candidate]]
           return binding if binding
+          return nil if @defined[box][candidate]
         end
         nil
       end
 
-      def candidates(reference)
-        name = reference.name
+      def candidates(name, scope)
         return [name.delete_prefix('::')] if name.start_with?('::')
 
-        parts = reference.scope.to_s.split('::')
+        parts = scope.to_s.split('::')
         [
           *parts.size.downto(1).map { |n| [*parts.first(n), name].join('::') },
           name,
         ]
+      end
+
+      def reopened_binding(path, site)
+        # `module Local; class Billing` defines Local::Billing, even if an
+        # outer scope imported Billing. Qualified parents resolve lexically.
+        unless site.name.include?('::')
+          name = [site.scope, site.name].compact.join('::')
+          return @by_key[[:constant, box_of(path), name]]
+        end
+
+        parts = site.name.split('::')
+        parts
+          .size
+          .downto(1) do |size|
+            binding = constant(path, parts.first(size).join('::'), site.scope)
+            return binding if binding
+          end
+        nil
       end
 
       # Files loaded in the same Box share constants: the app's, or one

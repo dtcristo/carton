@@ -11,7 +11,7 @@ class CheckTest < Minitest::Test
   def test_clean_project_passes
     status, output =
       check(
-        'main.rb' => "Billing = import_relative 'billing'\n",
+        'main.rb' => "Billing = import_relative 'billing'\nBilling\n",
         'billing.rb' => "require_relative 'billing/tax'\nexport Billing\n",
         'billing/tax.rb' => "module Billing; end\n",
       )

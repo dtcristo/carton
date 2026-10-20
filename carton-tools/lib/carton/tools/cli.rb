@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'fileutils'
+require 'json'
 require 'optparse'
 require_relative 'checks'
 require_relative 'signatures'
@@ -81,26 +82,62 @@ module Carton
 
       def check(args)
         strict = false
+        format = 'text'
         project =
           project(args, 'check') do |o|
             o.on('--strict', 'Fail on warnings too, not only errors') do
               strict = true
             end
+            o.on(
+              '--format FORMAT',
+              %w[text json],
+              'text (default) or json',
+            ) { |value| format = value }
           end
         return 2 unless project
 
         problems = Checks.new(project).problems
-        pwd = File.realpath(Dir.pwd)
-        problems.each do |problem|
-          file = Project.relative(problem.file)
-          message = problem.message.gsub("#{pwd}/", '').gsub(pwd, '.')
-          @out.puts "#{file}:#{problem.line}: #{problem.level}: #{message}"
-        end
         errors = problems.count(&:error?)
-        @out.puts "#{project.files.size} files, #{project.cartons.size} Cartons, " \
-                    "#{errors} errors, #{problems.size - errors} warnings"
+        summary = {
+          files: project.files.size,
+          cartons: project.cartons.size,
+          errors:,
+          warnings: problems.size - errors,
+        }
+        if format == 'json'
+          print_json(problems, summary)
+        else
+          print_text(problems, summary)
+        end
         failures = strict ? problems.size : errors
         failures.zero? ? 0 : 1
+      end
+
+      def print_text(problems, summary)
+        problems.each do |problem|
+          @out.puts "#{Project.relative(problem.file)}:#{problem.line}: " \
+                      "#{problem.level}: #{relative_message(problem.message)}"
+        end
+        @out.puts "#{summary[:files]} files, #{summary[:cartons]} Cartons, " \
+                    "#{summary[:errors]} errors, #{summary[:warnings]} warnings"
+      end
+
+      def print_json(problems, summary)
+        list =
+          problems.map do |problem|
+            {
+              level: problem.level,
+              file: Project.relative(problem.file),
+              line: problem.line,
+              message: relative_message(problem.message),
+            }
+          end
+        @out.puts JSON.pretty_generate(problems: list, **summary)
+      end
+
+      def relative_message(message)
+        pwd = File.realpath(Dir.pwd)
+        message.gsub("#{pwd}/", '').gsub(pwd, '.')
       end
 
       # Parse options shared by every command, then scan PATHs. Named imports

@@ -12,7 +12,7 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7 or later an
 | A private interior per Carton | Done. Only an Entrypoint can be imported, only exports cross, and `private_constant` hides the rest. |
 | Imports bound where they are used | Done. `import` returns a value and defines nothing in the importer. |
 | Gem versions per Carton | Done. A Carton that calls `Carton.setup_bundle` gets its own bundle, and Gem Cartons get the importer's versions. A shared Carton keeps its First Importer's versions. |
-| Contained side effects | Partly. Patches to builtins stay in their Carton, but exported classes are shared and can be reopened. |
+| Contained side effects | Partly. Patches to builtins stay in their Carton, but exported classes are shared and can be reopened. `carton check` warns about class/module definitions through directly followed Imports; it adds no runtime guard. |
 | Declared dependencies | Partly. A Gem Carton's gemspec declares them and `carton check` reports Undeclared Gems, but the runtime gives it the importer's whole lockfile. |
 | Graph tooling | Partly. `carton check` and `carton rbs` exist; an import graph and a baseline file do not. |
 | Distribution | Done by design. A Carton is gem-shaped, and each Carton in a monorepo is a path gem ([#32](https://github.com/dtcristo/carton/issues/32)). |
