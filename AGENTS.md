@@ -2,7 +2,7 @@
 
 ## North Star
 
-Carton is the package system Ruby has always needed: real boundaries for Ruby code, enforced while it runs. A Carton has a private interior, a declared public surface, its own dependencies and gem versions, and the shape of a gem, so it can leave the app as one. Weigh every change by whether it moves Carton toward that, for apps of any size; [design.md](docs/design.md#how-close-carton-is) tracks the gaps.
+Carton is the package system Ruby has always needed: real boundaries for Ruby code, enforced while it runs. A Carton has a private interior, a declared public surface, its own dependencies and gem versions, and the shape of a gem, so it can leave the app as one. Weigh every change by whether it moves Carton toward that, for apps of any size; the [Status](website/src/content/docs/project/status.md) page tracks the gaps.
 
 ## Principles
 
