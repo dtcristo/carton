@@ -14,7 +14,7 @@ Box is not a security boundary, so this cannot be prevented outright. These habi
 Give each Carton its own base classes rather than binding a shared one to a bare name:
 
 ```ruby
-# customers/lib/customers.rb: the customers Carton's own base class
+# customers/lib/customers.rb
 class ApplicationRecord < Framework::ApplicationRecord
   self.abstract_class = true
 end
@@ -35,7 +35,7 @@ A refinement applies only to files that activate it with `using`, so the owning 
 A Carton cannot see the application's constants, but it can call objects the application passes in. Use ordinary constructor arguments to supply a repository, payment client, or logger:
 
 ```ruby
-# main.rb: the application owns the services and passes them in
+# main.rb
 Checkout = import_relative 'checkout'
 checkout = Checkout::Service.new(orders:, payments:, logger:)
 checkout.call(order_id: 42)

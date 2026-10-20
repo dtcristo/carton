@@ -7,8 +7,7 @@ sidebar:
 
 The `carton` command ships in the `carton-tools` gem, released with `carton` at the same version, so apps and gems built on Carton do not install it. Add it where your checks run:
 
-```ruby
-# Gemfile
+```ruby title="Gemfile"
 gem 'carton'
 gem 'carton-tools', group: :development
 ```
@@ -25,8 +24,7 @@ It reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it
 
 Load Carton's own signatures and the generated file in the Steepfile, and regenerate the file whenever an import or export changes:
 
-```ruby
-# Steepfile
+```ruby title="Steepfile"
 target :app do
   signature 'sig'
   library 'carton'

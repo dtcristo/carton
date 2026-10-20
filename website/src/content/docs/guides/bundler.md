@@ -12,7 +12,7 @@ Carton works with or without Bundler. Each Box has its own RubyGems state, so a 
 A Carton that needs its own gems sets up a Carton Bundle, from its own Gemfile, in its Entrypoint. Other Cartons need no setup.
 
 ```ruby
-# cartons/math_helper/lib/math_helper.rb: the Entrypoint
+# cartons/math_helper/lib/math_helper.rb
 Carton.setup_bundle # uses cartons/math_helper/Gemfile, only in this Box
 
 require 'bigdecimal' # this Carton's locked version
@@ -33,8 +33,13 @@ export version: BigDecimal::VERSION
 
 Importing a file from a gem the importer has activated, such as a path gem in the app's Gemfile, activates that gem and its runtime dependencies in the Carton's Box at the importer's versions. The gem needs no Gemfile of its own:
 
+```ruby title="Gemfile"
+gem 'bigdecimal', '3.3.1'
+gem 'pricing', path: 'pricing'
+```
+
 ```ruby
-# main.rb, with a Gemfile of: gem 'bigdecimal', '3.3.1'; gem 'pricing', path: 'pricing'
+# main.rb
 Carton.setup_bundle
 Pricing = import 'pricing' # pricing's require 'bigdecimal' gets 3.3.1
 ```

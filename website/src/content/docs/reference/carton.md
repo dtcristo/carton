@@ -21,7 +21,7 @@ Sets up a bundle in the current Box, like `Bundler.setup`. In a Carton's Entrypo
 Raises [`Carton::GemfileNotFound`](/reference/errors/) when there is no Gemfile.
 
 ```ruby
-# reports/lib/reports.rb: the Entrypoint
+# reports/lib/reports.rb
 Carton.setup_bundle # reports/Gemfile, in this Carton's Box only
 require 'bigdecimal'
 ```
