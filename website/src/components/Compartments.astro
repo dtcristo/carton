@@ -8,25 +8,27 @@
   <div class="box">
     <article>
       <h3>Only exports cross</h3>
-      <p>Other Cartons reach what a Carton exports and nothing else. Ruby's own <code>private_constant</code> hides the rest, across Boxes.</p>
-      <pre><code><span class="c">Billing</span>::<span class="c">Invoice</span> <span class="o"># public</span>
-<span class="c">Billing</span>::<span class="c">Tax</span>     <span class="x"># NameError</span></code></pre>
+      <p>Other Cartons reach what a Carton exports and nothing else: not its top-level constants, its helpers, or the Cartons it imports.</p>
+      <pre><code><span class="o"># billing.rb</span>
+<span class="c">TAX_RATE</span> = <span class="m">10</span>
+<span class="o"># main.rb</span>
+<span class="c">TAX_RATE</span>  <span class="x"># NameError</span></code></pre>
     </article>
     <article>
       <h3>Monkey patches stay put</h3>
-      <p>A patch to a builtin class, such as <code>String#blank?</code>, applies only inside the Carton that makes it.</p>
-      <pre><code><span class="o"># in the cms Carton</span>
+      <p>A patch to a builtin class, such as ActiveSupport's <code>String#blank?</code>, applies only inside the Carton that makes it.</p>
+      <pre><code><span class="o"># billing.rb</span>
 <span class="s">''</span>.blank?  <span class="r"># =&gt; true</span>
-<span class="o"># everywhere else</span>
+<span class="o"># main.rb</span>
 <span class="s">''</span>.blank?  <span class="x"># NoMethodError</span></code></pre>
     </article>
     <article>
       <h3>Gem versions per Carton</h3>
       <p>Each Carton can set up its own bundle, so two Cartons can load different versions of the same gem in one process.</p>
-      <pre><code><span class="o"># reports/Gemfile.lock</span>
-bigdecimal (<span class="s">3.3.1</span>)
-<span class="o"># pricing/Gemfile.lock</span>
-bigdecimal (<span class="s">4.1.1</span>)</code></pre>
+      <pre><code><span class="o"># billing/Gemfile.lock</span>
+bigdecimal (<span class="s">4.1.1</span>)
+<span class="o"># shipping/Gemfile.lock</span>
+bigdecimal (<span class="s">3.3.1</span>)</code></pre>
     </article>
   </div>
 </section>
@@ -120,6 +122,7 @@ bigdecimal (<span class="s">4.1.1</span>)</code></pre>
 
   .c { color: var(--code-constant); }
   .s { color: var(--code-string); }
+  .m { color: var(--code-literal); }
   .o { color: var(--code-comment); }
   .r { color: var(--code-result); font-weight: 700; }
   .x { color: var(--code-error); font-weight: 700; }
