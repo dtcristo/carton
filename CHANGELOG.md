@@ -4,7 +4,7 @@
 
 ### Added
 
-- `carton check` warns about unused import bindings and class/module definitions that open imported shared objects, and `--format json` reports problems and counts for CI and editors. This recovers the applicable parts of the stranded static-checks work; its unused Named Export check is obsolete under the single-value Export model (#54).
+- `carton check` warns about unused import bindings and class/module definitions that open imported shared objects, and `--format json` reports problems and counts for CI and editors. This recovers the applicable parts of the stranded static-checks work; its unused Named Export check is obsolete under the single-value Export model (#54, #82).
 - An experimental Rails-in-Cartons reloading spike rebuilds changed domain Cartons and their Importers in a scratch copy, explicitly refreshes a retained Rails host's domain references and registered classes, and verifies requests after two reloads without losing records. It adds no runtime reload interface (#67).
 - `examples/exports` demonstrates Hash and callable exports, Bare Carton Helpers, and Ruby pattern matching without gems or Bundler. The plugin testing recipe is now a runnable test with its own bundle (#64).
 - `examples/dependency_injection`: a checkout Carton receives order storage, payments, and logging from its host through constructor arguments. File-backed demo adapters stay in Main, and integration tests import the Carton with fakes (#63).
