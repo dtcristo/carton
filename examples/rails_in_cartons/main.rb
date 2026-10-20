@@ -1,27 +1,42 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/carton'
+require 'tmpdir'
 
-# The Main Box is the server: it loads Rack, not Rails.
 Carton.setup_bundle
 require 'rack'
+require 'json'
 
-Shop = import 'shop'
-http = Rack::MockRequest.new(Shop)
+def demonstrate(directory)
+  previous_database = ENV['SHOP_DATABASE']
+  ENV['SHOP_DATABASE'] = File.join(directory, 'demo.sqlite3')
+  script = File.expand_path('components/shop/bin/rails', __dir__)
+  unless system(RbConfig.ruby, script, 'db:prepare', out: File::NULL)
+    abort 'database preparation failed'
+  end
 
-# Print each response and fail on an unexpected status.
-def show(label, response, status)
-  puts "#{label}: #{response.status} #{response.body}"
-  abort "expected #{status}" unless response.status == status
+  shop = import 'shop'
+  http =
+    Rack::MockRequest.new(
+      ->(env) { shop.call(env.merge('HTTP_HOST' => 'example.org')) },
+    )
+  customer = http.post('http://example.org/customers', params: { name: 'Ada' })
+  abort "customer: #{customer.status}" unless customer.status == 201
+  order =
+    http.post(
+      'http://example.org/orders',
+      params: {
+        customer_id: JSON.parse(customer.body).fetch('id'),
+        total_cents: 4200,
+      },
+    )
+  abort "order: #{order.status}" unless order.status == 201
+  puts "GET /orders: #{http.get('http://example.org/orders').body}"
+  puts "GET /customers/directory: #{http.get('http://example.org/customers/directory').status}"
+  abort 'Rails leaked into Main' if defined?(Rails)
+  puts 'Rails loaded in Main: false'
+ensure
+  ENV['SHOP_DATABASE'] = previous_database
 end
 
-show 'POST /customers', http.post('/customers', params: { name: 'Ada' }), 201
-show 'POST /orders',
-     http.post('/orders', params: { customer_id: 1, total_cents: 4_200 }),
-     201
-show 'POST /orders (invalid)',
-     http.post('/orders', params: { customer_id: 1, total_cents: 0 }),
-     422
-show 'GET /orders', http.get('/orders'), 200
-puts
-puts "Rails loaded in the Main Box: #{!defined?(Rails).nil?}"
+Dir.mktmpdir('carton-rails-engines') { |directory| demonstrate(directory) }

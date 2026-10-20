@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+# Rails loads this inside the framework Carton, alongside its own Rake DSL.
+extend Rake::DSL # rubocop:disable Style/MixinUsage
+
+require_relative 'config/application'
+Rails.application.load_tasks

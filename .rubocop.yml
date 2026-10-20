@@ -4,6 +4,7 @@ AllCops:
   TargetRubyVersion: 4.0
   Exclude:
     - 'test/fixtures/**/*'
+    - 'examples/**/db/schema.rb'
 
 Metrics/AbcSize:
   Enabled: false

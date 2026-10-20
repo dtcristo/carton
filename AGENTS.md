@@ -32,6 +32,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 - Keep supported integration examples under `examples/` and private-runtime or unsupported experiments under `spikes/`; both Rails examples remain examples. Run `bundle exec rake spikes` for the CI-covered experiments.
 - For shared dependency or template Box work, read [the Shared Gems spike](spikes/shared_gems/results.md): method transplantation works, but normal gem activation and loading remain incompatible, and Ruby 4.0.7 visibility-only builtin changes can leak to Master.
 
+- Rails-in-Cartons uses namespaced Engines with Carton-owned loaders and an explicit CLI bridge. Keep imports in module scope to avoid Rake's top-level `import`. No new runtime patches belong in examples.
 - For Rails reloading work, read [the spike's findings and limits](spikes/rails_reloading/README.md). Its private runtime inspection is experimental; ordinary apps still restart on change.
 - Before Box/gem/Bundler work, read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md`; read `docs/internals/upstream.md` for upstream questions.
 - Test everything. Run `bundle exec rake format` after changes; `bundle exec rake` (tests, rubocop, examples) before finishing.

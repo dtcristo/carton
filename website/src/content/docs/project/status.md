@@ -18,7 +18,7 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7 or later an
 | Distribution | Done by design. A Carton is gem-shaped, and each Carton in a monorepo is a path gem ([#32](https://github.com/dtcristo/carton/issues/32)). |
 | Public sub-entrypoints | Missing. Only the Entrypoint can be imported. |
 | Cheap enough for many Cartons | Missing. About 60 ms and 2.4 MB per Carton, most of it `Ruby::Box.new`, so tens of Cartons, not hundreds ([performance numbers](https://github.com/dtcristo/carton/blob/main/docs/performance.md)). |
-| Works with Rails | Partly. [Rails in the Main Box](/guides/rails/) works; Rails inside Cartons has no supported reloading or Rails CLI, and domain Cartons load Active Support's core extensions themselves. |
+| Works with Rails | Partly. [Rails in the Main Box](/guides/rails/) works; Rails inside Cartons demonstrates namespaced Engines, migrations, jobs, and an example-local `bin/rails` bridge. Reloading remains unsupported; domain Cartons load their own Active Support extensions. |
 | On by default | Missing. Ruby needs `RUBY_BOX=1`, and `Ruby::Box` is experimental. |
 
 The model fits. The biggest gaps are cost, Rails inside Cartons, and Box's experimental status. Ruby itself would close most of the cost gap, through cheaper Boxes, Template Boxes ([#25](https://github.com/dtcristo/carton/issues/25)), and Boxes started from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)).

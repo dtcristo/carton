@@ -5,7 +5,7 @@ require 'rubocop/rake_task'
 
 STREE_FILES =
   '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile" "**/Steepfile" ' \
-    'carton-tools/exe/carton'
+    'carton-tools/exe/carton "examples/**/bin/rails" "examples/**/config.ru"'
 RUBOCOP_FILES = %w[
   Gemfile
   Rakefile
@@ -21,6 +21,9 @@ RUBOCOP_FILES = %w[
   examples/**/*.rb
   examples/**/*.gemspec
   examples/**/Gemfile
+  examples/**/Rakefile
+  examples/**/bin/rails
+  examples/**/config.ru
   spikes/master_prelude/**/*.rb
   spikes/master_prelude/Gemfile
   spikes/rails_reloading/**/*.rb
@@ -175,6 +178,9 @@ task :format do
   sh "bundle exec stree write #{STREE_FILES}", verbose: false
 end
 
-RuboCop::RakeTask.new { |task| task.patterns = RUBOCOP_FILES }
+RuboCop::RakeTask.new do |task|
+  task.patterns = RUBOCOP_FILES
+  task.options = ['--force-exclusion']
+end
 
 task default: %i[test rubocop examples]

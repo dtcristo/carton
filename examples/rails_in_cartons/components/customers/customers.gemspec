@@ -3,11 +3,13 @@
 Gem::Specification.new do |spec|
   spec.name = 'customers'
   spec.version = '0.1.0'
-  spec.summary = 'Customers domain: model and controller'
+  spec.summary = 'Customers domain: isolated Rails Engine'
   spec.authors = ['Carton']
-  spec.files = Dir['{app,lib}/**/*.rb']
+  spec.files =
+    Dir['{app,lib,config,db}/**/*'].select { |path| File.file?(path) }
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.add_dependency 'activesupport'
   spec.add_dependency 'carton'
   spec.add_dependency 'framework'
   spec.add_dependency 'zeitwerk'

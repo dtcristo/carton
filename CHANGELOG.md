@@ -14,6 +14,8 @@
 
 ### Changed
 
+- The Rails-in-Cartons example uses isolated Rails Engines with domain-owned loaders, migrations, HTML views, GlobalID jobs, and an explicit Rails CLI bridge (#79).
+
 - The website is now the only user guide and reference: `docs/usage.md` is gone, its remaining details moved to the website, which adds Examples and Rails pages, and the website's Status page is the only place that tracks readiness (#77).
 - Moved the unsupported Master prelude and private Rails reloading experiments into `spikes/`, with dedicated tasks and CI coverage; both Rails examples remain in `examples/`. The reloading spike reuses the Rails-in-Cartons app as a read-only fixture (#76).
 
