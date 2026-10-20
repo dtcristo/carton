@@ -10,7 +10,7 @@ Start with [minimal](minimal/README.md). Each example is a separate program; sim
 | What can an Import return? How do I load existing Ruby? | [exports](exports/README.md): Hashes, callables, Bare Carton Helpers, and pattern matching |
 | How do Cartons share one app lockfile? | [monorepo](monorepo/README.md): path gems, declared dependencies, and unit and integration tests |
 | How does a Carton use the app's database or services? | [dependency_injection](dependency_injection/README.md): a checkout with host adapters and fakes |
-| How do I use Carton with Rails today? | [rails_in_main](rails_in_main/README.md): Rails stays in Main; a plain-Ruby domain runs in a Carton |
+| How do I use Carton with Rails today? | [rails_in_main](rails_in_main/README.md): a conventional Rails app with persistence, HTML/JSON, jobs, and a plain-Ruby Billing Carton |
 | How do I host plugins with conflicting gems? | [plugins](plugins/README.md): Dynamic Imports, a shared interface, Carton Bundles, and a contained builtin patch |
 | How do I select gem versions without Bundler? | [gems](gems/README.md): explicit RubyGems activation in two Cartons |
 | How do Carton Bundles work across Imports? | [bundler](bundler/README.md): Gem-shaped Directories, a Transitive Carton, a Bare Carton gem, and a path gem |
