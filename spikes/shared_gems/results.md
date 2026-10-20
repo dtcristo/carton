@@ -150,6 +150,6 @@ No production files under lib/, public APIs, import/export semantics, existing e
 
 ## Validation
 
-`RUBY_BOX=1 ruby spike/shared_gems/run.rb` checks 15 cases in separate processes, including four intentional nonzero failures. Internal observed-failure probes also assert the specific require and visibility defects. `bundle exec rubocop spike/shared_gems` checks the experiment code, which the repository's normal RuboCop file list does not include. `bundle exec rake format` formats it with the rest of the repository.
+`RUBY_BOX=1 ruby spikes/shared_gems/run.rb` checks 15 cases in separate processes, including four intentional nonzero failures. Internal observed-failure probes also assert the specific require and visibility defects. `bundle exec rubocop spikes/shared_gems` checks the experiment code, which the repository's normal RuboCop file list does not include. `bundle exec rake format` formats it with the rest of the repository.
 
 The final repository check, `bundle exec rake`, passed 225 tests with 724 assertions, its 147-file RuboCop check, and every registered example, including the Rails request/reloading regression test. This confirms the ordinary runtime still passes without the experiment's process-local hooks.

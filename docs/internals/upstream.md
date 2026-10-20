@@ -47,9 +47,9 @@ Sharing monkey patches across Cartons costs a full load per Box (about 830ms for
 
 ### Userspace shared definitions and visibility isolation
 
-The [Shared Gems spike](../../spike/shared_gems/results.md) demonstrates method transplantation and selected Active Support/Rails-domain behavior without mutating Master. This narrows the missing template capability to faithfully copying builtin extension state, including constants, state and ancestors without rerunning callbacks. Definition installation alone does not solve gem activation or require deduplication. Ordinary Gem Carton activation and the unmodified Rails example fail under the experimental hook; it is not a replacement for the current loader.
+The [Shared Gems spike](../../spikes/shared_gems/results.md) demonstrates method transplantation and selected Active Support/Rails-domain behavior without mutating Master. This narrows the missing template capability to faithfully copying builtin extension state, including constants, state and ancestors without rerunning callbacks. Definition installation alone does not solve gem activation or require deduplication. Ordinary Gem Carton activation and the unmodified Rails example fail under the experimental hook; it is not a replacement for the current loader.
 
-Ruby 4.0.7 also has an independent [visibility isolation reproduction](../../spike/shared_gems/09_visibility_leak.rb): `protected :upcase` in an Optional Box affects Main and Master. `rb_export_method` mutates visibility on an entry shared by copied method tables. A narrow upstream fix would clone the entry into the current Box's writable table before changing its flags, while sharing its underlying definition. This is a source-backed diagnosis, not an implemented or upstream-accepted fix. Report it separately from template Boxes.
+Ruby 4.0.7 also has an independent [visibility isolation reproduction](../../spikes/shared_gems/09_visibility_leak.rb): `protected :upcase` in an Optional Box affects Main and Master. `rb_export_method` mutates visibility on an entry shared by copied method tables. A narrow upstream fix would clone the entry into the current Box's writable table before changing its flags, while sharing its underlying definition. This is a source-backed diagnosis, not an implemented or upstream-accepted fix. Report it separately from template Boxes.
 
 ## Resolved
 
