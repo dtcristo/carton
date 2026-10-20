@@ -45,6 +45,12 @@ Carton does this today: it reads the importer's `Gem.loaded_specs`, rebuilds eac
 
 Sharing monkey patches across Cartons costs a full load per Box (about 830ms for Active Support's core extensions). Requiring them into `Ruby::Box.master` once works on 4.0.7 and later Boxes inherit them, but Ruby documents that no code runs in Master, and Master should stay clean. Ask for official template Box support instead. Box copy-on-write assumes Master is the only copy source (only builtins get per-Box copies), so the draft states requirements and implementation questions rather than an API. #22275 defines no template mechanism yet. See [how-boxes-work.md](how-boxes-work.md#the-master-box-on-ruby-407) and [examples/master_prelude](../../examples/master_prelude/README.md). Draft proposal with a standalone reproduction: [dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25). Not blocking.
 
+### Userspace shared definitions and visibility isolation
+
+The [Shared Gems spike](../../spikes/shared_gems/results.md) demonstrates method transplantation and selected Active Support/Rails-domain behavior without mutating Master. This narrows the missing template capability to faithfully copying builtin extension state, including constants, state and ancestors without rerunning callbacks. Definition installation alone does not solve gem activation or require deduplication. Ordinary Gem Carton activation and the unmodified Rails example fail under the experimental hook; it is not a replacement for the current loader.
+
+Ruby 4.0.7 also has an independent [visibility isolation reproduction](../../spikes/shared_gems/09_visibility_leak.rb): `protected :upcase` in an Optional Box affects Main and Master. `rb_export_method` mutates visibility on an entry shared by copied method tables. A narrow upstream fix would clone the entry into the current Box's writable table before changing its flags, while sharing its underlying definition. This is a source-backed diagnosis, not an implemented or upstream-accepted fix. Report it separately from template Boxes.
+
 ## Resolved
 
 - **Autoloads skipped `Kernel#require` patches.** Under `RUBY_BOX=1`, an autoload loaded its file with `Ruby::Box#require`, bypassing the patches Zeitwerk and Bootsnap rely on ([Bug #21830](https://bugs.ruby-lang.org/issues/21830)). Ruby master fixes it ([PR #18534](https://github.com/ruby/ruby/pull/18534)); on 4.0.7, Carton routes each Box's autoload `require` through `Kernel#require` (see [how-boxes-work.md](how-boxes-work.md#which-box-runs-an-autoload)).

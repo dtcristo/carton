@@ -57,3 +57,7 @@ Each import costs about the same no matter how many came before, so cost grows l
 - **Rails in Cartons** boots about a second slower than Rails in the Main Box: four Carton Boxes, and Rails' gems activated in the framework Box.
 
 [todo.md](todo.md) tracks rebuilding specs without YAML and reporting Box creation cost upstream.
+
+## Shared Gems experiment
+
+The [standalone Shared Gems prototype](../spikes/shared_gems/results.md#performance) compares independent loads, userspace installation, the unsupported Master prelude, and existing plain Carton imports at 1, 5, 10, 25 and 50 Boxes. Its raw JSON records time, retained RSS, source compilation, feature loads and installation counts. These are exploratory single samples with TracePoint instrumentation, separate from the median measurements above. They demonstrate the cost opportunity for an explicit Active Support sharing contract; normal gem activation and arbitrary loading remain unsupported.
