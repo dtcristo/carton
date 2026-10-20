@@ -87,13 +87,13 @@ Test a plugin the way the host uses it: import its directory and call its interf
 RUBY_BOX=1 ruby examples/plugins/test/growth_test.rb
 ```
 
-Each Carton loads once per process, so a plugin's state carries from one test to the next. Keep plugins stateless, or run each plugin's tests in its own process. To test a plugin's Interior, require its files directly without Boxes; see [Testing Cartons](../../docs/usage.md#testing-cartons).
+Each Carton loads once per process, so a plugin's state carries from one test to the next. Keep plugins stateless, or run each plugin's tests in its own process. To test a plugin's Interior, require its files directly without Boxes; see [Testing](https://carton.dtcristo.com/guides/testing/).
 
 ## Limits
 
 - Box is not a security boundary. Plugins run with the host's full privileges, so load only plugins you trust.
 - Objects are shared, not copied. A plugin can mutate what the host passes it, so the host freezes `ORDERS`. Pass plain values such as Strings and Hashes: each Box loads its own `BigDecimal` class, so a `BigDecimal` from one plugin is not a `BigDecimal` to the host or the other plugin.
-- Box isolates patches to builtins such as `Float`. Classes a plugin defines are shared, so reopening another plugin's class changes it everywhere; see [Sharing classes across Cartons](../../docs/usage.md#sharing-classes-across-cartons).
+- Box isolates patches to builtins such as `Float`. Classes a plugin defines are shared, so reopening another plugin's class changes it everywhere; see [Sharing classes and services](https://carton.dtcristo.com/guides/sharing-classes/).
 - `ENV` is process-wide. `setup_bundle` restores it, but load plugins while booting, before starting threads that read `ENV`.
 - Each Box costs about 70ms to create, plus its own gem loading.
 - Carton and `Ruby::Box` are experimental and need Ruby 4.0.7+ with `RUBY_BOX=1`.

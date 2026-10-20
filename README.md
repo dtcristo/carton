@@ -67,7 +67,6 @@ Carton is experimental, and so is `Ruby::Box`. Box isolates definitions and load
 
 Guides and reference live at [carton.dtcristo.com](https://carton.dtcristo.com) (source in [website/](website/README.md)). For contributors:
 
-- [usage.md](docs/usage.md): everything in one file
 - [design.md](docs/design.md), [performance.md](docs/performance.md), [todo.md](docs/todo.md), and [internals/](docs/internals/)
 - [CONTEXT.md](CONTEXT.md): the glossary
 - [examples/](examples/README.md): runnable apps, starting with [minimal](examples/minimal/README.md); run one with `bundle exec rake example:<name>`
