@@ -4,19 +4,25 @@ This experiment answers whether changed domain Cartons and their Importers can b
 
 ## Run
 
-Install the example's bundle, then run from the repository root:
+From the repository root, run the dedicated task:
 
 ```sh
-bundle exec rake example:rails_in_cartons
+bundle exec rake spike:rails_reloading
 ```
 
-The task runs the normal example and the spike's request-level regression test. With the bundle already installed, run just the spike:
+The task installs the Rails fixture bundle and runs only this spike's request-level regression test in a fresh process. With the bundle already installed:
 
 ```sh
-RUBY_BOX=1 ruby examples/rails_in_cartons/test/reloading_spike_test.rb
+RUBY_BOX=1 ruby spikes/rails_reloading/test/reloading_test.rb
 ```
 
-The test copies the example's Cartons and lockfile into a temporary directory, points the scratch Gemfile at this checkout, and installs the experiment's hooks in that copy only. It edits those copied files, uses an in-memory database, and deletes the copy on exit. The ordinary example still requires restarting after edits.
+The test uses [the Rails-in-Cartons example](../../examples/rails_in_cartons/README.md) as a read-only fixture. It copies that app's Cartons and lockfile into a temporary directory, points the scratch Gemfile at this checkout, and installs the experiment's hooks in that copy only. It edits those copied files, uses an in-memory database, and deletes the copy on exit. The ordinary example still requires restarting after edits.
+
+## Ownership and fixture dependency
+
+This directory owns the experimental reload observer, host/framework hooks and regression test. The fixture app and its resolved dependencies remain in `examples/rails_in_cartons/`; copying them here would create a second Rails app to maintain. The fixture files are read, copied into temporary storage, and never edited in place. Only the scratch entrypoints load `hooks/shop.rb` and `hooks/framework.rb`, using absolute paths to this directory.
+
+The ordinary `example:rails_in_cartons` task runs the Rails app without loading or testing this experiment. Both Rails examples stay under `examples/`. `bundle exec rake spikes` runs this experiment and Master prelude in separate processes, and CI runs that task separately from the default checks. The Shared Gems experiment retains its own documented runner.
 
 ## What it proves
 
@@ -31,9 +37,9 @@ The previous customer object deliberately retains its old behavior. Existing obj
 
 ## How the experiment works
 
-`imports.rb` uses a `TracePoint` on returns from Carton's private `Runtime.import` to record Imports, including Shared Imports. It reads the importing Carton Box's Entrypoint and the resolved target from the runtime frame. It computes the affected Importers and removes the selected domains' cached values and gem-usage records. It refuses an affected Carton outside the declared reloadable domains and retained host, and refuses eviction while an Import is loading.
+`hooks/imports.rb` uses a `TracePoint` on returns from Carton's private `Runtime.import` to record Imports, including Shared Imports. It reads the importing Carton Box's Entrypoint and the resolved target from the runtime frame. It computes the affected Importers and removes the selected domains' cached values and gem-usage records. It refuses an affected Carton outside the declared reloadable domains and retained host, and refuses eviction while an Import is loading.
 
-`shop.rb` runs inside the scratch shop Box. Its explicit callback replaces `Customers` and `Orders` there and asks the framework to replace the registered classes. `framework.rb` runs inside the scratch framework Box, where Rails constantizes model and controller names. Keeping these hooks in their respective Boxes matters: methods execute in the Box where they were defined.
+`hooks/shop.rb` runs inside the scratch shop Box. Its explicit callback replaces `Customers` and `Orders` there and asks the framework to replace the registered classes. `hooks/framework.rb` runs inside the scratch framework Box, where Rails constantizes model and controller names. Keeping these hooks in their respective Boxes matters: methods execute in the Box where they were defined.
 
 The initialized Rails application is the retained boundary. Rebuilding the full Importer chain would run `Shop.initialize!` and schema creation again. The framework and shop therefore stay loaded, while the callback refreshes the references they own.
 

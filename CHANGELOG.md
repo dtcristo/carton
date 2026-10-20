@@ -14,6 +14,8 @@
 
 ### Changed
 
+- Moved the unsupported Master prelude and private Rails reloading experiments into `spikes/`, with dedicated tasks and CI coverage; both Rails examples remain in `examples/`. The reloading spike reuses the Rails-in-Cartons app as a read-only fixture (#76).
+
 - Bundler support now starts at 4.0.20, the first release with the gemspec evaluation fix Carton needs inside Boxes. CI and the example bundles use that minimum (#71).
 - `examples/monorepo` keeps its Cartons under `cartons/` instead of `packages/` (#65).
 - `CONTEXT.md` groups the glossary and adds Interior, Gem-shaped Directory, Root Box, User Box, Carton Box, Template Box, Importer, First Importer, Second Copy, Dynamic Import, Helper, Gem Closure, Carton Bundle, and Undeclared Gem. The docs, comments, and `carton-tools` internals use these terms (#65).

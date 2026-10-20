@@ -39,3 +39,5 @@ jobs:
           RUBY
       - name: Run the default task
         run: bundle exec rake
+      - name: Run regression spikes
+        run: bundle exec rake spikes
