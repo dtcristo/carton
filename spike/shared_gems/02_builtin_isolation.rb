@@ -2,7 +2,7 @@
 
 require_relative 'assertions'
 gems = Ruby::Box.new
-gems.eval <<~'CODE'
+gems.eval <<~CODE
   module SharedDependency
     MARKER = 'from-gems'
   end
@@ -21,24 +21,26 @@ gems.eval <<~'CODE'
   captured = 'closure'
   String.define_method(:shared_closure) { captured }
 CODE
-install = ->(box) do
-  methods =
-    gems.eval(
-      'String.instance_methods(false).grep(/^shared_/).to_h { |n| [n, String.instance_method(n)] }.merge(upcase: String.instance_method(:upcase), shared_private: String.instance_method(:shared_private))',
-    )
-  box.eval(<<~'CODE').call(methods)
+install =
+  lambda do |box|
+    methods = gems.eval(<<~CODE)
+      String.instance_methods(false).grep(/^shared_/).to_h do |name|
+        [name, String.instance_method(name)]
+      end.merge(upcase: String.instance_method(:upcase), shared_private: String.instance_method(:shared_private))
+    CODE
+    box.eval(<<~CODE).call(methods)
     ->(methods) do
       methods.each { |name, method| String.define_method(name, method) }
       String.send(:protected, :shared_protected)
       String.send(:private, :shared_private)
     end
   CODE
-  singleton =
-    gems.eval('String.singleton_class.instance_method(:shared_singleton)')
-  box.eval(
-    '->(m) { String.singleton_class.define_method(:shared_singleton, m) }',
-  ).call(singleton)
-end
+    singleton =
+      gems.eval('String.singleton_class.instance_method(:shared_singleton)')
+    box.eval(
+      '->(m) { String.singleton_class.define_method(:shared_singleton, m) }',
+    ).call(singleton)
+  end
 billing = Ruby::Box.new
 shipping = Ruby::Box.new
 [billing, shipping].each do |box|
@@ -89,4 +91,17 @@ equal(gems, shipping.eval('"".shared_probe(suffix: "") { nil }.last'))
 equal(gems, gems.eval('"".shared_probe(suffix: "") { nil }.last'))
 equal(false, ''.respond_to?(:shared_probe))
 equal(false, Ruby::Box.master.eval('String.method_defined?(:shared_probe)'))
-puts 'PASS transplantation, defining context, aliases, visibility, arguments, blocks, closures, singleton, exceptions, threads and independent overrides'
+# Ordinary singleton owners cannot be rebound onto an unrelated class.
+gems.eval('class SingletonOwner; def self.probe = 1; end')
+singleton = gems.eval('SingletonOwner.singleton_class.instance_method(:probe)')
+error =
+  begin
+    shipping.eval(
+      '->(m) { Class.new.singleton_class.define_method(:probe, m) }',
+    ).call(singleton)
+    nil
+  rescue TypeError => e
+    e
+  end
+assert(error&.message&.include?("can't bind singleton method"))
+puts 'PASS transplantation, context, visibility, arguments, closures, singleton, exceptions, threads, overrides'

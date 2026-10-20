@@ -1,0 +1,14 @@
+inherit_from: ../../.rubocop.yml
+
+# These are independent experiments, not production modules.
+Metrics/BlockLength:
+  Enabled: false
+Style/MixinUsage:
+  Enabled: false
+Style/OneClassPerFile:
+  Enabled: false
+# SyntaxTree and RuboCop disagree on chained heredoc call indentation.
+Layout/HeredocIndentation:
+  Enabled: false
+Layout/ClosingHeredocIndentation:
+  Enabled: false

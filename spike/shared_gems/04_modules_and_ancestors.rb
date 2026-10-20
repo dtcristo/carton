@@ -2,7 +2,7 @@
 
 require_relative 'assertions'
 gems = Ruby::Box.new
-gems.eval <<~'CODE'
+gems.eval <<~CODE
   module Included
     def shared_order = ['include']
   end
@@ -44,3 +44,19 @@ assert(
 )
 puts 'PASS include/prepend order, repeated installation, super and callback context'
 puts 'LIMIT copying a prepended method onto the class duplicates its super chain'
+
+# Replaying an include does not retarget its callback's Ruby code.
+gems.eval <<~CODE
+  module CallbackExtension
+    def self.included(base)
+      base.class_eval { def shared_callback_method = Ruby::Box.current }
+    end
+  end
+CODE
+billing.eval('->(extension) { String.include(extension) }').call(
+  gems.const_get(:CallbackExtension),
+)
+equal(false, billing.eval('String.method_defined?(:shared_callback_method)'))
+equal(gems, gems.eval('"".shared_callback_method'))
+equal(false, ''.respond_to?(:shared_callback_method))
+puts 'VERIFIED LIMIT included callback definitions modify Gems rather than the target builtin'

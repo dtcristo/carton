@@ -2,6 +2,7 @@
 
 # The handoff's first probe, with its expected semantics unchanged.
 raise 'Ruby::Box is required' unless Ruby::Box.enabled?
+
 gems = Ruby::Box.new
 gems.eval <<~'CODE'
   module SharedDependency
@@ -15,8 +16,9 @@ gems.eval <<~'CODE'
 CODE
 method = gems.eval('String.instance_method(:shared_probe)')
 raise 'Wrong defining Box' unless method.box.equal?(gems)
+
 billing = Ruby::Box.new
-installer = billing.eval <<~'CODE'
+installer = billing.eval <<~CODE
   ->(method) do
     String.send(:define_method, :shared_probe, method)
   end
@@ -30,4 +32,5 @@ end
 if Ruby::Box.main.eval('"hello".respond_to?(:shared_probe)')
   raise 'Leaked into Main'
 end
+
 puts 'Method transplantation works'

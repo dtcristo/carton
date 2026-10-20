@@ -2,7 +2,7 @@
 
 require_relative 'assertions'
 gems = Ruby::Box.new
-gems.eval <<~'CODE'
+gems.eval <<~CODE
   module Dependency
     class Base
       def origin = Ruby::Box.current
