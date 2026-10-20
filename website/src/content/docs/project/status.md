@@ -24,3 +24,5 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7 or later an
 The model fits. The biggest gaps are cost, Rails inside Cartons, and Box's experimental status. Ruby itself would close most of the cost gap, through cheaper Boxes, template Boxes, and Boxes started from a resolved load path.
 
 The repository's [design notes](https://github.com/dtcristo/carton/blob/main/docs/design.md), [performance numbers](https://github.com/dtcristo/carton/blob/main/docs/performance.md), and [TODO](https://github.com/dtcristo/carton/blob/main/docs/todo.md) have the details.
+
+Unsupported and private-runtime experiments live in [spikes/](https://github.com/dtcristo/carton/tree/main/spikes). The [Master prelude spike](https://github.com/dtcristo/carton/tree/main/spikes/master_prelude) changes Ruby's internal copy source; the [Rails reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) reads and changes private Carton state. Both Rails integrations remain [examples](https://github.com/dtcristo/carton/tree/main/examples), with Rails in the Main Box the recommended setup today.

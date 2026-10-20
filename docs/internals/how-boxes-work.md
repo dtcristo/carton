@@ -108,7 +108,7 @@ Ruby exposes it as `Ruby::Box.master` and `Ruby::Box#master?`. Its docs say "no 
 - Classes defined this way are not boxable, unlike builtins. Like classes defined in a User Box, they have one shared definition: reopening one in any Box, with `class` or `class_eval`, changes it in Master and every other Box. This holds for both `eval` and `require` into Master.
 - Methods defined in Master run in Master, so their constant lookups and lazy `require`s use Master's `Object` and load path, not the caller's.
 
-Loading all of Active Support's core extensions into Master once made them available in every later Box at no per-Box cost; requiring them in each Box instead cost about 830ms per Box. [examples/master_prelude](../../examples/master_prelude/README.md) uses this as an optional, unsupported prelude. Carton itself does not, and will not until Ruby supports template Boxes.
+Loading all of Active Support's core extensions into Master once made them available in every later Box at no per-Box cost; requiring them in each Box instead cost about 830ms per Box. [spikes/master_prelude](../../spikes/master_prelude/README.md) uses this as an optional, unsupported prelude. Carton itself does not, and will not until Ruby supports template Boxes.
 
 ## The actual Box data structure
 

@@ -287,7 +287,6 @@ class CheckTest < Minitest::Test
       dependency_injection
       plugins
       gems
-      master_prelude
       zeitwerk
     ].each do |name|
       status, output = run_cli(EXAMPLES, 'check', "#{name}/main.rb")
@@ -295,6 +294,14 @@ class CheckTest < Minitest::Test
       assert_equal 0, status, output
       assert_match(/0 errors, 0 warnings/, output)
     end
+  end
+
+  def test_master_prelude_spike_is_clean
+    spikes = File.expand_path('../../spikes', __dir__)
+    status, output = run_cli(spikes, 'check', 'master_prelude/main.rb')
+
+    assert_equal 0, status, output
+    assert_match(/0 errors, 0 warnings/, output)
   end
 
   private

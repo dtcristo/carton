@@ -21,6 +21,9 @@ RUBOCOP_FILES = %w[
   examples/**/*.rb
   examples/**/*.gemspec
   examples/**/Gemfile
+  spikes/master_prelude/**/*.rb
+  spikes/master_prelude/Gemfile
+  spikes/rails_reloading/**/*.rb
 ].freeze
 EXAMPLES = %w[
   minimal
@@ -33,11 +36,10 @@ EXAMPLES = %w[
   zeitwerk
   rails_in_main
   rails_in_cartons
-  master_prelude
 ].freeze
 GEMS_EXAMPLE_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze
 
-def install_example_bundle(gemfile)
+def install_bundle(gemfile)
   dir = Shellwords.escape(File.dirname(gemfile))
   bundle_install_command = [
     '(BUNDLE_GEMFILE=Gemfile bundle check >/dev/null 2>&1 ||',
@@ -99,7 +101,7 @@ task :test do
     install_example_bigdecimals
     Dir
       .glob(File.join('examples', '{bundler,monorepo,plugins}', '**/Gemfile'))
-      .each { |gemfile| install_example_bundle(gemfile) }
+      .each { |gemfile| install_bundle(gemfile) }
     sh(command, verbose: false)
   end
 end
@@ -119,7 +121,7 @@ namespace :example do
 
         Dir
           .glob(File.join(dir, '**/Gemfile'))
-          .each { |gemfile| install_example_bundle(gemfile) }
+          .each { |gemfile| install_bundle(gemfile) }
 
         sh "RUBY_BOX=1 ruby #{Shellwords.escape(File.join(dir, 'main.rb'))}",
            verbose: false
@@ -135,6 +137,30 @@ namespace :example do
     end
   end
 end
+
+# Spikes use explicit runners: the reload experiment borrows the ordinary
+# Rails example as a fixture, while the Master prelude has its own bundle.
+namespace :spike do
+  desc 'Run the unsupported Master prelude experiment'
+  task :master_prelude do
+    Bundler.with_unbundled_env do
+      install_bundle('spikes/master_prelude/Gemfile')
+      sh 'RUBY_BOX=1 ruby spikes/master_prelude/main.rb', verbose: false
+    end
+  end
+
+  desc 'Run the private Rails reloading experiment against a scratch app'
+  task :rails_reloading do
+    Bundler.with_unbundled_env do
+      install_bundle('examples/rails_in_cartons/Gemfile')
+      sh 'RUBY_BOX=1 ruby spikes/rails_reloading/test/reloading_test.rb',
+         verbose: false
+    end
+  end
+end
+
+desc 'Run the CI-covered regression spikes'
+task spikes: %i[spike:master_prelude spike:rails_reloading]
 
 desc 'Measure import time and memory at scale'
 task :bench do

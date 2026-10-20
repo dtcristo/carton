@@ -4,23 +4,23 @@ require 'fileutils'
 require 'tmpdir'
 require_relative '../../../lib/carton'
 
-# Edit a scratch copy: the example's source and database are never changed.
+# The Rails example is a read-only fixture. Edit only its scratch copy.
 scratch = Dir.mktmpdir('carton-rails-reloading')
 at_exit { FileUtils.remove_entry(scratch) }
-example = File.expand_path('..', __dir__)
+fixture = File.expand_path('../../../examples/rails_in_cartons', __dir__)
 root = File.expand_path('../../..', __dir__)
-FileUtils.cp_r(File.join(example, 'components'), scratch)
+FileUtils.cp_r(File.join(fixture, 'components'), scratch)
 %w[framework shop].each do |name|
   entrypoint = File.join(scratch, "components/#{name}/lib/#{name}.rb")
-  hook = File.join(example, "spike/#{name}.rb")
+  hook = File.expand_path("../hooks/#{name}.rb", __dir__)
   File.open(entrypoint, 'a') { |file| file.puts "\nrequire #{hook.inspect}" }
 end
-gemfile = File.read(File.join(example, 'Gemfile'))
+gemfile = File.read(File.join(fixture, 'Gemfile'))
 File.write(
   File.join(scratch, 'Gemfile'),
   gemfile.sub("path: '../..'", "path: #{root.inspect}"),
 )
-lock = File.read(File.join(example, 'Gemfile.lock'))
+lock = File.read(File.join(fixture, 'Gemfile.lock'))
 File.write(
   File.join(scratch, 'Gemfile.lock'),
   lock.sub("remote: ../..\n", "remote: #{root}\n"),
@@ -34,7 +34,7 @@ class RailsReloadingSpikeTest < Minitest::Test
   ROOT = Bundler.root.to_s
 
   def test_next_request_uses_reloaded_domains_and_keeps_records
-    require_relative '../spike/imports'
+    require_relative '../hooks/imports'
     imports =
       ReloadingSpike::Imports.new(
         reloadable:

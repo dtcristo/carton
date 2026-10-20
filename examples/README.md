@@ -19,7 +19,7 @@ Start with [minimal](minimal/README.md). Each example is a separate program; sim
 
 `gems`, `bundler`, and `plugins` all use conflicting bigdecimal versions, but teach different loading choices. Use `gems` for the shortest version-isolation demonstration, `bundler` for setup details, and `plugins` for an application of them. Keeping each runnable on its own makes the boundary visible without reading code from another example.
 
-[master_prelude](master_prelude/README.md) is an unsupported experiment. It writes to Ruby's internal Master Box to share Active Support patches and can affect Main too. It is included in the checks to keep the experiment reproducible, not as an application pattern.
+Unsupported and private-runtime experiments live in [spikes/](../spikes/README.md). Both Rails integrations remain examples; the separate Rails reloading experiment uses the Rails-in-Cartons app as a fixture.
 
 ## Run
 
