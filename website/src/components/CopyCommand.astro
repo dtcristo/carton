@@ -26,48 +26,57 @@ const { command } = Astro.props;
 </script>
 
 <style>
+  /* A one-line terminal, coloured like the docs' shell blocks in theme.css. */
   .copy-command {
+    --copy-button: rgb(248 245 238 / 0.14);
+    --copy-button-hover: rgb(248 245 238 / 0.24);
     display: inline-flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.4rem 0.4rem 0.4rem 1rem;
-    border-radius: 0.6rem;
-    border: 1px solid var(--carton-panel-edge);
-    background: var(--carton-panel);
+    gap: 1.25rem;
+    padding: 0.55rem 0.55rem 0.55rem 1.25rem;
+    border: 1px solid var(--carton-shell-edge);
+    border-radius: 0.9rem;
+    background: var(--carton-shell-bg);
+    box-shadow: var(--carton-shadow);
+  }
+
+  :global([data-theme='light']) .copy-command {
+    --copy-button: var(--sl-color-gray-6);
+    --copy-button-hover: var(--sl-color-gray-5);
   }
 
   code {
-    background: none;
     padding: 0;
-    font-size: var(--sl-text-sm);
-    color: var(--sl-color-white);
+    background: none;
+    color: var(--carton-shell-text);
     font-family: var(--__sl-font-mono);
+    font-size: var(--sl-text-sm);
   }
 
   .prompt {
-    color: var(--sl-color-gray-3);
+    color: var(--carton-shell-prompt);
     user-select: none;
   }
 
   button {
-    padding: 0.3rem 0.7rem;
+    padding: 0.4rem 0.85rem;
     border: 0;
-    border-radius: 0.4rem;
-    background: var(--sl-color-gray-5);
-    color: var(--sl-color-white);
+    border-radius: 0.45rem;
+    background: var(--copy-button);
+    color: var(--carton-shell-text);
     font: inherit;
     font-size: var(--sl-text-xs);
-    font-weight: 650;
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 150ms;
   }
 
   button:hover {
-    background: var(--sl-color-gray-4);
+    background: var(--copy-button-hover);
   }
 
   button[data-copied] {
-    background: var(--carton-boundary);
-    color: var(--sl-color-black);
+    background: #cc342d;
+    color: #fff;
   }
 </style>

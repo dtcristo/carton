@@ -1,6 +1,6 @@
 ---
-// The homepage's last word and its footer: a full-bleed ruby band pointing at
-// the tutorial, flush with the bottom of the page.
+// The homepage's last word and its footer: a full-bleed ruby band, like the
+// talk's section dividers, pointing at the tutorial, flush with the page bottom.
 import CopyCommand from './CopyCommand.astro';
 ---
 
@@ -45,26 +45,28 @@ import CopyCommand from './CopyCommand.astro';
 
   .closing::before {
     background:
-      radial-gradient(50rem 24rem at 85% 0%, rgb(255 255 255 / 0.18), transparent 70%),
-      linear-gradient(135deg, #b0123d, #6d0b2a 60%, #3a0a24);
+      radial-gradient(circle at 80% 30%, rgb(255 255 255 / 0.12), transparent 55%),
+      linear-gradient(140deg, #cc342d, #9e2520);
   }
 
+  /* The talk's isometric box, as an outline watermark. */
   .closing::after {
-    --facet: rgb(255 255 255 / 0.07);
-    background:
-      repeating-linear-gradient(60deg, var(--facet) 0 1px, transparent 1px 56px),
-      repeating-linear-gradient(-60deg, var(--facet) 0 1px, transparent 1px 56px),
-      repeating-linear-gradient(0deg, var(--facet) 0 1px, transparent 1px 48.5px);
-    mask-image: linear-gradient(to left, #000, transparent 80%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 210'%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.2' stroke-linejoin='round'%3E%3Cpath d='M100 2 190 54V156L100 208 10 156V54Z'/%3E%3Cpath d='M10 54 100 106 190 54M100 106V208'/%3E%3C/g%3E%3C/svg%3E") right max(2rem, calc(50vw - 36rem)) top 3rem / auto 16rem no-repeat;
+    opacity: 0.3;
+  }
+
+  @media (max-width: 50rem) {
+    .closing::after {
+      display: none;
+    }
   }
 
   h2 {
     margin: 0;
-    font-family: var(--carton-display);
-    font-weight: 400;
+    font-weight: 600;
     font-size: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
     line-height: 1.05;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     color: #fff;
   }
 
@@ -93,11 +95,11 @@ import CopyCommand from './CopyCommand.astro';
 
   .button {
     display: inline-flex;
-    padding: 0.75rem 1.4rem;
+    padding: 0.9rem 1.75rem;
     border-radius: 999px;
     background: #fff;
-    color: #6d0b2a;
-    font-weight: 700;
+    color: #9e2520;
+    font-weight: 600;
     text-decoration: none;
     transition: transform 150ms;
   }
@@ -130,7 +132,7 @@ import CopyCommand from './CopyCommand.astro';
 
   nav a {
     color: #fff;
-    font-weight: 650;
+    font-weight: 600;
     text-decoration: none;
   }
 
@@ -143,29 +145,5 @@ import CopyCommand from './CopyCommand.astro';
     margin: 0;
     font-size: inherit;
     color: rgb(255 255 255 / 0.7);
-  }
-
-  /* The copy command reads on the band in both themes. */
-  .actions :global(.copy-command) {
-    --carton-panel: rgb(0 0 0 / 0.28);
-    --carton-panel-edge: rgb(255 255 255 / 0.18);
-  }
-
-  .actions :global(.copy-command code) {
-    color: #fff;
-  }
-
-  .actions :global(.copy-command button) {
-    background: rgb(255 255 255 / 0.16);
-    color: #fff;
-  }
-
-  .actions :global(.copy-command button:hover) {
-    background: rgb(255 255 255 / 0.26);
-  }
-
-  .actions :global(.copy-command button[data-copied]) {
-    background: var(--carton-boundary);
-    color: var(--sl-color-black);
   }
 </style>
