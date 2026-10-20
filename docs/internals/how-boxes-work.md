@@ -447,3 +447,9 @@ If you want one sentence that stays accurate:
 > `Ruby::Box` already isolates file loading, RubyGems activation state, and monkey patches to builtins. Carton manages the process-global `ENV`, carries a Gem Carton's dependencies into its Box, and leaves classes it defines shared.
 
 That is the lens to keep while designing Carton.
+
+## Shared definitions experiment
+
+The [Shared Gems spike](../../spike/shared_gems/results.md) verifies cross-Box `UnboundMethod` installation with `define_method`, shared defining-Box context, and independent method replacements on Ruby 4.0.7. `Method#box` exists; `UnboundMethod#box` does not. Replaying builtin ancestors and direct methods is enough for the selected Active Support checks, but does not copy a Box's full extension state or loader. Its included callbacks still execute in their defining Box.
+
+A separate [visibility reproduction](../../spike/shared_gems/09_visibility_leak.rb) exposes a VM isolation failure: `protected :upcase` in one Optional Box changes the existing String method entry visible to Main, another Optional Box, and Master. Defining a replacement method stays isolated in the tested cases. Keep visibility-only mutation experiments in disposable processes. The spike's results link the exact tagged source path that mutates the shared method entry.

@@ -4,6 +4,8 @@ Ordered by priority within each section.
 
 ## Library
 
+- Evaluate the [Shared Gems spike](../spike/shared_gems/results.md) before choosing a runtime API. Selected Active Support checks and two Active Record domain Cartons work; local shared-feature requires, existing Gem Carton activation, and the unmodified Rails example fail. Define an explicit dependency/require contract and builtin-state compatibility policy before integrating it.
+
 - Follow up the [Rails reloading spike](../examples/rails_in_cartons/spike/README.md): choose a retained-host callback contract, track and invalidate Imports without private runtime inspection, define concurrency and failed-reload behavior, and measure memory over repeated reloads. The spike verifies two serial reloads while retaining Rails and its database, first after editing a model and controller, then after editing only the model; ordinary apps still restart on change. Add a Carton-aware `rails console` and measure what Active Support's core extensions cost each domain Box.
 - Consider an opt-in guard that warns when a Carton reopens a class another Carton exported. A `TracePoint(:class)` in the Main Box sees `class Foo` reopens in every Box, and Carton knows which Carton exported each class; it would not catch `class_eval` or `define_method`.
 - Deferred until nsfiles are more common in Ruby: `Carton.nsfile = 'ns.rb'`, off by default and working like Zeitwerk's `nsfile`, so a directory's `shipping/ns.rb` can be its Entrypoint and `import_relative 'shipping'` finds it. A Carton setting, not Zeitwerk's config, since the Carton's loader is set up by the Entrypoint being resolved; `carton check` would need the same setting. Today the Entrypoint must sit beside its directory ([examples/zeitwerk](../examples/zeitwerk/README.md#namespaces-in-nsfiles)).
@@ -27,6 +29,8 @@ Ordered by priority within each section.
 - Sorbet through a Tapioca DSL compiler, if `tapioca dsl` works under `RUBY_BOX=1`.
 
 ## Upstream
+
+- Report the [Ruby 4.0.7 visibility leak](../spike/shared_gems/09_visibility_leak.rb) separately from template Boxes: changing an existing builtin method's visibility in an Optional Box mutates the shared method entry, reaching Main and Master. See the [source diagnosis](../spike/shared_gems/results.md#ruby-source-and-the-missing-vm-support).
 
 See [upstream.md](internals/upstream.md) for detail.
 

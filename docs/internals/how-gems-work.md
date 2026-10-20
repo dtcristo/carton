@@ -558,3 +558,7 @@ These are the exact areas Carton and any upstream isolation work eventually need
 - A Gem Carton gets the importer's activated versions: Carton rebuilds the specs in the new Box and activates them there, restricted to the importer's lockfile when the caller is bundled.
 
 > Let each Box keep its own Bundler module and RubyGems state, manage the process-global `ENV` that Bundler reads and writes, and carry the importer's gem versions into Gem Cartons.
+
+## Shared Gems spike
+
+The [standalone prototype](../../spike/shared_gems/results.md) shares gem-defined objects and transplants builtin patches without copying `$LOADED_FEATURES` or child activation state. Its selected Active Support behaviors work without child source loads, including methods defined in application Cartons. A later local require reopens shared dependency classes and fails in concurrent-ruby; the experimental Carton hook also fails during existing Gem Carton activation's Psych load. Installing definitions therefore does not replace the activation and loading model described above. Shared Zeitwerk loaders need separate treatment because their default application namespace belongs to the Gems Box.
