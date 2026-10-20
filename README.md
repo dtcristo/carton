@@ -37,7 +37,7 @@ export Tax # the one value importers get
 
 ```ruby
 # billing.rb: the billing Carton
-Tax = import_relative 'tax' # billing's dependency, invisible to importers
+Tax = import_relative 'tax' # billing's import, invisible to importers
 
 module Billing
   def self.invoice(total) = total + Tax.on(total)

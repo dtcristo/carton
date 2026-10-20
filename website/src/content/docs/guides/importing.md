@@ -16,7 +16,7 @@ Billing = import_relative 'billing'               # billing.rb
 Billing = import_relative '../components/billing' # components/billing/lib/billing.rb
 ```
 
-A path that names a gem-shaped directory imports its `lib/<name>.rb` Entrypoint. A file of the same name wins over the directory.
+A path that names a [gem-shaped directory](/guides/cartons/#gem-shaped-directories) imports its `lib/<name>.rb` Entrypoint and puts its `lib/` on the Carton's load path. A file of the same name wins over the directory.
 
 ## `import`
 
@@ -38,16 +38,16 @@ Money = import 'money'
 Money.equal?(import('money')) # => true
 ```
 
-Plan around this:
+This is an architectural choice to plan around, not a cache to forget:
 
 - A Carton's module state lasts the whole process, including from one test to the next.
-- The First Importer of a shared Gem Carton fixes its gem versions. An importer whose bundle locks a different version of one of its gems raises `Carton::ImportError`. To give two importers different versions, give each its own copy: a Carton at another path is another Carton.
+- The First Importer of a shared Gem Carton fixes its gem versions. An importer whose bundle locks a different version of one of its gems raises `Carton::ImportError`; see [Gem Cartons](/guides/bundler/#gem-cartons). To give two importers different versions, give each its own copy: a Carton at another path is another Carton.
 
 A failed load is not cached, so a later import tries again. A Carton that imports itself, directly or through other Cartons, raises `Carton::ImportError` (`circular import`).
 
 ## Threads
 
-Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own importer is still loading waits for it, so do not join such a thread from that Carton's Entrypoint.
+Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own importer is still loading waits for it, as `require` would, so do not join such a thread from that Carton's Entrypoint.
 
 ## Rakefiles
 

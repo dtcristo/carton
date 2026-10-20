@@ -34,9 +34,9 @@ Prints each problem as `file:line: level: message`, then a summary line.
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
 | error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
-| error | `export` twice in calls that can both run, `export` of a Symbol, or a Bare Carton Helper that would hide a `Carton::Namespace` method |
+| error | `export` twice in calls that can both run (calls in different branches of one `if` or `case` cannot), `export` of a Symbol, or a Bare Carton Helper that would hide a `Carton::Namespace` method |
 | error | A Gem Carton importing or requiring a gem its gemspec does not declare |
-| error | A key a keyword or Hash literal export does not have, read with `fetch` or a `=>` pattern |
+| error | A key a keyword or Hash literal export does not have, read with `fetch(:nope)` or a `=>` pattern. `[]`, `key?`, and `in` patterns return `nil` or `false` instead |
 | error | A private constant of an exported module, such as `Billing::Tax` when `Billing` calls `private_constant :Tax` |
 | error | A syntax error |
 | warning | A named import not found on the load path, which a gem activated at runtime may provide |
