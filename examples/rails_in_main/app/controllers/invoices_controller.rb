@@ -1,10 +1,21 @@
 # frozen_string_literal: true
 
-# Controllers stay in the Main Box with Rails and its autoloader; domain
-# logic comes from the Carton.
-class InvoicesController < ActionController::API
+class InvoicesController < ApplicationController
   def show
-    invoice = Billing::Invoice.new(id: params[:id].to_i, subtotal_cents: 4_200)
-    render json: invoice.to_h
+    @invoice = Invoice.find(params[:id])
+    @quote = @invoice.quote
+    respond_to do |format|
+      format.html
+      format.json { render json: @quote.to_h }
+    end
+  end
+
+  def create
+    invoice = Invoice.new(params.expect(invoice: [:subtotal_cents]))
+    if invoice.save
+      render json: invoice.quote.to_h, status: :created
+    else
+      render json: { errors: invoice.errors }, status: :unprocessable_content
+    end
   end
 end
