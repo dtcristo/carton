@@ -14,7 +14,7 @@
 
 ### Changed
 
-- Expanded Rails-in-Main into a conventional Rails app with migrations, HTML/JSON responses, an Active Job, standard CLI commands, and isolated Billing integration tests (PR_PENDING).
+- Expanded Rails-in-Main into a conventional Rails app with migrations, HTML/JSON responses, an Active Job, standard CLI commands, and isolated Billing integration tests (#80).
 
 - The Rails-in-Cartons example uses isolated Rails Engines with domain-owned loaders, migrations, HTML views, GlobalID jobs, and an explicit Rails CLI bridge (#79).
 
