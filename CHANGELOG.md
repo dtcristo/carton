@@ -11,6 +11,8 @@
 
 ### Changed
 
+- Renamed the Rails-in-Main example to `rails_with_carton_domain` and aligned both Rails examples around Customers and Billing: domain-owned registration, validation, exact invoice pricing, and persistence through injected repositories. The conventional app keeps Rails adapters in Main; the Engine app owns them in its domain Cartons. Removed the unrelated jobs, updated the private reload fixture, and placed both examples together in the docs (#83).
+
 - Expanded Rails-in-Main into a conventional Rails app with migrations, HTML/JSON responses, an Active Job, standard CLI commands, and isolated Billing integration tests (#80).
 
 - The Rails-in-Cartons example uses isolated Rails Engines with domain-owned loaders, migrations, HTML views, GlobalID jobs, and an explicit Rails CLI bridge (#79).

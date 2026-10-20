@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+Rails.application.routes.draw do
+  resources :customers, only: :create
+  resources :invoices, only: %i[create show]
+end

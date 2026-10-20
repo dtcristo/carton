@@ -2,15 +2,14 @@
 
 module Customers
   class CustomersController < ApplicationController
-    def index = render(json: Customer.order(:id))
-
     def create
-      customer = Customer.new(params.permit(:name))
-      if customer.save
-        render json: customer, status: :created
-      else
-        render json: { errors: customer.errors }, status: :unprocessable_content
-      end
+      customer =
+        Directory.new(customers: CustomerRepository.new).register(
+          name: params.expect(customer: [:name])[:name],
+        )
+      render json: customer.to_h, status: :created
+    rescue InvalidCustomer => e
+      render json: { errors: e.errors }, status: :unprocessable_content
     end
   end
 end

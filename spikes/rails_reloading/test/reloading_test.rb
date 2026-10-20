@@ -26,6 +26,7 @@ File.write(
   lock.sub("remote: ../..\n", "remote: #{root}\n"),
 )
 ENV['SHOP_DATABASE'] = ':memory:'
+ENV['RAILS_ENV'] = 'test'
 Carton.setup_bundle(gemfile: File.join(scratch, 'Gemfile'))
 require 'minitest/autorun'
 require 'rack'
@@ -39,14 +40,14 @@ class RailsReloadingSpikeTest < Minitest::Test
     imports =
       ReloadingSpike::Imports.new(
         reloadable:
-          %w[customers orders].map do |name|
+          %w[customers billing].map do |name|
             File.join(ROOT, "components/#{name}/lib/#{name}.rb")
           end,
       )
     shop = import 'shop'
     framework = import 'framework'
     migrations =
-      %w[customers orders].map do |name|
+      %w[customers billing].map do |name|
         File.join(ROOT, "components/#{name}/db/migrate")
       end
     framework::ActiveRecord::MigrationContext.new(migrations).migrate
@@ -55,53 +56,59 @@ class RailsReloadingSpikeTest < Minitest::Test
         ->(env) { shop.call(env.merge('HTTP_HOST' => 'example.org')) },
       )
 
-    assert_equal 201,
-                 http.post(
-                   'http://example.org/customers',
-                   params: {
-                     name: 'Ada',
-                   },
-                 ).status
-    assert_equal 201,
-                 http.post(
-                   'http://example.org/orders',
-                   params: {
-                     customer_id: 1,
-                     total_cents: 4_200,
-                   },
-                 ).status
-    assert_equal 'Ada',
-                 JSON
-                   .parse(http.get('http://example.org/orders').body)
-                   .first
-                   .dig('customer', 'name')
+    customer =
+      http.post(
+        'http://example.org/customers',
+        params: {
+          customer: {
+            name: 'Ada',
+          },
+        },
+      )
+    assert_equal 201, customer.status
+    invoice =
+      http.post(
+        'http://example.org/invoices.json',
+        params: {
+          invoice: {
+            customer_id: 1,
+            subtotal_cents: '4200',
+          },
+        },
+      )
+    assert_equal 201, invoice.status
+    assert_includes http.get('http://example.org/invoices/1').body,
+                    'Customer: Ada'
 
     # Warm the belongs_to reflection, then change a model and controller.
     customers = import 'customers'
-    orders = import 'orders'
+    billing = import 'billing'
     framework = import 'framework'
-    old_customer = customers::Customer.find(1)
-    assert_same customers::Customer,
-                orders::Order.reflect_on_association(:customer).klass
+    old_customer = customers::CustomerRecord.find(1)
+    assert_same customers::CustomerRecord,
+                billing::InvoiceRecord.reflect_on_association(:customer).klass
     file =
-      File.join(ROOT, 'components/customers/app/models/customers/customer.rb')
+      File.join(
+        ROOT,
+        'components/customers/app/models/customers/customer_record.rb',
+      )
     File.write(
       file,
       File.read(file).sub(
-        'has_many :orders',
-        "def name = super.upcase\n  has_many :orders",
+        'def display_name = name.to_s.strip',
+        'def display_name = name.to_s.strip.upcase',
       ),
     )
     controller =
       File.join(
         ROOT,
-        'components/orders/app/controllers/orders/orders_controller.rb',
+        'components/billing/app/controllers/billing/invoices_controller.rb',
       )
     File.write(
       controller,
       File.read(controller).sub(
-        "def index\n",
-        "def index\n    response.set_header('X-Carton-Reload', Customers::Customer.find(1).name)\n",
+        "def show\n",
+        "def show\n    response.set_header('X-Carton-Reload', Customers::CustomerRecord.find(1).display_name)\n",
       ),
     )
 
@@ -110,32 +117,34 @@ class RailsReloadingSpikeTest < Minitest::Test
       host: shop,
     )
 
-    response = http.get('http://example.org/orders')
+    response = http.get('http://example.org/invoices/1')
     assert_equal 200, response.status
-    assert_equal 'ADA', JSON.parse(response.body).first.dig('customer', 'name')
+    assert_includes response.body, 'Customer: ADA'
     assert_equal 'ADA', response.headers['x-carton-reload']
     refute_same customers, import('customers')
-    refute_same orders, import('orders')
-    assert_same import('customers')::Customer,
-                import('orders')::Order.reflect_on_association(:customer).klass
-    assert_same import('orders')::Order,
-                import('customers')::Customer.reflect_on_association(
-                  :orders,
+    refute_same billing, import('billing')
+    assert_same import('customers')::CustomerRecord,
+                import('billing')::InvoiceRecord.reflect_on_association(
+                  :customer,
+                ).klass
+    assert_same import('billing')::InvoiceRecord,
+                import('customers')::CustomerRecord.reflect_on_association(
+                  :invoices,
                 ).klass
     assert_same shop, import('shop')
     assert_same framework, import('framework')
-    assert_equal 'Ada', old_customer.name
+    assert_equal 'Ada', old_customer.display_name
 
     # A second edit rebuilds the already-rebuilt domains and registers their
     # new classes with the retained framework again.
-    File.write(file, File.read(file).sub('super.upcase', 'super.downcase'))
+    File.write(file, File.read(file).sub('strip.upcase', 'strip.downcase'))
     imports.reload(
       File.join(ROOT, 'components/customers/lib/customers.rb'),
       host: shop,
     )
-    response = http.get('http://example.org/orders')
+    response = http.get('http://example.org/invoices/1')
     assert_equal 200, response.status
-    assert_equal 'ada', JSON.parse(response.body).first.dig('customer', 'name')
+    assert_includes response.body, 'Customer: ada'
     assert_equal 'ada', response.headers['x-carton-reload']
     assert_same shop, import('shop')
     assert_nil defined?(Rails)

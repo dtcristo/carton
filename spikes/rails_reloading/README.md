@@ -26,11 +26,11 @@ The ordinary `example:rails_in_cartons` task runs the Rails app without loading 
 
 ## What it proves
 
-- Create a customer and order through HTTP, then warm the order's customer association and the orders controller.
-- Change the customer model's `name` method and the orders controller in the scratch files.
-- Follow observed Imports backwards from `customers` to `orders` and `shop`. Evict `customers` and `orders`; retain `shop` and `framework`.
+- Create a customer and invoice through HTTP, then warm the invoice's customer association and the billing controller.
+- Change the customer storage model's `display_name` method and the billing controller in the scratch files.
+- Follow observed Imports backwards from `customers` to `billing` and `shop`. Evict `customers` and `billing`; retain `shop` and `framework`.
 - Ask the retained `shop` to import the domains again and replace both its domain references and the domain namespace objects registered in the framework Box.
-- Send another request through the same Rack client and Rails application. Its JSON uses the changed customer method and its response header comes from the changed controller. Previously created records remain, and both directions of the new model associations resolve to the new classes.
+- Send another request through the same Rack client and Rails application. Its HTML uses the changed customer method and its response header comes from the changed controller. Previously created records remain, and both directions of the new model associations resolve to the new classes.
 - Edit the model again and repeat the reload. The next request uses that edit too. Rails stays out of the Main Box.
 
 The previous customer object deliberately retains its old behavior. Existing objects cannot be rewritten by evicting their Cartons; the host must stop using them at the reload boundary. The experiment needs no Rails cache clearing for these routes and associations because it replaces both domain Boxes and registers their new classes.
@@ -39,7 +39,7 @@ The previous customer object deliberately retains its old behavior. Existing obj
 
 `hooks/imports.rb` uses a `TracePoint` on returns from Carton's private `Runtime.import` to record Imports, including Shared Imports. It reads the importing Carton Box's Entrypoint and the resolved target from the runtime frame. It computes the affected Importers and removes the selected domains' cached values and gem-usage records. It refuses an affected Carton outside the declared reloadable domains and retained host, and refuses eviction while an Import is loading.
 
-`hooks/shop.rb` runs inside the scratch shop Box. Its explicit callback replaces `Customers` and `Orders` there and asks the framework to replace the registered classes. `hooks/framework.rb` runs inside the scratch framework Box, where Rails constantizes model and controller names. Keeping these hooks in their respective Boxes matters: methods execute in the Box where they were defined.
+`hooks/shop.rb` runs inside the scratch shop Box. Its explicit callback replaces `Customers` and `Billing` there and asks the framework to replace the registered classes. `hooks/framework.rb` runs inside the scratch framework Box, where Rails constantizes model and controller names. Keeping these hooks in their respective Boxes matters: methods execute in the Box where they were defined.
 
 The initialized Rails application is the retained boundary. Rebuilding the full Importer chain would run `Shop.initialize!` and Rails initialization again. The framework and shop therefore stay loaded, while the callback refreshes the references they own.
 

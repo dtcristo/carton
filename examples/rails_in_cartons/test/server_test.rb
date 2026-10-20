@@ -26,6 +26,11 @@ class RailsEnginesServerTest < Minitest::Test
     }
     output, status = Open3.capture2e(env, RbConfig.ruby, SCRIPT, 'db:prepare')
     assert status.success?, output
+    seed =
+      "customer = Customers::CustomerRecord.create!(name: 'Ada'); " \
+        'Billing::InvoiceRecord.create!(customer: customer, subtotal_cents: 4200, tax_cents: 420)'
+    output, status = Open3.capture2e(env, RbConfig.ruby, SCRIPT, 'runner', seed)
+    assert status.success?, output
     port = TCPServer.open('127.0.0.1', 0) { |socket| socket.addr[1] }
     log = File.join(directory, 'puma.log')
     pid =
@@ -45,7 +50,7 @@ class RailsEnginesServerTest < Minitest::Test
       )
     response = request_when_ready(port)
     assert_match(%r{HTTP/1\.[01] 200}, response)
-    assert_includes response, '<h1>Customers</h1>'
+    assert_includes response, '$46.20'
   ensure
     stop_server(pid) if pid
   end
@@ -55,9 +60,7 @@ class RailsEnginesServerTest < Minitest::Test
     loop do
       return(
         Socket.tcp('127.0.0.1', port, connect_timeout: 1) do |socket|
-          socket.write(
-            "GET /customers/directory HTTP/1.0\r\nHost: localhost\r\n\r\n",
-          )
+          socket.write("GET /invoices/1 HTTP/1.0\r\nHost: localhost\r\n\r\n")
           Timeout.timeout(10) { socket.read }
         end
       )

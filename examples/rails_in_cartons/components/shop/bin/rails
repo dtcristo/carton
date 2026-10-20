@@ -8,11 +8,11 @@ require_relative '../config/boot'
 module ShopCLI
   Framework = import_relative '../../framework/lib/framework'
   Customers = import_relative '../../customers/lib/customers'
-  Orders = import_relative '../../orders/lib/orders'
+  Billing = import_relative '../../billing/lib/billing'
 end
 Rails = ShopCLI::Framework::Rails
 Customers = ShopCLI::Customers
-Orders = ShopCLI::Orders
+Billing = ShopCLI::Billing
 Dir.chdir(File.expand_path('..', __dir__))
 ShopCLI::Framework.cli(
   ARGV,

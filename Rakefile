@@ -37,7 +37,7 @@ EXAMPLES = %w[
   bundler
   monorepo
   zeitwerk
-  rails_in_main
+  rails_with_carton_domain
   rails_in_cartons
 ].freeze
 GEMS_EXAMPLE_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze

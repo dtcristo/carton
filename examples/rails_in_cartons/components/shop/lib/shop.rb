@@ -7,8 +7,8 @@ require 'logger'
 module Shop
   Framework = import 'framework'
   Customers = import 'customers'
-  Orders = import 'orders'
-  Framework.register(Customers, Orders, self)
+  Billing = import 'billing'
+  Framework.register(Customers, Billing, self)
 end
 
 require_relative 'shop/application'

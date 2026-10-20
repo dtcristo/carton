@@ -4,10 +4,18 @@ PATH
     carton (0.3.0)
 
 PATH
+  remote: components/billing
+  specs:
+    billing (0.1.0)
+      carton
+      customers
+      framework
+      zeitwerk
+
+PATH
   remote: components/customers
   specs:
     customers (0.1.0)
-      activesupport
       carton
       framework
       zeitwerk
@@ -17,30 +25,20 @@ PATH
   specs:
     framework (0.1.0)
       actionpack
-      activejob
       activerecord
       carton
       railties
       sqlite3
 
 PATH
-  remote: components/orders
-  specs:
-    orders (0.1.0)
-      carton
-      customers
-      framework
-      zeitwerk
-
-PATH
   remote: components/shop
   specs:
     shop (0.1.0)
+      billing
       carton
       customers
       framework
       logger
-      orders
       puma (~> 8.0)
 
 GEM
@@ -62,9 +60,6 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    activejob (8.1.4)
-      activesupport (= 8.1.4)
-      globalid (>= 0.3.6)
     activemodel (8.1.4)
       activesupport (= 8.1.4)
     activerecord (8.1.4)
@@ -93,8 +88,6 @@ GEM
     drb (2.2.3)
     erb (6.0.7)
     erubi (1.13.1)
-    globalid (1.4.0)
-      activesupport (>= 6.1)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     io-console (0.9.4)
@@ -195,7 +188,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
@@ -203,12 +195,11 @@ PLATFORMS
 
 DEPENDENCIES
   actionpack (~> 8.1)
-  activejob (~> 8.1)
   activerecord (~> 8.1)
+  billing!
   carton!
   customers!
   framework!
-  orders!
   rack
   railties (~> 8.1)
   shop!
@@ -217,12 +208,12 @@ DEPENDENCIES
 CHECKSUMS
   actionpack (8.1.4) sha256=245493cc51be195a7645e6fc184880fa7e5b32ff1a08e053ee31f58c76e30ea4
   actionview (8.1.4) sha256=eff1efd07c4d969abad288322b423bcb67fdbab5e324c91ca37352b80f226076
-  activejob (8.1.4) sha256=4ed5b2ed8d4cc5c8f5f09becfef8346f202a4884eee0c8c73cae5ac378824099
   activemodel (8.1.4) sha256=9a0906c127bd118aa5f06157db12b8f750da83dccee72db2f658547a0ae7a0e8
   activerecord (8.1.4) sha256=3b4957ea7f246c9231bd7faa909312eac03a9101aaf87977b6c52733ff00b04f
   activesupport (8.1.4) sha256=891dd3fe43c4fc8391934b237b1189bb1f661c932a84a840043db9d46a4e80df
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   bigdecimal (4.1.3) sha256=61ebe1e5e559bdc3cc6f2c0ee7f427321fc838f59611c294356eb04d6e21cf66
+  billing (0.1.0)
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
   bundler (4.0.20) sha256=7978a8ac648767f5e635bc522445b79e80a52b907a39a36c2d8085ed6bc762ae
   carton (0.3.0)
@@ -234,7 +225,6 @@ CHECKSUMS
   erb (6.0.7) sha256=c5ca6dc25b0ef974a44dc8f59fe847577122483b1968a38dec305c60bf91ee92
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   framework (0.1.0)
-  globalid (1.4.0) sha256=037f12fbf1d9d7a014d501c2d5c77356fd4ddd96d7a7991d6700bba96706f427
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   io-console (0.9.4) sha256=a403304f32928ee85e56d457b4612ca43f2703b561a3258844992bd24085fbb1
   irb (1.18.0) sha256=de9454a0703a54704b9811a5ef31a60c86949fbf4013fcf244fabc7c775248e3
@@ -251,7 +241,6 @@ CHECKSUMS
   nokogiri (1.19.4-x86_64-darwin) sha256=7fd17057d3e1f00e9954a74b3cd76595d3d4a5ef233b7ed9599047c204f70551
   nokogiri (1.19.4-x86_64-linux-gnu) sha256=379fae440b28915e3f19d752ce2dcf8465ed2b2fbefd2a7ca0dd497bc981a06a
   nokogiri (1.19.4-x86_64-linux-musl) sha256=17dfb7c1fa194ae02fbf7c51a7afc8d278045ab3fdacfd86f91d02d7b274470b
-  orders (0.1.0)
   pp (0.6.4) sha256=dfcb0fce700c41456265922884f9fe195d7fbb0674a3578e6c0f69588e82b570
   prettyprint (0.2.1) sha256=d555d57ea6d7cf001d4774b693546a6bd88bec1e778ddffb5c60b68ceec4b7d4
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85

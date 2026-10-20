@@ -9,7 +9,6 @@ Gem::Specification.new do |spec|
     Dir['{app,lib,config,db}/**/*'].select { |path| File.file?(path) }
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
-  spec.add_dependency 'activesupport'
   spec.add_dependency 'carton'
   spec.add_dependency 'framework'
   spec.add_dependency 'zeitwerk'
