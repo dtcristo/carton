@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Carton splits an app into gem-sized or domain-sized units called Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
+Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
 
 ## Requirements
 

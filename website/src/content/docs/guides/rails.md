@@ -23,7 +23,7 @@ Require Carton after Bundler, then import each domain once at boot:
 ```ruby
 # config/application.rb
 require 'bundler/setup'
-require 'carton'
+require 'carton' # after Bundler; adds import to the Main Box
 require 'rails/all'
 ```
 
@@ -32,7 +32,15 @@ require 'rails/all'
 Billing = import 'billing' # loads in its own Box; only the export crosses
 ```
 
-The billing gem is a Gem Carton, so it gets the gems its gemspec declares at the versions the app's lockfile pins. Its Entrypoint runs its own Zeitwerk loader, separate from Rails', and hides what it keeps private:
+The billing gem is a Gem Carton, so it gets the gems its gemspec declares at the versions the app's lockfile pins:
+
+```ruby
+# components/billing/billing.gemspec
+spec.add_dependency 'carton'
+spec.add_dependency 'zeitwerk' # loaded in billing's Box
+```
+
+Its Entrypoint runs its own Zeitwerk loader, separate from Rails', and hides what it keeps private:
 
 ```ruby
 # components/billing/lib/billing.rb
@@ -54,10 +62,10 @@ export Billing
 
 Controllers and models call `Billing` like any other constant.
 
-- **Core extensions stay out.** Active Support's patches, such as `blank?`, are monkey patches in the Main Box, so they are not visible inside a Carton. A Carton that wants them loads Active Support itself.
+- **Core extensions stay out.** Active Support's patches, such as `blank?`, are monkey patches in the Main Box, so they are not visible inside a Carton. A Carton that wants them declares `activesupport` in its gemspec and requires only what it needs, such as `require 'active_support/core_ext/object/blank'`.
 - **Rails' loader stays out.** If a directory Rails autoloads contains a Carton, `ignore` the Carton's Entrypoint and directory there; see [Zeitwerk](/guides/cartons/#zeitwerk).
 - **Records come in as arguments.** A Carton cannot see `ApplicationRecord` or the app's models by name. Pass records, repositories, or other services in; see [Passing application services](/guides/sharing-classes/#passing-application-services).
-- **Restart on change.** Each Carton loads once per process, so a running server restarts to pick up a changed Carton.
+- **Restart on change.** Each Carton loads once per process, so a running server restarts to pick up a changed Carton. A `for_gem` loader cannot reload at all.
 
 The [rails_in_main example](https://github.com/dtcristo/carton/tree/main/examples/rails_in_main) runs this setup.
 
