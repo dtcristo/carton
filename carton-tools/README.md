@@ -17,6 +17,6 @@ gem 'carton-tools', group: :development
 bundle exec carton check main.rb
 ```
 
-carton-tools is released with carton and depends on exactly the same version. See [Types and checks](../docs/usage.md#types-and-checks) for what each command does.
+carton-tools is released with carton and depends on exactly the same version. See [Types and checks](https://carton.dtcristo.com/guides/types-and-checks/) for what each command does.
 
 Available as open source under the [MIT License](https://opensource.org/licenses/MIT).

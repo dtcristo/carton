@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. Classes a Carton defines are different. An exported class is one object with one definition, shared by every importer, as in ordinary Ruby. Reopening it from another Carton changes it for every Carton.
+Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. Classes a Carton defines are different. An exported class is one object with one definition, shared by every importer, as in ordinary Ruby. Reopening it from another Carton, including `class Customer` in a Box where `Customer` names the imported class, changes it for every Carton.
 
 Box is not a security boundary, so this cannot be prevented outright. These habits avoid it by accident.
 
@@ -15,7 +15,7 @@ Give each Carton its own base classes rather than binding a shared one to a bare
 
 ```ruby
 # customers/lib/customers.rb
-class ApplicationRecord < Framework::ApplicationRecord
+class ApplicationRecord < Framework::ApplicationRecord # this Carton's own class
   self.abstract_class = true
 end
 ```
@@ -29,6 +29,8 @@ A refinement applies only to files that activate it with `using`, so the owning 
 ## Freeze plain-Ruby exports
 
 `export Pricing.freeze` makes any reopen raise `FrozenError` while still allowing subclasses. Do not freeze Active Record models or their base classes: Rails writes class-level state at runtime, so even `create!` raises once a model's class is frozen.
+
+[How Boxes work](https://github.com/dtcristo/carton/blob/main/docs/internals/how-boxes-work.md#which-classes-get-per-box-copies-ruby-407) explains why only builtin classes get a copy per Box.
 
 ## Passing application services
 

@@ -42,4 +42,4 @@ See [upstream.md](internals/upstream.md) for detail.
 
 ## Docs
 
-- Expand the Rails examples into a guide: passing records into Cartons and testing Cartons in a Rails app. For reloading, the Rails examples document restarting on change; Zeitwerk reloading inside a Carton works only for `push_dir(..., namespace:)` loaders and never updates classes or objects importers (or Rails, via `register`) already hold. See [examples/zeitwerk](../examples/zeitwerk/README.md#reloading).
+- Extend the website's Rails guide: passing records into Cartons and testing Cartons in a Rails app. For reloading, the Rails examples document restarting on change; Zeitwerk reloading inside a Carton works only for `push_dir(..., namespace:)` loaders and never updates classes or objects importers (or Rails, via `register`) already hold. See [examples/zeitwerk](../examples/zeitwerk/README.md#reloading).

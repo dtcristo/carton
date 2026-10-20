@@ -38,6 +38,7 @@ A Carton's Entrypoint can run its own Zeitwerk loader, such as `Zeitwerk::Loader
 - Constants left to autoload load in the Carton's Box, even when an importer references them first, and go through the Carton's Zeitwerk, so `on_load` callbacks and reloading work. Eager load at boot in production, as usual.
 - If the app's own loader manages a directory that contains a Carton, `ignore` the Carton's Entrypoint and directory there. Otherwise the app's loader can load the Carton's files in the Main Box.
 - Reloading a Carton defines new classes inside it, but importers keep whatever classes and objects they already hold.
-- A loader inside a Carton may use nsfiles (Zeitwerk 2.8+, `loader.nsfile = 'ns.rb'`), so `carriers/ns.rb` defines `Carriers`. The Carton itself still needs an Entrypoint beside its directory, such as `shipping.rb` beside `shipping/`.
+- Only a loader that manages the Interior, `push_dir(..., namespace:)`, can reload. A `for_gem` loader manages the Entrypoint too, so it cannot; see [reloading](https://github.com/dtcristo/carton/tree/main/examples/zeitwerk#reloading).
+- A loader inside a Carton may use nsfiles (Zeitwerk 2.8+, `loader.nsfile = 'ns.rb'`), so `carriers/ns.rb` defines `Carriers`. The Carton itself still needs an Entrypoint beside its directory, such as `shipping.rb` beside `shipping/`; an Entrypoint inside its directory, like `shipping/ns.rb`, is not a Carton boundary.
 
 The [zeitwerk example](https://github.com/dtcristo/carton/tree/main/examples/zeitwerk) shows each case.

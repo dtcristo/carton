@@ -5,12 +5,13 @@ sidebar:
   order: 1
 ---
 
-Carton splits an app into gem-sized or domain-sized units called Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
+Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
 
 ## Requirements
 
 - Ruby 4.0.7 or later, run with Boxes enabled: `RUBY_BOX=1`
 - Bundler 4.0.20 or later, if you use Bundler
+- `require 'carton'` before the app first calls `import`, `import_relative`, or `export`; every Carton Box gets Carton automatically
 
 ## Install
 
@@ -43,7 +44,7 @@ Cartons import each other. The billing Carton imports tax:
 
 ```ruby
 # billing.rb: the billing Carton
-Tax = import_relative 'tax' # billing's dependency, invisible to importers
+Tax = import_relative 'tax' # billing's import, invisible to importers
 
 module Billing
   def self.invoice(total) = total + Tax.on(total)
@@ -78,7 +79,7 @@ Add a line to `main.rb` that reaches past billing:
 Tax # NameError: billing's import
 ```
 
-In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its dependency inside, along with every other top-level constant and helper it defines.
+In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its imports inside, along with every other top-level constant and helper it defines.
 
 ## Grow a Carton
 
@@ -109,4 +110,4 @@ Each Carton loads once per process, and every later import returns the same valu
 - [Cartons](/guides/cartons/): what belongs to a Carton, and how Zeitwerk fits.
 - [Exporting](/guides/exporting/) and [Importing](/guides/importing/): the whole language.
 - [Bundler](/guides/bundler/): give a Carton its own gems.
-- The [examples](https://github.com/dtcristo/carton/tree/main/examples) in the repository, starting with [minimal](https://github.com/dtcristo/carton/tree/main/examples/minimal).
+- [Examples](/start/examples/): runnable apps, from the smallest boundary to plugins and Rails.

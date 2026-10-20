@@ -2,7 +2,7 @@
 
 ## North Star
 
-Carton is the package system Ruby has always needed: real boundaries for Ruby code, enforced while it runs. A Carton has a private interior, a declared public surface, its own dependencies and gem versions, and the shape of a gem, so it can leave the app as one. Weigh every change by whether it moves Carton toward that, for apps of any size; [design.md](docs/design.md#how-close-carton-is) tracks the gaps.
+Carton is the package system Ruby has always needed: real boundaries for Ruby code, enforced while it runs. A Carton has a private interior, a declared public surface, its own dependencies and gem versions, and the shape of a gem, so it can leave the app as one. Weigh every change by whether it moves Carton toward that, for apps of any size; the [Status](website/src/content/docs/project/status.md) page tracks the gaps.
 
 ## Principles
 
@@ -38,7 +38,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 - Update the relevant docs, `CHANGELOG.md` (Unreleased), and this file when behavior or durable guidance changes. Website-only changes (`website/`) get no changelog entry.
 - End each changelog item and release summary with the PRs that introduced its changes, before the final period: `- Added foo (#123).` Include multiple PRs when an item combines changes, and add the number before merging. Historical changes made outside a PR link to their introducing commit instead.
 - Use the matching section of the merged `CHANGELOG.md` as the source for GitHub release notes. Keep Pending items in Unreleased until their implementation reaches `main`, and omit them from release notes.
-- The website in `website/` (Astro + Starlight, Node pinned in `.mise.toml`) is the user-facing guide and reference; `docs/` is for contributors. When public behavior changes, update both `docs/usage.md` and the matching pages under `website/src/content/docs/`, and check the reference against `sig/carton.rbs`. Run `npm run build` in `website/` after site changes; it checks every internal link. Never deploy it by hand.
+- The website in `website/` (Astro + Starlight, Node pinned in `.mise.toml`) is the only user-facing guide and reference; `docs/` is for contributors, and the README stays a pitch and quick start that links to the site. When public behavior changes, update the matching pages under `website/src/content/docs/`, and check the reference against `sig/carton.rbs`. Run `npm run build` in `website/` after site changes; it checks every internal link. Never deploy it by hand.
 - Keep `CONTEXT.md` current: when a domain concept is added, renamed, or redefined, update it in the same change. Keep code (identifiers, comments, test names, messages) and docs in step with it, using its terms and never the ones it lists under _Avoid_.
 - Comment examples so Carton, export, and bundle boundaries are visible.
 - Don't hard-wrap Markdown: write each paragraph, list item, and blockquote on one line.
