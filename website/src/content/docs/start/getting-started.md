@@ -26,58 +26,83 @@ gem 'carton'
 
 ## Write a Carton
 
-A Carton is an Entrypoint file plus the directory named after it. The Entrypoint loads the Carton's own files and exports one value, usually its root module:
-
-```
-billing.rb          # the Entrypoint
-billing/invoice.rb  # the Interior: inside the billing Carton
-```
+A Carton's Entrypoint is a Ruby file that exports one value, usually its root module. Start with a tax Carton:
 
 ```ruby
-# billing/invoice.rb
-module Billing
-  class Invoice
-    def initialize(total) = @total = total
-  end
-end
-```
-
-```ruby
-# billing.rb
-require_relative 'billing/invoice'
-
-module Billing
-  def self.invoice(total) = Invoice.new(total)
+# tax.rb: the tax Carton
+module Tax
+  def self.on(total) = total / 10
 end
 
-export Billing # the only value that leaves this Carton
+export Tax # the only value that leaves this Carton
 ```
 
 ## Import it
 
-The application imports the Carton from the Main Box:
+Cartons import each other. The billing Carton imports tax:
+
+```ruby
+# billing.rb: the billing Carton
+Tax = import_relative 'tax' # billing's dependency, invisible to importers
+
+module Billing
+  def self.invoice(total) = total + Tax.on(total)
+end
+
+export Billing
+```
+
+The application imports billing from the Main Box:
 
 ```ruby
 # main.rb
 require 'carton'
 
 Billing = import_relative 'billing' # runs billing.rb in its own Box
-Billing.invoice(42)
+puts Billing.invoice(100)
 ```
 
 Run it with Boxes enabled:
 
 ```sh
-RUBY_BOX=1 ruby main.rb
+RUBY_BOX=1 ruby main.rb # prints 110
 ```
 
 `import_relative` returns the exported value itself, and defines nothing in the importer. Bind it to a constant of the same name.
 
-## What the boundary does
+## See the boundary
 
-- `import_relative 'billing/invoice'` raises `Carton::ImportError`: the file is in the billing Carton's Interior, so only `billing` can be imported.
-- Each Carton loads once per process. Every later import returns the same value, from the app or from another Carton.
-- `import 'billing'` searches `$LOAD_PATH` like `require`, so gems and path gems import by name.
+Add a line to `main.rb` that reaches past billing:
+
+```ruby
+Tax # NameError: billing's import
+```
+
+In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its dependency inside, along with every other top-level constant and helper it defines.
+
+## Grow a Carton
+
+When only billing uses tax, make it part of billing. A Carton is its Entrypoint plus its Interior, the directory named after it, shaped like a gem's `lib/`. Move `tax.rb` to `billing/tax.rb`, drop its `export`, and load it with `require_relative`:
+
+```
+billing.rb      # the Entrypoint
+billing/tax.rb  # the Interior: inside the billing Carton
+```
+
+```ruby
+# billing.rb
+require_relative 'billing/tax' # loads inside billing's Box
+
+module Billing
+  def self.invoice(total) = total + Tax.on(total)
+end
+
+export Billing
+```
+
+`main.rb` still prints `110`, and `Tax` is still a `NameError` there. Only the Entrypoint can be imported, so `import_relative 'billing/tax'` raises `Carton::ImportError`.
+
+Each Carton loads once per process, and every later import returns the same value. `import 'billing'` searches `$LOAD_PATH` like `require`, so gems and path gems import by name.
 
 ## Next steps
 
