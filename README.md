@@ -27,14 +27,23 @@ gem install carton   # or add `gem 'carton'` to your Gemfile
 ```
 
 ```ruby
-# billing.rb: the billing Carton's Entrypoint
-TAX_RATE = 10 # stays inside the Carton
-
-module Billing
-  def self.invoice(total) = total + total * TAX_RATE / 100
+# tax.rb: the tax Carton
+module Tax
+  def self.on(total) = total / 10
 end
 
-export Billing # the one value importers get
+export Tax # the one value importers get
+```
+
+```ruby
+# billing.rb: the billing Carton
+Tax = import_relative 'tax' # billing's dependency, invisible to importers
+
+module Billing
+  def self.invoice(total) = total + Tax.on(total)
+end
+
+export Billing
 ```
 
 ```ruby
@@ -43,7 +52,7 @@ require 'carton'
 
 Billing = import_relative 'billing'
 Billing.invoice(100) # => 110
-TAX_RATE             # NameError
+Tax                  # NameError: billing's import
 ```
 
 ```sh
