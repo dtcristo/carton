@@ -18,7 +18,7 @@ The repository's [examples](https://github.com/dtcristo/carton/tree/main/example
 | How do I select gem versions without Bundler? | [gems](https://github.com/dtcristo/carton/tree/main/examples/gems): explicit RubyGems activation in two Cartons |
 | How do Carton Bundles work across imports? | [bundler](https://github.com/dtcristo/carton/tree/main/examples/bundler): Gem-shaped Directories, a Transitive Carton, a Bare Carton gem, and a path gem |
 | How do autoloading and reloading interact with imports? | [zeitwerk](https://github.com/dtcristo/carton/tree/main/examples/zeitwerk): loaders per Box, lazy namespaces, and references that stay stale after reload |
-| Can Rails itself live inside Cartons? | [rails_in_cartons](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons), experimental: shared framework classes and explicit registration |
+| Can Rails itself live inside Cartons? | [rails_in_cartons](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons), experimental: namespaced Rails Engines, domain-owned loaders, migrations, and an explicit Rails CLI bridge |
 
 ## Run one
 
