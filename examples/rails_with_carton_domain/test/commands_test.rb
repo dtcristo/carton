@@ -24,12 +24,13 @@ class RailsDomainCommandsTest < Minitest::Test
       rails(env, command)
     end
     assert_includes rails(env, 'routes'), 'invoices'
-    assert_includes rails(
-                      env,
-                      'runner',
-                      'puts Shop::Billing::Invoice.new(id: 1, subtotal_cents: 4200).total_cents',
-                    ),
-                    '4620'
+    assert_includes rails(env, 'routes'), 'customers'
+    code = <<~RUBY
+      customer = Shop::Customers::Directory.new(customers: CustomerRepository.new).register(name: 'Ada')
+      issue = Shop::Billing::IssueInvoice.new(invoices: InvoiceRepository.new, customers: CustomerRepository.new)
+      puts issue.call(customer_id: customer.id, subtotal_cents: 4200).total_cents
+    RUBY
+    assert_includes rails(env, 'runner', code), '4620'
     assert_includes rails(
                       env,
                       'generate',

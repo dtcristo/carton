@@ -10,7 +10,16 @@ def demonstrate(directory)
     abort 'database preparation failed'
   end
   require_relative 'config/environment'
-  invoice = Invoice.create!(subtotal_cents: 4200)
+  customer =
+    Shop::Customers::Directory.new(customers: CustomerRepository.new).register(
+      name: 'Ada',
+    )
+  issue =
+    Shop::Billing::IssueInvoice.new(
+      invoices: InvoiceRepository.new,
+      customers: CustomerRepository.new,
+    )
+  invoice = issue.call(customer_id: customer.id, subtotal_cents: 4200)
   http = Rack::MockRequest.new(Rails.application)
   response =
     http.get(

@@ -10,9 +10,13 @@ loader = Zeitwerk::Loader.for_gem
 loader.setup
 
 module Billing
+  Customers = import 'customers'
+  private_constant :Customers
+
   # Internal to the Carton: importers get NameError for Billing::TaxPolicy.
   module TaxPolicy
-    def self.tax_cents(subtotal_cents) = (subtotal_cents * 0.1).round
+    # Ten percent, rounded half up using integer cents throughout.
+    def self.tax_cents(subtotal_cents) = (subtotal_cents + 5) / 10
   end
   private_constant :TaxPolicy
 

@@ -4,7 +4,6 @@ require_relative 'boot'
 require 'carton'
 require 'rails'
 require 'active_record/railtie'
-require 'active_job/railtie'
 require 'action_controller/railtie'
 require 'action_view/railtie'
 
@@ -17,6 +16,5 @@ module Shop
     config.log_level = :warn
     config.secret_key_base = 'carton-example-development-secret'
     config.hosts = %w[localhost 127.0.0.1 www.example.com example.org]
-    config.active_job.queue_adapter = :inline
   end
 end

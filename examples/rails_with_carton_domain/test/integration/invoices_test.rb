@@ -3,55 +3,120 @@
 require_relative '../test_helper'
 
 class InvoicesTest < ActionDispatch::IntegrationTest
-  setup { Invoice.delete_all }
-
-  test 'Rails persists invoices and the Carton calculates their totals' do
-    post '/invoices.json', params: { invoice: { subtotal_cents: 4200 } }
-    assert_response :created
-    assert_equal 4620, response.parsed_body.fetch('total_cents')
-    invoice = Invoice.find(response.parsed_body.fetch('id'))
-    assert_equal 4200, invoice.subtotal_cents
-    get "/invoices/#{invoice.id}.json"
-    assert_response :success
-    assert_equal invoice.quote.to_h.transform_keys(&:to_s), response.parsed_body
-    assert_same Shop::Billing::Invoice, invoice.quote.class
+  setup do
+    Invoice.delete_all
+    Customer.delete_all
   end
 
-  test 'HTML templates use normal Rails helpers' do
-    invoice = Invoice.create!(subtotal_cents: 4200)
+  test 'the two Cartons register a customer and issue a persisted invoice' do
+    post '/customers', params: { customer: { name: '  Ada  ' } }
+    assert_response :created
+    customer = response.parsed_body
+    assert_equal 'Ada', customer.fetch('name')
+    post '/invoices.json',
+         params: {
+           invoice: {
+             customer_id: customer.fetch('id'),
+             subtotal_cents: '4200',
+           },
+         }
+    assert_response :created
+    invoice = response.parsed_body
+    expected = {
+      'id' => invoice.fetch('id'),
+      'customer_id' => customer.fetch('id'),
+      'subtotal_cents' => 4200,
+      'tax_cents' => 420,
+      'total_cents' => 4620,
+    }
+    assert_equal expected, invoice
+    get "/invoices/#{invoice.fetch('id')}.json"
+    assert_response :success
+    assert_equal expected, response.parsed_body
+    assert_storage_associations
+  end
+
+  test 'HTML escapes customer names and retains the stored tax amount' do
+    customer = Customer.create!(name: '<Ada>')
+    invoice = Invoice.create!(customer:, subtotal_cents: 4200, tax_cents: 210)
     get "/invoices/#{invoice.id}"
     assert_response :success
-    assert_includes response.body, '$46.20'
+    assert_includes response.body, '&lt;Ada&gt;'
+    assert_includes response.body, '$44.10'
   end
 
-  test 'invalid invoice returns normal model errors' do
-    post '/invoices.json', params: { invoice: { subtotal_cents: -1 } }
+  test 'domain validation rejects invalid customers and invoices before storage' do
+    assert_invalid_envelopes
+    post '/customers', params: { customer: { name: '  ' } }
     assert_response :unprocessable_content
-    assert_includes response.parsed_body.fetch('errors'), 'subtotal_cents'
+    assert_equal ['must not be blank'],
+                 response.parsed_body.fetch('errors').fetch('name')
+    assert_equal 0, Customer.count
+    customer = Customer.create!(name: 'Ada')
+    [-1, 1.5, 'not a number'].each do |subtotal|
+      post '/invoices.json',
+           params: {
+             invoice: {
+               customer_id: customer.id,
+               subtotal_cents: subtotal,
+             },
+           },
+           as: :json
+      assert_response :unprocessable_content
+      assert_equal ['must be a non-negative integer'],
+                   response.parsed_body.fetch('errors').fetch('subtotal_cents')
+    end
     assert_equal 0, Invoice.count
   end
 
-  test 'Active Job round trips the host record through GlobalID' do
-    invoice = Invoice.create!(subtotal_cents: 4200)
-    serialized = InvoiceAuditJob.new(invoice).serialize
-    ActiveJob::Base.deserialize(serialized).perform_now
-    assert invoice.reload.audited_at
-    invoice.update!(audited_at: nil)
-    InvoiceAuditJob.perform_later(invoice)
-    assert invoice.reload.audited_at
+  test 'unknown customers cannot receive invoices' do
+    post '/invoices.json',
+         params: {
+           invoice: {
+             customer_id: 999_999,
+             subtotal_cents: 4200,
+           },
+         }
+    assert_response :not_found
+    assert_equal 0, Invoice.count
   end
 
-  test 'Billing stays private and separate from the Rails runtime' do
+  test 'both domains stay private and separate from the Rails runtime' do
     assert_raises(NameError) { Shop::Billing::TaxPolicy }
+    assert_raises(NameError) { Shop::Billing::Customers }
     refute Shop::Billing.active_support_visible?
-    quote_box =
+    billing_box =
       Shop::Billing::Invoice
-        .new(id: 1, subtotal_cents: 4200)
+        .new(customer_id: 1, subtotal_cents: 4200)
         .method(:total_cents)
         .box
-    refute_same Ruby::Box.main, quote_box
-    refute quote_box.eval('Object.const_defined?(:Rails, false)')
-    refute quote_box.eval('Object.const_defined?(:ApplicationRecord, false)')
-    assert_same Ruby::Box.main, Invoice.new.method(:quote).box
+    customers_box =
+      Shop::Customers::Customer.new(id: 1, name: 'Ada').method(:to_h).box
+    refute_same Ruby::Box.main, billing_box
+    refute_same billing_box, customers_box
+    [billing_box, customers_box].each do |box|
+      refute box.eval('Object.const_defined?(:Rails, false)')
+      refute box.eval('Object.const_defined?(:ApplicationRecord, false)')
+      refute box.eval("''.respond_to?(:blank?)")
+    end
+    assert_same Ruby::Box.main, InvoiceRepository.new.method(:create).box
+    assert_same Ruby::Box.main, InvoicesController.new.method(:create).box
+  end
+
+  private
+
+  def assert_storage_associations
+    assert_equal Customer, Invoice.reflect_on_association(:customer).klass
+    assert_equal Invoice, Customer.reflect_on_association(:invoices).klass
+  end
+
+  def assert_invalid_envelopes
+    [
+      ['/customers', :customer],
+      ['/invoices.json', :invoice],
+    ].each do |path, key|
+      post path, params: { key => 'invalid' }, as: :json
+      assert_response :bad_request
+    end
   end
 end

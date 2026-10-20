@@ -32,7 +32,9 @@ class RailsDomainServerTest < Minitest::Test
         RbConfig.ruby,
         SCRIPT,
         'runner',
-        'Invoice.create!(id: 1, subtotal_cents: 4200)',
+        "customer = Customer.create!(name: 'Ada'); " \
+          'Shop::Billing::IssueInvoice.new(invoices: InvoiceRepository.new, customers: CustomerRepository.new)' \
+          '.call(customer_id: customer.id, subtotal_cents: 4200)',
       )
     assert status.success?, output
     port = TCPServer.open('127.0.0.1', 0) { |socket| socket.addr[1] }

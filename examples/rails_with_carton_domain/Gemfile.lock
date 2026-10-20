@@ -8,6 +8,14 @@ PATH
   specs:
     billing (0.1.0)
       carton
+      customers (= 0.1.0)
+      zeitwerk
+
+PATH
+  remote: components/customers
+  specs:
+    customers (0.1.0)
+      carton
       zeitwerk
 
 GEM
@@ -29,9 +37,6 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    activejob (8.1.4)
-      activesupport (= 8.1.4)
-      globalid (>= 0.3.6)
     activemodel (8.1.4)
       activesupport (= 8.1.4)
     activerecord (8.1.4)
@@ -60,8 +65,6 @@ GEM
     drb (2.2.3)
     erb (6.0.7)
     erubi (1.13.1)
-    globalid (1.4.0)
-      activesupport (>= 6.1)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     io-console (0.9.4)
@@ -162,7 +165,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
@@ -170,10 +172,10 @@ PLATFORMS
 
 DEPENDENCIES
   actionpack (~> 8.1)
-  activejob (~> 8.1)
   activerecord (~> 8.1)
   billing!
   carton!
+  customers!
   puma (~> 8.0)
   railties (~> 8.1)
   sqlite3 (~> 2.10)
@@ -181,7 +183,6 @@ DEPENDENCIES
 CHECKSUMS
   actionpack (8.1.4) sha256=245493cc51be195a7645e6fc184880fa7e5b32ff1a08e053ee31f58c76e30ea4
   actionview (8.1.4) sha256=eff1efd07c4d969abad288322b423bcb67fdbab5e324c91ca37352b80f226076
-  activejob (8.1.4) sha256=4ed5b2ed8d4cc5c8f5f09becfef8346f202a4884eee0c8c73cae5ac378824099
   activemodel (8.1.4) sha256=9a0906c127bd118aa5f06157db12b8f750da83dccee72db2f658547a0ae7a0e8
   activerecord (8.1.4) sha256=3b4957ea7f246c9231bd7faa909312eac03a9101aaf87977b6c52733ff00b04f
   activesupport (8.1.4) sha256=891dd3fe43c4fc8391934b237b1189bb1f661c932a84a840043db9d46a4e80df
@@ -194,10 +195,10 @@ CHECKSUMS
   concurrent-ruby (1.3.8) sha256=b2f1be836e968ccc78ccfce277ea79c72a88633f22306782c16ff23fb415d1e1
   connection_pool (3.0.2) sha256=33fff5ba71a12d2aa26cb72b1db8bba2a1a01823559fb01d29eb74c286e62e0a
   crass (1.0.7) sha256=94868719948664c89ddcaf0a37c65048413dfcb1c869470a5f7a7ceb5390b295
+  customers (0.1.0)
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   erb (6.0.7) sha256=c5ca6dc25b0ef974a44dc8f59fe847577122483b1968a38dec305c60bf91ee92
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
-  globalid (1.4.0) sha256=037f12fbf1d9d7a014d501c2d5c77356fd4ddd96d7a7991d6700bba96706f427
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   io-console (0.9.4) sha256=a403304f32928ee85e56d457b4612ca43f2703b561a3258844992bd24085fbb1
   irb (1.18.0) sha256=de9454a0703a54704b9811a5ef31a60c86949fbf4013fcf244fabc7c775248e3
