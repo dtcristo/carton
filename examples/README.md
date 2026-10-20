@@ -10,12 +10,12 @@ Start with [minimal](minimal/README.md). Each example is a separate program; sim
 | What can an Import return? How do I load existing Ruby? | [exports](exports/README.md): Hashes, callables, Bare Carton Helpers, and pattern matching |
 | How do Cartons share one app lockfile? | [monorepo](monorepo/README.md): path gems, declared dependencies, and unit and integration tests |
 | How does a Carton use the app's database or services? | [dependency_injection](dependency_injection/README.md): a checkout with host adapters and fakes |
-| How do I use Carton with Rails today? | [rails_with_carton_domain](rails_with_carton_domain/README.md): a conventional Rails app with persistence, HTML/JSON, jobs, and a plain-Ruby Billing Carton |
+| How do I use Carton with Rails today? | [rails_with_carton_domain](rails_with_carton_domain/README.md): Customers and Billing own registration, validation, and invoice issuance; Rails hosts HTTP and persistence |
+| Can Rails itself live inside Cartons? | [rails_in_cartons](rails_in_cartons/README.md), experimental: the same Customers/Billing workflow inside Rails Engines, with Carton-owned loaders and an explicit CLI bridge |
 | How do I host plugins with conflicting gems? | [plugins](plugins/README.md): Dynamic Imports, a shared interface, Carton Bundles, and a contained builtin patch |
 | How do I select gem versions without Bundler? | [gems](gems/README.md): explicit RubyGems activation in two Cartons |
 | How do Carton Bundles work across Imports? | [bundler](bundler/README.md): Gem-shaped Directories, a Transitive Carton, a Bare Carton gem, and a path gem |
 | How do autoloading and reloading interact with imports? | [zeitwerk](zeitwerk/README.md): loaders per Box, lazy namespaces, and references that stay stale after reload |
-| Can Rails itself live inside Cartons? | [rails_in_cartons](rails_in_cartons/README.md), experimental: namespaced Rails Engines, domain-owned loaders, migrations, and a Rails CLI bridge |
 
 `gems`, `bundler`, and `plugins` all use conflicting bigdecimal versions, but teach different loading choices. Use `gems` for the shortest version-isolation demonstration, `bundler` for setup details, and `plugins` for an application of them. Keeping each runnable on its own makes the boundary visible without reading code from another example.
 
