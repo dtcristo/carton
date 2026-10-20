@@ -34,7 +34,7 @@ The initializer imports inside `module Shop` because Rake also defines a top-lev
 From the repository root:
 
 ```sh
-bundle exec rake example:rails_in_main
+bundle exec rake example:rails_with_carton_domain
 ```
 
 The task installs the bundle, runs the temporary-database demo, and runs the test files. Command checks cover migrations, routes, runner, Zeitwerk checks, generator dry runs, and the Rails integration suite with both lazy and eager loading. The HTTP test starts and stops Puma.
@@ -42,7 +42,7 @@ The task installs the bundle, runs the temporary-database demo, and runs the tes
 For a persistent local app after bundle installation:
 
 ```sh
-cd examples/rails_in_main
+cd examples/rails_with_carton_domain
 RUBY_BOX=1 bin/rails db:prepare
 RUBY_BOX=1 bin/rails runner 'puts Invoice.create!(subtotal_cents: 4200).id'
 RUBY_BOX=1 bin/rails routes

@@ -169,7 +169,7 @@ Carton handles that by carrying forward only the importer's load-path entry that
 
 Mutating `$LOAD_PATH` or loading application code in Root or Main does not change the Master Box a later Optional Box is copied from. Any state Carton wants to carry across the boundary must be propagated explicitly.
 
-This includes `Ruby::Box.root.eval`: on 4.0.7, a constant or monkey patch defined there is not visible in a Box created afterwards. Loading a framework such as Rails into Root so every Box inherits it, which worked before the Master Box in 4.0.6, no longer does. See [examples/rails_in_main](../../examples/rails_in_main/README.md).
+This includes `Ruby::Box.root.eval`: on 4.0.7, a constant or monkey patch defined there is not visible in a Box created afterwards. Loading a framework such as Rails into Root so every Box inherits it, which worked before the Master Box in 4.0.6, no longer does. See [examples/rails_with_carton_domain](../../examples/rails_with_carton_domain/README.md).
 
 ## `current box` vs `loading box`
 

@@ -13,7 +13,7 @@ The repository's [examples](https://github.com/dtcristo/carton/tree/main/example
 | What can an import return? How do I load existing Ruby? | [exports](https://github.com/dtcristo/carton/tree/main/examples/exports): Hashes, callables, Bare Carton Helpers, and pattern matching |
 | How do Cartons share one app lockfile? | [monorepo](https://github.com/dtcristo/carton/tree/main/examples/monorepo): path gems, declared dependencies, and unit and integration tests |
 | How does a Carton use the app's database or services? | [dependency_injection](https://github.com/dtcristo/carton/tree/main/examples/dependency_injection): a checkout with host adapters and fakes |
-| How do I use Carton with Rails today? | [rails_in_main](https://github.com/dtcristo/carton/tree/main/examples/rails_in_main): Rails models, HTML/JSON, jobs, and standard tooling in Main; Billing in a Carton (guide: [Rails](/guides/rails/)) |
+| How do I use Carton with Rails today? | [rails_with_carton_domain](https://github.com/dtcristo/carton/tree/main/examples/rails_with_carton_domain): Rails models, HTML/JSON, jobs, and standard tooling in Main; Billing in a Carton (guide: [Rails](/guides/rails/)) |
 | How do I host plugins with conflicting gems? | [plugins](https://github.com/dtcristo/carton/tree/main/examples/plugins): Dynamic Imports, a shared interface, Carton Bundles, and a contained builtin patch |
 | How do I select gem versions without Bundler? | [gems](https://github.com/dtcristo/carton/tree/main/examples/gems): explicit RubyGems activation in two Cartons |
 | How do Carton Bundles work across imports? | [bundler](https://github.com/dtcristo/carton/tree/main/examples/bundler): Gem-shaped Directories, a Transitive Carton, a Bare Carton gem, and a path gem |

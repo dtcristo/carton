@@ -37,7 +37,7 @@ Whole-process wall time, including Ruby's own boot, for the earlier smoke exampl
 
 | Example | process wall time (ms) |
 | --- | ---: |
-| rails_in_main | 1497.5 |
+| rails_with_carton_domain | 1497.5 |
 | rails_in_cartons | 2467.2 |
 
 ## Where the time goes

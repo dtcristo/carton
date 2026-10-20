@@ -6,7 +6,7 @@ require 'socket'
 require 'tmpdir'
 require 'timeout'
 
-class RailsMainServerTest < Minitest::Test
+class RailsDomainServerTest < Minitest::Test
   APP = File.expand_path('..', __dir__)
   SCRIPT = File.join(APP, 'bin/rails')
 

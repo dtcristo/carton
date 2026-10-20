@@ -4,7 +4,7 @@ require 'minitest/autorun'
 require 'open3'
 require 'tmpdir'
 
-class RailsMainCommandsTest < Minitest::Test
+class RailsDomainCommandsTest < Minitest::Test
   APP = File.expand_path('..', __dir__)
   SCRIPT = File.join(APP, 'bin/rails')
 

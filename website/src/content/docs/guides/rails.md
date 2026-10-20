@@ -73,7 +73,7 @@ Controllers and models call `Shop::Billing` like any other constant. Keep import
 - **Records come in as arguments.** A Carton cannot see `ApplicationRecord` or the app's models by name. Pass records, repositories, or other services in; see [Passing application services](/guides/sharing-classes/#passing-application-services).
 - **Restart on change.** Each Carton loads once per process, so a running server restarts to pick up a changed Carton. A `for_gem` loader cannot reload at all.
 
-The [rails_in_main example](https://github.com/dtcristo/carton/tree/main/examples/rails_in_main) has conventional Rails boot files, `config.ru`, `bin/rails`, migrations, Active Record models, HTML/JSON controllers, and an Active Job. Its model passes values across the boundary:
+The [rails_with_carton_domain example](https://github.com/dtcristo/carton/tree/main/examples/rails_with_carton_domain) has conventional Rails boot files, `config.ru`, `bin/rails`, migrations, Active Record models, HTML/JSON controllers, and an Active Job. Its model passes values across the boundary:
 
 ```ruby title="app/models/invoice.rb"
 class Invoice < ApplicationRecord
@@ -88,7 +88,7 @@ The database and host model stay in Main. Billing needs neither Rails nor a refe
 After installing the example's bundle:
 
 ```sh
-cd examples/rails_in_main
+cd examples/rails_with_carton_domain
 RUBY_BOX=1 bin/rails db:prepare
 RUBY_BOX=1 bin/rails runner 'puts Invoice.create!(subtotal_cents: 4200).id'
 RUBY_BOX=1 bin/rails test

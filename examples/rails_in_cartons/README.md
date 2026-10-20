@@ -2,7 +2,7 @@
 
 Customers and Orders are isolated Rails Engines, each imported as a Gem Carton. Their models, controllers, jobs, and Zeitwerk loaders belong to separate Carton Boxes. Rails loads once in a framework Carton. A shop Carton composes the application and mounts both Engines; the ordinary Main Box receives its Rack application.
 
-This is an experimental integration built with public Rails, Zeitwerk, and Carton APIs. It adds no runtime hooks or production Carton API. [Rails in Main](../rails_in_main/README.md) remains the simpler way to add Cartons to an existing Rails app.
+This is an experimental integration built with public Rails, Zeitwerk, and Carton APIs. It adds no runtime hooks or production Carton API. [Rails in Main](../rails_with_carton_domain/README.md) remains the simpler way to add Cartons to an existing Rails app.
 
 ## Layout
 
