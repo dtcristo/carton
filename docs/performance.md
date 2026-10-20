@@ -33,7 +33,7 @@ Ten path gems imported by name under `bundler/setup`, in bundles of growing size
 
 ### Rails examples
 
-Whole-process wall time, including Ruby's own boot, for the earlier smoke examples. These Rails samples predate the Engine/CLI expansion; the current Rails-in-Cartons demo also prepares a temporary database in another process, so rerun the benchmark before comparing current startup times:
+Whole-process wall time, including Ruby's own boot, for the earlier smoke examples. These Rails samples predate the Engine/CLI expansion; the current Rails demos also prepare a temporary database in another process, so rerun the benchmark before comparing current startup times:
 
 | Example | process wall time (ms) |
 | --- | ---: |

@@ -22,10 +22,13 @@ Require Carton after Bundler, then import each domain once at boot:
 
 ```ruby
 # config/application.rb
-require 'bundler/setup'
+require_relative 'boot'
 require 'carton' # after Bundler; adds import to the Main Box
 require 'rails'
+require 'active_record/railtie'
+require 'active_job/railtie'
 require 'action_controller/railtie'
+require 'action_view/railtie'
 ```
 
 ```ruby
@@ -70,9 +73,31 @@ Controllers and models call `Shop::Billing` like any other constant. Keep import
 - **Records come in as arguments.** A Carton cannot see `ApplicationRecord` or the app's models by name. Pass records, repositories, or other services in; see [Passing application services](/guides/sharing-classes/#passing-application-services).
 - **Restart on change.** Each Carton loads once per process, so a running server restarts to pick up a changed Carton. A `for_gem` loader cannot reload at all.
 
-The [rails_in_main example](https://github.com/dtcristo/carton/tree/main/examples/rails_in_main) runs this setup.
+The [rails_in_main example](https://github.com/dtcristo/carton/tree/main/examples/rails_in_main) has conventional Rails boot files, `config.ru`, `bin/rails`, migrations, Active Record models, HTML/JSON controllers, and an Active Job. Its model passes values across the boundary:
 
-The example selects its Railties explicitly. Full `rails/all` initialization on Ruby 4.0.7 with Boxes enabled can hit upstream autoload and isolated-Proc bugs through Action Cable and mail dependencies; the Engine example README records those tested limits.
+```ruby title="app/models/invoice.rb"
+class Invoice < ApplicationRecord
+  def quote
+    Shop::Billing::Invoice.new(id: id, subtotal_cents: subtotal_cents)
+  end
+end
+```
+
+The database and host model stay in Main. Billing needs neither Rails nor a reference to the application's model class. Rails renders its returned values through normal view helpers or JSON; the app's job can serialize a host record through GlobalID.
+
+After installing the example's bundle:
+
+```sh
+cd examples/rails_in_main
+RUBY_BOX=1 bin/rails db:prepare
+RUBY_BOX=1 bin/rails runner 'puts Invoice.create!(subtotal_cents: 4200).id'
+RUBY_BOX=1 bin/rails test
+RUBY_BOX=1 bin/rails server -b 127.0.0.1
+```
+
+Visit `/invoices/<id>` or `/invoices/<id>.json`. The example tests requests, validation, job serialization, private constants, and Box provenance with lazy and eager loading. It also tests routes, runner, migration reruns, Zeitwerk checks, generator dry runs, and a real Puma HTTP response. Its CLI is Rails' ordinary command loader in Main.
+
+The example selects its Railties explicitly. Full `rails/all` initialization on Ruby 4.0.7 with Boxes enabled can hit upstream autoload and isolated-Proc bugs through Action Cable and mail dependencies. The example READMEs record those tested limits. Jobs use an inline adapter, and running apps restart after changes to Cartons.
 
 ## Engines in Cartons
 

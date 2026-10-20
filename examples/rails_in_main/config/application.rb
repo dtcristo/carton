@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-# Standard Rails boot: Bundler sets up the app's gems in the Main Box.
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
-require 'bundler/setup'
+require_relative 'boot'
 require 'carton'
-
 require 'rails'
+require 'active_record/railtie'
+require 'active_job/railtie'
 require 'action_controller/railtie'
+require 'action_view/railtie'
 
 module Shop
   class Application < Rails::Application
-    # No config.ru here, so tell Rails where the app lives.
-    config.root = File.expand_path('..', __dir__)
     config.load_defaults 8.1
-    config.api_only = true
-    config.eager_load = false
-    config.logger = Logger.new(nil)
-    config.secret_key_base = 'example'
-    config.hosts.clear
+    config.enable_reloading = false # Restart to pick up changed Cartons.
+    config.eager_load = ENV['RAILS_EAGER_LOAD'] == 'true'
+    config.logger = Logger.new($stdout)
+    config.log_level = :warn
+    config.secret_key_base = 'carton-example-development-secret'
+    config.hosts = %w[localhost 127.0.0.1 www.example.com example.org]
+    config.active_job.queue_adapter = :inline
   end
 end

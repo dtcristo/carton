@@ -14,6 +14,8 @@
 
 ### Changed
 
+- Expanded Rails-in-Main into a conventional Rails app with migrations, HTML/JSON responses, an Active Job, standard CLI commands, and isolated Billing integration tests (#80).
+
 - The Rails-in-Cartons example uses isolated Rails Engines with domain-owned loaders, migrations, HTML views, GlobalID jobs, and an explicit Rails CLI bridge (#79).
 
 - The website is now the only user guide and reference: `docs/usage.md` is gone, its remaining details moved to the website, which adds Examples and Rails pages, and the website's Status page is the only place that tracks readiness (#77).
