@@ -5,7 +5,8 @@ Gem::Specification.new do |spec|
   spec.version = '0.1.0'
   spec.summary = 'Assembles the Rails application from domain cartons'
   spec.authors = ['Carton']
-  spec.files = Dir['{app,lib}/**/*.rb', 'config/**/*.yml']
+  paths = %w[lib/**/* config/**/* config.ru Rakefile bin/rails]
+  spec.files = Dir.glob(paths).select { |path| File.file?(path) }
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
   spec.add_dependency 'carton'
@@ -13,4 +14,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'framework'
   spec.add_dependency 'logger'
   spec.add_dependency 'orders'
+  spec.add_dependency 'puma', '~> 8.0'
 end

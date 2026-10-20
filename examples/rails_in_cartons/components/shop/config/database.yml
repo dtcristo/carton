@@ -1,3 +1,16 @@
-development:
+default: &default
   adapter: sqlite3
-  database: ":memory:"
+  pool: 5
+  timeout: 5000
+
+development:
+  <<: *default
+  database: <%= ENV.fetch('SHOP_DATABASE') { Rails.root.join('storage/development.sqlite3') }.to_s.inspect %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch('SHOP_DATABASE') { Rails.root.join('storage/test.sqlite3') }.to_s.inspect %>
+
+production:
+  <<: *default
+  database: <%= ENV.fetch('SHOP_DATABASE') { Rails.root.join('storage/production.sqlite3') }.to_s.inspect %>

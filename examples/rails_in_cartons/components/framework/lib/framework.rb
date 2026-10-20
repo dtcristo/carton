@@ -1,34 +1,45 @@
 # frozen_string_literal: true
 
 require 'carton'
-
-# Rails loads once, in this Carton's Box. Domain Cartons subclass the base
-# classes it shares: their own methods run in their Boxes, while inherited Rails
-# methods run here, next to Rails and its core extensions.
 require 'rails'
 require 'active_record/railtie'
 require 'action_controller/railtie'
+require 'active_job/railtie'
 
-# Shared base classes for every domain Carton.
 require_relative '../app/models/application_record'
 require_relative '../app/controllers/application_controller'
 
+# Rails runs once here. Domains import these ordinary shared class objects.
 module Framework
-  ApplicationRecord = ::ApplicationRecord
-  ApplicationController = ::ApplicationController
   Rails = ::Rails
   ActiveRecord = ::ActiveRecord
+  ApplicationRecord = ::ApplicationRecord
+  ApplicationController = ::ApplicationController
+  BrowserController = ::ActionController::Base
+  ApplicationJob = ::ActiveJob::Base
 
-  # Rails finds controllers (`orders#index`) and associations
-  # (`belongs_to :customer`) by constant name, and it does that lookup in
-  # this Box. Registering a domain's classes defines them here too.
-  def self.register(*domains)
-    domains.each do |domain|
-      domain.constants.each do |name|
-        constant = domain.const_get(name)
-        Object.const_set(name, constant) if constant.is_a?(Module)
+  # Rails resolves qualified controller, association, and job names here.
+  # Bind namespaces explicitly; never copy their classes into Object.
+  def self.register(*namespaces)
+    namespaces.each do |namespace|
+      name = namespace.name
+      if Object.const_defined?(name, false)
+        existing = Object.const_get(name, false)
+        unless existing.equal?(namespace)
+          raise ArgumentError, "namespace already registered: #{name}"
+        end
+      else
+        Object.const_set(name, namespace)
       end
     end
+  end
+
+  # The example's CLI enters this Box before loading Rails commands and Rake.
+  # APP_PATH is Rails' standard bootstrap constant, local to this Box.
+  def self.cli(argv, application:)
+    Object.const_set(:APP_PATH, application)
+    ARGV.replace(argv)
+    require 'rails/commands'
   end
 end
 

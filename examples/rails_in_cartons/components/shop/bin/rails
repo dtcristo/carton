@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative '../config/boot'
+
+# Runner evaluates user code in Main. These are references to the shared
+# modules, not another require of Rails or the Engine implementations.
+module ShopCLI
+  Framework = import_relative '../../framework/lib/framework'
+  Customers = import_relative '../../customers/lib/customers'
+  Orders = import_relative '../../orders/lib/orders'
+end
+Rails = ShopCLI::Framework::Rails
+Customers = ShopCLI::Customers
+Orders = ShopCLI::Orders
+Dir.chdir(File.expand_path('..', __dir__))
+ShopCLI::Framework.cli(
+  ARGV,
+  application: File.expand_path('../config/application', __dir__),
+)

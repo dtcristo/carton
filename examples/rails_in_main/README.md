@@ -25,7 +25,7 @@ main.rb                          # boots the app and sends GET /invoices/42 via 
 
 ## Why controllers and models stay in Main
 
-A Carton's Box starts from Ruby's clean Master Box, so the app's `ApplicationRecord`, `ApplicationController`, and Rails constants are not available there by name. Sharing framework classes explicitly is possible, as [rails_in_cartons](../rails_in_cartons/README.md) demonstrates, but Rails also needs to resolve controller and association names in its own Box. Keeping those layers in Main avoids that registration work and preserves Rails tooling. Plain-Ruby domains run as Cartons and may receive host objects, such as records, through [dependency injection](../dependency_injection/README.md).
+A Carton's Box starts from Ruby's clean Master Box, so the app's `ApplicationRecord`, `ApplicationController`, and Rails constants are not available there by name. Sharing framework classes explicitly is possible, as [rails_in_cartons](../rails_in_cartons/README.md) demonstrates, but Rails also needs the exported Engine namespaces registered in its own Box for controller, association, and job lookups. Keeping those layers in Main avoids that registration work and preserves Rails tooling. Plain-Ruby domains run as Cartons and may receive host objects, such as records, through [dependency injection](../dependency_injection/README.md).
 
 ## Development
 

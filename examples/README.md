@@ -15,7 +15,7 @@ Start with [minimal](minimal/README.md). Each example is a separate program; sim
 | How do I select gem versions without Bundler? | [gems](gems/README.md): explicit RubyGems activation in two Cartons |
 | How do Carton Bundles work across Imports? | [bundler](bundler/README.md): Gem-shaped Directories, a Transitive Carton, a Bare Carton gem, and a path gem |
 | How do autoloading and reloading interact with imports? | [zeitwerk](zeitwerk/README.md): loaders per Box, lazy namespaces, and references that stay stale after reload |
-| Can Rails itself live inside Cartons? | [rails_in_cartons](rails_in_cartons/README.md), experimental: shared framework classes and explicit registration |
+| Can Rails itself live inside Cartons? | [rails_in_cartons](rails_in_cartons/README.md), experimental: namespaced Rails Engines, domain-owned loaders, migrations, and a Rails CLI bridge |
 
 `gems`, `bundler`, and `plugins` all use conflicting bigdecimal versions, but teach different loading choices. Use `gems` for the shortest version-isolation demonstration, `bundler` for setup details, and `plugins` for an application of them. Keeping each runnable on its own makes the boundary visible without reading code from another example.
 

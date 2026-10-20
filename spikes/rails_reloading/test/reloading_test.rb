@@ -5,7 +5,7 @@ require 'tmpdir'
 require_relative '../../../lib/carton'
 
 # The Rails example is a read-only fixture. Edit only its scratch copy.
-scratch = Dir.mktmpdir('carton-rails-reloading')
+scratch = File.realpath(Dir.mktmpdir('carton-rails-reloading'))
 at_exit { FileUtils.remove_entry(scratch) }
 fixture = File.expand_path('../../../examples/rails_in_cartons', __dir__)
 root = File.expand_path('../../..', __dir__)
@@ -25,6 +25,7 @@ File.write(
   File.join(scratch, 'Gemfile.lock'),
   lock.sub("remote: ../..\n", "remote: #{root}\n"),
 )
+ENV['SHOP_DATABASE'] = ':memory:'
 Carton.setup_bundle(gemfile: File.join(scratch, 'Gemfile'))
 require 'minitest/autorun'
 require 'rack'
@@ -43,12 +44,27 @@ class RailsReloadingSpikeTest < Minitest::Test
           end,
       )
     shop = import 'shop'
-    http = Rack::MockRequest.new(shop)
+    framework = import 'framework'
+    migrations =
+      %w[customers orders].map do |name|
+        File.join(ROOT, "components/#{name}/db/migrate")
+      end
+    framework::ActiveRecord::MigrationContext.new(migrations).migrate
+    http =
+      Rack::MockRequest.new(
+        ->(env) { shop.call(env.merge('HTTP_HOST' => 'example.org')) },
+      )
 
-    assert_equal 201, http.post('/customers', params: { name: 'Ada' }).status
     assert_equal 201,
                  http.post(
-                   '/orders',
+                   'http://example.org/customers',
+                   params: {
+                     name: 'Ada',
+                   },
+                 ).status
+    assert_equal 201,
+                 http.post(
+                   'http://example.org/orders',
                    params: {
                      customer_id: 1,
                      total_cents: 4_200,
@@ -56,7 +72,7 @@ class RailsReloadingSpikeTest < Minitest::Test
                  ).status
     assert_equal 'Ada',
                  JSON
-                   .parse(http.get('/orders').body)
+                   .parse(http.get('http://example.org/orders').body)
                    .first
                    .dig('customer', 'name')
 
@@ -67,7 +83,8 @@ class RailsReloadingSpikeTest < Minitest::Test
     old_customer = customers::Customer.find(1)
     assert_same customers::Customer,
                 orders::Order.reflect_on_association(:customer).klass
-    file = File.join(ROOT, 'components/customers/app/models/customer.rb')
+    file =
+      File.join(ROOT, 'components/customers/app/models/customers/customer.rb')
     File.write(
       file,
       File.read(file).sub(
@@ -76,12 +93,15 @@ class RailsReloadingSpikeTest < Minitest::Test
       ),
     )
     controller =
-      File.join(ROOT, 'components/orders/app/controllers/orders_controller.rb')
+      File.join(
+        ROOT,
+        'components/orders/app/controllers/orders/orders_controller.rb',
+      )
     File.write(
       controller,
       File.read(controller).sub(
         "def index\n",
-        "def index\n    response.set_header('X-Carton-Reload', Customer.find(1).name)\n",
+        "def index\n    response.set_header('X-Carton-Reload', Customers::Customer.find(1).name)\n",
       ),
     )
 
@@ -90,7 +110,7 @@ class RailsReloadingSpikeTest < Minitest::Test
       host: shop,
     )
 
-    response = http.get('/orders')
+    response = http.get('http://example.org/orders')
     assert_equal 200, response.status
     assert_equal 'ADA', JSON.parse(response.body).first.dig('customer', 'name')
     assert_equal 'ADA', response.headers['x-carton-reload']
@@ -113,7 +133,7 @@ class RailsReloadingSpikeTest < Minitest::Test
       File.join(ROOT, 'components/customers/lib/customers.rb'),
       host: shop,
     )
-    response = http.get('/orders')
+    response = http.get('http://example.org/orders')
     assert_equal 200, response.status
     assert_equal 'ada', JSON.parse(response.body).first.dig('customer', 'name')
     assert_equal 'ada', response.headers['x-carton-reload']
