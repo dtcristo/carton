@@ -4,7 +4,6 @@ require 'carton'
 require 'rails'
 require 'active_record/railtie'
 require 'action_controller/railtie'
-require 'active_job/railtie'
 
 require_relative '../app/models/application_record'
 require_relative '../app/controllers/application_controller'
@@ -16,9 +15,8 @@ module Framework
   ApplicationRecord = ::ApplicationRecord
   ApplicationController = ::ApplicationController
   BrowserController = ::ActionController::Base
-  ApplicationJob = ::ActiveJob::Base
 
-  # Rails resolves qualified controller, association, and job names here.
+  # Rails resolves qualified controller, and association names here.
   # Bind namespaces explicitly; never copy their classes into Object.
   def self.register(*namespaces)
     namespaces.each do |namespace|

@@ -9,10 +9,10 @@ Gem::Specification.new do |spec|
   spec.files = Dir.glob(paths).select { |path| File.file?(path) }
   spec.required_ruby_version = '>= 4.0.7'
   spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.add_dependency 'billing'
   spec.add_dependency 'carton'
   spec.add_dependency 'customers'
   spec.add_dependency 'framework'
   spec.add_dependency 'logger'
-  spec.add_dependency 'orders'
   spec.add_dependency 'puma', '~> 8.0'
 end

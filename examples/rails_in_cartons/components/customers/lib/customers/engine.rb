@@ -9,7 +9,7 @@ module Customers
       # Rails still owns routes, views, locales, and migration discovery.
       # Its framework-Box loader must not evaluate this Carton's Ruby files.
       Framework::Rails.autoloaders.main.ignore(
-        %w[models controllers jobs].map do |directory|
+        %w[models controllers repositories].map do |directory|
           root.join('app', directory)
         end,
       )

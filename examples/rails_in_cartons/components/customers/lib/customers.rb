@@ -2,7 +2,6 @@
 
 require 'carton'
 require 'zeitwerk'
-require 'active_support/core_ext/object/blank'
 
 module Customers
   Framework = import 'framework'
@@ -10,10 +9,12 @@ module Customers
 
   # This Box's Zeitwerk owns the Engine's Ruby code, including lazy autoloads.
   LOADER = Zeitwerk::Loader.new
-  %w[models controllers jobs].each do |directory|
+  %w[models controllers repositories].each do |directory|
     path = File.expand_path("../app/#{directory}", __dir__)
     LOADER.push_dir(path) if Dir.exist?(path)
   end
+  LOADER.push_dir(File.expand_path('customers', __dir__), namespace: Customers)
+  LOADER.ignore(File.expand_path('customers/engine.rb', __dir__))
   LOADER.setup
   private_constant :LOADER
 end

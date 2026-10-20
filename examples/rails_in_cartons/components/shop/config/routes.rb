@@ -2,5 +2,5 @@
 
 Shop::Application.routes.draw do
   mount Customers::Engine => '/customers'
-  mount Orders::Engine => '/orders'
+  mount Billing::Engine => '/'
 end

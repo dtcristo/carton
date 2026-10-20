@@ -11,13 +11,12 @@ module Shop
     config.log_level = :warn
     config.secret_key_base = 'carton-example-development-secret'
     config.hosts = %w[localhost 127.0.0.1 www.example.com example.org]
-    config.active_job.queue_adapter = :inline
 
     # Use the Engines' real migrations directly, without copying or creating
     # tables while importing application code.
     config.paths['db/migrate'] = [
       Customers::Engine.root.join('db/migrate').to_s,
-      Orders::Engine.root.join('db/migrate').to_s,
+      Billing::Engine.root.join('db/migrate').to_s,
     ]
   end
 end
