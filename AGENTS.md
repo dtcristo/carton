@@ -22,7 +22,7 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 - `import` returns the exported value itself, never a wrapper.
 - Use Ruby's `private_constant` for visibility; Carton adds none.
 - A Bare Carton helper that would hide a `Carton::Namespace` method raises `ExportError`.
-- Shared-class reopening risk is documented only (subclass, refine, freeze).
+- `carton check` warns about class/module definitions opening directly followed Imports; there is no runtime guard against shared-class reopening (subclass, refine, freeze).
 - No `carton run` or `carton exec`: `RUBY_BOX=1` is the interface (user decision). The `carton` command only reads code (Prism).
 - Two gems, released together at one version: `carton` is the runtime only, with no dependencies and no executable, since every gem built on Carton depends on it; `carton-tools` (`carton-tools/`, `Carton::Tools`) holds the `carton` command and static analysis, depends on exactly the same `carton`, and may use its internals (user decision).
 - Carton keeps Master Box clean; direct writes belong only in unsupported spikes. Upstream asks only for an official template Box API.
