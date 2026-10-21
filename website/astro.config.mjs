@@ -4,8 +4,10 @@ import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
 import { cartonCode, themes } from './src/expressive-code.mjs';
 
+const SITE = 'https://carton.dtcristo.com';
+
 export default defineConfig({
-  site: 'https://carton.dtcristo.com',
+  site: SITE,
   // Prebuilt HTML only: no adapter, no server runtime.
   output: 'static',
   integrations: [
@@ -18,12 +20,12 @@ export default defineConfig({
       // Share-sheet card for Slack, X, iMessage and friends. Absolute URLs
       // because crawlers do not resolve relative image paths.
       head: [
-        { tag: 'meta', attrs: { property: 'og:image', content: 'https://carton.dtcristo.com/og-image.png' } },
+        { tag: 'meta', attrs: { property: 'og:image', content: `${SITE}/og-image.png` } },
         { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
         { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Carton: real boundaries for Ruby' } },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
-        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://carton.dtcristo.com/og-image.png' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: `${SITE}/og-image.png` } },
       ],
       social: [
         {
