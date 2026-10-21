@@ -12,7 +12,7 @@ function fixture() {
         <button aria-controls="guides" aria-pressed="true">Guides</button>
         <button aria-controls="reference" aria-pressed="false">Reference</button>
       </nav>
-      <section id="start"><h2 data-section-heading>Start here</h2><details open><summary>Getting started</summary><a href="/start/getting-started/">Quick start</a></details></section>
+      <section id="start"><h2 data-section-heading>Start here</h2><details open><summary>Start here</summary><a href="/start/getting-started/">Getting started</a></details></section>
       <section id="guides"><h2 data-section-heading>Guides</h2><details open><summary>Concepts</summary><a href="/guides/importing/" aria-current="page">Importing</a></details></section>
       <section id="reference"><h2 data-section-heading>Reference</h2><a href="/reference/carton/">Carton</a></section>
     </carton-sidebar>

@@ -29,7 +29,6 @@
 
 ### Fixed
 
-- Website section pills switch the sidebar tree without leaving the current page, and the Start here pages are nested under Getting started ([90a9b7a](https://github.com/dtcristo/carton/commit/90a9b7a)).
 - Sample path gems declare and require Carton instead of relying on the host to preload it; the monorepo's leaf gems also work with ordinary `require` without Boxes enabled. The Rails shop gem includes its database configuration. Example docs distinguish bundle installation from activation and correct the undeclared-import demonstration and Rails class-sharing explanation (#64).
 
 ## [0.3.0] - 2026-10-18
