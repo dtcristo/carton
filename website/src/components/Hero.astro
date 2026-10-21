@@ -73,27 +73,31 @@ import CopyCommand from './CopyCommand.astro';
     gap: 3rem;
     align-items: center;
     padding-block: 2rem 4rem;
-    padding-inline: clamp(1rem, 4vw, 2.5rem);
   }
 
-  /* Phones: the container margin does most of the work, so the padding is
-     small. Tablet keeps the padding above. */
-  @media (max-width: 47.99rem) {
+  /* Margins follow the header: phones below 50rem (where the search collapses)
+     are tight; tablets from 50rem to 64rem keep the section margins. */
+  @media (max-width: 49.99rem) {
     .hero {
       padding-inline: 0.5rem;
     }
   }
 
-  /* Two columns from 60rem. The left column is a fixed 30rem, so its copy does
-     not reflow; the gap gives way as the window narrows. */
-  @media (min-width: 60rem) {
+  @media (min-width: 50rem) and (max-width: 63.99rem) {
     .hero {
-      grid-template-columns: 30rem minmax(0, 1fr);
-      gap: clamp(2rem, 8vw, 6rem);
+      padding-inline: clamp(1rem, 4vw, 2.5rem);
+    }
+  }
+
+  /* Desktop from 64rem: two equal columns. The gap narrows just before the snap
+     to one column, and the lockup keeps its size across the desktop range. */
+  @media (min-width: 64rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(2rem, 6vw, 6rem);
       padding-block: 4rem 5rem;
     }
 
-    /* Fixed across the two-column range so the lockup does not shrink. */
     .lockup {
       --wordmark: 6rem;
     }
@@ -146,8 +150,16 @@ import CopyCommand from './CopyCommand.astro';
      Phones shrink the block to the screen. The paragraph is left-aligned. */
   .lockup,
   .lede {
-    width: min(100%, 30rem);
+    width: 100%;
     margin-inline: auto;
+  }
+
+  /* Below the snap the copy is a 30rem block, centred. */
+  @media (max-width: 63.99rem) {
+    .lockup,
+    .lede {
+      width: min(100%, 30rem);
+    }
   }
 
   .lede {

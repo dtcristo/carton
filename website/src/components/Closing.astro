@@ -55,7 +55,7 @@ import CopyCommand from './CopyCommand.astro';
     opacity: 0.3;
   }
 
-  @media (max-width: 50rem) {
+  @media (max-width: 63.99rem) {
     .closing::after {
       display: none;
     }
@@ -95,17 +95,19 @@ import CopyCommand from './CopyCommand.astro';
 
   /* Single column: the band keeps side margins so nothing meets the screen
      edge. Headings and copy stay left-aligned. */
-  @media (max-width: 59.99rem) {
+  @media (max-width: 49.99rem) {
+    .closing {
+      padding-inline: 0.5rem;
+    }
+  }
+
+  @media (min-width: 50rem) and (max-width: 63.99rem) {
     .closing {
       padding-inline: clamp(1rem, 4vw, 2.5rem);
     }
   }
 
-  @media (max-width: 47.99rem) {
-    .closing {
-      padding-inline: 0.5rem;
-    }
-
+  @media (max-width: 63.99rem) {
     .actions {
       justify-content: center;
     }
