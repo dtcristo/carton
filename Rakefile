@@ -5,7 +5,7 @@ require 'rubocop/rake_task'
 
 STREE_FILES =
   '"**/*.{rb,rake,gemspec}" "**/Rakefile" "**/Gemfile" "**/Steepfile" ' \
-    'carton-tools/exe/carton "examples/**/bin/rails" "examples/**/config.ru"'
+    'carton-tools/exe/carton "examples/**/bin/rails" "examples/**/config.ru" "examples/**/bin/hanami"'
 RUBOCOP_FILES = %w[
   Gemfile
   Rakefile
@@ -23,6 +23,7 @@ RUBOCOP_FILES = %w[
   examples/**/Gemfile
   examples/**/Rakefile
   examples/**/bin/rails
+  examples/**/bin/hanami
   examples/**/config.ru
   spikes/master_prelude/**/*.rb
   spikes/master_prelude/Gemfile
@@ -39,6 +40,7 @@ EXAMPLES = %w[
   zeitwerk
   rails_with_carton_domain
   rails_in_cartons
+  hanami_in_cartons
 ].freeze
 GEMS_EXAMPLE_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze
 
