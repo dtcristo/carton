@@ -27,7 +27,7 @@ export default defineConfig({
     starlight({
       title: 'Carton',
       description:
-        'Real boundaries for Ruby. Split an app into Cartons that import and export like plain modules, and Ruby enforces the boundary while code runs.',
+        'Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate Ruby::Box, so Ruby enforces the boundaries at runtime.',
       logo: { src: './src/assets/carton.png', alt: 'Carton' },
       favicon: '/favicon.png',
       // Share-sheet card for Slack, X, iMessage and friends. Absolute URLs

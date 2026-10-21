@@ -10,9 +10,9 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Real boundaries for Ruby'
   spec.description =
-    'The package system Ruby has been missing. Split an app into Cartons that ' \
-      'import and export like plain modules. Each Carton runs in its own Ruby::Box, ' \
-      'so Ruby enforces the boundary while code runs. Only what a Carton exports ' \
+    'Split your app into Cartons with explicit imports and exports. Each has ' \
+      'its own dependencies and runs in a separate Ruby::Box, so Ruby enforces ' \
+      'the boundaries at runtime. Only what a Carton exports ' \
       'is reachable, monkey patches stay where they ' \
       'are made, and two Cartons can use different versions of the same gem. ' \
       'No manifest needed. Requires Ruby 4.0.7+.'

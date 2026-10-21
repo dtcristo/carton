@@ -10,7 +10,7 @@
   </p>
 </div>
 
-Split an app into Cartons that import and export like plain modules. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundary while code runs:
+Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundaries at runtime:
 
 - other Cartons reach **only what a Carton exports**;
 - **monkey patches to builtin classes** stay in the Carton that makes them;
