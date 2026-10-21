@@ -1,0 +1,137 @@
+---
+title: Kernel
+description: Reference for import, import_relative, and export, the three private methods Carton adds to Kernel.
+sidebar:
+  order: 1
+tableOfContents:
+  maxHeadingLevel: 2
+---
+
+import Signature from '../../../components/api/Signature.astro';
+import Tag from '../../../components/api/Tag.astro';
+
+<Signature owner="Kernel" rbs="module Kernel" source="lib/carton/kernel_patch.rb" />
+
+`require 'carton'` adds three private methods to `Kernel`, like `require` and `require_relative`, so any file in any Box can call them. Signatures are Carton's own RBS, from [`sig/carton.rbs`](https://github.com/dtcristo/carton/blob/main/sig/carton.rbs).
+
+| Method | Summary |
+| --- | --- |
+| [`#import`](#import) | Imports a Carton by name or absolute path and returns its Export |
+| [`#import_relative`](#import_relative) | Imports a Carton relative to the calling file |
+| [`#export`](#export) | Declares the Carton's Export |
+
+## `#import`
+
+<Signature owner="Kernel" private rbs="def import: (::String path) -> untyped" source="lib/carton/kernel_patch.rb#L9" />
+
+Imports the Carton at `path` and returns its Export, or a [`Carton::Namespace`](/reference/namespace/) for a Bare Carton.
+
+The first import of a Carton loads its Entrypoint in a new Carton Box. Later imports of the same Entrypoint, by any path and from any Box, are Shared Imports and return the same value. A gem-shaped directory, such as `billing/` holding `lib/billing.rb`, resolves to its `lib/` Entrypoint.
+
+<Tag label="Parameters">
+
+- `path` (`String`): an absolute path, or a name searched on the current Box's `$LOAD_PATH`, like `require`. The current directory is never searched, and `.rb` is optional.
+
+</Tag>
+
+<Tag label="Returns">
+
+- The Carton's Export, exactly as passed to `export`, never a wrapper.
+- A `Carton::Namespace` when the Entrypoint never calls `export`.
+
+</Tag>
+
+<Tag label="Raises">
+
+- `LoadError` when nothing matches `path`. For a name, the message suggests `import_relative` when a matching file sits beside the caller.
+- [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior, the import is circular, or a Shared Gem Carton was built against other gem versions.
+- [`Carton::ExportError`](/reference/errors/#cartonexporterror) when the Carton breaks an `export` rule while loading.
+
+</Tag>
+
+<Tag label="Example">
+
+```ruby
+Billing = import 'billing'               # billing.rb on $LOAD_PATH
+Billing.invoice(40)
+import '/srv/app/components/billing'     # an absolute path
+```
+
+</Tag>
+
+## `#import_relative`
+
+<Signature owner="Kernel" private rbs="def import_relative: (::String path) -> untyped" source="lib/carton/kernel_patch.rb#L14" />
+
+Like [`#import`](#import), but resolves `path` relative to the calling file, like `require_relative`. It never searches `$LOAD_PATH`.
+
+<Tag label="Parameters">
+
+- `path` (`String`): a path relative to the directory of the file that calls it.
+
+</Tag>
+
+<Tag label="Returns">
+
+- The same as [`#import`](#import).
+
+</Tag>
+
+<Tag label="Raises">
+
+- The same as [`#import`](#import).
+
+</Tag>
+
+<Tag label="Example">
+
+```ruby
+# app/main.rb
+Billing = import_relative '../components/billing'
+```
+
+</Tag>
+
+## `#export`
+
+<Signature owner="Kernel" private rbs="def export: [T] (T value) -> T" source="lib/carton/kernel_patch.rb#L21" />
+
+Declares the Carton's Export, which every import of it returns. Only a call in the imported Entrypoint declares anything; in any other file, `export` checks its argument, returns it, and does nothing else.
+
+<Tag label="Parameters">
+
+- `value` (`Object`): the Export, usually the Carton's root module. Keywords export a plain Hash: `export version: '1.0'`.
+
+</Tag>
+
+<Tag label="Returns">
+
+- `value`, unchanged.
+
+</Tag>
+
+<Tag label="Raises">
+
+- [`Carton::ExportError`](/reference/errors/#cartonexporterror) on a second call in one Entrypoint, or when `value` is a Symbol, as `export def name` or `export :Name` would give.
+- `ArgumentError` without exactly one value.
+
+</Tag>
+
+<Tag label="Example">
+
+```ruby
+# billing.rb
+module Billing
+  def self.invoice(subtotal) = Invoice.new(subtotal)
+end
+
+export Billing
+```
+
+</Tag>
+
+<Tag label="See also">
+
+- [Exporting](/guides/exporting/) and [Importing](/guides/importing/).
+
+</Tag>

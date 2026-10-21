@@ -1,0 +1,70 @@
+---
+title: Carton
+description: Reference for the Carton module, Carton.setup_bundle, and Carton::VERSION.
+sidebar:
+  order: 2
+tableOfContents:
+  maxHeadingLevel: 2
+---
+
+import Signature from '../../../components/api/Signature.astro';
+import Tag from '../../../components/api/Tag.astro';
+
+<Signature owner="Carton" rbs="module Carton" source="lib/carton.rb" />
+
+Carton's namespace. Its public members are the bundle setup and the version; everything else in it is internal.
+
+| Member | Summary |
+| --- | --- |
+| [`.setup_bundle`](#setup_bundle) | Sets up a bundle in the current Box, like `Bundler.setup` |
+| [`VERSION`](#version) | The installed Carton version |
+
+## `.setup_bundle`
+
+<Signature owner="Carton" rbs="def self.setup_bundle: (*::Symbol groups, ?gemfile: ::String?) -> untyped" source="lib/carton/bundler.rb#L12" />
+
+Sets up a bundle in the current Box, like `Bundler.setup`. In a Carton's Entrypoint, it gives that Carton a Carton Bundle of its own; in the app, it sets up the app's bundle. It uses gems that are already installed and never installs missing ones.
+
+`ENV` is restored when setup finishes, so the bundle never leaks into the Importer's subprocesses, and Bundler errors raise instead of exiting the process.
+
+<Tag label="Parameters">
+
+- `*groups` (`Symbol`): the Gemfile groups to set up, such as `:default, :test`. With none, every group is set up.
+- `gemfile:` (`String`, `nil`): the Gemfile, relative to the calling file. Without it, Carton searches upward from the calling file for `gems.rb` or `Gemfile`.
+
+</Tag>
+
+<Tag label="Returns">
+
+- What `Bundler.setup` returns.
+
+</Tag>
+
+<Tag label="Raises">
+
+- [`Carton::GemfileNotFound`](/reference/errors/#cartongemfilenotfound) when there is no Gemfile.
+- Bundler's own errors, such as `Bundler::GemNotFound` for a gem that is not installed.
+
+</Tag>
+
+<Tag label="Example">
+
+```ruby
+# reports/lib/reports.rb
+Carton.setup_bundle # reports/Gemfile, in this Carton's Box only
+require 'bigdecimal'
+```
+
+</Tag>
+
+<Tag label="See also">
+
+- [Gems and Bundler](/guides/bundler/).
+
+</Tag>
+
+## `VERSION`
+
+<Signature owner="Carton" rbs="VERSION: ::String" source="lib/carton/version.rb" />
+
+The installed Carton version, such as `"0.3.0"`. `carton` and `carton-tools` are released together at the same version.

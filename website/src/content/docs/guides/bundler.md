@@ -20,7 +20,7 @@ require 'bigdecimal' # this Carton's locked version
 export version: BigDecimal::VERSION
 ```
 
-[`Carton.setup_bundle`](/reference/carton/#cartonsetup_bundle) works like `Bundler.setup`, and the top-level app uses the same line:
+[`Carton.setup_bundle`](/reference/carton/#setup_bundle) works like `Bundler.setup`, and the top-level app uses the same line:
 
 - Pass groups to set up only those, such as `Carton.setup_bundle(:default, :test)`.
 - It searches upward from the calling file for `gems.rb` or `Gemfile`. Pass `gemfile:`, relative to the calling file, to choose one.
@@ -56,7 +56,7 @@ Pricing = import 'pricing' # pricing's require 'bigdecimal' gets 3.3.1
 - Without Bundler, only declared dependencies the importer activated are shared. Anything else falls back to RubyGems picking the newest installed version inside the Box.
 - If the Gem Carton also calls `setup_bundle`, its Gemfile must agree with the importer's versions, or Bundler raises `Gem::LoadError`.
 
-Because a bundled importer exposes its whole lockfile, a Gem Carton can load a gem it never declared and still work, until it is installed somewhere without that gem. [`carton check`](/reference/cli/#carton-check) reports each Undeclared Gem, so the gemspec stays an accurate list of dependencies; run it under `bundle exec` so it sees the bundle's gems. Default gems and Carton itself need no declaration.
+Because a bundled importer exposes its whole lockfile, a Gem Carton can load a gem it never declared and still work, until it is installed somewhere without that gem. [`carton check`](/reference/cli/check/) reports each Undeclared Gem, so the gemspec stays an accurate list of dependencies; run it under `bundle exec` so it sees the bundle's gems. Default gems and Carton itself need no declaration.
 
 ## Monorepos
 

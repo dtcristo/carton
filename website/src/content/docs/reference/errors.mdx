@@ -1,0 +1,66 @@
+---
+title: Errors
+description: Reference for Carton::Error and its subclasses, every error Carton raises, and when.
+sidebar:
+  order: 4
+tableOfContents:
+  maxHeadingLevel: 2
+---
+
+import Signature from '../../../components/api/Signature.astro';
+import Tag from '../../../components/api/Tag.astro';
+
+Carton's own errors subclass `Carton::Error`. Every Box shares these classes, so `rescue Carton::Error` works in the app and inside any Carton. Otherwise Carton raises what Ruby would: `LoadError` for a missing import target, and `ArgumentError` for `export` without exactly one value.
+
+```
+StandardError
+└── Carton::Error
+    ├── Carton::ImportError
+    ├── Carton::ExportError
+    └── Carton::GemfileNotFound
+```
+
+## `Carton::Error`
+
+<Signature owner="Carton::Error" rbs="class Carton::Error < ::StandardError" source="lib/carton/error.rb#L7" />
+
+The base class of every error Carton raises itself. Carton never raises it directly.
+
+## `Carton::ImportError`
+
+<Signature owner="Carton::ImportError" rbs="class Carton::ImportError < Carton::Error" source="lib/carton/error.rb#L12" />
+
+An import that cannot go ahead.
+
+<Tag label="Raises">
+
+- Raised by [`import`](/reference/kernel/#import) and [`import_relative`](/reference/kernel/#import_relative) when:
+  - Boxes are disabled; run Ruby with `RUBY_BOX=1`.
+  - The target is a file in a Carton's Interior; only its Entrypoint can be imported.
+  - The import is circular, including a Carton importing itself.
+  - A Shared Gem Carton was built against other gem versions than this import activates. The message names the gem and both versions.
+
+</Tag>
+
+## `Carton::ExportError`
+
+<Signature owner="Carton::ExportError" rbs="class Carton::ExportError < Carton::Error" source="lib/carton/error.rb#L18" />
+
+An `export` that breaks the rules.
+
+<Tag label="Raises">
+
+- Raised by [`export`](/reference/kernel/#export) on a second call in one Entrypoint, or for a Symbol.
+- Raised by `import` of a Bare Carton whose Helper would hide a [`Carton::Namespace`](/reference/namespace/) method.
+
+</Tag>
+
+## `Carton::GemfileNotFound`
+
+<Signature owner="Carton::GemfileNotFound" rbs="class Carton::GemfileNotFound < Carton::Error" source="lib/carton/error.rb#L22" />
+
+<Tag label="Raises">
+
+- Raised by [`Carton.setup_bundle`](/reference/carton/#setup_bundle) when it finds no Gemfile: none at `gemfile:`, or no `gems.rb` or `Gemfile` from the calling file's directory upward.
+
+</Tag>

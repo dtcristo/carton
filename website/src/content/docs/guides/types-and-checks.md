@@ -51,7 +51,7 @@ It reports, among others:
 
 It follows a name bound to an import, `Info = import 'info'` or `info = import 'info'`, to its uses: method calls, constant paths, lookups, and hash patterns. A constant binding is followed in every file of the same Box, a local only in its own file and only when nothing reassigns it.
 
-The [CLI reference](/reference/cli/#carton-check) lists every check.
+The [CLI reference](/reference/cli/check/) lists every check.
 
 Use `carton check --format json main.rb` for a machine-readable report of problems and counts. The default text output and exit statuses stay the same. Static checks cannot see every reflective or generated use of an import, and reopening warnings do not guard runtime mutations. Carton does not infer unused members of an exported module or Hash.
 

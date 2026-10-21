@@ -1,0 +1,203 @@
+---
+title: Carton::Namespace
+description: Reference for Carton::Namespace, the module a Bare Carton's Importers receive, and its Hash-like lookups from Carton::NamespaceMethods.
+sidebar:
+  order: 3
+tableOfContents:
+  maxHeadingLevel: 2
+---
+
+import Signature from '../../../components/api/Signature.astro';
+import Tag from '../../../components/api/Tag.astro';
+
+<Signature owner="Carton::Namespace" rbs="class Carton::Namespace < ::Module" source="lib/carton/namespace.rb" />
+
+<Signature owner="Carton::Namespace" rbs="include ::Carton::NamespaceMethods" source="lib/carton/namespace.rb#L9" />
+
+What importing a [Bare Carton](/guides/bare-cartons/) returns: a `Module` holding the constants and Helpers its Entrypoint defined. Each constant is a constant on it, and each Helper is a singleton method that calls the Carton's method in the Carton Box. The Carton Box itself stays private. Every Shared Import of the Carton returns the same namespace.
+
+```ruby
+Toolbox = import 'some_script' # some_script.rb never calls export
+Toolbox::SomeConstant
+Toolbox.helper(1)
+Toolbox => { helper: }         # helper is a Method
+```
+
+A Helper named like a public method of `Carton::Namespace`, such as `fetch` or `name`, would hide it, so importing that Carton raises [`Carton::ExportError`](/reference/errors/#cartonexporterror). Rename the method, or export a module.
+
+## Carton::NamespaceMethods
+
+<Signature owner="Carton::NamespaceMethods" rbs="module Carton::NamespaceMethods" source="lib/carton/namespace_methods.rb" />
+
+Hash-like lookups that every `Carton::Namespace` includes. `carton rbs` extends its generated `Carton::Namespace::*` modules with these too. A key names a member, never a Ruby expression, and a Helper comes back as its `Method` object, so a lookup never calls it.
+
+<Signature owner="Carton::NamespaceMethods" rbs="type key = ::String | ::Symbol" />
+
+| Method | Summary |
+| --- | --- |
+| [`#[]`](#-element-reference) | The member, or `nil` |
+| [`#fetch`](#fetch) | The member, a default, or `KeyError` |
+| [`#fetch_values`](#fetch_values) | Several members, or `KeyError` |
+| [`#values_at`](#values_at) | Several members, `nil` for missing ones |
+| [`#key?`](#key), [`#has_key?`](#has_key) | Whether the member exists |
+| [`#keys`](#keys) | Every member name |
+| [`#to_h`](#to_h) | Every member by name |
+| [`#deconstruct_keys`](#deconstruct_keys) | Members for hash patterns |
+
+## `#[]` (element reference)
+
+<Signature owner="Carton::NamespaceMethods" rbs="def []: (key key) -> untyped" source="lib/carton/namespace_methods.rb#L15" />
+
+<Tag label="Parameters">
+
+- `key` (`String`, `Symbol`): a member name.
+
+</Tag>
+
+<Tag label="Returns">
+
+- The constant's value, the Helper's `Method`, or `nil` when there is no such member.
+
+</Tag>
+
+<Tag label="Example">
+
+```ruby
+Toolbox[:SomeConstant]
+Toolbox['helper'].call(1)
+Toolbox[:nope] # => nil
+```
+
+</Tag>
+
+## `#fetch`
+
+<Signature owner="Carton::NamespaceMethods" rbs={`def fetch: (key key) -> untyped
+         | (key key, untyped default) -> untyped
+         | [T] (key key) { (key key) -> T } -> (untyped | T)`} source="lib/carton/namespace_methods.rb#L28" />
+
+Looks up a member like `Hash#fetch`.
+
+<Tag label="Parameters">
+
+- `key` (`String`, `Symbol`): a member name.
+- `default` (`Object`): returned when the member is missing.
+
+</Tag>
+
+<Tag label="Yields">
+
+- `key`, when the member is missing; the block's result is returned.
+
+</Tag>
+
+<Tag label="Returns">
+
+- The member, or the default or block result when it is missing.
+
+</Tag>
+
+<Tag label="Raises">
+
+- `KeyError` when the member is missing and there is no default or block.
+- `ArgumentError` for more than one default.
+
+</Tag>
+
+## `#fetch_values`
+
+<Signature owner="Carton::NamespaceMethods" rbs="def fetch_values: (*key keys) -> ::Array[untyped]" source="lib/carton/namespace_methods.rb#L49" />
+
+<Tag label="Returns">
+
+- An Array of members, in the order of `keys`.
+
+</Tag>
+
+<Tag label="Raises">
+
+- `KeyError` for the first missing member.
+
+</Tag>
+
+## `#values_at`
+
+<Signature owner="Carton::NamespaceMethods" rbs="def values_at: (*key keys) -> ::Array[untyped]" source="lib/carton/namespace_methods.rb#L54" />
+
+<Tag label="Returns">
+
+- An Array of members, in the order of `keys`, with `nil` for each missing one.
+
+</Tag>
+
+## `#key?`
+
+<Signature owner="Carton::NamespaceMethods" rbs="def key?: (key key) -> bool" source="lib/carton/namespace_methods.rb#L21" />
+
+<Tag label="Returns">
+
+- Whether the namespace has a member named `key`.
+
+</Tag>
+
+<Tag label="Aliases">
+
+- [`#has_key?`](#has_key)
+
+</Tag>
+
+## `#has_key?`
+
+<Signature owner="Carton::NamespaceMethods" rbs="def has_key?: (key key) -> bool" source="lib/carton/namespace_methods.rb#L24" />
+
+An alias of [`#key?`](#key).
+
+## `#keys`
+
+<Signature owner="Carton::NamespaceMethods" rbs="def keys: () -> ::Array[::Symbol]" source="lib/carton/namespace_methods.rb#L43" />
+
+<Tag label="Returns">
+
+- Every member name as a Symbol: Helpers first, then constants.
+
+</Tag>
+
+## `#to_h`
+
+<Signature owner="Carton::NamespaceMethods" rbs="def to_h: () -> ::Hash[::Symbol, untyped]" source="lib/carton/namespace_methods.rb#L46" />
+
+<Tag label="Returns">
+
+- A new Hash of every member by Symbol name: Helpers as `Method` objects, constants as set.
+
+</Tag>
+
+## `#deconstruct_keys`
+
+<Signature owner="Carton::NamespaceMethods" rbs={`def deconstruct_keys: (nil keys) -> ::Hash[::Symbol, untyped]
+                    | (::Array[::Symbol] keys) -> ::Hash[::Symbol, untyped]`} source="lib/carton/namespace_methods.rb#L7" />
+
+Lets a namespace appear in hash patterns. Ruby calls it; you rarely do.
+
+<Tag label="Parameters">
+
+- `keys` (`Array<Symbol>`, `nil`): the keys the pattern names, or `nil` for a pattern with `**rest`.
+
+</Tag>
+
+<Tag label="Returns">
+
+- A Hash of the named members that exist, or of every member when `keys` is `nil`.
+
+</Tag>
+
+<Tag label="Example">
+
+```ruby
+case import('some_script')
+in { helper:, SomeConstant: }
+  helper.call(SomeConstant)
+end
+```
+
+</Tag>
