@@ -192,7 +192,7 @@ import CopyCommand from './CopyCommand.astro';
   .actions {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-between;
     gap: 1rem;
   }
 
@@ -204,6 +204,10 @@ import CopyCommand from './CopyCommand.astro';
   .actions :global(.primary:hover) {
     background-color: color-mix(in srgb, var(--sl-color-text-accent) 85%, var(--sl-color-white));
     border-color: color-mix(in srgb, var(--sl-color-text-accent) 85%, var(--sl-color-white));
+  }
+
+  .actions :global(.minimal) {
+    margin-inline-start: auto;
   }
 
   .actions :global(.minimal:hover) {
