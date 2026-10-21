@@ -146,9 +146,13 @@ import CopyCommand from './CopyCommand.astro';
     text-wrap: pretty;
   }
 
+  /* Single column: the lockup and paragraph share one width, about a quarter
+     wider than the buttons below, as the desktop column is to its buttons. */
   @media (max-width: 63.99rem) {
+    .lockup,
     .lede {
-      max-width: 36rem;
+      width: min(100%, 30rem);
+      margin-inline: auto;
     }
   }
 
