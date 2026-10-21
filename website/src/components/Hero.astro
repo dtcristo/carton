@@ -72,7 +72,7 @@ import CopyCommand from './CopyCommand.astro';
     grid-template-columns: minmax(0, 1fr);
     gap: 3rem;
     align-items: center;
-    padding-block: 2rem 4rem;
+    padding-block: 1rem 2.5rem;
   }
 
   /* Margins follow the header: phones below 50rem (where the search collapses)
@@ -97,31 +97,28 @@ import CopyCommand from './CopyCommand.astro';
       grid-template-columns: 32rem 32rem;
       justify-content: center;
       column-gap: clamp(2rem, 100% - 64rem, 6rem);
-      padding-block: 4rem 5rem;
+      padding-block: 2.5rem 3rem;
     }
   }
 
-  /* The lockup is 6rem wherever Starlight's header search shows (50rem and up),
-     and only scales once the search collapses. The logo tracks the wordmark with a 7rem floor and a 9rem cap; the
-     tagline is a fixed share of the wordmark, so the two lines match in width. */
+  /* The lockup is exactly the width of the buttons below it (24rem). The
+     wordmark is sized from that width in container units, so the logo, wordmark
+     and tagline keep their proportions at every width. */
   .lockup {
-    --wordmark: 6rem;
+    width: min(100%, 24rem);
+    margin-inline: auto;
+    container-type: inline-size;
+    --wordmark: 20.3cqi;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1.25rem;
-  }
-
-  @media (max-width: 49.99rem) {
-    .lockup {
-      --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
-    }
+    gap: 1rem;
   }
 
   .logo {
     display: block;
     flex: none;
-    width: clamp(7rem, calc(var(--wordmark) * 1.5), 9rem);
+    width: calc(var(--wordmark) * 1.5);
     height: auto;
     filter: drop-shadow(0 18px 22px rgb(90 60 30 / 0.34)) drop-shadow(0 4px 6px rgb(90 60 30 / 0.12));
   }
@@ -153,16 +150,14 @@ import CopyCommand from './CopyCommand.astro';
 
   /* Lockup and paragraph share one 30rem block, centred; the buttons are 24rem.
      Phones shrink the block to the screen. The paragraph is left-aligned. */
-  .lockup,
   .lede {
     width: 100%;
     margin-inline: auto;
   }
 
-  /* Below the snap the copy is the same 32rem column as desktop, centred, so
-     the paragraph wraps identically in both layouts. */
+  /* Below the snap the paragraph is the same 32rem column as desktop, centred,
+     so it wraps identically in both layouts. */
   @media (max-width: 67.99rem) {
-    .lockup,
     .lede {
       width: min(100%, 32rem);
     }
