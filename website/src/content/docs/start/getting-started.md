@@ -110,4 +110,4 @@ Each Carton loads once per process, and every later import returns the same valu
 - [Cartons](/guides/cartons/): what belongs to a Carton, and how Zeitwerk fits.
 - [Exporting](/guides/exporting/) and [Importing](/guides/importing/): the whole language.
 - [Bundler](/guides/bundler/): give a Carton its own gems.
-- [Examples](/start/examples/): runnable apps, from the smallest boundary to plugins and Rails.
+- [Examples](/guides/examples/): runnable apps, from the smallest boundary to plugins and Rails.

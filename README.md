@@ -61,7 +61,7 @@ RUBY_BOX=1 ruby main.rb
 
 ## Status
 
-Carton is experimental, and so is `Ruby::Box`. Box isolates definitions and load state, not objects, so it is not a security boundary, and classes a Carton exports are shared with every importer. [Why Carton](https://carton.dtcristo.com/project/why-carton/) compares it with Bundler and Packwerk and covers where it fits today.
+Carton is experimental, and so is `Ruby::Box`. Box isolates definitions and load state, not objects, so it is not a security boundary, and classes a Carton exports are shared with every importer. [Why Carton](https://carton.dtcristo.com/start/why-carton/) compares it with Bundler and Packwerk and covers where it fits today.
 
 ## Docs
 

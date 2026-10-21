@@ -10,6 +10,13 @@ export default defineConfig({
   site: SITE,
   // Prebuilt HTML only: no adapter, no server runtime.
   output: 'static',
+  // Pages that moved when the sections became Start here, Guides, and Reference.
+  redirects: {
+    '/project/why-carton/': '/start/why-carton/',
+    '/project/status/': '/start/status/',
+    '/project/glossary/': '/reference/glossary/',
+    '/start/examples/': '/guides/examples/',
+  },
   integrations: [
     starlight({
       title: 'Carton',
@@ -85,11 +92,44 @@ export default defineConfig({
         Head: './src/components/Head.astro',
       },
       plugins: [starlightLinksValidator()],
+      // Three sections, each a tab in src/components/Sidebar.astro, which
+      // shows only the current section's tree.
       sidebar: [
-        { label: 'Start here', items: [{ autogenerate: { directory: 'start' } }] },
-        { label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
-        { label: 'Reference', items: [{ autogenerate: { directory: 'reference' } }] },
-        { label: 'Project', items: [{ autogenerate: { directory: 'project' } }] },
+        {
+          label: 'Start here',
+          items: ['start/getting-started', 'start/why-carton', 'start/status'],
+        },
+        {
+          label: 'Guides',
+          items: [
+            {
+              label: 'Concepts',
+              items: [
+                'guides/cartons',
+                'guides/exporting',
+                'guides/importing',
+                'guides/bare-cartons',
+                'guides/sharing-classes',
+              ],
+            },
+            {
+              label: 'How-to',
+              items: ['guides/bundler', 'guides/testing', 'guides/types-and-checks', 'guides/rails'],
+            },
+            { label: 'Examples', items: [{ autogenerate: { directory: 'guides/examples' } }] },
+          ],
+        },
+        {
+          label: 'Reference',
+          items: [
+            {
+              label: 'API',
+              items: ['reference/kernel', 'reference/carton', 'reference/namespace', 'reference/errors'],
+            },
+            { label: 'CLI', items: [{ autogenerate: { directory: 'reference/cli' } }] },
+            'reference/glossary',
+          ],
+        },
       ],
     }),
   ],
