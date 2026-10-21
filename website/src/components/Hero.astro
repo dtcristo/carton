@@ -75,6 +75,13 @@ import CopyCommand from './CopyCommand.astro';
     padding-block: 2rem 4rem;
   }
 
+  /* Single column: side margins on the hero, matching the sections below. */
+  @media (max-width: 63.99rem) {
+    .hero {
+      padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+    }
+  }
+
   @media (min-width: 64rem) {
     .hero {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
