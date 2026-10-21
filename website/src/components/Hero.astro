@@ -99,20 +99,23 @@ import CopyCommand from './CopyCommand.astro';
       column-gap: clamp(2rem, 100% - 64rem, 6rem);
       padding-block: 4rem 5rem;
     }
-
-    .lockup {
-      --wordmark: 6rem;
-    }
   }
 
-  /* The logo tracks the wordmark with a 7rem floor and a 9rem cap. The tagline
-     is a fixed share of the wordmark, so the two lines match in width. */
+  /* The lockup is 6rem at every width, and only scales below the single-column
+     snap. The logo tracks the wordmark with a 7rem floor and a 9rem cap; the
+     tagline is a fixed share of the wordmark, so the two lines match in width. */
   .lockup {
-    --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
+    --wordmark: 6rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1.25rem;
+  }
+
+  @media (max-width: 67.99rem) {
+    .lockup {
+      --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
+    }
   }
 
   .logo {
