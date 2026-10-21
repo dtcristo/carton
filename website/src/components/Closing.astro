@@ -93,19 +93,11 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1rem;
   }
 
-  /* Single column: the heading centres, the copy stays left-aligned, and the
-     band keeps side margins so nothing meets the screen edge. */
+  /* Single column: the band keeps side margins so nothing meets the screen
+     edge. Headings and copy stay left-aligned. */
   @media (max-width: 63.99rem) {
     .closing {
       padding-inline: clamp(1.25rem, 5vw, 2.5rem);
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    p {
-      text-align: left;
     }
 
     .actions {

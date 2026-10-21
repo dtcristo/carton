@@ -128,9 +128,9 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
-  /* Single column (below 64rem) the paragraph caps at a readable measure and
-     centres under the lockup. It takes no min-width: a floor would overflow
-     phones. text-wrap keeps the last line from orphaning a single word. */
+  /* Hero copy is left-aligned at every width. Single column (below 64rem) the
+     paragraph caps at a readable measure. It takes no min-width: a floor would
+     overflow phones. text-wrap keeps the last line from orphaning one word. */
   .lede {
     margin-block: 2.25rem 0;
     font-size: var(--sl-text-lg);
@@ -142,8 +142,6 @@ import CopyCommand from './CopyCommand.astro';
   @media (max-width: 63.99rem) {
     .lede {
       max-width: 36rem;
-      margin-inline: auto;
-      text-align: center;
     }
   }
 
