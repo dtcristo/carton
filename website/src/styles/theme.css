@@ -292,6 +292,11 @@ html {
   padding-inline: 0;
 }
 
+/* Button icons scale with their labels in both the hero and closing band. */
+[data-has-hero] .sl-link-button > svg {
+  font-size: 1.25em;
+}
+
 /* The homepage ends on the closing band, which carries its own footer: drop
    Starlight's empty one and the padding under it. */
 [data-has-hero] :is(main, .content-panel) {

@@ -198,6 +198,16 @@ import CopyCommand from './CopyCommand.astro';
 
   .actions :global(.sl-link-button) {
     white-space: nowrap;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
+  }
+
+  .actions :global(.primary:hover) {
+    background-color: color-mix(in srgb, var(--sl-color-text-accent) 85%, var(--sl-color-white));
+    border-color: color-mix(in srgb, var(--sl-color-text-accent) 85%, var(--sl-color-white));
+  }
+
+  .actions :global(.minimal:hover) {
+    color: var(--carton-ruby);
   }
 
   .cta :global(.copy-command) {
