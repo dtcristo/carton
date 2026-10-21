@@ -143,11 +143,11 @@ import CopyCommand from './CopyCommand.astro';
     font-weight: 500;
   }
 
-  /* The text, buttons, and install command fill the hero's column. */
+  /* The install command spans the same width as the two buttons above it. */
   .cta {
     display: grid;
     gap: 2rem;
-    width: 100%;
+    width: fit-content;
     margin-top: 2.5rem;
   }
 
@@ -160,6 +160,10 @@ import CopyCommand from './CopyCommand.astro';
   /* Below the two-column layout the buttons stretch to the full column width,
      stacked, rather than sitting as small pills. */
   @media (max-width: 63.99rem) {
+    .cta {
+      width: 100%;
+    }
+
     .actions .button {
       flex: 1 1 100%;
       justify-content: center;
