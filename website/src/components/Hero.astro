@@ -144,17 +144,28 @@ import CopyCommand from './CopyCommand.astro';
   }
 
   /* The install command spans the same width as the two buttons above it. */
+  /* On desktop the block sits centred in the left column, narrower than it, so
+     the buttons and the install command share one width with room either side. */
   .cta {
     display: grid;
     gap: 2rem;
-    width: fit-content;
-    margin-top: 2.5rem;
+    width: min(100%, 24rem);
+    margin: 2.5rem auto 0;
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 1rem;
+  }
+
+  .actions .button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding-inline: 1.5rem;
+    white-space: nowrap;
   }
 
   /* Below the two-column layout the buttons stretch to the full column width,
@@ -165,13 +176,6 @@ import CopyCommand from './CopyCommand.astro';
   @media (max-width: 63.99rem) {
     .cta {
       width: 100%;
-    }
-
-    .actions .button {
-      flex: 1 1 0;
-      min-width: 0;
-      justify-content: center;
-      white-space: nowrap;
     }
   }
 

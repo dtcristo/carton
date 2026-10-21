@@ -132,8 +132,8 @@ import CopyCommand from './CopyCommand.astro';
     gap: 0.5rem 1.75rem;
   }
 
-  /* No underline in any state. Ruby would vanish on the ruby band, so hover
-     lightens to the wash instead. */
+  /* No underline in any state. The band is one fixed ruby in both themes, so
+     hover goes to the ink colour rather than ruby, which would vanish on it. */
   nav a {
     color: #fff;
     font-weight: 600;
@@ -142,7 +142,7 @@ import CopyCommand from './CopyCommand.astro';
   }
 
   nav a:hover {
-    color: var(--carton-ruby-wash);
+    color: #1f1b18;
   }
 
   footer p {
