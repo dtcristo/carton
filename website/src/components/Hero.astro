@@ -146,14 +146,13 @@ import CopyCommand from './CopyCommand.astro';
     text-wrap: pretty;
   }
 
-  /* Single column: the lockup and paragraph share one width, about a quarter
-     wider than the buttons below, as the desktop column is to its buttons. */
-  @media (max-width: 63.99rem) {
-    .lockup,
-    .lede {
-      width: min(100%, 30rem);
-      margin-inline: auto;
-    }
+  /* The hero's copy column is one 30rem block at every width: the lockup and
+     paragraph share it, centred, while the buttons below are 24rem. On phones
+     the block shrinks to the screen. */
+  .lockup,
+  .lede {
+    width: min(100%, 30rem);
+    margin-inline: auto;
   }
 
   .lede code {
