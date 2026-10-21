@@ -190,10 +190,17 @@ import CopyCommand from './CopyCommand.astro';
   }
 
   .actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-items: center;
+  }
+
+  /* Keep space between the labels when two halves become too narrow. */
+  @media (max-width: 22rem) {
+    .actions {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
   }
 
   .actions :global(.sl-link-button) {
@@ -204,10 +211,6 @@ import CopyCommand from './CopyCommand.astro';
   .actions :global(.primary:hover) {
     background-color: color-mix(in srgb, var(--sl-color-text-accent) 85%, var(--sl-color-white));
     border-color: color-mix(in srgb, var(--sl-color-text-accent) 85%, var(--sl-color-white));
-  }
-
-  .actions :global(.minimal) {
-    margin-inline-start: auto;
   }
 
   .actions :global(.minimal:hover) {
