@@ -17,7 +17,7 @@ import CopyCommand from './CopyCommand.astro';
       </div>
     </div>
     <p class="lede">
-      Split an app into Cartons that import and export like modules. Each Carton runs in its own <code>Ruby::Box</code>, so Ruby enforces the boundary while your code runs.
+      Split an app into Cartons that import and export like plain modules. Each Carton runs in its own <code>Ruby::Box</code>, so Ruby enforces the boundary while code runs.
     </p>
     <div class="cta">
       <div class="actions">
@@ -75,29 +75,36 @@ import CopyCommand from './CopyCommand.astro';
     padding-block: 2rem 4rem;
   }
 
+  /* Single column: side margins on the hero, matching the sections below. */
+  @media (max-width: 63.99rem) {
+    .hero {
+      padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+    }
+  }
+
   @media (min-width: 64rem) {
     .hero {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 4.5rem;
+      gap: 6rem;
       padding-block: 4rem 5rem;
     }
   }
 
-  /* The illustrated logo carries the brand, so it gets real size here and
-     sits beside the wordmark rather than as a small badge above it. */
+  /* The logo stays a broad mark beside the wordmark: it tracks the wordmark
+     with a 7rem floor, so it never shrinks to a badge, and caps at 9rem. The
+     tagline is a fixed share of the wordmark, so the two lines match in width. */
   .lockup {
-    /* The tagline's size is a fixed share of the wordmark's, so the two lines
-       set to the same width at every size. */
     --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
     display: flex;
     align-items: center;
-    gap: clamp(1rem, 3vw, 1.75rem);
+    justify-content: center;
+    gap: 1.25rem;
   }
 
   .logo {
     display: block;
     flex: none;
-    width: clamp(6rem, 4rem + 7vw, 9rem);
+    width: clamp(7rem, calc(var(--wordmark) * 1.5), 9rem);
     height: auto;
     filter: drop-shadow(0 18px 22px rgb(90 60 30 / 0.34)) drop-shadow(0 4px 6px rgb(90 60 30 / 0.12));
   }
@@ -127,9 +134,18 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
+  /* The copy column: the lockup and paragraph share one 30rem block at every
+     width, centred, and the buttons below are 24rem. Phones shrink it to the
+     screen. The paragraph is left-aligned and its wording is set so the lines
+     fill the block at desktop and tablet widths. */
+  .lockup,
+  .lede {
+    width: min(100%, 30rem);
+    margin-inline: auto;
+  }
+
   .lede {
     margin-block: 2.25rem 0;
-    max-width: 34rem;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
@@ -148,14 +164,32 @@ import CopyCommand from './CopyCommand.astro';
   .cta {
     display: grid;
     gap: 2rem;
-    width: fit-content;
-    margin-top: 2.5rem;
+    width: min(100%, 24rem);
+    margin: 2.5rem auto 0;
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 1rem;
+  }
+
+  .actions .button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding-inline: 1.5rem;
+    white-space: nowrap;
+  }
+
+  /* Below the two-column layout the actions keep the desktop block: centred,
+     the buttons side by side, and the install command at their shared width.
+     On phones the pill padding tightens so both labels fit on one row. */
+  @media (max-width: 30rem) {
+    .actions .button {
+      padding-inline: 1rem;
+    }
   }
 
   .cta :global(.copy-command) {
@@ -163,6 +197,8 @@ import CopyCommand from './CopyCommand.astro';
     justify-content: space-between;
   }
 
+  /* Secondary buttons keep their outline and card fill; only the label turns
+     ruby. Primary deepens its fill. Both transition the same way. */
   .button {
     display: inline-flex;
     align-items: center;
@@ -173,11 +209,11 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;
-    transition: border-color 150ms;
+    transition: background-color 150ms, color 150ms;
   }
 
   .button:hover {
-    border-color: var(--sl-color-gray-4);
+    color: var(--carton-ruby);
   }
 
   /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
@@ -190,6 +226,7 @@ import CopyCommand from './CopyCommand.astro';
   .button.primary:hover {
     background: #9e2520;
     border-color: #9e2520;
+    color: #fff;
   }
 
   /* The figure: code cards like the docs', each Carton a ruby-tinted tray. */

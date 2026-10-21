@@ -29,7 +29,6 @@ const { command } = Astro.props;
   /* A one-line terminal, coloured like the docs' shell blocks in theme.css. */
   .copy-command {
     --copy-button: rgb(248 245 238 / 0.14);
-    --copy-button-hover: rgb(248 245 238 / 0.24);
     display: inline-flex;
     align-items: center;
     gap: 1.25rem;
@@ -42,7 +41,6 @@ const { command } = Astro.props;
 
   :global([data-theme='light']) .copy-command {
     --copy-button: var(--sl-color-gray-6);
-    --copy-button-hover: var(--sl-color-gray-5);
   }
 
   code {
@@ -68,11 +66,11 @@ const { command } = Astro.props;
     font-size: var(--sl-text-xs);
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 150ms;
+    transition: color 150ms;
   }
 
   button:hover {
-    background: var(--copy-button-hover);
+    color: var(--carton-ruby);
   }
 
   button[data-copied] {

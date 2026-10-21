@@ -8,16 +8,16 @@ import Default from '@astrojs/starlight/components/SocialIcons.astro';
 <Default />
 
 <style>
+  /* Same header hover as the wordmark and GitHub icon: ink, then ruby. */
   .docs-link {
     padding: 0.35rem 0.75rem;
-    border-radius: 999px;
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 150ms;
+    transition: color 150ms;
   }
 
   .docs-link:hover {
-    background: var(--sl-color-gray-6);
+    color: var(--carton-ruby);
   }
 </style>

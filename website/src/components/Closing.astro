@@ -93,6 +93,27 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1rem;
   }
 
+  /* Single column: the band keeps side margins so nothing meets the screen
+     edge. Headings and copy stay left-aligned. */
+  @media (max-width: 63.99rem) {
+    .closing {
+      padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+    }
+
+    .actions {
+      justify-content: center;
+    }
+
+    nav {
+      justify-content: center;
+    }
+
+    footer {
+      justify-content: center;
+      text-align: center;
+    }
+  }
+
   .button {
     display: inline-flex;
     padding: 0.9rem 1.75rem;
@@ -101,11 +122,13 @@ import CopyCommand from './CopyCommand.astro';
     color: #9e2520;
     font-weight: 600;
     text-decoration: none;
-    transition: transform 150ms;
+    transition: background-color 150ms;
   }
 
+  /* On the ruby band the button lightens to the paper wash, the band's own
+     pale. Ruby would vanish here. */
   .button:hover {
-    transform: translateY(-1px);
+    background: var(--carton-ruby-wash);
   }
 
   .closing :focus-visible {
@@ -130,15 +153,17 @@ import CopyCommand from './CopyCommand.astro';
     gap: 0.5rem 1.75rem;
   }
 
+  /* No underline in any state. The band is one fixed ruby in both themes, so
+     hover goes to the ink colour rather than ruby, which would vanish on it. */
   nav a {
     color: #fff;
     font-weight: 600;
     text-decoration: none;
+    transition: color 150ms;
   }
 
   nav a:hover {
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
+    color: #1f1b18;
   }
 
   footer p {

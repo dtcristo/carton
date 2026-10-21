@@ -38,6 +38,13 @@ bigdecimal (<span class="s">3.3.1</span>)</code></pre>
     padding-block: 2rem 1rem;
   }
 
+  /* Single column: side margins so the tray never meets the screen edge. */
+  @media (max-width: 63.99rem) {
+    .compartments {
+      padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+    }
+  }
+
   h2 {
     margin: 0 0 1.75rem;
     font-size: var(--sl-text-h2);
