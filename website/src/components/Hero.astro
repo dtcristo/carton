@@ -87,6 +87,7 @@ import CopyCommand from './CopyCommand.astro';
     .hero {
       padding-inline: clamp(1rem, 4vw, 2.5rem);
     }
+
   }
 
   /* Desktop from 64rem: two 30rem columns that never change width. The gap
@@ -194,56 +195,55 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1rem;
   }
 
+  /* Both buttons share one base, so primary and secondary differ only in colour. */
   .actions .button {
     flex: 1 1 0;
     min-width: 0;
-    justify-content: center;
     padding-inline: 1.5rem;
     white-space: nowrap;
   }
 
-  /* Narrow phones: tighter button padding so both labels fit on one row. */
   @media (max-width: 30rem) {
     .actions .button {
       padding-inline: 1rem;
     }
   }
 
-  .cta :global(.copy-command) {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  /* Secondary buttons keep their outline and card fill; only the label turns
-     ruby. Primary deepens its fill. Both transition the same way. */
   .button {
     display: inline-flex;
     align-items: center;
-    padding: 0.9rem 1.75rem;
-    border-radius: 999px;
+    justify-content: center;
+    padding-block: 0.9rem;
     border: 1px solid var(--carton-line);
+    border-radius: 999px;
     background: var(--carton-card);
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 150ms, color 150ms;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
   }
 
   .button:hover {
+    border-color: var(--carton-ruby);
     color: var(--carton-ruby);
   }
 
   /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
   .button.primary {
-    background: #cc342d;
     border-color: #cc342d;
+    background: #cc342d;
     color: #fff;
   }
 
   .button.primary:hover {
-    background: #9e2520;
     border-color: #9e2520;
+    background: #9e2520;
     color: #fff;
+  }
+
+  .cta :global(.copy-command) {
+    display: flex;
+    justify-content: space-between;
   }
 
   /* The figure: code cards like the docs', each Carton a ruby-tinted tray. */
@@ -253,6 +253,23 @@ import CopyCommand from './CopyCommand.astro';
     display: grid;
     gap: 2rem;
     font-size: var(--sl-text-sm);
+  }
+
+  /* Single column, every width: a little air between the install command and
+     the code examples. Declared after .demo so its margin wins. */
+  @media (max-width: 67.99rem) {
+    .demo {
+      margin-top: 1.5rem;
+    }
+  }
+
+  /* Single column with search: the code column keeps the desktop column width,
+     centred like the copy column. Declared after .demo so its margin wins. */
+  @media (min-width: 50rem) and (max-width: 67.99rem) {
+    .demo {
+      width: min(100%, 32rem);
+      margin-inline: auto;
+    }
   }
 
   .file {

@@ -107,21 +107,25 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
+  /* The band's button is the paper-coloured primary: the same shape as Hero's,
+     with fixed colours so it reads the same in both themes. */
   .button {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0.9rem 1.75rem;
+    border: 1px solid #fff;
     border-radius: 999px;
     background: #fff;
     color: #9e2520;
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 150ms;
+    transition: background-color 150ms, border-color 150ms;
   }
 
-  /* On the ruby band the button lightens to the paper wash, the band's own
-     pale. Ruby would vanish here. */
   .button:hover {
-    background: var(--carton-ruby-wash);
+    border-color: #fbe9e6;
+    background: #fbe9e6;
   }
 
   /* The install command sits on the ruby band as a paper card in both themes,
