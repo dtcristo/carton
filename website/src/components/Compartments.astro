@@ -38,24 +38,16 @@ bigdecimal (<span class="s">3.3.1</span>)</code></pre>
     padding-block: 2rem 1rem;
   }
 
-  /* Single column: the heading and the card prose centre, with side margins
-     so the tray never meets the screen edge. Code stays left-aligned. */
+  /* Single column: the headings centre, with side margins so the tray never
+     meets the screen edge. Prose and code stay left-aligned. */
   @media (max-width: 63.99rem) {
     .compartments {
       padding-inline: clamp(1.25rem, 5vw, 2.5rem);
     }
 
-    h2 {
+    h2,
+    h3 {
       text-align: center;
-    }
-
-    h3,
-    article > p {
-      text-align: center;
-    }
-
-    article > p {
-      margin-inline: auto;
     }
   }
 
