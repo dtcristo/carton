@@ -1,13 +1,13 @@
 ---
 title: Why Carton
-description: The boundary Ruby is missing, how Carton compares with Bundler and Packwerk, and what a Box does not isolate.
+description: How Carton's imports, exports, and runtime boundaries compare with Bundler and Packwerk, and what Ruby::Box does not isolate.
 sidebar:
   order: 1
 ---
 
 Ruby has gems to share code and Bundler to pick their versions, but nothing inside an app draws a boundary. Every file loads into one namespace: any code can reach any constant, a monkey patch applies everywhere, and one Gemfile fixes one version of each gem for the whole process. A boundary is a convention.
 
-Split an app into Cartons that import and export like plain modules. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundary while code runs:
+Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundaries at runtime:
 
 - other Cartons reach **only what a Carton exports**;
 - **monkey patches to builtin classes**, such as `String#blank?`, stay in the Carton that makes them;

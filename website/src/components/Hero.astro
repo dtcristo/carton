@@ -18,7 +18,7 @@ import CopyCommand from './CopyCommand.astro';
       </div>
     </div>
     <p class="lede">
-      Split an app into Cartons that import and export like plain modules. Each Carton runs in its own <code>Ruby::Box</code>, so Ruby enforces the boundary while code runs.
+      Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate <code>Ruby::Box</code>, so Ruby enforces the boundaries at runtime.
     </p>
     <div class="cta">
       <div class="actions">
@@ -150,8 +150,8 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
-  /* Lockup and paragraph share one 30rem block, centred; the action area is 24rem.
-     Phones shrink the block to the screen. The paragraph is left-aligned. */
+  /* Lockup and paragraph share one centred block; the action area is 24rem.
+     Phones shrink the block to the screen. */
   .lede {
     width: 100%;
     margin-inline: auto;
@@ -167,6 +167,7 @@ import CopyCommand from './CopyCommand.astro';
 
   .lede {
     margin-block: 2.25rem 0;
+    text-align: center;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);

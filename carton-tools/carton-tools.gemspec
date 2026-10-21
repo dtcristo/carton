@@ -10,8 +10,8 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Static checks and RBS for Carton'
   spec.description =
-    'The carton command for Carton, the package system Ruby has been ' \
-      'missing. carton check reports import and export problems and carton ' \
+    'The carton command for Carton apps with explicit imports and exports. ' \
+      'carton check reports import and export problems and carton ' \
       'rbs writes RBS for what each import returns, reading code with Prism ' \
       'without running it. Requires Ruby 4.0.7+.'
   spec.homepage = 'https://github.com/dtcristo/carton'
