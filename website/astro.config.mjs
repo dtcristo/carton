@@ -23,7 +23,7 @@ export default defineConfig({
         { tag: 'meta', attrs: { property: 'og:image', content: `${SITE}/og-image.png` } },
         { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
-        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Carton: real boundaries for Ruby' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Carton: Real boundaries for Ruby' } },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
         { tag: 'meta', attrs: { name: 'twitter:image', content: `${SITE}/og-image.png` } },
       ],
