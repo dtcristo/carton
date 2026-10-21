@@ -59,11 +59,20 @@ export default defineConfig({
       },
       plugins: [starlightLinksValidator()],
       // Three sections, each a tab in src/components/Sidebar.astro, which
-      // shows only the current section's tree.
+      // shows only the selected section's tree.
       sidebar: [
         {
           label: 'Start here',
-          items: ['start/getting-started', 'start/why-carton', 'start/status'],
+          items: [
+            {
+              label: 'Start here',
+              items: [
+                'start/getting-started',
+                'start/why-carton',
+                'start/status',
+              ],
+            },
+          ],
         },
         {
           label: 'Guides',

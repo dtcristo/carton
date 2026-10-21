@@ -15,7 +15,7 @@ npm run preview  # serves dist/
 
 ## Layout
 
-- `src/content/docs/`: every page, as Markdown. The sidebar groups follow its directories: `start/`, `guides/`, `reference/`, `project/`.
+- `src/content/docs/`: every page, as Markdown. The sidebar has three sections: Start here, Guides, and Reference. Its pills switch the navigation tree without changing the current page. The Start here group nests Getting started, Why Carton, and Status.
 - `src/content/docs/index.mdx`: the homepage, built from components in `src/components/`.
 - `src/styles/theme.css`: colours and type.
 - `scripts/glossary.mjs`: writes the Glossary page from the repository's `CONTEXT.md` before each build, so edit `CONTEXT.md`, not the page.
