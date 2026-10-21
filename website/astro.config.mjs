@@ -81,6 +81,7 @@ export default defineConfig({
       components: {
         Hero: './src/components/Hero.astro',
         SocialIcons: './src/components/SocialIcons.astro',
+        Sidebar: './src/components/Sidebar.astro',
       },
       plugins: [starlightLinksValidator()],
       sidebar: [

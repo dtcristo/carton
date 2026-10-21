@@ -1,0 +1,77 @@
+---
+// The sidebar's section switcher, above Starlight's group list. Each tab is a
+// top-level section; the one holding the current page is highlighted. The
+// group list underneath is Starlight's own, unchanged.
+import Default from '@astrojs/starlight/components/Sidebar.astro';
+
+const sections = [
+  { label: 'Start here', href: '/start/getting-started/', path: '/start/', icon: 'rocket' },
+  { label: 'Guides', href: '/guides/cartons/', path: '/guides/', icon: 'book' },
+  { label: 'Reference', href: '/reference/kernel/', path: '/reference/', icon: 'info' },
+  { label: 'Project', href: '/project/why-carton/', path: '/project/', icon: 'puzzle' },
+];
+
+const here = Astro.url.pathname;
+---
+
+<nav class="section-tabs" aria-label="Sections">
+  {sections.map((s) => (
+    <a href={s.href} aria-current={here.startsWith(s.path) ? 'page' : undefined}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        {s.icon === 'rocket' && <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />}
+        {s.icon === 'book' && <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z" />}
+        {s.icon === 'info' && <><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></>}
+        {s.icon === 'puzzle' && <path d="M19.44 12.99 21 14.5a2.12 2.12 0 0 1-3 3l-1.5-1.5a1 1 0 0 0-1.41 0l-2.6 2.6a1 1 0 0 1-1.42 0L8.12 16.2a1 1 0 0 0-1.41 0L5.2 17.7a2.12 2.12 0 0 1-3-3L3.7 13a1 1 0 0 0 0-1.41L2.2 10.1a2.12 2.12 0 0 1 3-3L6.7 8.6a1 1 0 0 0 1.41 0l2.6-2.6a1 1 0 0 1 1.42 0l2.6 2.6a1 1 0 0 0 1.41 0l1.5-1.5a2.12 2.12 0 0 1 3 3L19.44 9.6a1 1 0 0 0 0 1.41z" />}
+      </svg>
+      <span>{s.label}</span>
+    </a>
+  ))}
+</nav>
+<Default />
+
+<style>
+  .section-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+    padding: 0.35rem;
+    border: 1px solid var(--carton-line);
+    border-radius: 0.9rem;
+    background: var(--carton-tab);
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  a svg {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--sl-color-gray-4);
+  }
+
+  a:hover {
+    color: var(--sl-color-white);
+  }
+
+  a[aria-current='page'] {
+    border-color: var(--carton-line);
+    background: var(--carton-card);
+    color: var(--sl-color-white);
+  }
+
+  a[aria-current='page'] svg {
+    color: var(--carton-ruby);
+  }
+</style>
