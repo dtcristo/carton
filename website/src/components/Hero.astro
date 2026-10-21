@@ -255,6 +255,14 @@ import CopyCommand from './CopyCommand.astro';
     font-size: var(--sl-text-sm);
   }
 
+  /* Single column, every width: a little air between the install command and
+     the code examples. Declared after .demo so its margin wins. */
+  @media (max-width: 67.99rem) {
+    .demo {
+      margin-top: 1.5rem;
+    }
+  }
+
   /* Single column with search: the code column keeps the desktop column width,
      centred like the copy column. Declared after .demo so its margin wins. */
   @media (min-width: 50rem) and (max-width: 67.99rem) {
