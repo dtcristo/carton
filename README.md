@@ -69,7 +69,7 @@ Guides and reference live at [carton.dtcristo.com](https://carton.dtcristo.com) 
 
 - [design.md](docs/design.md), [performance.md](docs/performance.md), [todo.md](docs/todo.md), and [internals/](docs/internals/)
 - [CONTEXT.md](CONTEXT.md): the glossary
-- [examples/](examples/README.md): runnable apps, starting with [minimal](examples/minimal/README.md); run one with `bundle exec rake example:<name>`
+- [Examples](https://carton.dtcristo.com/guides/examples/): runnable apps, starting with [minimal](https://carton.dtcristo.com/guides/examples/minimal/); run one with `bundle exec rake example:<name>`
 
 The `carton` command, for RBS and boundary checks, is in the [`carton-tools`](carton-tools/README.md) gem.
 
