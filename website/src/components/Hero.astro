@@ -73,33 +73,26 @@ import CopyCommand from './CopyCommand.astro';
     gap: 3rem;
     align-items: center;
     padding-block: 2rem 4rem;
-    padding-inline: clamp(0px, calc(4vw - 1rem), 2.5rem);
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
   }
 
-  /* Two columns from 60rem. The left column is a fixed 30rem, so its copy never
-     reflows; the gap between the columns gives way as the window narrows, from
-     6rem down to 2rem at the snap. Side margins match the sections below. */
-  /* From 60rem the page is a centred 1080px container, which only leaves a
-     margin below about 1200px. Extra side padding fills that gap, so the
-     hero keeps a 40px edge at the snap and nothing changes wider than 1280px. */
+  /* Two columns from 60rem. The left column is a fixed 30rem, so its copy does
+     not reflow; the gap gives way as the window narrows. */
   @media (min-width: 60rem) {
     .hero {
       grid-template-columns: 30rem minmax(0, 1fr);
-      gap: clamp(2rem, calc(100vw - 58rem), 6rem);
+      gap: clamp(2rem, 8vw, 6rem);
       padding-block: 4rem 5rem;
-      padding-inline: clamp(0px, calc(2.5rem - max(1rem, (100vw - 67.5rem) / 2)), 1.5rem);
     }
 
-    /* Held at the desktop size across the two-column range, so the lockup
-       does not shrink as the window narrows. */
+    /* Fixed across the two-column range so the lockup does not shrink. */
     .lockup {
       --wordmark: 6rem;
     }
   }
 
-  /* The logo stays a broad mark beside the wordmark: it tracks the wordmark
-     with a 7rem floor, so it never shrinks to a badge, and caps at 9rem. The
-     tagline is a fixed share of the wordmark, so the two lines match in width. */
+  /* The logo tracks the wordmark with a 7rem floor and a 9rem cap. The tagline
+     is a fixed share of the wordmark, so the two lines match in width. */
   .lockup {
     --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
     display: flex;
@@ -141,10 +134,8 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
-  /* The copy column: the lockup and paragraph share one 30rem block at every
-     width, centred, and the buttons below are 24rem. Phones shrink it to the
-     screen. The paragraph is left-aligned and its wording is set so the lines
-     fill the block at desktop and tablet widths. */
+  /* Lockup and paragraph share one 30rem block, centred; the buttons are 24rem.
+     Phones shrink the block to the screen. The paragraph is left-aligned. */
   .lockup,
   .lede {
     width: min(100%, 30rem);
@@ -167,7 +158,7 @@ import CopyCommand from './CopyCommand.astro';
     font-weight: 500;
   }
 
-  /* The install command spans the same width as the two buttons above it. */
+  /* The install command matches the width of the buttons above it. */
   .cta {
     display: grid;
     gap: 2rem;
@@ -190,9 +181,7 @@ import CopyCommand from './CopyCommand.astro';
     white-space: nowrap;
   }
 
-  /* Below the two-column layout the actions keep the desktop block: centred,
-     the buttons side by side, and the install command at their shared width.
-     On phones the pill padding tightens so both labels fit on one row. */
+  /* Narrow phones: tighter button padding so both labels fit on one row. */
   @media (max-width: 30rem) {
     .actions .button {
       padding-inline: 1rem;
