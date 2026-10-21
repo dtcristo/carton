@@ -93,6 +93,32 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1rem;
   }
 
+  /* Single column: the band's text and actions centre, with side margins so
+     the copy never meets the screen edge. */
+  @media (max-width: 63.99rem) {
+    .closing {
+      padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+      text-align: center;
+    }
+
+    p {
+      margin-inline: auto;
+    }
+
+    .actions {
+      justify-content: center;
+    }
+
+    nav {
+      justify-content: center;
+    }
+
+    footer {
+      justify-content: center;
+      text-align: center;
+    }
+  }
+
   .button {
     display: inline-flex;
     padding: 0.9rem 1.75rem;
