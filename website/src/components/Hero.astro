@@ -175,6 +175,8 @@ import CopyCommand from './CopyCommand.astro';
     justify-content: space-between;
   }
 
+  /* Secondary buttons keep their outline and card fill; only the label turns
+     ruby. Primary deepens its fill. Both transition the same way. */
   .button {
     display: inline-flex;
     align-items: center;
@@ -185,11 +187,11 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;
-    transition: border-color 150ms;
+    transition: background-color 150ms, color 150ms;
   }
 
   .button:hover {
-    border-color: var(--sl-color-gray-4);
+    color: var(--carton-ruby);
   }
 
   /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
@@ -202,6 +204,7 @@ import CopyCommand from './CopyCommand.astro';
   .button.primary:hover {
     background: #9e2520;
     border-color: #9e2520;
+    color: #fff;
   }
 
   /* The figure: code cards like the docs', each Carton a ruby-tinted tray. */

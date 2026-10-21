@@ -101,11 +101,13 @@ import CopyCommand from './CopyCommand.astro';
     color: #9e2520;
     font-weight: 600;
     text-decoration: none;
-    transition: transform 150ms;
+    transition: background-color 150ms;
   }
 
+  /* On the ruby band the button lightens to the paper wash, the band's own
+     pale. Ruby would vanish here. */
   .button:hover {
-    transform: translateY(-1px);
+    background: var(--carton-ruby-wash);
   }
 
   .closing :focus-visible {
@@ -130,15 +132,17 @@ import CopyCommand from './CopyCommand.astro';
     gap: 0.5rem 1.75rem;
   }
 
+  /* No underline in any state. Ruby would vanish on the ruby band, so hover
+     lightens to the wash instead. */
   nav a {
     color: #fff;
     font-weight: 600;
     text-decoration: none;
+    transition: color 150ms;
   }
 
   nav a:hover {
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
+    color: var(--carton-ruby-wash);
   }
 
   footer p {
