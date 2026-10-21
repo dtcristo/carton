@@ -1,6 +1,6 @@
 ---
 title: Examples
-description: Runnable apps in the repository, from the smallest boundary to plugins and Rails, and how to run them.
+description: Runnable apps in the repository, from the smallest boundary to plugins, Rails, and Hanami, and how to run them.
 sidebar:
   label: Overview
   order: 0
@@ -20,6 +20,7 @@ The repository's [examples](/guides/examples/) are small, separate programs, and
 | How do autoloading and reloading interact with imports? | [zeitwerk](/guides/examples/zeitwerk/): loaders per Box, lazy namespaces, and references that stay stale after reload |
 | How do I use Carton with Rails today? | [rails_with_carton_domain](/guides/examples/rails-with-carton-domain/): Customers and Billing own registration, validation, and invoice issuance; Rails hosts HTTP and persistence |
 | Can Rails itself live inside Cartons? | [rails_in_cartons](/guides/examples/rails-in-cartons/), experimental: the same Customers/Billing workflow inside Rails Engines, with Carton-owned loaders and an explicit CLI bridge |
+| Can Hanami, Dry, and Rom live inside Cartons? | [hanami_in_cartons](/guides/examples/hanami-in-cartons/): the same Customers/Billing workflow in Hanami slices, with contracts, operations, ROM repos, views, and a CLI bridge |
 
 `gems`, `bundler`, and `plugins` all load conflicting bigdecimal versions, but teach different loading choices: `gems` is the shortest version-isolation demonstration, `bundler` shows setup details, and `plugins` applies them.
 
