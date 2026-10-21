@@ -1,0 +1,9 @@
+---
+// Starlight's head, plus Astro's client router. With the router, moving between
+// pages swaps the page in place instead of reloading the whole document.
+import Default from '@astrojs/starlight/components/Head.astro';
+import { ClientRouter } from 'astro:transitions';
+---
+
+<Default />
+<ClientRouter />
