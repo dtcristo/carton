@@ -63,7 +63,16 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Start here',
-          items: ['start/getting-started', 'start/why-carton', 'start/status'],
+          items: [
+            {
+              label: 'Getting started',
+              items: [
+                { slug: 'start/getting-started', label: 'Quick start' },
+                'start/why-carton',
+                'start/status',
+              ],
+            },
+          ],
         },
         {
           label: 'Guides',
