@@ -138,12 +138,16 @@ import CopyCommand from './CopyCommand.astro';
   /* Hero copy is left-aligned at every width. Single column (below 64rem) the
      paragraph caps at a readable measure. It takes no min-width: a floor would
      overflow phones. text-wrap keeps the last line from orphaning one word. */
+  /* Justified so both edges of the paragraph meet the lockup's width. Hyphens
+     keep the word gaps even; the last line stays left-aligned. */
   .lede {
     margin-block: 2.25rem 0;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
-    text-wrap: pretty;
+    text-align: justify;
+    text-align-last: left;
+    hyphens: auto;
   }
 
   /* The hero's copy column is one 30rem block at every width: the lockup and
