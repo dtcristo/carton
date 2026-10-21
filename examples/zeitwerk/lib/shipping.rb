@@ -25,7 +25,7 @@ loader = Zeitwerk::Loader.new
 loader.nsfile = 'ns.rb'
 loader.push_dir(File.join(__dir__, 'shipping'), namespace: Shipping)
 # Carriers stays lazy, so its autoload, which points at its ns.rb, is
-# triggered from the Main Box; see the README.
+# triggered from the Main Box; see this example's guide on the website.
 loader.do_not_eager_load(File.join(__dir__, 'shipping', 'carriers'))
 loader.enable_reloading
 loader.setup

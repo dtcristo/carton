@@ -1,0 +1,28 @@
+---
+// A file from the repository's examples/, read at build time, so a page shows
+// the code CI runs. `path` is relative to examples/; a missing file fails the
+// build. The magic comment every Ruby file starts with is left out.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  path: string;
+  // The card's filename tab; defaults to the path inside the example.
+  title?: string;
+}
+
+const { path, title } = Astro.props;
+// EXAMPLES_DIR is set in astro.config.mjs from its own location, so it holds
+// wherever Astro runs from.
+const file = join(import.meta.env.EXAMPLES_DIR, path);
+const code = readFileSync(file, 'utf8')
+  .replace(/^# frozen_string_literal: true\n\n?/, '')
+  .trimEnd();
+const name = path.split('/').slice(1).join('/');
+const langs: Record<string, string> = { rbs: 'rbs', erb: 'erb', yml: 'yaml', md: 'md' };
+const extension = name.includes('.') ? name.split('.').pop()! : '';
+const lang = langs[extension] ?? 'ruby';
+---
+
+<Code code={code} lang={lang} title={title ?? name} />

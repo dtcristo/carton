@@ -1,8 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { fileURLToPath } from 'node:url';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
-import { cartonCode, themes } from './src/expressive-code.mjs';
 
 const SITE = 'https://carton.dtcristo.com';
 
@@ -10,6 +10,19 @@ export default defineConfig({
   site: SITE,
   // Prebuilt HTML only: no adapter, no server runtime.
   output: 'static',
+  // The repository's examples/, which src/components/ExampleFile.astro reads.
+  vite: {
+    define: {
+      'import.meta.env.EXAMPLES_DIR': JSON.stringify(fileURLToPath(new URL('../examples/', import.meta.url))),
+    },
+  },
+  // Pages that moved when the sections became Start here, Guides, and Reference.
+  redirects: {
+    '/project/why-carton/': '/start/why-carton/',
+    '/project/status/': '/start/status/',
+    '/project/glossary/': '/reference/glossary/',
+    '/start/examples/': '/guides/examples/',
+  },
   integrations: [
     starlight({
       title: 'Carton',
@@ -38,46 +51,6 @@ export default defineConfig({
         baseUrl: 'https://github.com/dtcristo/carton/edit/main/website/',
       },
       customCss: ['./src/styles/theme.css'],
-      // Code cards follow the Ruby::Box talk: a filename tab from a leading
-      // `# path` comment or a `title`, and shell commands on a dark card.
-      expressiveCode: {
-        themes,
-        plugins: [cartonCode()],
-        useStarlightUiThemeColors: false,
-        minSyntaxHighlightingColorContrast: 4.5,
-        defaultProps: {
-          overridesByLang: { sh: { frame: 'none' } },
-        },
-        styleOverrides: {
-          borderRadius: '0.9rem',
-          borderColor: 'var(--carton-line)',
-          borderWidth: '1px',
-          codeBackground: 'var(--carton-card)',
-          codeFontFamily: 'var(--sl-font-mono)',
-          codeFontSize: '0.875rem',
-          codeLineHeight: '1.65',
-          codePaddingBlock: '1.1rem',
-          codePaddingInline: '1.35rem',
-          uiFontFamily: 'var(--sl-font-mono)',
-          frames: {
-            frameBoxShadowCssValue: 'var(--carton-shadow)',
-            editorTabBarBackground: 'var(--carton-tab)',
-            editorTabBarBorderBottomColor: 'var(--carton-line)',
-            editorActiveTabBackground: 'var(--carton-tab)',
-            editorActiveTabForeground: 'var(--carton-ink-soft)',
-            editorActiveTabBorderColor: 'transparent',
-            editorActiveTabIndicatorTopColor: 'transparent',
-            editorActiveTabIndicatorBottomColor: 'transparent',
-            editorTabBorderRadius: '0',
-            terminalTitlebarBackground: 'var(--carton-tab)',
-            terminalTitlebarBorderBottomColor: 'var(--carton-line)',
-            terminalBackground: 'var(--carton-card)',
-            inlineButtonBackground: 'var(--carton-ink-soft)',
-            inlineButtonForeground: 'var(--carton-ink-soft)',
-            inlineButtonBorder: 'var(--carton-line)',
-          },
-        },
-      },
       components: {
         Hero: './src/components/Hero.astro',
         SocialIcons: './src/components/SocialIcons.astro',
@@ -85,11 +58,44 @@ export default defineConfig({
         Head: './src/components/Head.astro',
       },
       plugins: [starlightLinksValidator()],
+      // Three sections, each a tab in src/components/Sidebar.astro, which
+      // shows only the current section's tree.
       sidebar: [
-        { label: 'Start here', items: [{ autogenerate: { directory: 'start' } }] },
-        { label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
-        { label: 'Reference', items: [{ autogenerate: { directory: 'reference' } }] },
-        { label: 'Project', items: [{ autogenerate: { directory: 'project' } }] },
+        {
+          label: 'Start here',
+          items: ['start/getting-started', 'start/why-carton', 'start/status'],
+        },
+        {
+          label: 'Guides',
+          items: [
+            {
+              label: 'Concepts',
+              items: [
+                'guides/cartons',
+                'guides/exporting',
+                'guides/importing',
+                'guides/bare-cartons',
+                'guides/sharing-classes',
+              ],
+            },
+            {
+              label: 'How-to',
+              items: ['guides/bundler', 'guides/testing', 'guides/types-and-checks', 'guides/rails'],
+            },
+            { label: 'Examples', items: [{ autogenerate: { directory: 'guides/examples' } }] },
+          ],
+        },
+        {
+          label: 'Reference',
+          items: [
+            {
+              label: 'API',
+              items: ['reference/kernel', 'reference/carton', 'reference/namespace', 'reference/errors'],
+            },
+            { label: 'CLI', items: [{ autogenerate: { directory: 'reference/cli' } }] },
+            'reference/glossary',
+          ],
+        },
       ],
     }),
   ],

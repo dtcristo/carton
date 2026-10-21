@@ -7,7 +7,7 @@ sidebar:
 
 A file that never calls `export` is a Bare Carton. Importing it returns a [`Carton::Namespace`](/reference/namespace/) of the constants and top-level methods, called Helpers, that the file defines, as if it had exported them all.
 
-Its Box stays private, so an importer cannot `eval` or `require` inside it. Bare Cartons suit existing code you want to load in a Box without changing it; new Cartons should export deliberately.
+Its Box stays private, so an Importer cannot `eval` or `require` inside it. Bare Cartons suit existing code you want to load in a Box without changing it; new Cartons should export deliberately.
 
 ```ruby
 # main.rb

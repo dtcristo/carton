@@ -1,0 +1,82 @@
+---
+// One declaration from sig/carton.rbs, shown the way YARD heads a method or
+// class: its full name, its kind, a link to its source, and the RBS itself.
+// src/reference.test.mjs checks every declaration in sig/carton.rbs has one,
+// with the same text and visibility.
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  // The module or class the declaration belongs to, such as `Kernel`.
+  owner: string;
+  // The declaration as written in sig/carton.rbs, overloads included.
+  rbs: string;
+  private?: boolean;
+  // A path in the repository, such as `lib/carton/kernel_patch.rb#L9`.
+  source?: string;
+}
+
+const { owner, rbs, private: isPrivate, source } = Astro.props;
+const [kind, name] = describe(rbs.trim());
+
+function describe(text: string): [string, string] {
+  let m;
+  if ((m = text.match(/^(module|class) (\S+)/))) return [m[1], m[2]];
+  if ((m = text.match(/^include ::(\S+)/))) return ['included module', m[1]];
+  if ((m = text.match(/^def self\.([^:\s]+):/))) return ['class method', `${owner}.${m[1]}`];
+  if ((m = text.match(/^def ([^:\s]+):/))) return ['instance method', `${owner}#${m[1]}`];
+  if ((m = text.match(/^type (\w+)/))) return ['type', `${owner}::${m[1]}`];
+  if ((m = text.match(/^([A-Z]\w*):/))) return ['constant', `${owner}::${m[1]}`];
+  throw new Error(`Signature cannot describe: ${text}`);
+}
+---
+
+<div class="api-signature">
+  <div class="api-head">
+    <code class="api-name">{name}</code>
+    <span class="api-kind">{isPrivate ? `private ${kind}` : kind}</span>
+    {source && <a class="api-source" href={`https://github.com/dtcristo/carton/blob/main/${source}`}>source</a>}
+  </div>
+  <Code code={rbs.trim()} lang="rbs" frame="none" />
+</div>
+
+<style>
+  .api-signature {
+    margin-top: 1rem;
+  }
+
+  .api-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .api-name {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sl-color-white);
+    font-size: var(--sl-text-base);
+    font-weight: 600;
+  }
+
+  .api-kind {
+    padding: 0.05rem 0.55rem;
+    border: 1px solid var(--carton-line);
+    border-radius: 999px;
+    background: var(--carton-tab);
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+  }
+
+  .api-source {
+    margin-left: auto;
+    font-size: var(--sl-text-xs);
+  }
+
+  .api-signature :global(.expressive-code) {
+    margin-top: 0;
+  }
+</style>

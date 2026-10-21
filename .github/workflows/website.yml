@@ -1,7 +1,8 @@
 name: Website
 
-# Builds the site on every change to it, and deploys to Cloudflare Workers
-# only from main. The deploy job's `website` environment holds the
+# Builds and tests the site on every change to it, the examples it shows, or
+# the RBS its reference checks, and deploys to Cloudflare Workers only from
+# main. The deploy job's `website` environment holds the
 # Cloudflare secrets; restrict it to the main branch in the repository
 # settings so pull requests can never reach them.
 on:
@@ -10,12 +11,16 @@ on:
     paths:
       - website/**
       - CONTEXT.md
+      - examples/**
+      - sig/**
       - .mise.toml
       - .github/workflows/website.yml
   pull_request:
     paths:
       - website/**
       - CONTEXT.md
+      - examples/**
+      - sig/**
       - .mise.toml
       - .github/workflows/website.yml
   workflow_dispatch:

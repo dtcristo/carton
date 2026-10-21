@@ -1,0 +1,57 @@
+---
+// A labelled part of an API entry, like a YARD tag: Parameters, Returns,
+// Raises, or Example. The slot is ordinary Markdown.
+interface Props {
+  label: 'Parameters' | 'Options' | 'Yields' | 'Returns' | 'Raises' | 'Example' | 'Aliases' | 'See also';
+}
+
+const { label } = Astro.props;
+---
+
+<div class="api-tag">
+  <div class="api-tag-label">{label}</div>
+  <div class="api-tag-body"><slot /></div>
+</div>
+
+<style>
+  .api-tag {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Starlight spaces every Markdown sibling apart; in this grid the label and
+     body sit side by side, so neither gets that top margin. */
+  .api-tag > * {
+    margin-top: 0 !important;
+  }
+
+  .api-tag-label {
+    padding-top: 0.15rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .api-tag-body > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .api-tag-body :global(ul) {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .api-tag-body :global(li + li) {
+    margin-top: 0.35rem;
+  }
+
+  @media (max-width: 40rem) {
+    .api-tag {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

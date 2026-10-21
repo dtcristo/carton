@@ -12,7 +12,7 @@ title: Glossary
 description: The terms Carton's docs and code use, and the words they avoid.
 editUrl: https://github.com/dtcristo/carton/edit/main/CONTEXT.md
 sidebar:
-  order: 3
+  order: 9
 ---
 
 {/* Generated from CONTEXT.md by scripts/glossary.mjs. Edit that file instead. */}
@@ -21,6 +21,6 @@ These are the words Carton's docs, code, and errors use. Each entry lists the wo
 ${language.replaceAll(/^### /gm, '## ')}`;
 
 writeFileSync(
-  new URL('src/content/docs/project/glossary.mdx', new URL('../', import.meta.url)),
+  new URL('src/content/docs/reference/glossary.mdx', new URL('../', import.meta.url)),
   page,
 );

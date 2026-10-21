@@ -12,7 +12,7 @@ require 'zeitwerk'
 # lib/billing/), so for_gem needs no configuration.
 loader = Zeitwerk::Loader.for_gem
 # Archive stays lazy to show that an autoload triggered from another Box still
-# runs here; see the README.
+# runs here; see this example's guide on the website.
 loader.do_not_eager_load(File.join(__dir__, 'billing', 'archive.rb'))
 loader.setup
 

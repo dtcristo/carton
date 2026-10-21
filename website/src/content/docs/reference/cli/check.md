@@ -1,40 +1,42 @@
 ---
-title: carton command
-description: Reference for carton rbs and carton check, from the carton-tools gem.
+title: carton check
+description: Reference for carton check, which reports import and export problems without running code, as text or JSON.
 sidebar:
-  order: 5
+  order: 1
 ---
 
-The `carton` command comes from the `carton-tools` gem. It reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`.
+Reports import and export problems without running code. See [Types and checks](/guides/types-and-checks/) for how to use it.
 
-```sh
-carton COMMAND [options] PATH...
+## Synopsis
+
+```text
+Usage: carton check [options] PATH...
+    -I, --include DIR                Add DIR to the load path for named imports
+        --strict                     Fail on warnings too, not only errors
+        --format FORMAT              text (default) or json
 ```
 
-`PATH` is a Ruby file or a directory of them, such as `main.rb` or `app`. Imports are followed into every Carton they reach. Named imports resolve against `-I` directories, then the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app.
+## Options
 
-| Option | Commands | Effect |
-| --- | --- | --- |
-| `-I`, `--include DIR` | both | Add `DIR` to the load path for named imports |
-| `-o`, `--output FILE` | `rbs` | Where to write the RBS; `-` for stdout |
-| `--strict` | `check` | Fail on warnings too, not only errors |
-| `--format FORMAT` | `check` | `text` (default) or `json` |
+| Option | Effect |
+| --- | --- |
+| `-I`, `--include DIR` | Add `DIR` to the load path for named imports. Repeatable. |
+| `--strict` | Exit 1 on warnings too, not only errors |
+| `--format FORMAT` | `text` (default) or `json` |
 
-Exit status is 0 on success, 1 when `check` finds errors (or warnings with `--strict`), and 2 for a usage error.
+## Exit status
 
-## `carton rbs`
+0 when there are no errors, 1 when there are errors (or any problem with `--strict`), and 2 for a usage error. JSON output has the same statuses.
 
-Writes RBS for what each import returns, by default to `sig/generated/carton.rbs`. See [Types and checks](/guides/types-and-checks/#rbs-for-imports).
+## Problems
 
-## `carton check`
-
-Prints each problem as `file:line: level: message`, then a summary line.
+Text output prints each problem as `file:line: level: message`, then a summary line of files, Cartons, errors, and warnings.
 
 | Level | Problem |
 | --- | --- |
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
-| error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
+| error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a Second Copy |
 | error | `export` twice in calls that can both run (calls in different branches of one `if` or `case` cannot), `export` of a Symbol, or a Bare Carton Helper that would hide a `Carton::Namespace` method |
 | error | A Gem Carton importing or requiring a gem its gemspec does not declare |
 | error | A key a keyword or Hash literal export does not have, read with `fetch(:nope)` or a `=>` pattern. `[]`, `key?`, and `in` patterns return `nil` or `false` instead |
@@ -48,7 +50,7 @@ Prints each problem as `file:line: level: message`, then a summary line.
 
 Import-use warnings cover the scanned files, not reflection or generated code. An unbound import can run for its side effects and is not unused. Reopening checks follow direct constant bindings, including qualified and absolute paths, but cannot follow aliases or dynamic mutations such as `class_eval` and `define_method`. Subclassing and definitions of local classes do not warn. These checks add no runtime guard, and no check infers unused members of an exported module or Hash.
 
-### JSON reports
+## JSON output
 
 `carton check --format json main.rb` prints one JSON object with `problems` and the counts `files`, `cartons`, `errors`, and `warnings`. Each problem has `level`, `file`, `line`, and `message`:
 

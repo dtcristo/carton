@@ -3,4 +3,4 @@
 /.astro/
 /.wrangler/
 # Generated from ../CONTEXT.md by scripts/glossary.mjs.
-/src/content/docs/project/glossary.mdx
+/src/content/docs/reference/glossary.mdx

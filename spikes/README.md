@@ -8,7 +8,7 @@ These directories hold research, unsupported behavior and private-runtime experi
 | [Rails reloading](rails_reloading/README.md) | Can domain Cartons reload while an initialized Rails app and database remain? | Two serial edits work with explicit reference replacement and private cache inspection. No supported reload API. Uses the Rails-in-Cartons example as a read-only fixture. |
 | [Shared Gems](shared_gems/README.md) | Can public Ruby APIs reuse initialized gem definitions across independent Boxes? | Selected Active Support and Rails-domain checks work; ordinary gem loading and activation remain incompatible. |
 
-The [ordinary examples](../examples/README.md) demonstrate Carton use. Both Rails examples remain there: Rails in Main is the recommended setup today, and Rails in Cartons is an experimental integration direction. These spikes add no supported runtime API.
+The [ordinary examples](https://carton.dtcristo.com/guides/examples/) demonstrate Carton use. Both Rails examples remain there: Rails in Main is the recommended setup today, and Rails in Cartons is an experimental integration direction. These spikes add no supported runtime API.
 
 ## Run
 

@@ -18,7 +18,7 @@ Split an app into Cartons that import and export like plain modules. Each Carton
 | | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
 | --- | --- | --- | --- |
 | Boundaries inside an app | No | Checked statically, in CI | Enforced at runtime, and checked statically by `carton check` |
-| Private code | No | Privacy checks removed in 3.0 | Only exports cross; `private_constant` hides the rest |
+| Private code | No | Privacy checks removed in 3.0 | Only the Export crosses; `private_constant` hides the rest |
 | Constants loaded dynamically | n/a | Not seen | Inside the boundary like any other |
 | Gem versions | One per app | One per app | One per Carton |
 | Monkey patches to builtins | Global | Global | Stay in their Carton |
@@ -28,14 +28,14 @@ Static checks only see what they can parse. Packwerk's authors note that a packa
 
 ## What a Box does not isolate
 
-- **Shared objects.** Classes and objects a Carton exports are shared, not copied, so reopening an exported class or changing a shared object affects every importer. See [Sharing classes and services](/guides/sharing-classes/).
+- **Shared objects.** Classes and objects a Carton exports are shared, not copied, so reopening an exported class or changing a shared object affects every Importer. See [Sharing classes and services](/guides/sharing-classes/).
 - **Plain `require`.** A `require` of a Carton's files loads a Second Copy outside its boundary, which `carton check` reports.
 - **Process lifetime.** Each Carton loads once per process: its state lasts as long as the process, and its First Importer fixes its gem versions.
 - **Security.** Box isolates definitions and load state, not objects. It is not a sandbox.
 
 ## Where it fits today
 
-- **The domains of an app or a monorepo**, as tens of Cartons. See the [monorepo](https://github.com/dtcristo/carton/tree/main/examples/monorepo) example, and [Rails](/guides/rails/) for domain Cartons beside a Rails app in the Main Box.
-- **Plugin hosts whose plugins need conflicting gem versions**, which plain Ruby cannot load together; see [plugins](https://github.com/dtcristo/carton/tree/main/examples/plugins).
-- **Rails inside Cartons** is an experimental integration direction ([rails_in_cartons](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons)). It uses namespaced Rails Engines, explicit namespace registration, Carton-owned loaders, and an example-local Rails CLI bridge. Reloading remains unsupported. A separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) explores private runtime hooks; the ordinary example does not use them.
+- **The domains of an app or a monorepo**, as tens of Cartons. See the [monorepo](/guides/examples/monorepo/) example, and [Rails](/guides/rails/) for domain Cartons beside a Rails app in the Main Box.
+- **Plugin hosts whose plugins need conflicting gem versions**, which plain Ruby cannot load together; see [plugins](/guides/examples/plugins/).
+- **Rails inside Cartons** is an experimental integration direction ([rails_in_cartons](/guides/examples/rails-in-cartons/)). It uses namespaced Rails Engines, explicit namespace registration, Carton-owned loaders, and an example-local Rails CLI bridge. Rails reloading remains unsupported. A separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) explores private runtime hooks; the ordinary example does not use them.
 - **Not yet file by file.** Each Carton costs about 60 ms and 2.4 MB, most of it `Ruby::Box.new`, so aim for tens of Cartons, not hundreds.
