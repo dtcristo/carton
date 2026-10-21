@@ -83,7 +83,7 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
-  @media (min-width: 50rem) and (max-width: 63.99rem) {
+  @media (min-width: 50rem) and (max-width: 67.99rem) {
     .hero {
       padding-inline: clamp(1rem, 4vw, 2.5rem);
     }
@@ -92,11 +92,11 @@ import CopyCommand from './CopyCommand.astro';
   /* Desktop from 64rem: two 30rem columns that never change width. The gap
      gives way first, down to 2rem, and the layout snaps to one column once the
      content column can no longer hold both. */
-  @media (min-width: 64rem) {
+  @media (min-width: 68rem) {
     .hero {
-      grid-template-columns: 30rem 30rem;
+      grid-template-columns: 32rem 32rem;
       justify-content: center;
-      column-gap: clamp(2rem, 100% - 60rem, 6rem);
+      column-gap: clamp(2rem, 100% - 64rem, 6rem);
       padding-block: 4rem 5rem;
     }
 
@@ -157,7 +157,7 @@ import CopyCommand from './CopyCommand.astro';
   }
 
   /* Below the snap the copy is a 30rem block, centred. */
-  @media (max-width: 63.99rem) {
+  @media (max-width: 67.99rem) {
     .lockup,
     .lede {
       width: min(100%, 30rem);
