@@ -23,7 +23,7 @@ The application follows Hanami's shape: `config/app.rb`, `config/routes.rb`, `co
 2. `POST /invoices.json` with `invoice: { customer_id: 1, subtotal_cents: 4200 }` issues an invoice for an existing customer. Billing's provider imports Customers and injects its Directory into the operation.
 3. `GET /invoices/1.json` returns `id`, `customer_id`, `subtotal_cents`, `tax_cents`, and `total_cents`. `GET /invoices/1` renders HTML with the escaped customer name and formatted total.
 
-Both POSTs return 201. Form fields and JSON bodies work. Ten percent tax rounds half up using integer cents: 4200 yields 420 tax and 4620 total; 5 yields 1 tax. Reading a stored invoice retains its original tax. Blank names, fractional amounts, booleans, and invalid IDs return 422 with contract errors; missing customers or invoices return 404. A missing or non-object POST envelope returns 400.
+Both POSTs return 201. Form fields and JSON bodies work. Ten percent tax rounds half up using integer cents: 4200 yields 420 tax and 4620 total; 5 yields 1 tax. Reading a stored invoice retains its original tax. Blank names, fractional amounts, booleans, and invalid IDs return 422 with contract errors; missing customers or invoices return 404. A missing or non-object POST envelope, or malformed JSON, returns 400.
 
 ## Layout
 
@@ -114,7 +114,7 @@ Hanami's database provider manages the shared SQLite gateway; each slice owns it
 
 ## HTTP and views
 
-Actions translate operation results into status codes and JSON. The show action rehydrates the invoice with its stored tax and either returns JSON or renders its Hanami view. Template escaping handles customer names; the view formats integer cents without floating point arithmetic.
+Hanami's error renderer maps malformed JSON from its body-parser middleware to 400 in every environment. Actions translate operation results into status codes and JSON. The show action rehydrates the invoice with its stored tax and either returns JSON or renders its Hanami view. Template escaping handles customer names; the view formats integer cents without floating point arithmetic.
 
 <ExampleFile path="hanami_in_cartons/slices/billing/actions/invoices/create.rb" />
 
@@ -132,7 +132,7 @@ From the repository root:
 bundle exec rake example:hanami_in_cartons
 ```
 
-The task installs the locked bundle, runs the temporary-database demo, tests requests and Box ownership in lazy and eager modes, checks CLI commands and persistence across fresh processes, and starts Puma for a real HTTP workflow. For a persistent local app:
+The task installs the locked bundle, runs the temporary-database demo, tests requests and Box ownership in lazy and eager modes, checks CLI commands and persistence across fresh processes, and starts Puma in production mode for a real HTTP workflow. For a persistent local app:
 
 ```sh
 cd examples/hanami_in_cartons

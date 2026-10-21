@@ -40,6 +40,6 @@ class HanamiCommandsTest < Minitest::Test
         File.join(APP, 'test/workflow_test.rb'),
       )
     assert status.success?, output
-    assert_match(/8 runs, \d+ assertions, 0 failures, 0 errors/, output)
+    assert_match(/9 runs, \d+ assertions, 0 failures, 0 errors/, output)
   end
 end

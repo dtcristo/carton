@@ -17,7 +17,7 @@ class HanamiServerTest < Minitest::Test
   private
 
   def exercise_server(directory)
-    env = environment(directory, name: 'development')
+    env = environment(directory, name: 'production')
     hanami(env, 'db', 'migrate')
     port = TCPServer.open('127.0.0.1', 0) { |socket| socket.addr[1] }
     log = File.join(directory, 'puma.log')
@@ -36,6 +36,9 @@ class HanamiServerTest < Minitest::Test
     wait_for_server(port, log)
     http = Net::HTTP.new('127.0.0.1', port, nil)
     http.read_timeout = 10
+    malformed =
+      http.post('/customers', '{', 'Content-Type' => 'application/json')
+    assert_equal '400', malformed.code, malformed.body
     customer = post_json(http, '/customers', customer: { name: 'Ada' })
     invoice =
       post_json(

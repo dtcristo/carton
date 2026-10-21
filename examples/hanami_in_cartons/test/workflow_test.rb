@@ -23,6 +23,14 @@ class HanamiWorkflowTest < Minitest::Test
       end
   end
 
+  def test_malformed_json_is_a_bad_request
+    %w[/customers /invoices.json].each do |path|
+      response =
+        @http.post(path, 'CONTENT_TYPE' => 'application/json', :input => '{')
+      assert_equal 400, response.status, response.body
+    end
+  end
+
   def test_invalid_subtotals_and_customer_ids
     customer_id = register_customer('Ada').fetch('id')
     [-1, 1.5, true, '1.5', 'bad', ''].each do |subtotal|
