@@ -192,7 +192,6 @@ header.header {
   font-weight: 600;
   letter-spacing: -0.02em;
   text-decoration: none;
-  transition: color 150ms;
 }
 
 /* Header chrome shares one hover: ink at rest, ruby on hover, no underline and
@@ -204,7 +203,6 @@ header.header a[rel='me']:hover {
 
 header.header a[rel='me'] {
   color: var(--sl-color-white);
-  transition: color 150ms;
 }
 
 .site-title img {
