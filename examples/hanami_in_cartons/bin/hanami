@@ -2,10 +2,12 @@
 # frozen_string_literal: true
 
 require_relative '../../../lib/carton'
+
 module HanamiCLI
   App = import_relative '../shop'
   Framework = import_relative '../lib/framework'
 end
+
 script = File.expand_path(__FILE__)
 Dir.chdir(File.expand_path('..', __dir__))
 HanamiCLI::Framework.cli(ARGV.dup, script: script)

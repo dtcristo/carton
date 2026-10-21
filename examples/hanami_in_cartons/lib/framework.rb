@@ -1,16 +1,20 @@
 # frozen_string_literal: true
 
 require 'carton'
+
 # The framework's gems and singleton registries live in this Carton.
 Carton.setup_bundle
+
 require 'hanami'
 require 'hanami/db/relation'
 require 'hanami/db/repo'
 require 'dry/validation'
 require 'dry/operation'
+
 module Framework
   Hanami = ::Hanami
   Dry = ::Dry
+
   def self.register(namespace)
     name = namespace.name
     if Object.const_defined?(name, false)
@@ -33,4 +37,5 @@ module Framework
     Ruby::Box.current.require_relative 'framework/prepare'
   end
 end
+
 export Framework

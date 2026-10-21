@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
+
 gem 'carton', path: '../..'
 gem 'dry-operation', '~> 1.1'
 gem 'dry-validation', '~> 1.11'

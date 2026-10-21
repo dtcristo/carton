@@ -9,6 +9,7 @@ Hanami.app.configure_provider :db do
           ENV.fetch('DATABASE_URL', 'sqlite://db/shop.sqlite3'),
         )
     end
+
     gateway.database_url ||=
       ENV.fetch('DATABASE_URL', 'sqlite://db/shop.sqlite3')
   end
