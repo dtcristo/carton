@@ -1,22 +1,41 @@
 ---
-// The sidebar's section switcher, above Starlight's group list. Each tab is a
-// top-level section; the one holding the current page is highlighted. The
-// group list underneath is Starlight's own, unchanged.
-import Default from '@astrojs/starlight/components/Sidebar.astro';
+// The sidebar's section switcher. Each tab is a top-level section, stacked above
+// the sidebar. The tabs swap the whole tree: only the current section's groups
+// are listed below, rendered by Starlight's own sidebar components.
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
 
 const sections = [
-  { label: 'Start here', href: '/start/getting-started/', path: '/start/', icon: 'rocket' },
-  { label: 'Guides', href: '/guides/cartons/', path: '/guides/', icon: 'book' },
-  { label: 'Reference', href: '/reference/kernel/', path: '/reference/', icon: 'info' },
-  { label: 'Project', href: '/project/why-carton/', path: '/project/', icon: 'puzzle' },
+  { label: 'Start here', path: '/start/', icon: 'rocket' },
+  { label: 'Guides', path: '/guides/', icon: 'book' },
+  { label: 'Reference', path: '/reference/', icon: 'info' },
+  { label: 'Project', path: '/project/', icon: 'puzzle' },
 ];
 
+const { sidebar } = Astro.locals.starlightRoute;
 const here = Astro.url.pathname;
+const current = sections.find((s) => here.startsWith(s.path)) ?? sections[0];
+
+// A section's tab links to the first page in its tree.
+type Entry = { type: string; href?: string; label: string; entries?: Entry[] };
+function firstLink(entries: Entry[]): string | undefined {
+  for (const e of entries) {
+    if (e.type === 'link') return e.href;
+    const inner = e.entries && firstLink(e.entries);
+    if (inner) return inner;
+  }
+}
+const tabs = sections.map((s) => ({
+  ...s,
+  href: firstLink(sidebar.filter((g: Entry) => g.label === s.label) as Entry[]),
+}));
+const tree = sidebar.filter((g: Entry) => g.label === current.label);
 ---
 
 <nav class="section-tabs" aria-label="Sections">
-  {sections.map((s) => (
-    <a href={s.href} aria-current={here.startsWith(s.path) ? 'page' : undefined}>
+  {tabs.map((s) => (
+    <a href={s.href} aria-current={s === tabs.find((t) => t.label === current.label) ? 'page' : undefined}>
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
         {s.icon === 'rocket' && <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />}
         {s.icon === 'book' && <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z" />}
@@ -27,13 +46,18 @@ const here = Astro.url.pathname;
     </a>
   ))}
 </nav>
-<Default />
+<SidebarPersister>
+  <SidebarSublist sublist={tree} />
+</SidebarPersister>
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>
 
 <style>
   .section-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
     margin-bottom: 1.25rem;
     padding: 0.35rem;
     border: 1px solid var(--carton-line);
@@ -44,8 +68,8 @@ const here = Astro.url.pathname;
   a {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.5rem 0.6rem;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
     border: 1px solid transparent;
     border-radius: 0.6rem;
     color: var(--sl-color-gray-2);

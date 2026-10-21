@@ -226,10 +226,12 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 150ms, color 150ms;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
   }
 
+  /* Secondary: the outline and label take the ruby accent on hover. */
   .button:hover {
+    border-color: var(--carton-ruby);
     color: var(--carton-ruby);
   }
 

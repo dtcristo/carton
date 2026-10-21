@@ -118,10 +118,10 @@ import CopyCommand from './CopyCommand.astro';
     transition: background-color 150ms;
   }
 
-  /* On the ruby band the button lightens to the paper wash, the band's own
-     pale. Ruby would vanish here. */
+  /* On the ruby band the button lightens to a fixed pale in both themes. The
+     theme's wash token is dark in dark mode, so it can't be used here. */
   .button:hover {
-    background: var(--carton-ruby-wash);
+    background: #fbe9e6;
   }
 
   /* The install command sits on the ruby band as a paper card in both themes,
