@@ -129,7 +129,6 @@ import CopyCommand from './CopyCommand.astro';
 
   .lede {
     margin-block: 2.25rem 0;
-    max-width: 34rem;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
@@ -144,11 +143,11 @@ import CopyCommand from './CopyCommand.astro';
     font-weight: 500;
   }
 
-  /* The install command spans the same width as the two buttons above it. */
+  /* The text, buttons, and install command fill the hero's column. */
   .cta {
     display: grid;
     gap: 2rem;
-    width: fit-content;
+    width: 100%;
     margin-top: 2.5rem;
   }
 
@@ -156,6 +155,15 @@ import CopyCommand from './CopyCommand.astro';
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+  }
+
+  /* Below the two-column layout the buttons stretch to the full column width,
+     stacked, rather than sitting as small pills. */
+  @media (max-width: 63.99rem) {
+    .actions .button {
+      flex: 1 1 100%;
+      justify-content: center;
+    }
   }
 
   .cta :global(.copy-command) {
