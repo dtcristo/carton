@@ -26,7 +26,7 @@ import Tag from '../../../components/api/Tag.astro';
 
 Imports the Carton at `path` and returns its Export, or a [`Carton::Namespace`](/reference/namespace/) for a Bare Carton.
 
-The first import of a Carton loads its Entrypoint in a new Carton Box. Later imports of the same Entrypoint, by any path and from any Box, are Shared Imports and return the same value. A gem-shaped directory, such as `billing/` holding `lib/billing.rb`, resolves to its `lib/` Entrypoint.
+The first import of a Carton loads its Entrypoint in a new Carton Box. Later imports of the same Entrypoint, by any path and from any Box, are Shared Imports and return the same value. A Gem-shaped Directory, such as `billing/` holding `lib/billing.rb`, resolves to its `lib/` Entrypoint.
 
 <Tag label="Parameters">
 
@@ -43,7 +43,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 
 <Tag label="Raises">
 
-- `LoadError` when nothing matches `path`. For a name, the message suggests `import_relative` when a matching file sits beside the caller.
+- `LoadError` when nothing matches `path`. For a name, the message suggests `import_relative` when a matching file sits beside the calling file.
 - [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior, the import is circular, or a Shared Gem Carton was built against other gem versions.
 - [`Carton::ExportError`](/reference/errors/#cartonexporterror) when the Carton breaks an `export` rule while loading.
 

@@ -7,7 +7,7 @@ sidebar:
 
 The two Rails examples implement the same application with two domain Cartons, Customers and Billing. Customers registers a customer; Billing imports Customers, validates an invoice, calculates tax, and persists it. Both expose the same requests, responses, business rules, and HTML view. Their difference is where Rails application code runs.
 
-| | [Rails with Carton domains](https://github.com/dtcristo/carton/tree/main/examples/rails_with_carton_domain) | [Rails Engines in Cartons](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons) |
+| | [Rails with Carton domains](/guides/examples/rails-with-carton-domain/) | [Rails Engines in Cartons](/guides/examples/rails-in-cartons/) |
 | --- | --- | --- |
 | Rails implementation | Main Box | Shared framework Carton |
 | Customers and Billing business code | Separate Carton Boxes | Separate Carton Boxes |
@@ -60,7 +60,7 @@ invoice = issue.call(customer_id: customer.id, subtotal_cents: 4200)
 
 Billing resolves the customer through Customers' Directory, validates the subtotal, calculates tax, and asks its repository to persist the invoice. The injected objects' methods execute in Main, where they can resolve the app's Active Record classes. Repository calls exchange integer IDs and plain attribute Hashes, and returned domain objects stay ordinary Ruby objects.
 
-Controllers handle parameters, status codes, and rendering. Active Record models describe storage and associations. Business validation is tested through the Cartons' exports with in-memory repositories, without booting Rails. See [Passing application services](/guides/sharing-classes/#passing-application-services) for the same injection pattern outside Rails.
+Controllers handle parameters, status codes, and rendering. Active Record models describe storage and associations. Business validation is tested through the Cartons' Public Surfaces with in-memory repositories, without booting Rails. See [Passing application services](/guides/sharing-classes/#passing-application-services) for the same injection pattern outside Rails.
 
 After installing the example's bundle:
 
@@ -74,7 +74,7 @@ RUBY_BOX=1 bin/rails test
 RUBY_BOX=1 bin/rails server -b 127.0.0.1
 ```
 
-Development and test use separate SQLite databases. `MAIN_DATABASE` selects another database. The example README documents resetting a disposable database from the former `rails_in_main` example.
+Development and test use separate SQLite databases, and `MAIN_DATABASE` selects another. The [example's page](/guides/examples/rails-with-carton-domain/#run) covers resetting a database left from the former `rails_in_main` example.
 
 ## Rails Engines in Cartons
 

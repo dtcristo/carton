@@ -13,7 +13,7 @@ class User
   def initialize(name) = @name = name
 end
 
-export User # importers receive User itself
+export User # Importers receive User itself
 ```
 
 ```ruby
@@ -24,7 +24,7 @@ User.new('Alice')
 
 - The value may be anything, including a Hash, `nil`, or `false`.
 - Call `export` once per Entrypoint; a second call raises `Carton::ExportError`. Put other names inside the exported value instead, such as `User::VERSION`.
-- A Symbol raises `Carton::ExportError`, so `export def add` cannot export `:add` by mistake. To export functions, define them on a module and export the module.
+- A Symbol raises `Carton::ExportError`, so `export def add` cannot export `:add` by mistake. To export methods, define them on a module and export the module.
 - Bind the import to its own name, `User = import 'user'`. Rename only to resolve a clash between Cartons: `Module#name`, `inspect`, and backtraces keep the original name.
 
 ## A root module with private constants

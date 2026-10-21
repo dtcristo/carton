@@ -21,6 +21,12 @@ const { label } = Astro.props;
     margin-top: 1rem;
   }
 
+  /* Starlight spaces every Markdown sibling apart; in this grid the label and
+     body sit side by side, so neither gets that top margin. */
+  .api-tag > * {
+    margin-top: 0 !important;
+  }
+
   .api-tag-label {
     padding-top: 0.15rem;
     color: var(--sl-color-gray-3);

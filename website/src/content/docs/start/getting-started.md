@@ -44,7 +44,7 @@ Cartons import each other. The billing Carton imports tax:
 
 ```ruby
 # billing.rb: the billing Carton
-Tax = import_relative 'tax' # billing's import, invisible to importers
+Tax = import_relative 'tax' # billing's import, invisible to Importers
 
 module Billing
   def self.invoice(total) = total + Tax.on(total)
@@ -69,7 +69,7 @@ Run it with Boxes enabled:
 RUBY_BOX=1 ruby main.rb # prints 110
 ```
 
-`import_relative` returns the exported value itself, and defines nothing in the importer. Bind it to a constant of the same name.
+`import_relative` returns the exported value itself, and defines nothing in the Importer. Bind it to a constant of the same name.
 
 ## See the boundary
 
@@ -79,7 +79,7 @@ Add a line to `main.rb` that reaches past billing:
 Tax # NameError: billing's import
 ```
 
-In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its imports inside, along with every other top-level constant and helper it defines.
+In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its imports inside, along with every other top-level constant and Helper it defines.
 
 ## Grow a Carton
 

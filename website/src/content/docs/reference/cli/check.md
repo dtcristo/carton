@@ -36,7 +36,7 @@ Text output prints each problem as `file:line: level: message`, then a summary l
 | --- | --- |
 | error | An import of a missing path, or of a file inside a Carton |
 | error | An import cycle, unless an import in it runs lazily (then a warning) |
-| error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a second copy |
+| error | A `require` or `require_relative` of an imported Carton's file from outside it, which loads a Second Copy |
 | error | `export` twice in calls that can both run (calls in different branches of one `if` or `case` cannot), `export` of a Symbol, or a Bare Carton Helper that would hide a `Carton::Namespace` method |
 | error | A Gem Carton importing or requiring a gem its gemspec does not declare |
 | error | A key a keyword or Hash literal export does not have, read with `fetch(:nope)` or a `=>` pattern. `[]`, `key?`, and `in` patterns return `nil` or `false` instead |

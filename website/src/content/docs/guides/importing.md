@@ -1,6 +1,6 @@
 ---
 title: Importing
-description: Import Cartons by relative path, by name from the load path, or by absolute path, and plan around shared imports.
+description: Import Cartons by relative path, by name from the load path, or by absolute path, and plan around Shared Imports.
 sidebar:
   order: 3
 ---
@@ -16,7 +16,7 @@ Billing = import_relative 'billing'               # billing.rb
 Billing = import_relative '../components/billing' # components/billing/lib/billing.rb
 ```
 
-A path that names a [gem-shaped directory](/guides/cartons/#gem-shaped-directories) imports its `lib/<name>.rb` Entrypoint and puts its `lib/` on the Carton's load path. A file of the same name wins over the directory.
+A path that names a [Gem-shaped Directory](/guides/cartons/#gem-shaped-directories) imports its `lib/<name>.rb` Entrypoint and puts its `lib/` on the Carton's load path. A file of the same name wins over the directory.
 
 ## `import`
 
@@ -29,7 +29,7 @@ Widget = import '/absolute/path/to/widget.rb'
 
 Gems and path gems in your bundle are already on `$LOAD_PATH`. Import other Cartons by path, or add their `lib/` directories to `$LOAD_PATH` first.
 
-## Shared imports
+## Shared Imports
 
 Each Carton loads once per process. Later imports of the same file return the same value, whether they come from the app or another Carton, and whether they use `import`, `import_relative`, or an absolute path. Cartons that import the same Carton therefore share its classes, so `is_a?` checks work across them.
 
@@ -41,13 +41,13 @@ Money.equal?(import('money')) # => true
 This is an architectural choice to plan around, not a cache to forget:
 
 - A Carton's module state lasts the whole process, including from one test to the next.
-- The First Importer of a shared Gem Carton fixes its gem versions. An importer whose bundle locks a different version of one of its gems raises `Carton::ImportError`; see [Gem Cartons](/guides/bundler/#gem-cartons). To give two importers different versions, give each its own copy: a Carton at another path is another Carton.
+- The First Importer of a shared Gem Carton fixes its gem versions. An Importer whose bundle locks a different version of one of its gems raises `Carton::ImportError`; see [Gem Cartons](/guides/bundler/#gem-cartons). To give two Importers different versions, give each its own copy: a Carton at another path is another Carton.
 
 A failed load is not cached, so a later import tries again. A Carton that imports itself, directly or through other Cartons, raises `Carton::ImportError` (`circular import`).
 
 ## Threads
 
-Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own importer is still loading waits for it, as `require` would, so do not join such a thread from that Carton's Entrypoint.
+Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own Importer is still loading waits for it, as `require` would, so do not join such a thread from that Carton's Entrypoint.
 
 ## Rakefiles
 

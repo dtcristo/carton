@@ -43,7 +43,7 @@ It reports, among others:
 
 - an import of a missing path, or of a file inside a Carton
 - an import cycle
-- a `require` that reaches into another Carton and would load a second copy
+- a `require` that reaches into another Carton and would load a Second Copy
 - a private constant of an exported module used from outside
 - a gem a Gem Carton uses without declaring it in its gemspec
 - an unused import binding, excluding constants exposed on a Carton's Public Surface

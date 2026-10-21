@@ -48,7 +48,7 @@ class PricingTest < Minitest::Test
 end
 ```
 
-- Keep unit and integration tests in separate files, and run each file in its own process. A plain `require` loads a second copy of the Carton beside the imported one.
+- Keep unit and integration tests in separate files, and run each file in its own process. A plain `require` loads a Second Copy of the Carton beside the imported one.
 - Private code can stay private instead of moving into a Carton of its own. A test names it once with `const_get`, or `send` for a private method, so each reach into private code is easy to find.
 
-The [monorepo example's tests](https://github.com/dtcristo/carton/tree/main/examples/monorepo/test) have both kinds, run under the monorepo's bundle.
+The [monorepo example's tests](/guides/examples/monorepo/#tests) have both kinds, run under the monorepo's bundle.

@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. Classes a Carton defines are different. An exported class is one object with one definition, shared by every importer, as in ordinary Ruby. Reopening it from another Carton, including `class Customer` in a Box where `Customer` names the imported class, changes it for every Carton.
+Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. Classes a Carton defines are different. An exported class is one object with one definition, shared by every Importer, as in ordinary Ruby. Reopening it from another Carton, including `class Customer` in a Box where `Customer` names the imported class, changes it for every Carton.
 
 Box is not a security boundary, so this cannot be prevented outright. These habits avoid it by accident.
 
@@ -47,4 +47,4 @@ checkout.call(order_id: 42)
 
 An injected object's methods run in the Box where they were defined, with that Box's constants and gems. The Carton needs only the methods it calls, so tests can pass fakes through the same interface. Objects are shared, not copied; keep per-instance dependencies on instances instead of the shared exported module. Prefer plain values for inputs and results when each side loads its own gem classes.
 
-The [dependency_injection example](https://github.com/dtcristo/carton/tree/main/examples/dependency_injection) runs this checkout with file-backed adapters and tests it through its export with fakes.
+The [dependency_injection example](/guides/examples/dependency-injection/) runs this checkout with file-backed adapters and tests it through its export with fakes.

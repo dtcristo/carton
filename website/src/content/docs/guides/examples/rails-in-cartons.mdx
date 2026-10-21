@@ -7,7 +7,7 @@ sidebar:
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. They implement the same customer-registration and invoice-issuance workflow as [Rails with Carton domains](/guides/examples/rails-with-carton-domain/). Here, the domains also own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons).
+Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. They implement the same customer-registration and invoice-issuance workflow as [Rails with Carton domains](/guides/examples/rails-with-carton-domain/). Here, the domains also own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](/guides/examples/rails-in-cartons/).
 
 This integration uses public Rails, Zeitwerk, and Carton interfaces. It adds no runtime patches. The conventional-host example remains the simpler way to adopt Carton in an existing Rails application. See the canonical [Rails guide](/guides/rails/) for a direct comparison.
 

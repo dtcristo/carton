@@ -6,7 +6,7 @@ sidebar:
   order: 0
 ---
 
-The repository's [examples](https://github.com/dtcristo/carton/tree/main/examples) are small, separate programs, and CI runs every one. Each page here walks through one, with its code read straight from the repository. Start with [minimal](/guides/examples/minimal/). Similar names in different examples, such as Billing, are separate code.
+The repository's [examples](/guides/examples/) are small, separate programs, and CI runs every one. Each page here walks through one, with its code read straight from the repository. Start with [minimal](/guides/examples/minimal/). Similar names in different examples, such as Billing, are separate code.
 
 | Question | Example |
 | --- | --- |
