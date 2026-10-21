@@ -4,6 +4,6 @@ module Carton
   module Tools
     # Always the same as Carton::VERSION: carton-tools reads Carton's
     # internals, so each release depends on exactly its own carton.
-    VERSION = '0.3.0'
+    VERSION = '0.4.0'
   end
 end

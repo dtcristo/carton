@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-21
+
+`carton check` adds unused import and shared-object reopening warnings plus JSON reports. The Rails examples now share a Customers and Billing workflow, and Bundler support starts at 4.0.20 (#71, #79, #82, #83).
+
 ### Breaking
 
 - Every imported Entrypoint must call `export` exactly once; an import with no Export raises `Carton::ExportError` after loading. Removed Bare Cartons and `Carton::Namespace`; adapt legacy files and gems with a distinct Entrypoint that requires them and explicitly exports the chosen value. Imports still return that value exactly, including `nil` and `false`, and plain `require` keeps working (#107).
@@ -23,7 +27,7 @@
 - The website has three sections, Start here, Guides, and Reference, and the sidebar shows only the current one. Each example's guide moved from its README to a website page that shows its code from the repository. The reference is now API docs in YARD's shape, tested against `sig/carton.rbs`, with a page per `carton` command tested against its usage (#90).
 - Renamed the Rails-in-Main example to `rails_with_carton_domain` and aligned both Rails examples around Customers and Billing: domain-owned registration, validation, exact invoice pricing, and persistence through injected repositories. The conventional app keeps Rails adapters in Main; the Engine app owns them in its domain Cartons. Removed the unrelated jobs, updated the private reload fixture, and placed both examples together in the docs (#83).
 
-- Expanded Rails-in-Main into a conventional Rails app with migrations, HTML/JSON responses, an Active Job, standard CLI commands, and isolated Billing integration tests (#80).
+- Expanded Rails-in-Main into a conventional Rails app with migrations, HTML/JSON responses, an Active Job, standard CLI commands, and isolated Billing integration tests (#80, #81).
 
 - The Rails-in-Cartons example uses isolated Rails Engines with domain-owned loaders, migrations, HTML views, GlobalID jobs, and an explicit Rails CLI bridge (#79).
 
@@ -137,7 +141,8 @@ Cartons are now gem-sized or domain-sized units: a file plus the directory named
 
 Initial release ([9925397](https://github.com/dtcristo/carton/commit/99253978dd73b70698341d04314e3ccf86b37c16)).
 
-[Unreleased]: https://github.com/dtcristo/carton/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/dtcristo/carton/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/dtcristo/carton/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/dtcristo/carton/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/dtcristo/carton/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/dtcristo/carton/releases/tag/v0.1.0
