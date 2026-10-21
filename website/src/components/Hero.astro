@@ -73,20 +73,27 @@ import CopyCommand from './CopyCommand.astro';
     gap: 3rem;
     align-items: center;
     padding-block: 2rem 4rem;
+    padding-inline: clamp(0px, calc(4vw - 1rem), 2.5rem);
   }
 
-  /* Single column: side margins on the hero, matching the sections below. */
-  @media (max-width: 63.99rem) {
+  /* Two columns from 60rem. The left column is a fixed 30rem, so its copy never
+     reflows; the gap between the columns gives way as the window narrows, from
+     6rem down to 2rem at the snap. Side margins match the sections below. */
+  /* From 60rem the page is a centred 1080px container, which only leaves a
+     margin below about 1200px. Extra side padding fills that gap, so the
+     hero keeps a 40px edge at the snap and nothing changes wider than 1280px. */
+  @media (min-width: 60rem) {
     .hero {
-      padding-inline: clamp(1.25rem, 5vw, 2.5rem);
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 6rem;
+      grid-template-columns: 30rem minmax(0, 1fr);
+      gap: clamp(2rem, calc(100vw - 58rem), 6rem);
       padding-block: 4rem 5rem;
+      padding-inline: clamp(0px, calc(2.5rem - max(1rem, (100vw - 67.5rem) / 2)), 1.5rem);
+    }
+
+    /* Held at the desktop size across the two-column range, so the lockup
+       does not shrink as the window narrows. */
+    .lockup {
+      --wordmark: 6rem;
     }
   }
 
