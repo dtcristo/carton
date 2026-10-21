@@ -101,8 +101,8 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
-  /* The lockup is 6rem at every width, and only scales below the single-column
-     snap. The logo tracks the wordmark with a 7rem floor and a 9rem cap; the
+  /* The lockup is 6rem wherever Starlight's header search shows (50rem and up),
+     and only scales once the search collapses. The logo tracks the wordmark with a 7rem floor and a 9rem cap; the
      tagline is a fixed share of the wordmark, so the two lines match in width. */
   .lockup {
     --wordmark: 6rem;
@@ -112,7 +112,7 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1.25rem;
   }
 
-  @media (max-width: 67.99rem) {
+  @media (max-width: 49.99rem) {
     .lockup {
       --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
     }
