@@ -2,7 +2,6 @@
 // The homepage's last word and its footer: a full-bleed ruby band, like the
 // talk's section dividers, pointing at the tutorial, flush with the page bottom.
 import { LinkButton } from '@astrojs/starlight/components';
-import CopyCommand from './CopyCommand.astro';
 ---
 
 <section class="closing not-content" aria-labelledby="closing">
@@ -10,7 +9,6 @@ import CopyCommand from './CopyCommand.astro';
   <p>Install the gem, export a module from one file, and import it from another. Carton is experimental and needs Ruby 4.0.7 or later, run with <code>RUBY_BOX=1</code>.</p>
   <div class="actions">
     <LinkButton class="button" href="/start/getting-started/" icon="right-arrow">Get started</LinkButton>
-    <CopyCommand command="gem install carton" />
   </div>
   <footer>
     <nav aria-label="Footer">
@@ -121,16 +119,6 @@ import CopyCommand from './CopyCommand.astro';
     border-color: #fbe9e6;
     background: #fbe9e6;
     color: #9e2520;
-  }
-
-  /* The install command sits on the ruby band as a paper card in both themes,
-     not the dark shell used elsewhere, so it reads the same in dark mode. */
-  .actions :global(.copy-command) {
-    --carton-shell-bg: #fffdf9;
-    --carton-shell-edge: transparent;
-    --carton-shell-text: #1f1b18;
-    --copy-button: #f1ebdf;
-    box-shadow: 0 18px 40px -24px rgb(60 10 10 / 0.6);
   }
 
   .closing :focus-visible {
