@@ -76,6 +76,14 @@ import CopyCommand from './CopyCommand.astro';
     padding-inline: clamp(1rem, 4vw, 2.5rem);
   }
 
+  /* Phones: the container margin does most of the work, so the padding is
+     small. Tablet keeps the padding above. */
+  @media (max-width: 47.99rem) {
+    .hero {
+      padding-inline: 0.5rem;
+    }
+  }
+
   /* Two columns from 60rem. The left column is a fixed 30rem, so its copy does
      not reflow; the gap gives way as the window narrows. */
   @media (min-width: 60rem) {
