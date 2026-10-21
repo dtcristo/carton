@@ -292,6 +292,16 @@ html {
   padding-inline: 0;
 }
 
+/* Keep homepage actions balanced with the install command at every width. */
+[data-has-hero] .sl-link-button {
+  font-size: var(--sl-text-base);
+  padding: 0.9375rem 1.25rem;
+}
+
+[data-has-hero] .sl-link-button.minimal {
+  padding-inline: 0;
+}
+
 /* Button icons scale with their labels in both the hero and closing band. */
 [data-has-hero] .sl-link-button > svg {
   font-size: 1.25em;
