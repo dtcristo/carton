@@ -15,6 +15,16 @@ export default defineConfig({
         'Real boundaries for Ruby: Cartons import and export like modules, and Ruby enforces the boundary while the code runs.',
       logo: { src: './src/assets/carton.png', alt: 'Carton' },
       favicon: '/favicon.png',
+      // Share-sheet card for Slack, X, iMessage and friends. Absolute URLs
+      // because crawlers do not resolve relative image paths.
+      head: [
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://carton.dtcristo.com/og-image.png' } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Carton: real boundaries for Ruby' } },
+        { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://carton.dtcristo.com/og-image.png' } },
+      ],
       social: [
         {
           icon: 'github',
