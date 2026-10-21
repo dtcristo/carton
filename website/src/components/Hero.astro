@@ -91,6 +91,7 @@ import CopyCommand from './CopyCommand.astro';
     --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: clamp(1rem, 3vw, 1.75rem);
   }
 
@@ -127,11 +128,23 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
+  /* Single column (below 64rem) the paragraph caps at a readable measure and
+     centres under the lockup. It takes no min-width: a floor would overflow
+     phones. text-wrap keeps the last line from orphaning a single word. */
   .lede {
     margin-block: 2.25rem 0;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 63.99rem) {
+    .lede {
+      max-width: 36rem;
+      margin-inline: auto;
+      text-align: center;
+    }
   }
 
   .lede code {
