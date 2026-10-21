@@ -12,6 +12,7 @@ module Customers
           unless attributes.is_a?(Hash)
             halt 400, { errors: { customer: ['must be an object'] } }.to_json
           end
+
           case register_customer.call(attributes)
           in Success[customer]
             response.status = 201

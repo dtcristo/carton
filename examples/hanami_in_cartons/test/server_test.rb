@@ -5,6 +5,7 @@ require 'socket'
 require 'net/http'
 require 'json'
 require 'timeout'
+
 class HanamiServerTest < Minitest::Test
   include HanamiCommandSupport
 

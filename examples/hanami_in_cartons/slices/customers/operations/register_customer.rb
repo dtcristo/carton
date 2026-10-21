@@ -10,6 +10,7 @@ module Customers
         unless validation.success?
           step Failure[:invalid, validation.errors.to_h]
         end
+
         customer_repo.create(name: validation[:name].strip).to_h
       end
     end

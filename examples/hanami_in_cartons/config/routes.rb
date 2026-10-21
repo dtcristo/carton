@@ -7,6 +7,7 @@ module Shop
       get '/invoices/:id.json', to: 'invoices.show'
       get '/invoices/:id', to: 'invoices.show'
     end
+
     slice :customers, at: '/' do
       post '/customers', to: 'customers.create'
     end

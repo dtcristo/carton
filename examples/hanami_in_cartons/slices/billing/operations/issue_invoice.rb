@@ -12,6 +12,7 @@ module Billing
         unless validation.success?
           step Failure[:invalid, validation.errors.to_h]
         end
+
         attributes = validation.to_h
         step customer_directory.find(attributes.fetch(:customer_id))
         row =

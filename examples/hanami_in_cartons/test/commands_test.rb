@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'cli_helper'
+
 class HanamiCommandsTest < Minitest::Test
   include HanamiCommandSupport
 

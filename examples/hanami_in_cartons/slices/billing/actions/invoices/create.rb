@@ -12,6 +12,7 @@ module Billing
           unless attributes.is_a?(Hash)
             halt 400, { errors: { invoice: ['must be an object'] } }.to_json
           end
+
           case issue_invoice.call(attributes)
           in Success[invoice]
             response.status = 201
