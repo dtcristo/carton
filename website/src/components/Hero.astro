@@ -159,14 +159,25 @@ import CopyCommand from './CopyCommand.astro';
 
   /* Below the two-column layout the buttons stretch to the full column width,
      stacked, rather than sitting as small pills. */
+  /* Below the two-column layout the buttons share the column's width, side by
+     side, and the install command spans it too. On phones the pill padding
+     tightens so both labels fit on one row. */
   @media (max-width: 63.99rem) {
     .cta {
       width: 100%;
     }
 
     .actions .button {
-      flex: 1 1 100%;
+      flex: 1 1 0;
+      min-width: 0;
       justify-content: center;
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .actions .button {
+      padding-inline: 1rem;
     }
   }
 
