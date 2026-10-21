@@ -4,7 +4,6 @@
 // billing imports tax, and Tax is not reachable from main.rb.
 import { Image } from 'astro:assets';
 import logo from '../assets/carton.png';
-import { LinkButton } from '@astrojs/starlight/components';
 import CopyCommand from './CopyCommand.astro';
 ---
 
@@ -22,8 +21,8 @@ import CopyCommand from './CopyCommand.astro';
     </p>
     <div class="cta">
       <div class="actions">
-        <LinkButton href="/start/getting-started/">Get started</LinkButton>
-        <LinkButton href="https://github.com/dtcristo/carton" variant="secondary">View on GitHub</LinkButton>
+        <a class="button primary" href="/start/getting-started/">Get started</a>
+        <a class="button" href="https://github.com/dtcristo/carton">View on GitHub</a>
       </div>
       <CopyCommand command="gem install carton" />
     </div>
@@ -89,11 +88,6 @@ import CopyCommand from './CopyCommand.astro';
       padding-inline: clamp(1rem, 4vw, 2.5rem);
     }
 
-    /* The code column keeps the desktop column width, like the copy column. */
-    .demo {
-      width: min(100%, 32rem);
-      margin-inline: auto;
-    }
   }
 
   /* Desktop from 64rem: two 30rem columns that never change width. The gap
@@ -201,12 +195,50 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1rem;
   }
 
-  /* Starlight's link buttons, sharing the install command's width. */
-  .actions :global(.sl-link-button) {
+  /* Both buttons share one base, so primary and secondary differ only in colour. */
+  .actions .button {
     flex: 1 1 0;
     min-width: 0;
-    justify-content: center;
+    padding-inline: 1.5rem;
     white-space: nowrap;
+  }
+
+  @media (max-width: 30rem) {
+    .actions .button {
+      padding-inline: 1rem;
+    }
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 0.9rem;
+    border: 1px solid var(--carton-line);
+    border-radius: 999px;
+    background: var(--carton-card);
+    color: var(--sl-color-white);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
+  }
+
+  .button:hover {
+    border-color: var(--carton-ruby);
+    color: var(--carton-ruby);
+  }
+
+  /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
+  .button.primary {
+    border-color: #cc342d;
+    background: #cc342d;
+    color: #fff;
+  }
+
+  .button.primary:hover {
+    border-color: #9e2520;
+    background: #9e2520;
+    color: #fff;
   }
 
   .cta :global(.copy-command) {
@@ -221,6 +253,15 @@ import CopyCommand from './CopyCommand.astro';
     display: grid;
     gap: 2rem;
     font-size: var(--sl-text-sm);
+  }
+
+  /* Single column with search: the code column keeps the desktop column width,
+     centred like the copy column. Declared after .demo so its margin wins. */
+  @media (min-width: 50rem) and (max-width: 67.99rem) {
+    .demo {
+      width: min(100%, 32rem);
+      margin-inline: auto;
+    }
   }
 
   .file {
