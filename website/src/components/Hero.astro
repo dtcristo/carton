@@ -17,7 +17,7 @@ import CopyCommand from './CopyCommand.astro';
       </div>
     </div>
     <p class="lede">
-      Split an app into Cartons that import and export like modules. Each Carton runs in its own <code>Ruby::Box</code>, so Ruby enforces the boundary while your code runs.
+      Split an app into Cartons that import and export like plain modules. Each Carton runs in its own <code>Ruby::Box</code>, so Ruby enforces the boundary while code runs.
     </p>
     <div class="cta">
       <div class="actions">
@@ -136,8 +136,8 @@ import CopyCommand from './CopyCommand.astro';
 
   /* The copy column: the lockup and paragraph share one 30rem block at every
      width, centred, and the buttons below are 24rem. Phones shrink it to the
-     screen. The paragraph stays left-aligned with text-wrap keeping the last
-     line from orphaning one word. */
+     screen. The paragraph is left-aligned and its wording is set so the lines
+     fill the block at desktop and tablet widths. */
   .lockup,
   .lede {
     width: min(100%, 30rem);
@@ -149,7 +149,6 @@ import CopyCommand from './CopyCommand.astro';
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
-    text-wrap: pretty;
   }
 
   .lede code {
