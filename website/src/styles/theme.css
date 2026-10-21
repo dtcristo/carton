@@ -194,14 +194,14 @@ header.header {
   text-decoration: none;
 }
 
-/* Header chrome shares one hover: ink at rest, ruby on hover, no underline and
-   no box. The wordmark and the GitHub icon both follow it. */
+/* The wordmark and social icons share one hover, including the mobile menu:
+   ink at rest, ruby on hover, no underline and no box. */
 .site-title:hover,
-header.header a[rel='me']:hover {
+.social-icons a[rel='me']:hover {
   color: var(--carton-ruby);
 }
 
-header.header a[rel='me'] {
+.social-icons a[rel='me'] {
   color: var(--sl-color-white);
 }
 
@@ -290,6 +290,11 @@ html {
   width: min(67.5rem, 100%);
   margin-inline: auto;
   padding-inline: 0;
+}
+
+/* Button icons scale with their labels in both the hero and closing band. */
+[data-has-hero] .sl-link-button > svg {
+  font-size: 1.25em;
 }
 
 /* The homepage ends on the closing band, which carries its own footer: drop
