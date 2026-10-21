@@ -1,9 +1,18 @@
 ---
 // Starlight's head, plus Astro's client router. With the router, moving between
 // pages swaps the page in place instead of reloading the whole document.
+// Navigation snaps immediately, with no native or fallback transition animation.
 import Default from '@astrojs/starlight/components/Head.astro';
 import { ClientRouter } from 'astro:transitions';
 ---
 
 <Default />
-<ClientRouter />
+<ClientRouter fallback="swap" />
+
+<style is:global>
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+</style>
