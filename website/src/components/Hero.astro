@@ -90,22 +90,21 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
-  /* The illustrated logo carries the brand, so it gets real size here and
-     sits beside the wordmark rather than as a small badge above it. */
+  /* The logo stays a broad mark beside the wordmark: it tracks the wordmark
+     with a 7rem floor, so it never shrinks to a badge, and caps at 9rem. The
+     tagline is a fixed share of the wordmark, so the two lines match in width. */
   .lockup {
-    /* The tagline's size is a fixed share of the wordmark's, so the two lines
-       set to the same width at every size. */
     --wordmark: clamp(3.5rem, 2rem + 5vw, 6rem);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(1rem, 3vw, 1.75rem);
+    gap: 1.25rem;
   }
 
   .logo {
     display: block;
     flex: none;
-    width: clamp(6rem, 4rem + 7vw, 9rem);
+    width: clamp(7rem, calc(var(--wordmark) * 1.5), 9rem);
     height: auto;
     filter: drop-shadow(0 18px 22px rgb(90 60 30 / 0.34)) drop-shadow(0 4px 6px rgb(90 60 30 / 0.12));
   }
@@ -135,28 +134,22 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
-  /* Hero copy is left-aligned at every width. Single column (below 64rem) the
-     paragraph caps at a readable measure. It takes no min-width: a floor would
-     overflow phones. text-wrap keeps the last line from orphaning one word. */
-  /* Justified so both edges of the paragraph meet the lockup's width. Hyphens
-     keep the word gaps even; the last line stays left-aligned. */
+  /* The copy column: the lockup and paragraph share one 30rem block at every
+     width, centred, and the buttons below are 24rem. Phones shrink it to the
+     screen. The paragraph stays left-aligned with text-wrap keeping the last
+     line from orphaning one word. */
+  .lockup,
+  .lede {
+    width: min(100%, 30rem);
+    margin-inline: auto;
+  }
+
   .lede {
     margin-block: 2.25rem 0;
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
-    text-align: justify;
-    text-align-last: left;
-    hyphens: auto;
-  }
-
-  /* The hero's copy column is one 30rem block at every width: the lockup and
-     paragraph share it, centred, while the buttons below are 24rem. On phones
-     the block shrinks to the screen. */
-  .lockup,
-  .lede {
-    width: min(100%, 30rem);
-    margin-inline: auto;
+    text-wrap: pretty;
   }
 
   .lede code {
@@ -169,8 +162,6 @@ import CopyCommand from './CopyCommand.astro';
   }
 
   /* The install command spans the same width as the two buttons above it. */
-  /* On desktop the block sits centred in the left column, narrower than it, so
-     the buttons and the install command share one width with room either side. */
   .cta {
     display: grid;
     gap: 2rem;
