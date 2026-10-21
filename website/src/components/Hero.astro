@@ -156,11 +156,12 @@ import CopyCommand from './CopyCommand.astro';
     margin-inline: auto;
   }
 
-  /* Below the snap the copy is a 30rem block, centred. */
+  /* Below the snap the copy is the same 32rem column as desktop, centred, so
+     the paragraph wraps identically in both layouts. */
   @media (max-width: 67.99rem) {
     .lockup,
     .lede {
-      width: min(100%, 30rem);
+      width: min(100%, 32rem);
     }
   }
 
