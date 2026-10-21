@@ -286,6 +286,14 @@ html {
   overflow-x: clip;
 }
 
+/* Homepage: centre the content column at every width, so the hero and cards
+   share one edge and Starlight's own change at 72rem does not move them. */
+[data-has-hero] .content-panel > .sl-container {
+  width: min(67.5rem, 100%);
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
 /* The homepage ends on the closing band, which carries its own footer: drop
    Starlight's empty one and the padding under it. */
 [data-has-hero] :is(main, .content-panel) {

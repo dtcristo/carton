@@ -89,12 +89,14 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
-  /* Desktop from 64rem: two equal columns. The gap narrows just before the snap
-     to one column, and the lockup keeps its size across the desktop range. */
+  /* Desktop from 64rem: two 30rem columns that never change width. The gap
+     gives way first, down to 2rem, and the layout snaps to one column once the
+     content column can no longer hold both. */
   @media (min-width: 64rem) {
     .hero {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(2rem, 6vw, 6rem);
+      grid-template-columns: 30rem 30rem;
+      justify-content: center;
+      column-gap: clamp(2rem, 100% - 60rem, 6rem);
       padding-block: 4rem 5rem;
     }
 
