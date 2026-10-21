@@ -12,17 +12,24 @@ const { command } = Astro.props;
 </div>
 
 <script>
-  for (const button of document.querySelectorAll<HTMLButtonElement>('.copy-command button')) {
-    button.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(button.dataset.command ?? '');
-      button.textContent = 'Copied';
-      button.dataset.copied = '';
-      setTimeout(() => {
-        button.textContent = 'Copy';
-        delete button.dataset.copied;
-      }, 1600);
-    });
-  }
+  // Bind on every page: with the client router, a page swap does not rerun this module.
+  const bindCopyButtons = () => {
+    for (const button of document.querySelectorAll<HTMLButtonElement>('.copy-command button')) {
+      if (button.dataset.bound !== undefined) continue;
+      button.dataset.bound = '';
+      button.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(button.dataset.command ?? '');
+        button.textContent = 'Copied';
+        button.dataset.copied = '';
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          delete button.dataset.copied;
+        }, 1600);
+      });
+    }
+  };
+  bindCopyButtons();
+  document.addEventListener('astro:page-load', bindCopyButtons);
 </script>
 
 <style>
