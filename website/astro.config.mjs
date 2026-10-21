@@ -87,21 +87,7 @@ export default defineConfig({
       sidebar: [
         { label: 'Start here', items: [{ autogenerate: { directory: 'start' } }] },
         { label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
-        {
-          label: 'Reference',
-          items: [
-            {
-              label: 'API',
-              items: [
-                'reference/carton',
-                'reference/namespace',
-                'reference/kernel',
-                'reference/errors',
-              ],
-            },
-            { label: 'CLI', items: ['reference/cli'] },
-          ],
-        },
+        { label: 'Reference', items: [{ autogenerate: { directory: 'reference' } }] },
         { label: 'Project', items: [{ autogenerate: { directory: 'project' } }] },
       ],
     }),
