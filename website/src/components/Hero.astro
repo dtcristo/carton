@@ -3,6 +3,7 @@
 // The figure shows Carton's whole idea at small scale: main.rb imports billing,
 // billing imports tax, and Tax is not reachable from main.rb.
 import { Image } from 'astro:assets';
+import { LinkButton } from '@astrojs/starlight/components';
 import logo from '../assets/carton.png';
 import CopyCommand from './CopyCommand.astro';
 ---
@@ -21,8 +22,8 @@ import CopyCommand from './CopyCommand.astro';
     </p>
     <div class="cta">
       <div class="actions">
-        <a class="button primary" href="/start/getting-started/">Get started</a>
-        <a class="button" href="https://github.com/dtcristo/carton">View on GitHub</a>
+        <LinkButton href="/start/getting-started/" icon="right-arrow">Get started</LinkButton>
+        <LinkButton href="https://github.com/dtcristo/carton" variant="minimal" icon="external">View on GitHub</LinkButton>
       </div>
       <CopyCommand command="gem install carton" />
     </div>
@@ -102,7 +103,7 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
-  /* The lockup is exactly the width of the buttons below it (24rem). The
+  /* The lockup shares the action area's width (24rem). The
      wordmark is sized from that width in container units, so the logo, wordmark
      and tagline keep their proportions at every width. */
   .lockup {
@@ -149,7 +150,7 @@ import CopyCommand from './CopyCommand.astro';
     color: var(--carton-ink-soft);
   }
 
-  /* Lockup and paragraph share one 30rem block, centred; the buttons are 24rem.
+  /* Lockup and paragraph share one 30rem block, centred; the action area is 24rem.
      Phones shrink the block to the screen. The paragraph is left-aligned. */
   .lede {
     width: 100%;
@@ -180,7 +181,7 @@ import CopyCommand from './CopyCommand.astro';
     font-weight: 500;
   }
 
-  /* The install command matches the width of the buttons above it. */
+  /* The install command matches the action area's width. */
   .cta {
     display: grid;
     gap: 2rem;
@@ -195,50 +196,8 @@ import CopyCommand from './CopyCommand.astro';
     gap: 1rem;
   }
 
-  /* Both buttons share one base, so primary and secondary differ only in colour. */
-  .actions .button {
-    flex: 1 1 0;
-    min-width: 0;
-    padding-inline: 1.5rem;
+  .actions :global(.sl-link-button) {
     white-space: nowrap;
-  }
-
-  @media (max-width: 30rem) {
-    .actions .button {
-      padding-inline: 1rem;
-    }
-  }
-
-  .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding-block: 0.9rem;
-    border: 1px solid var(--carton-line);
-    border-radius: 999px;
-    background: var(--carton-card);
-    color: var(--sl-color-white);
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 150ms, border-color 150ms, color 150ms;
-  }
-
-  .button:hover {
-    border-color: var(--carton-ruby);
-    color: var(--carton-ruby);
-  }
-
-  /* A fixed ruby in both themes keeps white text above 4.5:1 contrast. */
-  .button.primary {
-    border-color: #cc342d;
-    background: #cc342d;
-    color: #fff;
-  }
-
-  .button.primary:hover {
-    border-color: #9e2520;
-    background: #9e2520;
-    color: #fff;
   }
 
   .cta :global(.copy-command) {

@@ -1,6 +1,7 @@
 ---
 // The homepage's last word and its footer: a full-bleed ruby band, like the
 // talk's section dividers, pointing at the tutorial, flush with the page bottom.
+import { LinkButton } from '@astrojs/starlight/components';
 import CopyCommand from './CopyCommand.astro';
 ---
 
@@ -8,7 +9,7 @@ import CopyCommand from './CopyCommand.astro';
   <h2 id="closing">Draw your first boundary</h2>
   <p>Install the gem, export a module from one file, and import it from another. Carton is experimental and needs Ruby 4.0.7 or later, run with <code>RUBY_BOX=1</code>.</p>
   <div class="actions">
-    <a class="button" href="/start/getting-started/">Get started</a>
+    <LinkButton class="button" href="/start/getting-started/" icon="right-arrow">Get started</LinkButton>
     <CopyCommand command="gem install carton" />
   </div>
   <footer>
@@ -107,25 +108,19 @@ import CopyCommand from './CopyCommand.astro';
     }
   }
 
-  /* The band's button is the paper-coloured primary: the same shape as Hero's,
-     with fixed colours so it reads the same in both themes. */
-  .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.9rem 1.75rem;
+  /* Keep Starlight's button shape, with fixed colours for the ruby band. */
+  .actions :global(.button) {
+    margin: 0;
     border: 1px solid #fff;
-    border-radius: 999px;
     background: #fff;
     color: #9e2520;
-    font-weight: 600;
-    text-decoration: none;
     transition: background-color 150ms, border-color 150ms;
   }
 
-  .button:hover {
+  .actions :global(.button:hover) {
     border-color: #fbe9e6;
     background: #fbe9e6;
+    color: #9e2520;
   }
 
   /* The install command sits on the ruby band as a paper card in both themes,
