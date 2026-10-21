@@ -7,7 +7,7 @@ sidebar:
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk, so moving that code into Cartons means running Zeitwerk inside them. Done carelessly, a Carton's files can load in the app's Box instead of the Carton's, often without an error, and the boundary is gone. A Carton has Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Two things then need care: [Source on GitHub](/guides/examples/zeitwerk/).
+Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk, so moving that code into Cartons means running Zeitwerk inside them. Done carelessly, a Carton's files can load in the app's Box instead of the Carton's, often without an error, and the boundary is gone. A Carton has Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Two things then need care: [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/zeitwerk).
 
 - The app's loader must not load a Carton's files into the Main Box.
 - Reloading a Carton replaces its classes, but Importers keep the old ones.
@@ -38,7 +38,7 @@ cartons/billing/
 
 ## Each Box has its own Zeitwerk
 
-Every Box requires Zeitwerk separately and gets its own `Zeitwerk` module, loader registry, and `Kernel#require` patch. The billing Carton runs zeitwerk 2.7.5 from its own Gemfile while the app runs 2.8.3. The shipping Carton sets up the app's Gemfile in its own Box and gets a Second Copy of 2.8.3. `Zeitwerk::Loader.all_dirs` in each Box lists only that Box's loaders:
+Every Box requires Zeitwerk separately and gets its own `Zeitwerk` module, loader registry, and `Kernel#require` patch. The billing Carton runs zeitwerk 2.7.5 from its own Gemfile while the app runs 2.8.3. The shipping Carton sets up the app's Gemfile in its own Box and gets its own copy of 2.8.3. `Zeitwerk::Loader.all_dirs` in each Box lists only that Box's loaders:
 
 | Box | `Zeitwerk::VERSION` | `Zeitwerk::Loader.all_dirs` | nsfiles |
 | --- | --- | --- | --- |

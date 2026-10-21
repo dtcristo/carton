@@ -27,10 +27,10 @@ Imports are followed into every Carton they reach.
 
 | Command | Summary |
 | --- | --- |
-| [`carton check`](/reference/cli/check/) | Report import and export problems without running code |
-| [`carton rbs`](/reference/cli/rbs/) | Write RBS for what each import returns |
+| <span id="carton-check"></span>[`carton check`](/reference/cli/check/) | Report import and export problems without running code |
+| <span id="carton-rbs"></span>[`carton rbs`](/reference/cli/rbs/) | Write RBS for what each import returns |
 
-`carton --help` prints the synopsis, and a command with no `PATH` prints its own usage.
+<span id="json-reports"></span>`carton check --format json` reports problems as JSON; see [JSON output](/reference/cli/check/#json-output). `carton --help` prints the synopsis, and a command with no `PATH` prints its own usage.
 
 ## Paths and named imports
 

@@ -65,6 +65,11 @@ test('the API reference documents exactly what sig/carton.rbs declares', () => {
     [],
     'in the reference but not declared in sig/carton.rbs',
   );
+  assert.deepEqual(
+    documented.filter((d, i) => documented.indexOf(d) !== i),
+    [],
+    'documented more than once',
+  );
 });
 
 test('declarations reads owners, visibility, and overloads', () => {

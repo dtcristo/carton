@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { fileURLToPath } from 'node:url';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
 
@@ -9,6 +10,12 @@ export default defineConfig({
   site: SITE,
   // Prebuilt HTML only: no adapter, no server runtime.
   output: 'static',
+  // The repository's examples/, which src/components/ExampleFile.astro reads.
+  vite: {
+    define: {
+      'import.meta.env.EXAMPLES_DIR': JSON.stringify(fileURLToPath(new URL('../examples/', import.meta.url))),
+    },
+  },
   // Pages that moved when the sections became Start here, Guides, and Reference.
   redirects: {
     '/project/why-carton/': '/start/why-carton/',

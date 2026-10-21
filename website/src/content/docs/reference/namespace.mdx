@@ -27,9 +27,11 @@ A Helper named like a public method of `Carton::Namespace`, such as `fetch` or `
 
 ## Carton::NamespaceMethods
 
+<span id="lookup-methods"></span>
+
 <Signature owner="Carton::NamespaceMethods" rbs="module Carton::NamespaceMethods" source="lib/carton/namespace_methods.rb" />
 
-Hash-like lookups that every `Carton::Namespace` includes. `carton rbs` extends its generated `Carton::Namespace::*` modules with these too. A key names a member, never a Ruby expression, and a Helper comes back as its `Method` object, so a lookup never calls it.
+Hash-like lookups that every `Carton::Namespace` includes. Carton keeps the module itself a private constant, so code reaches these methods through a namespace, never by naming it. `carton rbs` extends its generated `Carton::Namespace::*` modules with these too. A key names a member, never a Ruby expression, and a Helper comes back as its `Method` object, so a lookup never calls it.
 
 <Signature owner="Carton::NamespaceMethods" rbs="type key = ::String | ::Symbol" />
 

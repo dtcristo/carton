@@ -28,6 +28,10 @@ const group = (label: string) => sidebar.filter((g: Entry) => g.label === label)
 const tabs = sections.map((s) => ({ ...s, href: firstLink(group(s.label)) }));
 // The current section's own entries, without its group heading: the tab names it.
 const tree = group(current.label).flatMap((g) => g.entries ?? []);
+// SidebarPersister keys saved open/closed state by a hash of the route's
+// sidebar. Hash this section's tree instead, so one section's saved state is
+// never applied to another's. Nothing reads the full sidebar after this.
+Astro.locals.starlightRoute.sidebar = tree;
 ---
 
 <nav class="section-tabs" aria-label="Sections">

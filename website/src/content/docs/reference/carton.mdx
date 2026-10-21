@@ -21,6 +21,8 @@ Carton's namespace. Its public members are the bundle setup and the version; eve
 
 ## `.setup_bundle`
 
+<span id="cartonsetup_bundle"></span>
+
 <Signature owner="Carton" rbs="def self.setup_bundle: (*::Symbol groups, ?gemfile: ::String?) -> untyped" source="lib/carton/bundler.rb#L12" />
 
 Sets up a bundle in the current Box, like `Bundler.setup`. In a Carton's Entrypoint, it gives that Carton a Carton Bundle of its own; in the app, it sets up the app's bundle. It uses gems that are already installed and never installs missing ones.
@@ -65,6 +67,15 @@ require 'bigdecimal'
 
 ## `VERSION`
 
+<span id="cartonversion"></span>
+
 <Signature owner="Carton" rbs="VERSION: ::String" source="lib/carton/version.rb" />
 
 The installed Carton version, such as `"0.3.0"`. `carton` and `carton-tools` are released together at the same version.
+
+`require 'carton'` does not load it; require it on its own, as a gemspec would:
+
+```ruby
+require 'carton/version'
+Carton::VERSION # => "0.3.0"
+```

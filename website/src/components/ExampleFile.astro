@@ -3,7 +3,7 @@
 // the code CI runs. `path` is relative to examples/; a missing file fails the
 // build. The magic comment every Ruby file starts with is left out.
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join } from 'node:path';
 import { Code } from '@astrojs/starlight/components';
 
 interface Props {
@@ -13,8 +13,9 @@ interface Props {
 }
 
 const { path, title } = Astro.props;
-// Astro builds from website/, so examples/ sits beside it.
-const file = resolve(process.cwd(), '..', 'examples', path);
+// EXAMPLES_DIR is set in astro.config.mjs from its own location, so it holds
+// wherever Astro runs from.
+const file = join(import.meta.env.EXAMPLES_DIR, path);
 const code = readFileSync(file, 'utf8')
   .replace(/^# frozen_string_literal: true\n\n?/, '')
   .trimEnd();
