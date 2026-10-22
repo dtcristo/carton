@@ -4,14 +4,14 @@
 
 ### Changed
 
-- Set both gems' homepages to the Carton website and retain their GitHub source links.
-- Simplify the example gemspecs to required metadata, packaged files, and dependencies.
-- Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/`.
-- Keep the Minimal example focused on runtime boundaries and move static-check and RBS/Steep demonstrations into the Tooling example.
+- Set both gems' homepages to the Carton website and retain their GitHub source links (#108).
+- Simplify the example gemspecs to required metadata, packaged files, and dependencies (#108).
+- Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/` (#108).
+- Keep the Minimal example focused on runtime boundaries and move static-check and RBS/Steep demonstrations into the Tooling example (#108).
 
 ### Removed
 
-- Remove the manual RubyGems example; the Bundler and Plugins examples still demonstrate conflicting gem versions.
+- Remove the manual RubyGems example; the Bundler and Plugins examples still demonstrate conflicting gem versions (#108).
 
 ## [0.4.0] - 2026-10-22
 
