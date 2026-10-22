@@ -120,10 +120,19 @@ class IntegrationTest < Minitest::Test
   # import a Carton that sets up its own bundle on the same thread.
   def test_setup_bundle_nests_through_a_gemfile_import
     Dir.mktmpdir('carton-nested-bundle') do |dir|
-      inner = "#{FIXTURES}/auto_bundle/nested/auto_gemfile"
+      # A private inner Carton, so no other test shares its cached Export.
+      inner = File.join(dir, 'inner')
+      FileUtils.mkdir_p(inner)
+      %w[Gemfile Gemfile.lock].each do |name|
+        FileUtils.cp("#{FIXTURES}/auto_bundle/#{name}", inner)
+      end
+      File.write(File.join(inner, 'entry.rb'), <<~RUBY)
+        Carton.setup_bundle
+        export Bundler.root.to_s
+      RUBY
       File.write(File.join(dir, 'Gemfile'), <<~RUBY)
         source 'https://rubygems.org'
-        $carton_nested_root = import(#{inner.inspect}).fetch(:selected_root)
+        $carton_nested_root = import(#{File.join(inner, 'entry').inspect})
       RUBY
       entry = File.join(dir, 'outer.rb')
       File.write(entry, <<~RUBY)
@@ -133,7 +142,7 @@ class IntegrationTest < Minitest::Test
 
       result = import entry
 
-      assert_equal "#{FIXTURES}/auto_bundle", result.fetch(:inner_root)
+      assert_equal File.realpath(inner), File.realpath(result.fetch(:inner_root))
       assert_equal [ENV['BUNDLE_GEMFILE']], result.fetch_values(:gemfile)
     end
   end
