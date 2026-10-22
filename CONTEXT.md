@@ -1,12 +1,12 @@
 # Carton
 
-Carton is a package system for Ruby: a small import and export language for gem-sized and domain-sized units of Ruby code, with boundaries Ruby enforces at runtime.
+Carton is a package system for Ruby: a small import and export language for gem-sized and domain-sized pieces of Ruby code, with boundaries Ruby enforces at runtime.
 
 ## Language
 
 ### Cartons
 
-**Carton**: An importable unit of Ruby code, gem-sized or domain-sized, with an Interior and a Public Surface: an Entrypoint plus the directory named after it. _Avoid_: Package, pack, unit, component, box, plain carton, unbundled carton
+**Carton**: An importable piece of Ruby code, gem-sized or domain-sized, with an Interior and a Public Surface: an Entrypoint plus the directory named after it. _Avoid_: Package, pack, unit, component, box, plain carton, unbundled carton
 
 **Entrypoint**: The file an Import loads to establish a Carton boundary, such as `billing.rb`. A file with no directory beside it is a Carton of one file. _Avoid_: Manifest, index file, main file
 
@@ -16,7 +16,7 @@ Carton is a package system for Ruby: a small import and export language for gem-
 
 ### Boxes
 
-Ruby names three kinds of Box: the Master Box, the Root Box, and User Boxes. A User Box is the Main Box or an Optional Box, and Carton adds one kind of Optional Box, the Carton Box.
+Ruby names three kinds of Box: the Master Box, the Root Box, and User Boxes. A User Box is the Main Box or an Optional Box, and Carton adds one kind of Optional Box, the Carton Box. Most apps need only the Main Box and Carton Boxes.
 
 **Box**: A Ruby execution environment with isolated loading and definitions. Every Carton runs in its own Carton Box; the top-level application runs in the Main Box. _Avoid_: Namespace (Ruby's pre-release name for Box), Carton instance, runtime carton, sandbox
 

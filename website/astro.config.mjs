@@ -92,7 +92,12 @@ export default defineConfig({
             },
             {
               label: 'How-to',
-              items: ['guides/bundler', 'guides/testing', 'guides/types-and-checks'],
+              items: [
+                'guides/adopting',
+                'guides/bundler',
+                'guides/testing',
+                'guides/types-and-checks',
+              ],
             },
             { label: 'Examples', items: [{ autogenerate: { directory: 'guides/examples' } }] },
           ],

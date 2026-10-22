@@ -39,7 +39,7 @@ RBS has one global namespace, so the app's target should check the app's own fil
 
 ## Static checks
 
-`carton check main.rb` prints each problem as `file:line: level: message` and exits non-zero on any error, so it can run in CI. Errors are certain to fail or misbehave when the code runs; warnings are things a dynamic program could still get right. `--strict` fails on warnings too.
+`carton check main.rb` prints each problem as `file:line:column: level: message [rule]`, with a stable rule ID such as `undeclared-gem`, then a summary line. It exits non-zero on any error, so it can run in CI. Errors are certain to fail or misbehave when the code runs; warnings are things a dynamic program could still get right. `--strict` fails on warnings too.
 
 It reports, among others:
 

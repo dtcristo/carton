@@ -6,7 +6,7 @@ Be the package system Ruby has always needed: real boundaries for Ruby code, enf
 
 ## How close Carton is
 
-The website's [Status](https://carton.dtcristo.com/start/status/) page owns what a package system needs and where Carton stands; [performance.md](performance.md) has the measurements and [todo.md](todo.md) orders the work.
+The website's [Status](https://carton.dtcristo.com/start/status/) page owns what must change before production and Carton's remaining limitations; [performance.md](performance.md) has the measurements and [todo.md](todo.md) orders the work.
 
 ## Main pieces
 
@@ -47,7 +47,7 @@ The `carton` command ships in the `carton-tools` gem, under `carton-tools/`, as 
 
 Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box`, whichever Carton imports it first. Ruby objects are shared across Boxes, so cached values cross Box boundaries unchanged.
 
-Each cache entry records the gem versions activated for it. A later import of the same Entrypoint whose importer has different versions activated raises instead of reusing the entry, so one shared Carton never serves two lockfiles.
+Each cache entry records the gem versions activated for it. A later import of the same Entrypoint whose importer has different versions activated raises instead of reusing the entry, so a Shared Import never gives one Carton to two lockfiles.
 
 A mutex guards only the cache's bookkeeping, never a running Entrypoint, so an Entrypoint can start threads that import other Cartons. Each Entrypoint records the thread loading it. Another thread importing it waits for that load; the same thread importing it again raises `circular import`. Failed loads are not cached, and a waiting thread then tries the load itself. Targets that do not resolve to an absolute path, such as builtin features, load uncached.
 

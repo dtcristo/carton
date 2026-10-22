@@ -1,21 +1,31 @@
 ---
 title: Status
-description: Carton's current limitations, experimental integrations, and possible future features.
+description: What must change before Carton is ready for production, plus its current limitations and possible future features.
 sidebar:
   order: 2
 ---
 
 Carton provides explicit imports and exports, per-Carton gem versions, and gem-shaped distribution. It remains experimental, as does `Ruby::Box`. Use Ruby 4.0.7 or later and, with Bundler, Bundler 4.0.20 or later.
 
+## Before production
+
+A team should not rely on Carton in production until these change:
+
+- **`Ruby::Box` leaves experimental status.** Upstream Ruby. Every process run with `RUBY_BOX=1` prints Ruby's experimental warning, and Box behavior may change between Ruby releases.
+- **Cheaper Boxes.** Upstream Ruby. Template Boxes ([#25](https://github.com/dtcristo/carton/issues/25)) or Boxes started from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)) would lower the [cost per Carton](#cost-per-carton).
+- **Builtin visibility isolation.** Upstream Ruby. On Ruby 4.0.7, changing only a builtin method's visibility (`private`, `protected`, `public`) leaks to every Box: `class String; protected :upcase; end` in one Carton changes `String#upcase` everywhere. Redefining a builtin method stays in the Carton. See the [reproduction](https://github.com/dtcristo/carton/blob/main/spikes/shared_gems/09_visibility_leak.rb).
+- **Rails reloading.** Carton. Rails apps restart on change. A [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) rebuilds changed Cartons through private hooks, but the runtime has no reload interface.
+- **Runtime dependency enforcement.** Carton, waiting on Ruby #22275. A Gem Carton sees its Importer's whole lockfile at runtime; see [Dependency enforcement](#dependency-enforcement).
+
+To try Carton in an existing app now, follow [Adopting Carton](/guides/adopting/), which also covers [operations](/guides/adopting/#operations).
+
 ## Cost per Carton
 
 A plain Carton costs about 60 ms and 2.4 MB in the [current measurements](https://github.com/dtcristo/carton/blob/main/docs/performance.md), most of it `Ruby::Box.new`. Aim for tens of Cartons rather than hundreds. Gem Cartons cost more because they also load RubyGems specifications into their Boxes.
 
-Cheaper Boxes, Template Boxes ([#25](https://github.com/dtcristo/carton/issues/25)), and Boxes started from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)) could reduce that cost. These require upstream Ruby support.
-
 ## Shared classes and objects
 
-Exports are shared objects. Reopening an exported class or changing shared state affects every Importer. `carton check` warns about class/module definitions through directly followed Imports, but adds no runtime guard and cannot follow aliases or dynamic mutations. See [Sharing classes and services](/guides/sharing-classes/).
+Exports are shared objects. Reopening an exported class or changing shared state affects every Importer. `carton check` warns about class/module definitions through directly followed Imports, but adds no runtime guard and cannot follow aliases or dynamic mutations. See [Sharing classes and services](/guides/sharing-classes/) and [what a Box does not isolate](/start/why-carton/#what-a-box-does-not-isolate).
 
 ## Dependency enforcement
 
@@ -27,11 +37,7 @@ A Gem Carton's gemspec declares its dependencies, and `carton check` reports Und
 
 ## Rails integration
 
-The experimental [Rails example](/guides/examples/rails/) runs Customers and Billing as isolated Engines, with Carton-owned loaders and an explicit CLI bridge. Reloading remains unsupported. Domain Cartons load their own Active Support extensions, and the example does not establish compatibility with arbitrary Rails features or third-party Engines.
-
-## Experimental Ruby Boxes
-
-Ruby requires `RUBY_BOX=1` to enable Boxes. Box isolates definitions and load state, not shared objects, and is not a security sandbox.
+The experimental [Rails example](/guides/examples/rails/) runs Customers and Billing as isolated Engines, with Carton-owned loaders and an explicit CLI bridge. Domain Cartons load their own Active Support extensions, and the example does not establish compatibility with arbitrary Rails features or third-party Engines.
 
 ## Possible future features
 

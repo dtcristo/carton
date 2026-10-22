@@ -43,7 +43,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 <Tag label="Raises">
 
 - `LoadError` when nothing matches `path`. For a name, the message suggests `import_relative` when a matching file sits beside the calling file.
-- [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior or is not Ruby source (such as a native extension), the import is circular, or a Shared Gem Carton was built against other gem versions.
+- [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior or is not Ruby source (such as a native extension), the import is circular, or a Shared Import finds a Gem Carton built against other gem versions.
 - [`Carton::ExportError`](/reference/errors/#cartonexporterror) when the Entrypoint finishes loading without calling `export`, or breaks an `export` rule while loading.
 
 </Tag>

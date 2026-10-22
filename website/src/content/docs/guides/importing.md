@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-An import loads a Carton into its own Box and returns its explicitly exported value. Every imported Entrypoint must call `export` exactly once; if it finishes loading without an Export, the import raises `Carton::ExportError`. Only an import crosses a Carton boundary: code loaded with plain `require` stays inside the current Carton.
+An import loads a Carton into its own Box and returns the value its Entrypoint exports; see [Exporting](/guides/exporting/). Only an import crosses a Carton boundary: code loaded with plain `require` stays inside the current Carton.
 
 ## `import_relative`
 
@@ -47,7 +47,7 @@ A failed load is not cached, so a later import tries again. A Carton that import
 
 ## Threads
 
-Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. A thread that imports a Carton its own Importer is still loading waits for it, as `require` would, so do not join such a thread from that Carton's Entrypoint.
+Imports are thread-safe. Threads importing the same Carton share one load, and an Entrypoint can start threads that import other Cartons, as it could with `require`. Do not have an Entrypoint start a thread that imports a Carton still loading on the current import chain and then join it. The thread waits for the Entrypoint, which waits for the thread.
 
 ## Rakefiles
 

@@ -13,10 +13,8 @@
 Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundaries at runtime:
 
 - other Cartons reach **only what a Carton exports**;
-- **monkey patches to builtin classes** stay in the Carton that makes them;
+- **monkey patches to builtin classes** stay in the Carton that makes them, apart from a [Ruby 4.0.7 visibility bug](https://carton.dtcristo.com/start/status/#before-production);
 - two Cartons can use **different versions of the same gem**.
-
-Every imported Entrypoint must call `export` exactly once. Loading without an Export raises `Carton::ExportError`; importing returns the exported value itself.
 
 A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory beside it. There is no manifest, and with a gemspec a Carton can leave the app as a gem.
 
@@ -63,15 +61,22 @@ RUBY_BOX=1 ruby main.rb
 
 ## Status
 
-Carton is experimental, and so is `Ruby::Box`. Box isolates definitions and load state, not objects, so it is not a security boundary, and classes a Carton exports are shared with every importer. [Why Carton](https://carton.dtcristo.com/start/why-carton/) compares it with Bundler and Packwerk and covers where it fits today.
+Carton is experimental, and so is `Ruby::Box`. [Status](https://carton.dtcristo.com/start/status/) lists what must change before production, and [Why Carton](https://carton.dtcristo.com/start/why-carton/) covers what a Box does not isolate and where Carton fits today. Rails and Hanami work experimentally; see the [Rails](https://carton.dtcristo.com/guides/examples/rails/) and [Hanami](https://carton.dtcristo.com/guides/examples/hanami/) examples.
 
 ## Docs
 
-Guides and reference live at [carton.dtcristo.com](https://carton.dtcristo.com) (source in [website/](website/README.md)). For contributors:
+Guides and reference live at [carton.dtcristo.com](https://carton.dtcristo.com) (source in [website/](website/README.md)). Start with:
+
+- [Getting started](https://carton.dtcristo.com/start/getting-started/)
+- [Why Carton](https://carton.dtcristo.com/start/why-carton/)
+- [Status](https://carton.dtcristo.com/start/status/)
+- [Adopting Carton](https://carton.dtcristo.com/guides/adopting/) in an existing app
+- [Examples](https://carton.dtcristo.com/guides/examples/): runnable apps, starting with [minimal](https://carton.dtcristo.com/guides/examples/minimal/); run one with `bundle exec rake example:<name>`
+
+For contributors:
 
 - [design.md](docs/design.md), [performance.md](docs/performance.md), [todo.md](docs/todo.md), and [internals/](docs/internals/)
 - [CONTEXT.md](CONTEXT.md): the glossary
-- [Examples](https://carton.dtcristo.com/guides/examples/): runnable apps, starting with [minimal](https://carton.dtcristo.com/guides/examples/minimal/); run one with `bundle exec rake example:<name>`
 
 The `carton` command, for RBS and boundary checks, is in the [`carton-tools`](carton-tools/README.md) gem. The [Tooling example](https://carton.dtcristo.com/guides/examples/tooling/) runs those commands and checks an app with Steep.
 

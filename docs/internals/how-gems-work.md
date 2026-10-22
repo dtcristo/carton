@@ -2,7 +2,7 @@
 
 This guide is based on direct reading of the upstream Ruby, RubyGems, and Bundler source trees.
 
-It describes Ruby 4.0.7 with RubyGems/Bundler 4.0.23. Older-version failures and their fixes are listed in [upstream.md](upstream.md#resolved).
+It describes Ruby 4.0.7 with RubyGems/Bundler 4.0.20 (the CI minimum, `.github/workflows/main.yml`) and 4.0.23. Older-version failures and their fixes are listed in [upstream.md](upstream.md#resolved).
 
 The guide has two layers:
 
@@ -125,13 +125,13 @@ The most important Ruby 4.0.7 facts are:
 4. Therefore `require "rubygems"` is already satisfied in a fresh Optional Box without inheriting Main or Root state.
 5. **Bundler is not preloaded that way.** If the first `require "bundler"` happens inside a Box, that Box gets its own `Bundler` constant and module state.
 6. RubyGems definitions and activation state belong to each User Box.
-7. Per-Carton Bundler setup, path-gem imports, and boxed `bundle exec` work on 4.0.7 with Bundler 4.0.23.
+7. Per-Carton Bundler setup, path-gem imports, and boxed `bundle exec` work on 4.0.7 with Bundler 4.0.20 and 4.0.23.
 
 That is why running Bundler setup inside each Carton remains the right isolation shape.
 
 ### Ruby 4.0.7 confirmed behavior
 
-On Ruby 4.0.7 with Bundler 4.0.23:
+On Ruby 4.0.7 with Bundler 4.0.20 and 4.0.23:
 
 - `$LOAD_PATH`, `Gem.loaded_specs`, and RubyGems registry changes stay Box-local.
 - `Bundler` module state is Box-local if Bundler is first loaded inside the Box.
@@ -143,7 +143,7 @@ On Ruby 4.0.7 with Bundler 4.0.23:
 - spec objects from another Box run that Box's methods, so calling `activate` on them updates the wrong Box. Carton rebuilds each spec with `Gem::Specification.from_yaml(spec.to_spec.to_yaml)` and restores `loaded_from` and `full_gem_path`, which also avoids re-evaluating gemspecs.
 - a bundled importer's restriction carries into a Carton Box through `Bundler.rubygems.replace_entrypoints(specs)` on the rebuilt specs: locked gems load at their versions, default gems still load, and unlocked gems raise `LoadError`. Under that restriction RubyGems does not auto-activate, so every locked spec must be activated, as `Bundler.setup` does.
 - the `bundler` spec is never shared: the Box loads its own Bundler to apply the restriction, which can be a different version from the Importer's, and activating both raises `Gem::LoadError`.
-- activation costs well under a millisecond per gem; `Ruby::Box.new` itself is about 70ms.
+- activation costs well under a millisecond per gem; `Ruby::Box.new` itself is about 55 ms ([performance.md](../performance.md)).
 
 That is why Carton's per-Carton Bundler pattern is one line, the same as the top-level app's:
 

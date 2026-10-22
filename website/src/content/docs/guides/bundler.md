@@ -46,6 +46,7 @@ gem 'pricing', path: 'pricing'
 
 ```ruby
 # main.rb
+require 'carton'
 Carton.setup_bundle
 Pricing = import 'pricing' # pricing's require 'bigdecimal' gets 3.3.1
 ```

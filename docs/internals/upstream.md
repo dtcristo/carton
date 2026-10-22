@@ -16,7 +16,7 @@ box2.eval("require 'bundler/setup'")
 
 Each Box keeps its own load path, loaded features, gem activation, and `Bundler` module, and Main Box is unchanged.
 
-## Status on Ruby 4.0.7 with Bundler 4.0.23
+## Status on Ruby 4.0.7 with Bundler 4.0.20 and 4.0.23
 
 Nothing blocks Carton. Carton patches nothing in RubyGems or Bundler, and its path-gem and nested-bundle tests pass; restricting a Gem Carton to the importer's lockfile calls two Bundler internals (below). See [how-gems-work.md](how-gems-work.md#ruby-407-confirmed-behavior) for the full list of confirmed behavior.
 
