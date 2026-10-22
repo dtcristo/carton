@@ -39,7 +39,7 @@ An import that cannot go ahead.
   - The target is a file in a Carton's Interior; only its Entrypoint can be imported.
   - The target is not Ruby source, such as a native extension found on `$LOAD_PATH`; only a `.rb` Entrypoint can be imported.
   - The import is circular, including a Carton importing itself.
-  - A Shared Gem Carton was built against other gem versions than this import activates or locks. The message names the gem and both versions.
+  - A Shared Import finds a Gem Carton built against other gem versions than this import activates or locks. The message names the gem and both versions.
 
 </Tag>
 
