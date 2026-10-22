@@ -24,7 +24,7 @@
 - Simplify the example gemspecs to required metadata, packaged files, and dependencies (#108).
 - Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/` (#108).
 - Keep the Minimal example focused on runtime boundaries and move static-check and RBS/Steep demonstrations into the Tooling example (#108).
-- Mention Ruby 4.0.7's builtin visibility leak only on the Status page, as an upstream Ruby bug rather than a production blocker (#PR).
+- Mention Ruby 4.0.7's builtin visibility leak only on the Status page, as an upstream Ruby bug rather than a production blocker (#113).
 - The README links the new Status, adoption guide, and Rails and Hanami examples first, and drops its repeated Export rule (#109).
 - Use glossary terms in `CONTEXT.md` and `docs/`: a Shared Import replaces "shared Carton", a Carton is no longer a "unit", and the Boxes section notes that most apps need only the Main Box and Carton Boxes (#109).
 - Remove stale Rails timings from `docs/performance.md`, record Bundler 4.0.20 alongside 4.0.23 in the internals, and align Box creation cost at 55 ms (#109).
