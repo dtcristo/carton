@@ -11,7 +11,7 @@ gem 'pricing', path: 'cartons/pricing'
 gem 'shipping', path: 'cartons/shipping'
 
 # The app's lockfile pins third-party versions for every Carton.
-gem 'faraday', '2.15.0'
+gem 'bigdecimal', '4.1.1'
 
 # The tests in test/ run under this same bundle.
 group :test do

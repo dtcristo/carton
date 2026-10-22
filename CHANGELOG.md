@@ -16,7 +16,7 @@
 
 - `carton check` gives each problem a stable rule ID and a column. Text output is `file:line:column: level: message [rule]` with pluralised counts, and JSON adds `version: 1`, `rule`, and `column` (#111).
 - `carton check` names Cartons by their Entrypoint path relative to the working directory, such as `billing.rb`, instead of the basename (#111).
-- Use Faraday instead of bigdecimal as the third-party gem in the Plugins and Monorepo examples and the docs. Plugins loads Faraday 1.10 and 2.15 side by side, one through a Transitive Carton with its own Carton Bundle (#PR).
+- Demonstrate conflicting gem versions with Faraday instead of bigdecimal in the Plugins example and the docs. Plugins loads Faraday 1.10 and 2.15 side by side, one through a Transitive Carton with its own Carton Bundle (#PR).
 - Move the Zeitwerk example's checks from `main.rb` into `test/zeitwerk_test.rb`, leaving a short demo (#PR).
 - Align the Rails and Hanami examples: one `Framework.register` signature, one import-wrapper naming scheme, no `Carton.setup_bundle` in Hanami's Gem Cartons, and shorter `main.rb` demos (#PR).
 - Label Carton, bundle, and export boundaries the same way in every example (#PR).

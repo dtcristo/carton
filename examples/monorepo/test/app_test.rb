@@ -15,7 +15,7 @@ class AppTest < Minitest::Test
   Pricing = import 'pricing'
 
   def test_invoice_totals_line_items
-    assert_equal 'Invoice 42: 25.00', Billing.invoice(42, %w[19.99 5.01])
+    assert_equal 'Invoice 42: 25.0', Billing.invoice(42, %w[19.99 5.01])
   end
 
   def test_billing_and_the_app_share_one_pricing_carton
@@ -26,8 +26,7 @@ class AppTest < Minitest::Test
     assert_raises(NameError) { Pricing::Rounding }
   end
 
-  def test_faraday_stays_in_the_shipping_box
-    assert_equal 12, import('shipping').quote(3)
-    refute defined?(Faraday)
+  def test_bigdecimal_stays_in_the_pricing_box
+    refute defined?(BigDecimal)
   end
 end

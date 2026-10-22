@@ -10,23 +10,23 @@ import ExampleFile from '../../../../components/ExampleFile.astro';
 Directories alone do not enforce boundaries between an app's domains. Here each domain is a Gem Carton: a path gem with declared runtime gems, an Interior, and a Public Surface. Each runs in its own Carton Box, with Bundler selecting its gem versions ([#32](https://github.com/dtcristo/carton/issues/32)). [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/monorepo).
 
 ```
-Gemfile                    # carton, the three Cartons, faraday 2.15.0
+Gemfile                    # carton, the three Cartons, bigdecimal 4.1.1
 main.rb                    # Carton.setup_bundle, then import each Carton
 cartons/
   pricing/
-    pricing.gemspec        # only depends on carton
+    pricing.gemspec        # depends on bigdecimal
     lib/pricing.rb         # Entrypoint: export Pricing
   billing/
     billing.gemspec        # depends on pricing
     lib/billing.rb         # Pricing = import 'pricing'
   shipping/
-    shipping.gemspec       # depends on faraday
+    shipping.gemspec       # only depends on carton
     lib/shipping.rb
 ```
 
 - One `Gemfile` and `Gemfile.lock` cover the whole monorepo and pin every third-party version.
 - `import 'billing'` loads a Carton by gem name in its own Carton Box. Only its Export crosses back.
-- Faraday loads inside `shipping`'s Box at the locked version, not in the Main Box.
+- `bigdecimal` loads inside `pricing`'s Box at the locked version, not in the Main Box.
 
 A Carton can leave the monorepo as a published gem without changes, since it already is one.
 
@@ -45,8 +45,6 @@ Each Entrypoint requires Carton to define `import` and `export`. `pricing` hides
 <ExampleFile path="monorepo/cartons/billing/billing.gemspec" />
 
 <ExampleFile path="monorepo/cartons/billing/lib/billing.rb" />
-
-`shipping` quotes rates from a carrier API through Faraday. Its test adapter stands in for the carrier, so the example runs offline:
 
 <ExampleFile path="monorepo/cartons/shipping/lib/shipping.rb" />
 
@@ -71,7 +69,7 @@ That import would work at runtime even though `billing.gemspec` does not declare
 `test/` shows both ways to test a Carton, under the monorepo's bundle:
 
 - `test/pricing_test.rb` is a unit test. It loads `pricing` with plain `require`, so there is no Box or boundary, and tests the private `Pricing::Rounding` through `Pricing.const_get(:Rounding)`. It runs with or without `RUBY_BOX=1`.
-- `test/app_test.rb` is an integration test. It imports `billing` and `pricing` as `main.rb` does, tests their Public Surfaces, and checks that `Pricing::Rounding` and Faraday stay hidden.
+- `test/app_test.rb` is an integration test. It imports `billing` and `pricing` as `main.rb` does, tests their Public Surfaces, and checks that `Pricing::Rounding` and `bigdecimal` stay hidden.
 
 Each file runs in its own process, since the unit test's `require` would load a Second Copy of `pricing` beside the imported one.
 

@@ -40,14 +40,14 @@ export version: Faraday::VERSION
 Importing a file from a gem the Importer has activated, such as a path gem in the app's Gemfile, activates that gem and its runtime dependencies in the Carton's Box at the Importer's versions. The gem needs no Gemfile of its own, but its Entrypoint must explicitly export a value. For a gem without an export, require it inside a Carton and explicitly export the value Importers need:
 
 ```ruby title="Gemfile"
-gem 'faraday', '2.15.0'
-gem 'shipping', path: 'shipping'
+gem 'bigdecimal', '3.3.1'
+gem 'pricing', path: 'pricing'
 ```
 
 ```ruby
 # main.rb
 Carton.setup_bundle
-Shipping = import 'shipping' # shipping's require 'faraday' gets 2.15.0
+Pricing = import 'pricing' # pricing's require 'bigdecimal' gets 3.3.1
 ```
 
 - A Gem Carton loads once per process, so its First Importer fixes its gem versions: its Gem Closure, plus any locked gem it has loaded without declaring, including one required lazily after its import. A later Importer that activates or locks a different version of one of those raises `Carton::ImportError` naming the gem and both versions, instead of sharing a Carton built against other versions. A gem the Carton first loads after that later import cannot be checked.

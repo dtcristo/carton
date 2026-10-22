@@ -9,7 +9,7 @@ module Billing
   Pricing = import 'pricing'
 
   def self.invoice(number, prices)
-    "Invoice #{number}: #{format('%.2f', Pricing.total(prices))}"
+    "Invoice #{number}: #{Pricing.total(prices).to_s('F')}"
   end
 end
 

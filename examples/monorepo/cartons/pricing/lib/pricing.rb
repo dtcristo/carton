@@ -2,6 +2,9 @@
 
 require 'carton'
 
+# Resolved by the app's lockfile, so every Carton sees the same version.
+require 'bigdecimal'
+
 module Pricing
   # Hidden from Importers by Ruby's own visibility, which holds across Boxes.
   module Rounding
@@ -9,10 +12,11 @@ module Pricing
   end
   private_constant :Rounding
 
-  # Prices are Strings, summed exactly as Rationals.
   def self.total(prices)
-    Rounding.cents(prices.sum { |price| Rational(price) })
+    Rounding.cents(prices.sum { |price| BigDecimal(price) })
   end
+
+  def self.bigdecimal_version = BigDecimal::VERSION
 end
 
 # Export: the Carton's root module.
