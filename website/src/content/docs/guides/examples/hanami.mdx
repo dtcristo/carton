@@ -1,8 +1,8 @@
 ---
 title: Hanami
-description: "Customers and Billing as Hanami slices, each its own Carton, with Dry contracts and Rom repositories."
+description: "Experimental: Customers and Billing as Hanami slices, each its own Carton, with Dry contracts and Rom repositories."
 sidebar:
-  order: 11
+  order: 10
 ---
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
@@ -58,7 +58,7 @@ The shop's Entrypoint imports Framework and loads `Shop::App` from `config/app.r
 
 Each Carton loads its own code with its own Zeitwerk loader and tells Hanami's loader to skip that source tree. Hanami still wires the components and provides the `Deps` mixin. When a component is resolved, the Carton's autoload runs. Actions, operations, contracts, and repos therefore run in their domain's Carton, in both lazy and eager modes. Slice configuration, providers, and migrations run in Framework. Setting `HANAMI_EAGER_LOAD=true` boots all providers and components up front, after migrating.
 
-Each exported namespace is bound in the framework Box by its own `Framework.register` call. Customers and Billing register from their slice configs, and Shop registers from `lib/shop.rb`. Registering the same module again is allowed. Registering a different module under the same name is rejected.
+Each exported namespace is bound in the framework Box by its own `Framework.register` call. Shop registers Customers and Billing from its slice files, `config/slices/customers.rb` and `config/slices/billing.rb`, and registers itself from `lib/shop.rb`. Registering the same module again is allowed. Registering a different module under the same name is rejected.
 
 Framework also keeps its deferred requires in its own Box. Without that, a require made during a nested Import could load part of Dry into the importing Carton. Main receives no Hanami, Dry, or Rom constants.
 

@@ -31,8 +31,8 @@ RUBOCOP_FILES = %w[
 ].freeze
 EXAMPLES = %w[
   minimal
-  tooling
   exports
+  tooling
   dependency_injection
   plugins
   monorepo

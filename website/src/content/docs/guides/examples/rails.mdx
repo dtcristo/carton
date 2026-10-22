@@ -2,7 +2,7 @@
 title: Rails
 description: "Experimental: Customers and Billing as namespaced Rails Engines, with Carton-owned loaders and a CLI bridge."
 sidebar:
-  order: 10
+  order: 9
 ---
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
@@ -39,7 +39,7 @@ cartons/
     db/migrate/
   billing/
     lib/billing.rb                       # Entrypoint, imports Framework and Customers
-    lib/billing/{invoice,issue_invoice,invalid_invoice,engine}.rb
+    lib/billing/{invoice,issue_invoice,invalid_invoice,tax_policy,engine}.rb
     app/models/billing/invoice_record.rb
     app/repositories/billing/invoice_repository.rb
     app/controllers/billing/
