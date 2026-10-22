@@ -95,12 +95,24 @@ Build a two-Carton app, then check the boundary.
 
 ## Grow a Carton
 
-When only billing uses tax, make it part of billing. A Carton is its Entrypoint plus its Interior, the directory named after it, shaped like a gem's `lib/`. Move `tax.rb` to `billing/tax.rb`, drop its `export`, and load it with `require_relative`:
+When only billing uses tax, make it part of billing. A Carton is its Entrypoint plus its Interior, the directory named after it, shaped like a gem's `lib/`. Move `tax.rb` to `billing/tax.rb`, nest `Tax` under `Billing` as a gem would, and drop its `export`:
 
 ```
 billing.rb      # the Entrypoint
 billing/tax.rb  # the Interior: inside the billing Carton
 ```
+
+```ruby
+# billing/tax.rb
+module Billing
+  module Tax
+    def self.on(total) = total / 10
+  end
+  private_constant :Tax # hidden from Importers of Billing
+end
+```
+
+Load it from the Entrypoint with `require_relative`:
 
 ```ruby
 # billing.rb
@@ -113,7 +125,7 @@ end
 export Billing
 ```
 
-`main.rb` still prints `110`, and `Tax` is still a `NameError` there. Only the Entrypoint can be imported, so `import_relative 'billing/tax'` raises `Carton::ImportError`.
+`main.rb` still prints `110`. `Tax` is still a `NameError` there, and `Billing::Tax` raises `NameError` because it is private. Only the Entrypoint can be imported, so `import_relative 'billing/tax'` raises `Carton::ImportError`.
 
 Each Carton loads once per process, and every later import returns the same value. `import 'billing'` searches `$LOAD_PATH` like `require`, so gems and path gems import by name.
 
