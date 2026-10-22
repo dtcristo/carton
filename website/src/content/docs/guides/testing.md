@@ -52,7 +52,9 @@ end
 
   ```ruby title="Rakefile"
   task 'test:unit' do
-    Dir['test/unit/**/*_test.rb'].each { |file| ruby '-Ilib', file } # no Boxes
+    Dir['test/unit/**/*_test.rb'].each do |file|
+      sh({ 'RUBY_BOX' => nil }, 'ruby', '-Ilib', file) # no Boxes, even if set
+    end
   end
 
   task 'test:integration' do

@@ -47,11 +47,15 @@ require 'vendor_sdk' # loads, with its core extensions, inside this Box
 export VendorSDK::Client
 ```
 
-The gem's monkey patches to builtin classes stay in the adapter's Box. The [Exports example](/guides/examples/exports/) includes an adapter for an existing file.
+The gem's monkey patches to builtin classes stay in the adapter's Box, apart from the [visibility bug](/start/status/#before-production) in Ruby 4.0.7. The [Exports example](/guides/examples/exports/) includes an adapter for an existing file.
 
 ## 4. Check boundaries in CI
 
-Add [`carton check`](/reference/cli/check/) to CI. It reports what the runtime cannot catch, such as Second Copies from plain `require` and Undeclared Gems:
+Add [`carton check`](/reference/cli/check/) to CI. It reports what the runtime cannot catch, such as Second Copies from plain `require` and Undeclared Gems. The command comes from the `carton-tools` gem:
+
+```ruby title="Gemfile"
+gem 'carton-tools', group: %i[development test]
+```
 
 ```sh
 bundle exec carton check main.rb
@@ -65,7 +69,7 @@ Extract further domains the same way, inner leaves first. Each Carton adds start
 
 ## 6. Roll back
 
-Carton files are plain Ruby. Under plain `require`, `export` returns its argument and does nothing else, so replacing each `X = import 'x'` with `require 'x'` restores the old shape. Keep `require 'carton'` loaded so `export` stays defined, and drop `RUBY_BOX=1` once no `import` remains.
+Carton files are plain Ruby. Under plain `require`, `export` returns its argument and does nothing else, so where an Export's name matches its binding, replacing `Tax = import 'tax'` with `require 'tax'` restores the old shape. An adapter that exports another name needs an explicit binding, such as `VendorClient = VendorSDK::Client` after `require 'vendor_sdk'`, and a Carton with its own bundle needs its gems moved into the app's Gemfile. Keep `require 'carton'` loaded so `export` stays defined, and drop `RUBY_BOX=1` once no `import` remains.
 
 ## Operations
 
