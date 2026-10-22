@@ -26,6 +26,10 @@ Check import and export problems with `carton check`, then generate RBS for Stee
 
 Pass host adapters into a checkout Carton and test it with fakes.
 
+### [Rack](/guides/examples/rack/)
+
+Mount Cartons that export Rack apps in a plain `config.ru`, with no web framework.
+
 ### [Monorepo](/guides/examples/monorepo/)
 
 Share one app lockfile across path gems with declared dependencies and unit and integration tests.

@@ -1,0 +1,68 @@
+---
+title: Rack
+description: A plain Rack app mounts domain Cartons, each exporting a Rack app, with no web framework.
+sidebar:
+  order: 5
+---
+
+import ExampleFile from '../../../../components/ExampleFile.astro';
+
+A Rack app is any object that responds to `call(env)`, so a Carton can export one. Here a plain `config.ru` mounts two domain Cartons with Rack's `map`, with no web framework. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rack).
+
+```
+Gemfile                      # carton, rack; rackup and webrick to serve
+config.ru                    # the host: mounts each Carton's Rack app
+main.rb                      # sends requests with Rack::MockRequest
+cartons/
+  catalog/
+    lib/catalog.rb           # Entrypoint: export Catalog, a Rack app
+    lib/catalog/products.rb  # inside the Carton; private
+  orders/
+    lib/orders.rb            # Entrypoint: imports catalog, exports a lambda
+test/app_test.rb
+```
+
+## The host
+
+`config.ru` routes in the Main Box and imports each Carton where it mounts it:
+
+<ExampleFile path="rack/config.ru" />
+
+## The Cartons
+
+`catalog` exports its module, which is both a Rack app and the Public Surface other Cartons use. It hides `Catalog::Products` with `private_constant`, and requires JSON in its own Box:
+
+<ExampleFile path="rack/cartons/catalog/lib/catalog.rb" />
+
+<ExampleFile path="rack/cartons/catalog/lib/catalog/products.rb" />
+
+`orders` imports `catalog` across a boundary and exports a lambda. The host imports `catalog` too, so both share one Carton:
+
+<ExampleFile path="rack/cartons/orders/lib/orders.rb" />
+
+## The app
+
+`main.rb` builds the app from `config.ru`, sends requests, and checks that `Catalog::Products` and JSON stay out of the Main Box:
+
+<ExampleFile path="rack/main.rb" />
+
+`test/app_test.rb` sends the same requests through `Rack::MockRequest`.
+
+## Run
+
+```sh
+bundle exec rake example:rack
+RUBY_BOX=1 ruby examples/rack/main.rb
+cd examples/rack && RUBY_BOX=1 bundle exec rackup   # serves on port 9292
+```
+
+```
+GET /catalog => {"tea":450,"coffee":600}
+GET /orders/quote?sku=tea&quantity=2 => {"sku":"tea","total":900}
+GET /orders/quote?sku=cake&quantity=1 => 404
+
+Catalog::Products is private: private constant Catalog::Products referenced
+JSON loaded in the Main Box: false
+```
+
+See [Rails](/guides/examples/rails/) and [Hanami](/guides/examples/hanami/) for Cartons inside a web framework.

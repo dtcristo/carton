@@ -34,8 +34,9 @@ EXAMPLES = %w[
   exports
   tooling
   dependency_injection
-  plugins
+  rack
   monorepo
+  plugins
   zeitwerk
   rails
   hanami
