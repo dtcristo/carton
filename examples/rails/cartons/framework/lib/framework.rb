@@ -16,7 +16,7 @@ module Framework
   ApplicationController = ::ApplicationController
   BrowserController = ::ActionController::Base
 
-  # Rails resolves qualified controller, and association names here.
+  # Rails resolves qualified controller and association names here.
   # Bind namespaces explicitly; never copy their classes into Object.
   def self.register(*namespaces)
     namespaces.each do |namespace|

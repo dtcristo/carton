@@ -3,8 +3,6 @@
 require 'carton'
 
 # The framework's gems and singleton registries live in this Carton.
-Carton.setup_bundle
-
 require 'hanami'
 require 'hanami/db/relation'
 require 'hanami/db/repo'
@@ -15,14 +13,18 @@ module Framework
   Hanami = ::Hanami
   Dry = ::Dry
 
-  def self.register(namespace)
-    name = namespace.name
-    if Object.const_defined?(name, false)
-      unless Object.const_get(name, false).equal?(namespace)
-        raise ArgumentError, "namespace already registered: #{name}"
+  # Hanami resolves slice namespaces here. Bind them explicitly; never copy
+  # their classes into Object.
+  def self.register(*namespaces)
+    namespaces.each do |namespace|
+      name = namespace.name
+      if Object.const_defined?(name, false)
+        unless Object.const_get(name, false).equal?(namespace)
+          raise ArgumentError, "namespace already registered: #{name}"
+        end
+      else
+        Object.const_set(name, namespace)
       end
-    else
-      Object.const_set(name, namespace)
     end
   end
 

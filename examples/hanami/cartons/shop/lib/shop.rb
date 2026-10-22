@@ -2,8 +2,6 @@
 
 require 'carton'
 
-Carton.setup_bundle
-
 module Shop
   Framework = import 'framework'
   Hanami = Framework::Hanami

@@ -4,7 +4,7 @@ require_relative 'test_helper'
 
 class HanamiWorkflowTest < Minitest::Test
   def setup
-    @http = Rack::MockRequest.new(HanamiTestBoot::App)
+    @http = Rack::MockRequest.new(ShopTestBoot::App)
   end
 
   def test_invalid_names_and_envelopes
@@ -92,7 +92,7 @@ class HanamiWorkflowTest < Minitest::Test
     customer_id = register_customer('<script>alert(1)</script>').fetch('id')
     # A previously persisted invoice keeps its historical tax rather than repricing.
     row =
-      HanamiTestBoot::App.slices[:billing]['repos.invoice_repo'].create(
+      ShopTestBoot::App.slices[:billing]['repos.invoice_repo'].create(
         customer_id: customer_id,
         subtotal_cents: 4200,
         tax_cents: 210,
@@ -108,7 +108,7 @@ class HanamiWorkflowTest < Minitest::Test
   end
 
   def test_slice_source_stays_in_its_carton_with_shared_dependencies
-    app = HanamiTestBoot::App
+    app = ShopTestBoot::App
     customers = app.slices[:customers]
     billing = app.slices[:billing]
     customer_box = customers['actions.customers.create'].method(:handle).box
@@ -140,7 +140,7 @@ class HanamiWorkflowTest < Minitest::Test
   end
 
   def test_issues_and_reads_an_invoice
-    http = Rack::MockRequest.new(HanamiTestBoot::App)
+    http = Rack::MockRequest.new(ShopTestBoot::App)
     customer =
       JSON.parse(
         http.post('/customers', params: { customer: { name: 'Ada' } }).body,
@@ -170,7 +170,7 @@ class HanamiWorkflowTest < Minitest::Test
   end
 
   def test_registers_a_customer
-    http = Rack::MockRequest.new(HanamiTestBoot::App)
+    http = Rack::MockRequest.new(ShopTestBoot::App)
     response =
       http.post('/customers', params: { customer: { name: '  Ada  ' } })
     assert_equal 201, response.status, response.body

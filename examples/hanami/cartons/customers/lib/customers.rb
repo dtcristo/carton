@@ -2,8 +2,7 @@
 
 require 'carton'
 
-Carton.setup_bundle
-
+# Actions render JSON with to_json.
 require 'json'
 
 module Customers

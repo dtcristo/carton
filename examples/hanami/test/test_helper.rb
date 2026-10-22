@@ -25,11 +25,11 @@ unless system(
   abort 'migration failed'
 end
 
-module HanamiTestBoot
+module ShopTestBoot
   App = import 'shop'
 end
 
 Minitest.after_run do
-  HanamiTestBoot::App.shutdown
+  ShopTestBoot::App.shutdown
   FileUtils.remove_entry(DIRECTORY)
 end

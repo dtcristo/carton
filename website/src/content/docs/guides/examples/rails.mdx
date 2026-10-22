@@ -101,6 +101,8 @@ RUBY_BOX=1 bin/rails server -b 127.0.0.1
 
 Each Engine exposes its migrations to Rails, so `db:prepare` creates the tables; importing the app creates none. Development and test use separate databases under `shop/storage/`. Set `SHOP_DATABASE` to choose another path. Generated databases, schemas, and logs are git-ignored.
 
+The workflow tests live in `cartons/shop/test/` and run through `bin/rails test`, Rails' own runner; `test/commands_test.rb` starts it. The Hanami example's tests import Shop directly instead.
+
 ## CLI and limits
 
 Use the shop's `bin/rails`. It enters the framework Carton, sets Rails' standard `APP_PATH` there, and makes the exported namespaces available to `runner`. Rails source loads only in the framework Carton. Verified commands are `db:prepare`, `db:migrate`, `routes`, `runner`, `zeitwerk:check`, `test`, and `server` with Puma. Stock `bundle exec rails`, direct `rake`, the console, and generators are not covered. Boot Imports live inside modules because Rake also defines a top-level `import`.

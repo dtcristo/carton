@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module CustomerBoot
+module CustomersBoot
   Framework = import 'framework'
   Customers = import 'customers'
 

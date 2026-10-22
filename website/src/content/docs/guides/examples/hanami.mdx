@@ -90,6 +90,10 @@ RUBY_BOX=1 bin/hanami server --host=127.0.0.1 --port=2300
 
 Development and test use separate SQLite databases under `cartons/shop/db/`. Set `DATABASE_URL` to choose another, and the test database name is derived from it. Generated databases and logs are git-ignored. Migrations create the tables; importing Shop creates none.
 
+All migrations live in Shop's `config/db/migrate/`, while the Rails example keeps them per Engine. The slices share Shop's database, and the Hanami CLI reads one `config/db/` per database: when several slices have one, it warns and uses only one.
+
+The tests live in `examples/hanami/test/` and import Shop as `main.rb` does. The Rails example runs its workflow tests through `bin/rails test` instead, since Rails has its own test runner.
+
 ## CLI and limits
 
 Use the shop's `bin/hanami`. It imports Shop before invoking the standard CLI in Framework. Verified commands are `db migrate`, `routes`, `run`, and `server`. Stock `bundle exec hanami`, generators, the console, asset builds, mailers, and background jobs are not covered. Restart after source edits, since no Carton reloading hooks are installed. Shared framework classes and registries are still mutable objects, as in the Rails example.
