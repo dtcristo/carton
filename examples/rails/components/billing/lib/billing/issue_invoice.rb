@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
 module Billing
-  # Each instance receives its own repository. Billing never resolves the
-  # Rails app's model or database connection by constant name.
   class IssueInvoice
     def initialize(invoices:, customers:)
       @invoices = invoices
-      @customers = Customers::Directory.new(customers:)
+      @customers = customers
     end
 
     def call(customer_id:, subtotal_cents:)
