@@ -65,6 +65,10 @@ Rails discovers the Engines, loads their route files, mounts their routes, and f
 
 The shop's `config/application.rb` imports its Entrypoint rather than requiring a Second Copy. The application class lives in the shop Carton's Interior. Domain methods execute in their Cartons, while inherited framework methods execute beside Rails. The ordinary Rack host never binds Rails in Main.
 
+<ExampleFile path="rails/components/framework/lib/framework.rb" />
+
+<ExampleFile path="rails/components/customers/lib/customers.rb" />
+
 <ExampleFile path="rails/components/billing/lib/billing.rb" />
 
 <ExampleFile path="rails/components/shop/lib/shop.rb" />
