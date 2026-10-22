@@ -95,33 +95,6 @@ class SourceFileTest < Minitest::Test
     assert_empty file.exports
   end
 
-  def test_types_methods_from_parameters
-    file = parse(<<~RUBY)
-      def plain(a, b = 1, *rest, c, key:, opt: 2, **opts, &block) = nil
-      def forward(...) = nil
-      def none = nil
-    RUBY
-
-    assert_equal '(untyped a, ?untyped b, *untyped rest, untyped c, ' \
-                   'key: untyped, ?opt: untyped, **untyped opts) ' \
-                   '?{ (?) -> untyped } -> untyped',
-                 file.methods['plain'].type
-    assert_equal '(*untyped, **untyped) ?{ (?) -> untyped } -> untyped',
-                 file.methods['forward'].type
-    assert_equal '() -> untyped', file.methods['none'].type
-  end
-
-  def test_reads_rbs_inline_annotations
-    file = parse(<<~RUBY)
-      #: (Integer amount) -> String
-      export def label(amount) = amount.to_s
-      RATE = compute #: Float
-    RUBY
-
-    assert_equal '(Integer amount) -> String', file.methods['label'].type
-    assert_equal 'Float', file.constants['RATE']
-  end
-
   def test_types_literal_constants
     file = parse(<<~RUBY)
       NAME = 'x'.freeze

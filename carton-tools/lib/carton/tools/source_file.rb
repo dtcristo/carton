@@ -65,9 +65,6 @@ module Carton
           end
         end
 
-      # A top-level method and its RBS method type.
-      Def = Data.define(:name, :type, :line)
-
       IMPORTS = %i[import import_relative].freeze
       REQUIRES = %i[require require_relative].freeze
 
@@ -75,7 +72,7 @@ module Carton
                   :imports,
                   :requires,
                   :exports,
-                  :methods,
+                  :export_lines,
                   :constants,
                   :definitions,
                   :references,
@@ -91,8 +88,10 @@ module Carton
         @imports = []
         @requires = []
         @exports = []
-        # Top-level methods by name, and RBS types of top-level constants.
-        @methods = {}
+        # Every possible export call, including ones whose execution or type
+        # cannot be inferred, so missing-export checks stay conservative.
+        @export_lines = []
+        # RBS types of top-level constants.
         @constants = {}
         # Every class and module defined, by full name: :class or :module.
         @definitions = {}
@@ -122,12 +121,6 @@ module Carton
         end
       end
 
-      # The rbs-inline `#: TYPE` annotation on `line`, if any.
-      def annotation(line)
-        text = @annotations[line]
-        text[2..].strip if text&.start_with?('#:')
-      end
-
       # The RBS type of a literal value node, or `untyped`.
       def self.literal_type(node)
         case node
@@ -155,36 +148,6 @@ module Carton
           'untyped'
         end
       end
-
-      # An RBS method type with untyped parameters matching a `def`.
-      def self.method_type(parameters)
-        return '() -> untyped' unless parameters
-
-        params = parameters.requireds.map { |node| positional(node) }
-        parameters.optionals.each { |node| params << "?untyped #{node.name}" }
-        if parameters.rest.is_a?(Prism::RestParameterNode)
-          params << "*untyped #{parameters.rest.name}".strip
-        end
-        parameters.posts.each { |node| params << positional(node) }
-        parameters.keywords.each do |node|
-          optional = node.is_a?(Prism::OptionalKeywordParameterNode)
-          params << "#{'?' if optional}#{node.name}: untyped"
-        end
-        block = parameters.block ? ' ?{ (?) -> untyped }' : ''
-        case parameters.keyword_rest
-        when Prism::KeywordRestParameterNode
-          params << "**untyped #{parameters.keyword_rest.name}".strip
-        when Prism::ForwardingParameterNode
-          params.push('*untyped', '**untyped')
-          block = ' ?{ (?) -> untyped }'
-        end
-        "(#{params.join(', ')})#{block} -> untyped"
-      end
-
-      def self.positional(node)
-        node.respond_to?(:name) ? "untyped #{node.name}" : 'untyped'
-      end
-      private_class_method :positional
 
       # Walks the tree once, tracking the class and module nesting and whether
       # code runs at load time.
@@ -249,6 +212,10 @@ module Carton
         end
 
         def visit_call_node(node)
+          if node.name == :export &&
+               (node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode))
+            @file.export_lines << node.location.start_line
+          end
           record_call(node) if node.receiver.nil?
           record_use(node) if bindable?(node.receiver)
           super
@@ -301,16 +268,7 @@ module Carton
           match(node.value, node.pattern, :lookup) { super }
         end
 
-        def visit_def_node(node)
-          if top_level? && node.receiver.nil?
-            line = node.location.start_line
-            type =
-              @file.annotation(line - 1) ||
-                SourceFile.method_type(node.parameters)
-            @file.methods[node.name.to_s] = Def.new(node.name.to_s, type, line)
-          end
-          nest(:@defs) { super }
-        end
+        def visit_def_node(node) = nest(:@defs) { super }
 
         def visit_block_node(node) = nest(:@blocks) { super }
 
@@ -366,9 +324,7 @@ module Carton
         def visit_constant_write_node(node)
           name = qualify(node.name.to_s)
           if top_level?
-            @file.constants[name] = @file.annotation(
-              node.location.start_line,
-            ) || SourceFile.literal_type(node.value)
+            @file.constants[name] = SourceFile.literal_type(node.value)
           end
           binding(:@constant, name, node.value) { super }
         end

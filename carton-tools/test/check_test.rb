@@ -43,7 +43,7 @@ class CheckTest < Minitest::Test
   def test_include_option_resolves_named_imports
     status, output =
       check(
-        { 'main.rb' => "import 'tool'\n", 'lib/tool.rb' => '' },
+        { 'main.rb' => "import 'tool'\n", 'lib/tool.rb' => "export({})\n" },
         '-I',
         'lib',
       )
@@ -103,8 +103,8 @@ class CheckTest < Minitest::Test
     status, output =
       check(
         'main.rb' => "import_relative 'a'\n",
-        'a.rb' => "import_relative 'b'\n",
-        'b.rb' => "import_relative 'a'\n",
+        'a.rb' => "import_relative 'b'\nexport({})\n",
+        'b.rb' => "import_relative 'a'\nexport({})\n",
       )
 
     assert_equal 1, status
@@ -116,8 +116,8 @@ class CheckTest < Minitest::Test
     status, output =
       check(
         'main.rb' => "import_relative 'a'\n",
-        'a.rb' => "import_relative 'b'\n",
-        'b.rb' => "def a = import_relative('a')\n",
+        'a.rb' => "import_relative 'b'\nexport({})\n",
+        'b.rb' => "def a = import_relative('a')\nexport({})\n",
       )
 
     assert_equal 0, status
@@ -134,7 +134,7 @@ class CheckTest < Minitest::Test
         'billing.rb' =>
           "require_relative 'math'\nrequire_relative 'billing/tax'\n",
         'billing/tax.rb' => '',
-        'math.rb' => '',
+        'math.rb' => "export({})\n",
       )
 
     assert_equal 1, status
@@ -150,7 +150,7 @@ class CheckTest < Minitest::Test
       check(
         'main.rb' =>
           "import_relative 'billing'\nrequire_relative 'billing/tax'\n",
-        'billing.rb' => "require_relative 'billing/tax'\n",
+        'billing.rb' => "require_relative 'billing/tax'\nexport({})\n",
         'billing/tax.rb' => '',
       )
 
@@ -181,19 +181,79 @@ class CheckTest < Minitest::Test
     )
   end
 
-  def test_bare_helper_shadowing_a_built_in_method_is_an_error
+  def test_imported_entrypoint_without_export_is_an_error
     status, output =
       check(
-        'main.rb' => "import_relative 'bare'\n",
-        'bare.rb' => "def name = 'bare'\ndef helper = 1\n",
+        'main.rb' => "import_relative 'billing'\nimport_relative 'billing'\n",
+        'billing.rb' => "module Billing; end\n",
       )
 
     assert_equal 1, status
     assert_match(
-      /^bare\.rb:1: error: a top-level method named name would hide Carton::Namespace#name/,
+      /^billing\.rb:1: error: an imported Entrypoint must call export$/,
       output,
     )
-    assert_equal 1, output.scan('would hide').size
+    assert_match(/1 errors, 0 warnings/, output)
+  end
+
+  def test_empty_imported_entrypoint_without_export_is_an_error
+    status, output =
+      check('main.rb' => "import_relative 'empty'\n", 'empty.rb' => '')
+
+    assert_equal 1, status
+    assert_match(
+      /^empty\.rb:1: error: an imported Entrypoint must call export$/,
+      output,
+    )
+  end
+
+  def test_explicit_nil_and_false_exports_are_valid
+    status, output =
+      check(
+        'main.rb' => "import_relative 'nothing'\nimport_relative 'disabled'\n",
+        'nothing.rb' => "export nil\n",
+        'disabled.rb' => "export false\n",
+      )
+
+    assert_equal 0, status, output
+    assert_match(/0 errors, 0 warnings/, output)
+  end
+
+  def test_unimported_files_do_not_need_export
+    status, output =
+      check(
+        'main.rb' => "require_relative 'helper'\n",
+        'helper.rb' => "module Helper; end\n",
+      )
+
+    assert_equal 0, status, output
+    assert_match(/0 Cartons, 0 errors, 0 warnings/, output)
+  end
+
+  def test_exports_in_namespace_bodies_and_called_methods_are_not_missing
+    [
+      "module Billing; export self; end\n",
+      "def publish; export 1; end\npublish\n",
+      "self.export 1\n",
+    ].each do |source|
+      status, output =
+        check(
+          'main.rb' => "import_relative 'billing'\n",
+          'billing.rb' => source,
+        )
+
+      assert_equal 0, status, output
+    end
+  end
+
+  def test_conditional_export_does_not_require_control_flow_proof
+    status, output =
+      check(
+        'main.rb' => "import_relative 'conditional'\n",
+        'conditional.rb' => "export false if ENV['ENABLED']\n",
+      )
+
+    assert_equal 0, status, output
   end
 
   # Export calls in different branches of one conditional never both run,
@@ -245,7 +305,7 @@ class CheckTest < Minitest::Test
     status, output =
       check(
         'main.rb' => "import_relative 'billing'\n",
-        'billing.rb' => "require_relative 'billing/tax'\n",
+        'billing.rb' => "require_relative 'billing/tax'\nexport({})\n",
         'billing/tax.rb' => "export 1\n",
       )
 
@@ -254,6 +314,22 @@ class CheckTest < Minitest::Test
       %r{^billing/tax\.rb:1: warning: export outside an Entrypoint does nothing},
       output,
     )
+  end
+
+  def test_an_interiors_export_does_not_satisfy_its_entrypoint
+    status, output =
+      check(
+        'main.rb' => "import_relative 'billing'\n",
+        'billing.rb' => "require_relative 'billing/tax'\n",
+        'billing/tax.rb' => "export 1\n",
+      )
+
+    assert_equal 1, status
+    assert_match(
+      /^billing\.rb:1: error: an imported Entrypoint must call export$/,
+      output,
+    )
+    assert_match(/1 errors, 1 warnings/, output)
   end
 
   def test_parse_error_is_an_error

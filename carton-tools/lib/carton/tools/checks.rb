@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'bindings'
-require 'carton/namespace_methods'
-require 'carton/namespace'
 require_relative 'project'
 
 module Carton
@@ -30,7 +28,7 @@ module Carton
           *requires_into_cartons,
           *undeclared_gems,
           *export_problems,
-          *bare_collisions,
+          *missing_export_declarations,
           *missing_exports,
           *private_constant_references,
           *unused_imports,
@@ -216,30 +214,16 @@ module Carton
         end
       end
 
-      # A Bare Carton's top-level methods become `Carton::Namespace` methods,
-      # so the same names collide.
-      def bare_collisions
-        @project.cartons.each_value.flat_map do |carton|
-          next [] unless @project.files.fetch(carton.entrypoint).exports.empty?
-
-          carton.files.flat_map do |path|
-            @project
-              .files
-              .fetch(path)
-              .methods
-              .each_value
-              .filter_map do |method|
-                next unless Namespace.reserved?(method.name)
-
-                error(path, method.line, collision(method.name))
-              end
+      # Only imported Entrypoints must export. The presence of a call is
+      # checked without proving that every path through the file reaches it.
+      def missing_export_declarations
+        @project.cartons.each_value.filter_map do |carton|
+          unless @project.files.fetch(carton.entrypoint).export_lines.empty?
+            next
           end
-        end
-      end
 
-      def collision(name)
-        "a top-level method named #{name} would hide " \
-          "Carton::Namespace##{name}: rename it, or export a module"
+          error(carton.entrypoint, 1, 'an imported Entrypoint must call export')
+        end
       end
 
       # A `fetch` of a key a Carton's exported Hash does not have, which
@@ -374,7 +358,6 @@ module Carton
 
         carton = @project.owner(binding.file) or return false
         exports = @project.files.fetch(carton.entrypoint).exports
-        return !binding.name.include?('::') if exports.empty?
 
         exports.any? do |export|
           name = export.value&.delete_prefix('::')

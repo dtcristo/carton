@@ -89,17 +89,14 @@ class CheckUsesTest < Minitest::Test
   end
 
   # Their names are not declared in one place.
-  def test_module_exports_and_bare_cartons_are_not_checked
+  def test_module_exports_are_not_checked
     main = <<~RUBY
       Billing = import_relative 'billing'
       Billing.anything
-      Util = import_relative 'util'
-      Util.anything
     RUBY
     files = {
       'main.rb' => main,
       'billing.rb' => "module Billing; end\nexport Billing\n",
-      'util.rb' => "def helper = 1\n",
     }
 
     assert_equal 0, check(files).first
@@ -171,9 +168,7 @@ class CheckUsesTest < Minitest::Test
 
   def test_imports_on_a_cartons_public_surface_are_not_unused
     files = {
-      'main.rb' =>
-        "import_relative 'bare'\nimport_relative 'app'\nimport_relative 'forward'\n",
-      'bare.rb' => "MathTools = import_relative 'math'\n",
+      'main.rb' => "import_relative 'app'\nimport_relative 'forward'\n",
       'app.rb' =>
         "module App\n  MathTools = import_relative 'math'\nend\nexport ::App\n",
       'forward.rb' => "MathTools = import_relative 'math'\nexport MathTools\n",
@@ -186,17 +181,17 @@ class CheckUsesTest < Minitest::Test
     assert_empty warnings(output)
   end
 
-  def test_a_bare_cartons_unused_local_is_not_part_of_its_public_surface
+  def test_an_unused_local_is_not_part_of_a_cartons_public_surface
     files = {
-      'main.rb' => "import_relative 'bare'\n",
-      'bare.rb' => "math = import_relative 'math'\n",
+      'main.rb' => "import_relative 'app'\n",
+      'app.rb' => "math = import_relative 'math'\nexport({})\n",
       'math.rb' => MATH,
     }
 
     _, output = check(files)
 
     expected = [
-      'bare.rb:1: warning: math is bound to an import of the math Carton but never used',
+      'app.rb:1: warning: math is bound to an import of the math Carton but never used',
     ]
     assert_equal expected, warnings(output)
   end
