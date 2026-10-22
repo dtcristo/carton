@@ -4,6 +4,7 @@ require_relative 'test_helper'
 require 'stringio'
 require 'json'
 require 'tmpdir'
+require 'fileutils'
 
 class CliTest < Minitest::Test
   def test_help_prints_usage
@@ -77,6 +78,42 @@ class CliTest < Minitest::Test
 
     assert_equal 2, status
     assert_equal "carton: nope.rb: No such file or directory\n", err
+  end
+
+  def test_directory_scan_skips_vendor_bundle_and_excluded_globs
+    Dir.mktmpdir do |dir|
+      {
+        'app/main.rb' => "p 1\n",
+        'app/tmp/broken.rb' => "def broken(\n",
+        'app/vendor/bundle/gems/x/x.rb' => "def broken(\n",
+      }.each do |path, source|
+        FileUtils.mkdir_p(File.dirname(File.join(dir, path)))
+        File.write(File.join(dir, path), source)
+      end
+      Dir.chdir(dir) do
+        status, out, = run_cli('check', 'app')
+
+        assert_equal 1, status
+        assert_match(%r{^app/tmp/broken\.rb:}, out)
+        refute_match(/vendor/, out)
+        assert_equal [0, "1 file, 0 Cartons, 0 errors, 0 warnings\n", ''],
+                     run_cli('check', '--exclude', 'tmp', 'app')
+        assert_equal [0, "1 file, 0 Cartons, 0 errors, 0 warnings\n", ''],
+                     run_cli('check', '--exclude', '**/*broken*', 'app')
+      end
+    end
+  end
+
+  def test_directory_without_ruby_files_fails
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, 'empty/vendor/bundle'))
+      File.write(File.join(dir, 'empty/vendor/bundle/x.rb'), "p 1\n")
+      status, out, err = Dir.chdir(dir) { run_cli('check', 'empty') }
+
+      assert_equal 2, status
+      assert_empty out
+      assert_equal "carton: no Ruby files in empty\n", err
+    end
   end
 
   def test_unreadable_file_fails

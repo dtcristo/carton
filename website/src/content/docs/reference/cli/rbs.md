@@ -12,6 +12,7 @@ Writes RBS for what each import returns, so Steep or another type checker can ty
 ```text
 Usage: carton rbs [options] PATH...
     -I, --include DIR                Add DIR to the load path for named imports
+        --exclude GLOB               Skip matching files in directory PATHs (and vendor/bundle)
     -o, --output FILE                Where to write the RBS (default sig/generated/carton.rbs, - for stdout)
         --check                      Exit 1 if the output file is missing or stale; write nothing
     -h, --help                       Show this help
@@ -23,6 +24,7 @@ Usage: carton rbs [options] PATH...
 | Option | Effect |
 | --- | --- |
 | `-I`, `--include DIR` | Add `DIR` to the load path for named imports. Repeatable. |
+| `--exclude GLOB` | Skip files in a directory `PATH` whose path relative to it, or a parent directory's, matches `GLOB`, such as `tmp` or `**/fixtures`. Repeatable. `**/vendor/bundle` is always skipped. Files reached by imports are still read |
 | `-o`, `--output FILE` | Where to write the RBS: `sig/generated/carton.rbs` by default, or `-` for stdout |
 | `--check` | Compare the RBS with the output file instead of writing it. Exit 1 if the file is missing or stale, naming the first line that differs. Use it in CI |
 | `-h`, `--help` | Print this usage to stdout and exit 0 |

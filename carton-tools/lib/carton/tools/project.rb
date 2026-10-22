@@ -23,9 +23,18 @@ module Carton
       # may still provide.
       Edge = Data.define(:call, :carton, :error, :unfound)
 
+      # Directory scans skip installed gems.
+      DEFAULT_EXCLUDES = ['**/vendor/bundle'].freeze
+
+      # A directory PATH with no Ruby files left to scan.
+      class EmptyError < StandardError
+      end
+
       attr_reader :files, :cartons, :edges
 
-      def initialize(paths, load_path: [], specs: nil)
+      # `exclude` lists globs, matched against each path inside a directory
+      # PATH and its parent directories, that the scan skips.
+      def initialize(paths, load_path: [], specs: nil, exclude: [])
         @pwd = File.realpath(Dir.pwd)
         # The working directory, where a path or a message's quote or
         # punctuation starts and a path separator or the end follows.
@@ -37,6 +46,7 @@ module Carton
         @cartons = {}
         @carton_by_file = {}
         @edge_by_call = {}.compare_by_identity
+        @exclude = DEFAULT_EXCLUDES + exclude
         discover(ruby_files(paths).map { |path| parse(path) })
         @edges = imports.map { |call| edge(call) }
       end
@@ -113,9 +123,30 @@ module Carton
           paths.flat_map do |path|
             next [path] unless File.directory?(path)
 
-            Dir.glob('**/*.rb', base: path).sort.map { |f| File.join(path, f) }
+            found =
+              Dir
+                .glob('**/*.rb', base: path)
+                .reject { |file| excluded?(file) }
+                .sort
+            raise EmptyError, "no Ruby files in #{path}" if found.empty?
+
+            found.map { |file| File.join(path, file) }
           end
         files.map { |path| File.realpath(path) }
+      end
+
+      def excluded?(file)
+        parts = file.split('/')
+        prefixes = (1..parts.size).map { |size| parts.first(size).join('/') }
+        @exclude.any? do |pattern|
+          prefixes.any? do |prefix|
+            File.fnmatch?(
+              pattern,
+              prefix,
+              File::FNM_PATHNAME | File::FNM_EXTGLOB,
+            )
+          end
+        end
       end
 
       def parse(path) = @files[path] ||= SourceFile.parse(path)

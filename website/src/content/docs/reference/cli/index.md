@@ -39,7 +39,7 @@ Run carton help COMMAND for a command's options.
 
 ## Paths and named imports
 
-`PATH` is a Ruby file or a directory of them, such as `main.rb` or `app`. Imports are followed into every Carton they reach. Named imports resolve against `-I` directories, then the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app to see the bundle's gems.
+`PATH` is a Ruby file or a directory of them, such as `main.rb` or `app`. Imports are followed into every Carton they reach. A directory is scanned for `.rb` files, skipping `vendor/bundle` and any `--exclude GLOB`; one with no Ruby files left is a usage error. Named imports resolve against `-I` directories, then the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app to see the bundle's gems.
 
 ## Exit status
 

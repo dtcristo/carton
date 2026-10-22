@@ -66,7 +66,7 @@ module Carton
             2
           end
         end
-      rescue OptionParser::ParseError => e
+      rescue OptionParser::ParseError, Project::EmptyError => e
         @err.puts "carton: #{e.message}"
         2
       rescue SystemCallError => e
@@ -225,6 +225,7 @@ module Carton
       # to the gems RubyGems knows: the bundle's, or every installed gem.
       def project(args, command)
         includes = []
+        exclude = []
         parser =
           OptionParser.new do |o|
             o.program_name = 'carton'
@@ -235,6 +236,10 @@ module Carton
               '--include DIR',
               'Add DIR to the load path for named imports',
             ) { |dir| includes << File.expand_path(dir) }
+            o.on(
+              '--exclude GLOB',
+              'Skip matching files in directory PATHs (and vendor/bundle)',
+            ) { |glob| exclude << glob }
             yield o if block_given?
             o.on_tail('-h', '--help', 'Show this help') do
               @out.puts o
@@ -251,7 +256,7 @@ module Carton
           return
         end
 
-        Project.new(paths, load_path: includes + $LOAD_PATH)
+        Project.new(paths, load_path: includes + $LOAD_PATH, exclude:)
       end
     end
   end

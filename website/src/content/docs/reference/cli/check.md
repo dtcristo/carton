@@ -12,6 +12,7 @@ Reports import and export problems without running code. See [Types and checks](
 ```text
 Usage: carton check [options] PATH...
     -I, --include DIR                Add DIR to the load path for named imports
+        --exclude GLOB               Skip matching files in directory PATHs (and vendor/bundle)
         --strict                     Fail on warnings too, not only errors
         --format FORMAT              text (default) or json
     -h, --help                       Show this help
@@ -23,6 +24,7 @@ Usage: carton check [options] PATH...
 | Option | Effect |
 | --- | --- |
 | `-I`, `--include DIR` | Add `DIR` to the load path for named imports. Repeatable. |
+| `--exclude GLOB` | Skip files in a directory `PATH` whose path relative to it, or a parent directory's, matches `GLOB`, such as `tmp` or `**/fixtures`. Repeatable. `**/vendor/bundle` is always skipped. Files reached by imports are still read |
 | `--strict` | Exit 1 on warnings too, not only errors |
 | `--format FORMAT` | `text` (default) or `json` |
 | `-h`, `--help` | Print this usage to stdout and exit 0 |
