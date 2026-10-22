@@ -23,7 +23,7 @@ Ordered by priority within each section.
 `carton rbs`, `carton check`, and the Gem Carton monorepo example have shipped. The remaining tooling work from [dtcristo/carton#38](https://github.com/dtcristo/carton/issues/38) and [dtcristo/carton#32](https://github.com/dtcristo/carton/issues/32) is listed below; strict Gem Cartons remain parked under Library.
 
 - `carton check`: resolve imports inside a Carton that calls `setup_bundle` against its own `Gemfile.lock`, then report a Gem Carton shared by importers whose lockfiles lock its dependencies at different versions (a runtime `Carton::ImportError` today).
-- `carton rbs`: read exported top-level method types from a Carton's own RBS, not only rbs-inline `#:` annotations.
+- `carton rbs`: read types for captured methods exported as values from a Carton's own RBS; these Exports are currently `untyped`.
 - `carton rbs`: optionally write Steepfile targets, one per Carton, so Cartons' internal constants cannot clash in RBS's single namespace.
 - Sorbet through a Tapioca DSL compiler, if `tapioca dsl` works under `RUBY_BOX=1`.
 

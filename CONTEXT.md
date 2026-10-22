@@ -36,13 +36,13 @@ Ruby names three kinds of Box: the Master Box, the Root Box, and User Boxes. A U
 
 ### Importing
 
-**Import**: Loading a Carton into its Carton Box and receiving its Export or Namespace. Only an Import crosses a Carton boundary; code loaded without one remains inside the current Carton. _Avoid_: Require, load
+**Import**: Loading a Carton into its Carton Box and receiving its Export. Only an Import crosses a Carton boundary; code loaded without one remains inside the current Carton. _Avoid_: Require, load
 
 **Importer**: The code that runs an Import: the application in the Main Box, or another Carton. _Avoid_: Caller, parent
 
 **First Importer**: The Importer whose Import loads a Carton. It fixes the Carton's gem versions for the whole process. _Avoid_: Owner
 
-**Shared Import**: An Import of a Carton already loaded in the process. It returns the same Export or Namespace as the First Importer received, so every Importer shares one Carton. _Avoid_: Cached carton, singleton carton
+**Shared Import**: An Import of a Carton already loaded in the process. It returns the same Export as the First Importer received, so every Importer shares one Carton. _Avoid_: Cached carton, singleton carton
 
 **Imported Carton**: A Carton an Importer imports directly. It remains a separate boundary and exposes only its Public Surface. _Avoid_: Child carton, nested carton, dependency
 
@@ -54,15 +54,9 @@ Ruby names three kinds of Box: the Master Box, the Root Box, and User Boxes. A U
 
 ### Exporting
 
-**Export**: The one value a Carton's Entrypoint gives `export`, returned as is when the Carton is imported: usually its root module, or a Hash from keywords. Calls in any other file, including files loaded by plain `require`, declare nothing. A Bare Carton has none. _Avoid_: Default export, named exports, export declaration
+**Export**: The one value every Carton's Entrypoint must give `export`, returned as is when the Carton is imported: usually its root module, or a Hash from keywords, but also any other non-Symbol value, including `nil` or `false`. Calls in any other file, including files loaded by plain `require`, declare nothing. _Avoid_: Default export, named exports, export declaration
 
-**Public Surface**: Everything a Carton deliberately makes reachable across its boundary: its Export or Namespace, and what those expose. _Avoid_: API, public API, exports
-
-**Bare Carton**: A Carton whose Entrypoint never calls `export`. The constants and Helpers its Entrypoint defines are its Public Surface, returned as a Namespace. _Avoid_: Unexported carton, script carton
-
-**Helper**: A top-level method a Bare Carton's Entrypoint defines, callable through its Namespace. _Avoid_: Function, Bare Carton method
-
-**Namespace**: The `Carton::Namespace` module a Bare Carton's Importers receive, holding its constants and Helpers. _Avoid_: Exports, export namespace
+**Public Surface**: Everything a Carton deliberately makes reachable across its boundary: its Export and what that value exposes. _Avoid_: API, public API, exports
 
 ### Gems and bundles
 

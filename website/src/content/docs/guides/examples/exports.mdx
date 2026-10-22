@@ -1,19 +1,19 @@
 ---
 title: Exports
-description: What an import can return, a Hash, a callable, or a Carton::Namespace for existing Ruby with no export, and pattern matching on each.
+description: Explicit Hash and callable exports, an adapter for existing Ruby, and pattern matching on exported Hashes.
 sidebar:
   order: 2
 ---
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-An import returns the Entrypoint's Export, or a `Carton::Namespace` for a Bare Carton. [Minimal](/guides/examples/minimal/) exports a module; this example covers a Hash, a callable, and an existing file with no `export`. It needs no gems or Bundler. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/exports).
+An import returns exactly the Entrypoint's Export. [Minimal](/guides/examples/minimal/) exports a module; this example covers a Hash, a callable, and a distinct adapter Entrypoint for an existing file with no `export`. It needs no gems or Bundler. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/exports).
 
 | File | Import returns | How the app uses it |
 | --- | --- | --- |
 | `settings.rb` | A plain Hash from `export currency: 'USD'` | Pattern matching extracts `currency` |
 | `formatter.rb` | A Proc | `money.call(4_200)` formats cents |
-| `legacy.rb` | A `Carton::Namespace`, since the file has no `export` | `Legacy.label(42)`, `Legacy::PREFIX`, or pattern matching |
+| `legacy_adapter.rb` | A plain Hash containing `prefix` and a captured `label` method | Pattern matching extracts values; `label.call(42)` calls the method |
 
 ## The Cartons
 
@@ -21,17 +21,21 @@ An import returns the Entrypoint's Export, or a `Carton::Namespace` for a Bare C
 
 <ExampleFile path="exports/formatter.rb" />
 
-`legacy.rb` is ordinary Ruby with a constant and a top-level method, a Helper. It runs in a Carton Box, so `PREFIX` does not become a constant in Main:
+`legacy.rb` is ordinary Ruby with a constant and a top-level method. The adapter requires it inside its Carton Box, so `PREFIX` does not become a constant in Main:
 
 <ExampleFile path="exports/legacy.rb" />
+
+`legacy_adapter.rb` is the imported Entrypoint. It explicitly exports the chosen constant value and captured method:
+
+<ExampleFile path="exports/legacy_adapter.rb" />
 
 ## The app
 
 <ExampleFile path="exports/main.rb" />
 
-`Legacy` exposes the Entrypoint's constants and Helpers; the Carton Box stays private. Pattern matching captures the Helper as a `Method`, which the app calls with `.call`. New Cartons should export a deliberate value; Bare Cartons let existing code load unchanged.
+The app binds the adapter's Hash to `legacy`, then extracts `label` and `prefix` through pattern matching. `label` is a `Method`, which the app calls with `.call`. The original file stays unchanged, and the adapter chooses what crosses the Carton boundary.
 
-Every Shared Import returns the same Export or Namespace. If you export a mutable Hash, every Importer gets that same Hash, so freeze it if it is meant to be read-only.
+Every Shared Import returns the same Export. If you export a mutable Hash, every Importer gets that same Hash, so freeze it if it is meant to be read-only.
 
 ## Run
 
@@ -41,9 +45,9 @@ RUBY_BOX=1 ruby examples/exports/main.rb
 
 ```text
 INV-0042: USD 42.00
-Captured Helper: INV-0007
+Captured method: INV-0007
 Legacy prefix: INV
 PREFIX defined in Main: false
 ```
 
-See [Exporting](/guides/exporting/) and [Bare Cartons](/guides/bare-cartons/) for the rules.
+See [Exporting](/guides/exporting/) and [Legacy Ruby and gems](/guides/legacy-code/) for the rules.

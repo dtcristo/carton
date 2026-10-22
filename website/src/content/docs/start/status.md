@@ -9,7 +9,7 @@ Carton is experimental, and so is `Ruby::Box`. It targets Ruby 4.0.7 or later an
 
 | Need | Status |
 | --- | --- |
-| A private Interior per Carton | Done. Only an Entrypoint can be imported, only the Export crosses, and `private_constant` hides the rest. |
+| A private Interior per Carton | Done. Only an Entrypoint can be imported, it must call `export` exactly once, only that value crosses, and `private_constant` hides the rest. |
 | Imports bound where they are used | Done. `import` returns a value and defines nothing in the Importer. |
 | Gem versions per Carton | Done. A Carton that calls `Carton.setup_bundle` gets its own bundle, and Gem Cartons get the Importer's versions. A shared Carton keeps its First Importer's versions. |
 | Contained side effects | Partly. Patches to builtins stay in their Carton, but exported classes are shared and can be reopened. `carton check` warns about class/module definitions through directly followed Imports; it adds no runtime guard. |

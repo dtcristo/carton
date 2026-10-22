@@ -46,12 +46,12 @@ An import that cannot go ahead.
 
 <Signature owner="Carton::ExportError" rbs="class Carton::ExportError < Carton::Error" source="lib/carton/error.rb#L18" />
 
-An `export` that breaks the rules.
+A missing or invalid Export.
 
 <Tag label="Raises">
 
 - Raised by [`export`](/reference/kernel/#export) on a second call in one Entrypoint, or for a Symbol.
-- Raised by `import` of a Bare Carton whose Helper would hide a [`Carton::Namespace`](/reference/namespace/) method.
+- Raised by [`import`](/reference/kernel/#import) or [`import_relative`](/reference/kernel/#import_relative) when the Entrypoint finishes loading without calling `export`. An `export` in a required file does not count.
 
 </Tag>
 

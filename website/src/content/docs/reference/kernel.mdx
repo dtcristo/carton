@@ -24,7 +24,7 @@ import Tag from '../../../components/api/Tag.astro';
 
 <Signature owner="Kernel" private rbs="def import: (::String path) -> untyped" source="lib/carton/kernel_patch.rb#L9" />
 
-Imports the Carton at `path` and returns its Export, or a [`Carton::Namespace`](/reference/namespace/) for a Bare Carton.
+Imports the Carton at `path` and returns its explicitly declared Export. Every imported Entrypoint must call `export` exactly once.
 
 The first import of a Carton loads its Entrypoint in a new Carton Box. Later imports of the same Entrypoint, by any path and from any Box, are Shared Imports and return the same value. A Gem-shaped Directory, such as `billing/` holding `lib/billing.rb`, resolves to its `lib/` Entrypoint.
 
@@ -36,8 +36,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 
 <Tag label="Returns">
 
-- The Carton's Export, exactly as passed to `export`, never a wrapper.
-- A `Carton::Namespace` when the Entrypoint never calls `export`.
+- The Carton's Export, exactly as passed to `export`, including `nil` or `false`, never a wrapper.
 
 </Tag>
 
@@ -45,7 +44,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 
 - `LoadError` when nothing matches `path`. For a name, the message suggests `import_relative` when a matching file sits beside the calling file.
 - [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior, the import is circular, or a Shared Gem Carton was built against other gem versions.
-- [`Carton::ExportError`](/reference/errors/#cartonexporterror) when the Carton breaks an `export` rule while loading.
+- [`Carton::ExportError`](/reference/errors/#cartonexporterror) when the Entrypoint finishes loading without calling `export`, or breaks an `export` rule while loading.
 
 </Tag>
 
@@ -96,7 +95,7 @@ Billing = import_relative '../components/billing'
 
 <Signature owner="Kernel" private rbs="def export: [T] (T value) -> T" source="lib/carton/kernel_patch.rb#L21" />
 
-Declares the Carton's Export, which every import of it returns. Only a call in the imported Entrypoint declares anything; in any other file, `export` checks its argument, returns it, and does nothing else.
+Declares the Carton's required Export, which every import of it returns. Only a call in the imported Entrypoint declares anything; in any other file, `export` checks its argument, returns it, and does nothing else. An export in a required file cannot satisfy the Entrypoint's requirement.
 
 <Tag label="Parameters">
 

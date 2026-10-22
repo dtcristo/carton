@@ -25,6 +25,7 @@ export default defineConfig({
     '/guides/examples/rails-with-carton-domain/': '/guides/rails/',
     '/guides/examples/rails-in-cartons/': '/guides/examples/rails/',
     '/guides/examples/hanami-in-cartons/': '/guides/examples/hanami/',
+    '/guides/bare-cartons/': '/guides/legacy-code/',
   },
   integrations: [
     starlight({
@@ -88,13 +89,12 @@ export default defineConfig({
                 'guides/cartons',
                 'guides/exporting',
                 'guides/importing',
-                'guides/bare-cartons',
                 'guides/sharing-classes',
               ],
             },
             {
               label: 'How-to',
-              items: ['guides/bundler', 'guides/testing', 'guides/types-and-checks', 'guides/rails'],
+              items: ['guides/legacy-code', 'guides/bundler', 'guides/testing', 'guides/types-and-checks', 'guides/rails'],
             },
             { label: 'Examples', items: [{ autogenerate: { directory: 'guides/examples' } }] },
           ],
@@ -104,7 +104,7 @@ export default defineConfig({
           items: [
             {
               label: 'API',
-              items: ['reference/kernel', 'reference/carton', 'reference/namespace', 'reference/errors'],
+              items: ['reference/kernel', 'reference/carton', 'reference/errors'],
             },
             { label: 'CLI', items: [{ autogenerate: { directory: 'reference/cli' } }] },
             'reference/glossary',
