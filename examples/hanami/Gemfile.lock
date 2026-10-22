@@ -4,7 +4,7 @@ PATH
     carton (0.4.0)
 
 PATH
-  remote: components/billing
+  remote: cartons/billing
   specs:
     billing (0.1.0)
       carton
@@ -13,7 +13,7 @@ PATH
       zeitwerk
 
 PATH
-  remote: components/customers
+  remote: cartons/customers
   specs:
     customers (0.1.0)
       carton
@@ -21,7 +21,7 @@ PATH
       zeitwerk
 
 PATH
-  remote: components/framework
+  remote: cartons/framework
   specs:
     framework (0.1.0)
       carton
@@ -32,7 +32,7 @@ PATH
       sqlite3
 
 PATH
-  remote: components/shop
+  remote: cartons/shop
   specs:
     shop (0.1.0)
       billing

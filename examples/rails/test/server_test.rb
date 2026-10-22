@@ -7,7 +7,7 @@ require 'tmpdir'
 require 'timeout'
 
 class RailsEnginesServerTest < Minitest::Test
-  APP = File.expand_path('../components/shop', __dir__)
+  APP = File.expand_path('../cartons/shop', __dir__)
   SCRIPT = File.join(APP, 'bin/rails')
 
   def test_puma_serves_the_engine_over_http

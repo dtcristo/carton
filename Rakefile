@@ -31,17 +31,17 @@ RUBOCOP_FILES = %w[
 ].freeze
 EXAMPLES = %w[
   minimal
+  tooling
   exports
   dependency_injection
   plugins
-  gems
   bundler
   monorepo
   zeitwerk
   rails
   hanami
 ].freeze
-GEMS_EXAMPLE_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze
+TEST_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze
 
 def install_bundle(gemfile)
   dir = Shellwords.escape(File.dirname(gemfile))
@@ -54,8 +54,8 @@ def install_bundle(gemfile)
   sh(command, verbose: false)
 end
 
-def install_example_bigdecimals
-  GEMS_EXAMPLE_BIGDECIMAL_VERSIONS.each do |version|
+def install_test_bigdecimals
+  TEST_BIGDECIMAL_VERSIONS.each do |version|
     command =
       'gem list -i bigdecimal ' \
         "-v #{Shellwords.escape(version)} >/dev/null 2>&1 || " \
@@ -102,7 +102,7 @@ task :test do
   # Run outside the dev bundle so tests exercise plain RubyGems and their own
   # bundles. Install the Bundler-example deps the integration suite exercises.
   Bundler.with_unbundled_env do
-    install_example_bigdecimals
+    install_test_bigdecimals
     Dir
       .glob(File.join('examples', '{bundler,monorepo,plugins}', '**/Gemfile'))
       .each { |gemfile| install_bundle(gemfile) }
@@ -121,8 +121,6 @@ namespace :example do
       puts
 
       Bundler.with_unbundled_env do
-        install_example_bigdecimals if name == 'gems'
-
         Dir
           .glob(File.join(dir, '**/Gemfile'))
           .each { |gemfile| install_bundle(gemfile) }
@@ -139,6 +137,14 @@ namespace :example do
           end
       end
     end
+  end
+end
+
+task 'example:tooling' do
+  Dir.chdir('examples/tooling') do
+    sh 'bundle exec carton check main.rb', verbose: false
+    sh 'bundle exec carton rbs main.rb', verbose: false
+    sh 'bundle exec steep check', verbose: false
   end
 end
 

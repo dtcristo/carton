@@ -5,7 +5,7 @@ require 'open3'
 require 'tmpdir'
 
 class RailsEnginesCommandsTest < Minitest::Test
-  APP = File.expand_path('../components/shop', __dir__)
+  APP = File.expand_path('../cartons/shop', __dir__)
   SCRIPT = File.join(APP, 'bin/rails')
 
   def test_rails_commands_in_fresh_processes

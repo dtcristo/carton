@@ -1,6 +1,0 @@
-# The math Carton's own types.
-module MathTools
-  VERSION: String
-
-  def self.percent: (Numeric amount, Numeric rate) -> Float
-end

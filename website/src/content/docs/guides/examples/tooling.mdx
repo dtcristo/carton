@@ -1,0 +1,69 @@
+---
+title: Tooling
+description: Check Carton boundaries, generate RBS for imports, and type-check a small app with Steep.
+sidebar:
+  order: 3
+---
+
+import ExampleFile from '../../../../components/ExampleFile.astro';
+
+A small pricing app demonstrates `carton check`, `carton rbs`, and Steep. It needs the repository's development bundle for these tools. For runtime boundaries alone, start with [Minimal](/guides/examples/minimal/). [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/tooling).
+
+## The app
+
+The app imports Pricing and calls its exported method:
+
+<ExampleFile path="tooling/main.rb" />
+
+The pricing Entrypoint loads its own tax helper, makes `Pricing::Tax` private, and exports Pricing:
+
+<ExampleFile path="tooling/pricing.rb" />
+
+<ExampleFile path="tooling/pricing/tax.rb" />
+
+## Boundary checks
+
+`violations.rb` deliberately reaches the private constant and imports an Interior file:
+
+<ExampleFile path="tooling/violations.rb" />
+
+From the repository root, check the app and the violations without running either file:
+
+```sh
+bundle exec carton check examples/tooling/main.rb
+bundle exec carton check examples/tooling/violations.rb # exits 1 with two errors
+```
+
+The test suite asserts both diagnostics. Running `violations.rb` as Ruby instead stops at its first `NameError`.
+
+## Types
+
+Pricing declares its public method's argument and return types:
+
+<ExampleFile path="tooling/sig/pricing.rbs" />
+
+`carton rbs main.rb` generates a signature for the import. It refers to Pricing's declaration instead of inferring the implementation's types:
+
+<ExampleFile path="tooling/sig/generated/carton.rbs" />
+
+Steep reads those signatures and Carton's own RBS, then checks the app:
+
+<ExampleFile path="tooling/Steepfile" />
+
+```sh
+cd examples/tooling
+bundle exec carton rbs main.rb
+bundle exec steep check
+```
+
+The app passes. Adding `Pricing.total(40).upcase` fails because `total` returns a Float, which has no `upcase` method. The test suite checks that failure too. See [Types and checks](/guides/types-and-checks/) for the commands and their limits.
+
+## Run
+
+From the repository root:
+
+```sh
+bundle exec rake example:tooling
+```
+
+The task runs the app, checks its boundaries, regenerates the import signature, and runs Steep. CI runs the same task with the other examples.

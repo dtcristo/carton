@@ -8,13 +8,13 @@ require 'tmpdir'
 
 class RbsTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
-  MINIMAL = File.join(ROOT, 'examples/minimal')
+  TOOLING = File.join(ROOT, 'examples/tooling')
 
-  def test_minimal_example_signatures_are_current
-    status, rbs = run_cli(MINIMAL, 'rbs', '-o', '-', 'main.rb')
+  def test_tooling_example_signatures_are_current
+    status, rbs = run_cli(TOOLING, 'rbs', '-o', '-', 'main.rb')
 
     assert_equal 0, status
-    assert_equal File.read(File.join(MINIMAL, 'sig/generated/carton.rbs')), rbs
+    assert_equal File.read(File.join(TOOLING, 'sig/generated/carton.rbs')), rbs
   end
 
   def test_constant_export_bound_to_its_own_name_needs_nothing
@@ -104,13 +104,13 @@ class RbsTest < Minitest::Test
     end
   end
 
-  # End to end: Steep accepts the minimal example with its generated RBS,
+  # End to end: Steep accepts the tooling example with its generated RBS,
   # and catches a misuse of an exported module's annotated type.
   def test_steep_checks_imports_with_generated_signatures
-    assert_steep(MINIMAL)
+    assert_steep(TOOLING)
 
     Dir.mktmpdir do |dir|
-      FileUtils.cp_r("#{MINIMAL}/.", dir)
+      FileUtils.cp_r("#{TOOLING}/.", dir)
       # Steep resolves signature paths relative to the Steepfile.
       carton_sig =
         Pathname(ROOT).join('sig').relative_path_from(File.realpath(dir))
@@ -120,7 +120,7 @@ class RbsTest < Minitest::Test
       )
       File.write(
         File.join(dir, 'main.rb'),
-        "MathTools.percent(40, 10).upcase\n",
+        "Pricing.total(40).upcase\n",
         mode: 'a',
       )
 

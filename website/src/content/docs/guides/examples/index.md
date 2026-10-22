@@ -6,22 +6,49 @@ sidebar:
   order: 0
 ---
 
-The repository's [examples](/guides/examples/) are small, separate programs, and CI runs every one. Each page here walks through one, with code drawn from the repository. Start with [Minimal](/guides/examples/minimal/). Similar names in different examples, such as Billing, are separate code.
+The repository's examples are small, separate programs, and CI runs every one. Each page walks through one, with code drawn from the repository. Start with [Minimal](/guides/examples/minimal/). Similar names in different examples, such as Billing, are separate code.
 
-| Question | Example |
-| --- | --- |
-| How do I draw a boundary and export a module? | [Minimal](/guides/examples/minimal/), with code for `carton check` to reject and RBS for Steep |
-| What can an import return? How do I load existing Ruby? | [Exports](/guides/examples/exports/): Hashes, callables, an explicit legacy adapter, and pattern matching |
-| How does a Carton use the app's database or services? | [Dependency injection](/guides/examples/dependency-injection/): a checkout with host adapters and fakes |
-| How do I select gem versions without Bundler? | [Gems](/guides/examples/gems/): explicit RubyGems activation in two Cartons |
-| How do Carton Bundles work across imports? | [Bundler](/guides/examples/bundler/): Gem-shaped Directories, a Transitive Carton that requires a legacy gem, and a path gem |
-| How do Cartons share one app lockfile? | [Monorepo](/guides/examples/monorepo/): path gems, declared dependencies, and unit and integration tests |
-| How do I host plugins with conflicting gems? | [Plugins](/guides/examples/plugins/): Dynamic Imports, a shared interface, Carton Bundles, and a contained builtin patch |
-| How do autoloading and reloading interact with imports? | [Zeitwerk](/guides/examples/zeitwerk/): loaders per Box, lazy namespaces, and references that stay stale after reload |
-| Can Rails itself live inside Cartons? | [Rails](/guides/examples/rails/), experimental: Customers and Billing inside Rails Engines, with Carton-owned loaders and an explicit CLI bridge |
-| Can Hanami, Dry, and Rom live inside Cartons? | [Hanami](/guides/examples/hanami/): Customers and Billing in Hanami slices, with contracts, operations, ROM repos, views, and a CLI bridge |
+## Examples
 
-Gems, Bundler, and Plugins all load conflicting bigdecimal versions, but teach different loading choices. Gems is the shortest version-isolation demonstration, Bundler shows setup details, and Plugins applies them.
+### [Minimal](/guides/examples/minimal/)
+
+Draw a boundary, export a module, and import it from an app.
+
+### [Tooling](/guides/examples/tooling/)
+
+Check import and export problems with `carton check`, then generate RBS for Steep.
+
+### [Exports](/guides/examples/exports/)
+
+Export Hashes and callables, adapt legacy Ruby, and use pattern matching.
+
+### [Dependency injection](/guides/examples/dependency-injection/)
+
+Pass host adapters into a checkout Carton and test it with fakes.
+
+### [Bundler](/guides/examples/bundler/)
+
+Set up Carton Bundles across imports, including a Transitive Carton and a path gem.
+
+### [Monorepo](/guides/examples/monorepo/)
+
+Share one app lockfile across path gems with declared dependencies and unit and integration tests.
+
+### [Plugins](/guides/examples/plugins/)
+
+Load plugins with conflicting gem versions through Dynamic Imports and a shared interface.
+
+### [Zeitwerk](/guides/examples/zeitwerk/)
+
+Use loaders per Box and lazy namespaces, and see why references stay stale after reload.
+
+### [Rails](/guides/examples/rails/)
+
+Run Customers and Billing inside Rails Engines with Carton-owned loaders and an explicit CLI bridge. This integration is experimental.
+
+### [Hanami](/guides/examples/hanami/)
+
+Run Customers and Billing in Hanami slices with contracts, operations, ROM repos, views, and a CLI bridge.
 
 ## Run one
 

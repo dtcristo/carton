@@ -1,4 +1,4 @@
-/components/shop/storage/
-/components/shop/log/
-/components/shop/tmp/
-/components/shop/db/schema.rb
+/cartons/shop/storage/
+/cartons/shop/log/
+/cartons/shop/tmp/
+/cartons/shop/db/schema.rb

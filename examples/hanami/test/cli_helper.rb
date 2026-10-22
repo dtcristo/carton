@@ -9,7 +9,7 @@ require 'open3'
 require 'tmpdir'
 
 module HanamiCommandSupport
-  APP = File.expand_path('../components/shop', __dir__)
+  APP = File.expand_path('../cartons/shop', __dir__)
   SCRIPT = File.join(APP, 'bin/hanami')
 
   def hanami(env, *arguments)

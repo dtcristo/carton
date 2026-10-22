@@ -340,18 +340,18 @@ class CheckTest < Minitest::Test
   end
 
   # Keep the working app clean and teach diagnostics in a separate file.
-  def test_minimal_example_reports_its_deliberate_violations
-    status, output = run_cli(EXAMPLES, 'check', 'minimal/violations.rb')
+  def test_tooling_example_reports_its_deliberate_violations
+    status, output = run_cli(EXAMPLES, 'check', 'tooling/violations.rb')
 
     assert_equal 1, status
     assert_includes output,
-                    'Billing::Tax is a private constant of the billing Carton'
+                    'Pricing::Tax is a private constant of the pricing Carton'
     assert_includes output,
-                    'minimal/billing/invoice.rb is inside ' \
-                      'the Carton minimal/billing.rb: import that file, or require ' \
+                    'tooling/pricing/tax.rb is inside ' \
+                      'the Carton tooling/pricing.rb: import that file, or require ' \
                       'it from inside that Carton'
     assert_match(
-      / files, 2 Cartons, 2 errors, 0 warnings\z/,
+      / files, 1 Cartons, 2 errors, 0 warnings\z/,
       output.lines.last.chomp,
     )
   end
@@ -359,10 +359,10 @@ class CheckTest < Minitest::Test
   def test_examples_with_relative_imports_are_clean
     %w[
       minimal
+      tooling
       exports
       dependency_injection
       plugins
-      gems
       zeitwerk
     ].each do |name|
       status, output = run_cli(EXAMPLES, 'check', "#{name}/main.rb")

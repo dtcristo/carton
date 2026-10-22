@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+# `carton rbs main.rb` types the import; sig/pricing.rbs types its Export.
+# In an installed app, `library 'carton'` replaces the '../../sig' path.
+target :app do
+  signature 'sig', '../../sig'
+  check 'main.rb'
+end

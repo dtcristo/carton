@@ -25,7 +25,7 @@ Both POSTs return 201. Tax is ten percent, rounded half up in integer cents: 420
 Gemfile, Gemfile.lock                        # one locked bundle; path gems for each Carton
 main.rb                                      # repeatable Rack demo, temporary SQLite
 test/                                        # command, HTTP, and isolation tests
-components/
+cartons/
   framework/
     lib/framework.rb                         # Framework Entrypoint; owns Hanami, Dry, and Rom
     lib/framework/{prepare,cli}.rb           # anchored framework lifecycle and CLI
@@ -62,13 +62,13 @@ Each exported namespace is bound in the framework Box by its own `Framework.regi
 
 Framework also keeps its deferred requires in its own Box. Without that, a require made during a nested Import could load part of Dry into the importing Carton. Main receives no Hanami, Dry, or Rom constants.
 
-<ExampleFile path="hanami/components/framework/lib/framework.rb" />
+<ExampleFile path="hanami/cartons/framework/lib/framework.rb" />
 
-<ExampleFile path="hanami/components/customers/lib/customers.rb" />
+<ExampleFile path="hanami/cartons/customers/lib/customers.rb" />
 
-<ExampleFile path="hanami/components/billing/lib/billing.rb" />
+<ExampleFile path="hanami/cartons/billing/lib/billing.rb" />
 
-<ExampleFile path="hanami/components/shop/lib/shop.rb" />
+<ExampleFile path="hanami/cartons/shop/lib/shop.rb" />
 
 ## Run
 
@@ -81,14 +81,14 @@ bundle exec rake example:hanami
 The task installs the bundle, runs the temporary-database demo, and runs the command and HTTP tests in fresh processes. It runs them with both lazy and eager loading. For a persistent local app, install the bundle, then run:
 
 ```sh
-cd examples/hanami/components/shop
+cd examples/hanami/cartons/shop
 RUBY_BOX=1 bin/hanami db migrate
 RUBY_BOX=1 bin/hanami routes
 RUBY_BOX=1 bin/hanami run 'puts Hanami.app.slices.keys.inspect'
 RUBY_BOX=1 bin/hanami server --host=127.0.0.1 --port=2300
 ```
 
-Development and test use separate SQLite databases under `components/shop/db/`. Set `DATABASE_URL` to choose another, and the test database name is derived from it. Generated databases and logs are git-ignored. Migrations create the tables; importing Shop creates none.
+Development and test use separate SQLite databases under `cartons/shop/db/`. Set `DATABASE_URL` to choose another, and the test database name is derived from it. Generated databases and logs are git-ignored. Migrations create the tables; importing Shop creates none.
 
 ## CLI and limits
 
