@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'bindings'
+require_relative 'import_graph'
 require_relative 'project'
 
 module Carton
@@ -9,10 +10,15 @@ module Carton
     # is certain to fail or misbehave when the code runs. A warning is
     # something a dynamic program could still get right.
     class Checks
+      # `rule` is a stable ID such as `import-cycle`. `column` counts
+      # characters from 1.
       Problem =
-        Data.define(:level, :file, :line, :message) do
+        Data.define(:level, :rule, :file, :line, :column, :message) do
           def error? = level == :error
         end
+
+      # Where a problem is when no node marks it, such as a file's start.
+      Position = Data.define(:line, :column)
 
       def initialize(project)
         @project = project
@@ -33,14 +39,18 @@ module Carton
           *private_constant_references,
           *unused_imports,
           *reopened_classes,
-        ].sort_by { |problem| [problem.file, problem.line, problem.message] }
+        ].sort_by do |problem|
+          [problem.file, problem.line, problem.column, problem.message]
+        end
       end
 
       private
 
       def parse_errors
         @project.files.each_value.flat_map do |file|
-          file.errors.map { |line, message| error(file.path, line, message) }
+          file.errors.map do |position, message|
+            error('syntax-error', file.path, position, message)
+          end
         end
       end
 
@@ -52,20 +62,22 @@ module Carton
         @project.edges.filter_map do |edge|
           call = edge.call
           if edge.error
-            error(call.file, call.line, edge.error)
+            error('import-error', call.file, call, edge.error)
           elsif @project.files.fetch(call.file).dynamic_marker?(call.line)
             next
           elsif edge.unfound
             warning(
+              'unfound-import',
               call.file,
-              call.line,
+              call,
               "cannot find #{call.path} on the load path: pass -I DIR, " \
                 'or run under bundle exec',
             )
           elsif call.path.nil?
             warning(
+              'dynamic-import',
               call.file,
-              call.line,
+              call,
               "#{call.kind} path is not a literal, so it is not checked",
             )
           end
@@ -76,49 +88,27 @@ module Carton
       # runs while its file loads. An import inside a method or block may run
       # after the other Carton has loaded.
       def cycles
-        graph = Hash.new { |hash, key| hash[key] = [] }
-        @project.edges.each do |edge|
-          from = @project.owner(edge.call.file)
-          graph[from.entrypoint] << edge if from && edge.carton
-        end
-        find_cycles(graph).map do |cycle|
-          first = cycle.first.call
-          names = [cycle.last.carton, *cycle.map(&:carton)].map(&:name)
-          message = "import cycle: #{names.join(' -> ')}"
-          if cycle.any? { |edge| edge.call.lazy }
-            warning(
-              first.file,
-              first.line,
-              "#{message} (an import runs lazily, so it may load)",
-            )
-          else
-            error(first.file, first.line, message)
+        ImportGraph
+          .new(@project)
+          .cycles
+          .map do |cycle|
+            first = cycle.first.call
+            names =
+              [cycle.last.carton, *cycle.map(&:carton)].map do |carton|
+                name(carton)
+              end
+            message = "import cycle: #{names.join(' -> ')}"
+            if cycle.any? { |edge| edge.call.lazy }
+              warning(
+                'import-cycle',
+                first.file,
+                first,
+                "#{message} (an import runs lazily, so it may load)",
+              )
+            else
+              error('import-cycle', first.file, first, message)
+            end
           end
-        end
-      end
-
-      # Each elementary cycle once, starting from its smallest Entrypoint. Of
-      # parallel imports between the same Cartons, the eager one counts.
-      def find_cycles(graph)
-        cycles = []
-        graph.each_key.to_a.each do |start|
-          walk(graph, start, start, [], cycles)
-        end
-        cycles
-          .sort_by { |cycle| cycle.count { |edge| edge.call.lazy } }
-          .uniq { |cycle| cycle.map { |edge| edge.carton.entrypoint } }
-      end
-
-      def walk(graph, start, node, path, cycles)
-        graph[node].each do |edge|
-          target = edge.carton.entrypoint
-          if target == start
-            cycles << [*path, edge]
-          elsif target > start &&
-                path.none? { |e| e.carton.entrypoint == target }
-            walk(graph, start, target, [*path, edge], cycles)
-          end
-        end
       end
 
       # A `require` of an imported Carton's file from outside it loads a second
@@ -130,9 +120,10 @@ module Carton
           next if carton == @project.owner(call.file)
 
           error(
+            'second-copy',
             call.file,
-            call.line,
-            "#{call.kind} '#{call.path}' loads a second copy of the #{carton.name} " \
+            call,
+            "#{call.kind} '#{call.path}' loads a second copy of the #{name(carton)} " \
               "Carton's #{path == carton.entrypoint ? 'Entrypoint' : 'file'}: import it instead",
           )
         end
@@ -155,8 +146,9 @@ module Carton
             next if declared.include?(used.name)
 
             error(
+              'undeclared-gem',
               call.file,
-              call.line,
+              call,
               "#{call.kind} '#{call.path}' loads the #{used.name} gem, which " \
                 "#{spec.name}'s gemspec does not declare: add " \
                 "spec.add_dependency '#{used.name}'",
@@ -179,8 +171,9 @@ module Carton
           else
             file.exports.map do |export|
               warning(
+                'export-outside-entrypoint',
                 file.path,
-                export.line,
+                export,
                 'export outside an Entrypoint does nothing: ' \
                   "this file is inside the Carton #{display(Resolver.entrypoint_for(file.path))}",
               )
@@ -194,24 +187,34 @@ module Carton
       # never do.
       def declaration_problems(file)
         file.exports.each_with_index.flat_map do |export, index|
-          problems = []
-          if export.symbol
-            problems << error(
-              file.path,
-              export.line,
-              'export takes the value to export, not a name: ' \
-                'export a module, or keywords for a Hash',
-            )
+          declaration_rules(file, export, index).map do |rule, message|
+            error(rule, file.path, export, message)
           end
-          if file.exports.first(index).any? { |e| !e.exclusive?(export) }
-            problems << error(
-              file.path,
-              export.line,
-              'export may be called only once per Entrypoint',
-            )
-          end
-          problems
         end
+      end
+
+      def declaration_rules(file, export, index)
+        rules = []
+        if export.symbol
+          rules << [
+            'export-symbol',
+            'export takes the value to export, not a name: ' \
+              'export a module, or keywords for a Hash',
+          ]
+        end
+        if export.arity && export.arity != 1
+          rules << [
+            'export-arity',
+            "export takes exactly one value, not #{export.arity}",
+          ]
+        end
+        if file.exports.first(index).any? { |e| !e.exclusive?(export) }
+          rules << [
+            'export-twice',
+            'export may be called only once per Entrypoint',
+          ]
+        end
+        rules
       end
 
       # Only imported Entrypoints must export. The presence of a call is
@@ -222,7 +225,12 @@ module Carton
             next
           end
 
-          error(carton.entrypoint, 1, 'an imported Entrypoint must call export')
+          error(
+            'missing-export',
+            carton.entrypoint,
+            Position.new(line: 1, column: 1),
+            'an imported Entrypoint must call export',
+          )
         end
       end
 
@@ -240,8 +248,9 @@ module Carton
               next if names.include?(reference.member)
 
               error(
+                'missing-key',
                 use.file,
-                reference.line,
+                reference,
                 missing_message(
                   "#{reference.name}.fetch(:#{reference.member})",
                   reference.member,
@@ -261,8 +270,9 @@ module Carton
 
           (call.pattern.keys - ['**'] - names).map do |key|
             error(
+              'missing-key',
               call.file,
-              call.line,
+              call,
               missing_message(
                 "#{call.kind}('#{call.path}') => { #{key}: }",
                 key,
@@ -293,8 +303,8 @@ module Carton
         caught.intersect?([*raised, 'StandardError', 'Exception'])
       end
 
-      def missing_message(code, name, carton, names)
-        "#{code}: the #{carton.name} Carton's export has no key #{name} " \
+      def missing_message(code, key, carton, names)
+        "#{code}: the #{name(carton)} Carton's export has no key #{key} " \
           "(it has #{names.join(', ')})"
       end
 
@@ -321,10 +331,11 @@ module Carton
             next if rescued?(reference, %w[NameError])
 
             error(
+              'private-constant',
               use.file,
-              reference.line,
+              reference,
               "#{reference.name}::#{reference.member} is a private constant " \
-                "of the #{binding.carton.name} Carton",
+                "of the #{name(binding.carton)} Carton",
             )
           end
         end
@@ -345,9 +356,10 @@ module Carton
           next if @reopenings.any? { |_, _, used| used.equal?(binding) }
 
           warning(
+            'unused-import',
             binding.file,
-            binding.line,
-            "#{binding.name} is bound to an import of the #{binding.carton.name} " \
+            binding,
+            "#{binding.name} is bound to an import of the #{name(binding.carton)} " \
               'Carton but never used',
           )
         end
@@ -373,21 +385,37 @@ module Carton
           next if binding.carton == @project.owner(path)
 
           warning(
+            'reopened-class',
             path,
-            site.line,
+            site,
             "#{site.kind} #{site.name} opens #{binding.name} from the " \
-              "#{binding.carton.name} Carton, changing a shared class or module: " \
+              "#{name(binding.carton)} Carton, changing a shared class or module: " \
               'subclass it or use a refinement instead',
           )
         end
       end
 
-      def display(path) = Project.relative(path)
+      def display(path) = @project.relative(path)
 
-      def error(file, line, message) = Problem.new(:error, file, line, message)
+      def name(carton) = @project.label(carton)
 
-      def warning(file, line, message)
-        Problem.new(:warning, file, line, message)
+      def error(rule, file, at, message)
+        problem(:error, rule, file, at, message)
+      end
+
+      def warning(rule, file, at, message)
+        problem(:warning, rule, file, at, message)
+      end
+
+      def problem(level, rule, file, at, message)
+        Problem.new(
+          level:,
+          rule:,
+          file:,
+          line: at.line,
+          column: at.column,
+          message:,
+        )
       end
     end
   end

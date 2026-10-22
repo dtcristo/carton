@@ -82,7 +82,7 @@ class CheckUsesTest < Minitest::Test
     _, output = check(files)
 
     expected = [
-      missing(2, 'MathTools.fetch(:nope)', 'nope', file: 'use.rb'),
+      missing(2, 'MathTools.fetch(:nope)', 'nope', column: 3, file: 'use.rb'),
       missing(4, 'App::MathTools.fetch(:gone)', 'gone', file: 'use.rb'),
     ]
     assert_equal expected, errors(output)
@@ -121,7 +121,7 @@ class CheckUsesTest < Minitest::Test
 
     _, output = check('main.rb' => main, 'math.rb' => MATH)
 
-    assert_equal [missing(9, 'MathTools.fetch(:other)', 'other')],
+    assert_equal [missing(9, 'MathTools.fetch(:other)', 'other', column: 3)],
                  errors(output)
   end
 
@@ -144,7 +144,7 @@ class CheckUsesTest < Minitest::Test
 
     assert_equal 1, status
     expected =
-      'main.rb:3: error: Billing::Tax is a private constant of the billing Carton'
+      'main.rb:3:1: error: Billing::Tax is a private constant of the billing.rb Carton [private-constant]'
     assert_equal [expected], errors(output)
   end
 
@@ -159,8 +159,8 @@ class CheckUsesTest < Minitest::Test
 
     assert_equal 0, status
     expected = [
-      'main.rb:1: warning: MathTools is bound to an import of the math Carton but never used',
-      'main.rb:2: warning: math is bound to an import of the math Carton but never used',
+      'main.rb:1:13: warning: MathTools is bound to an import of the math.rb Carton but never used [unused-import]',
+      'main.rb:2:8: warning: math is bound to an import of the math.rb Carton but never used [unused-import]',
     ]
     assert_equal expected, warnings(output)
     assert_equal 1, check(files, '--strict').first
@@ -191,7 +191,7 @@ class CheckUsesTest < Minitest::Test
     _, output = check(files)
 
     expected = [
-      'app.rb:1: warning: math is bound to an import of the math Carton but never used',
+      'app.rb:1:8: warning: math is bound to an import of the math.rb Carton but never used [unused-import]',
     ]
     assert_equal expected, warnings(output)
   end
@@ -241,10 +241,10 @@ class CheckUsesTest < Minitest::Test
 
     assert_equal 0, status
     expected = [
-      'main.rb:2: warning: class Billing::Invoice opens Billing from the billing Carton, ' \
-        'changing a shared class or module: subclass it or use a refinement instead',
-      'main.rb:3: warning: module Billing opens Billing from the billing Carton, changing a ' \
-        'shared class or module: subclass it or use a refinement instead',
+      'main.rb:2:1: warning: class Billing::Invoice opens Billing from the billing.rb Carton, ' \
+        'changing a shared class or module: subclass it or use a refinement instead [reopened-class]',
+      'main.rb:3:1: warning: module Billing opens Billing from the billing.rb Carton, changing a ' \
+        'shared class or module: subclass it or use a refinement instead [reopened-class]',
     ]
     assert_equal expected, warnings(output)
     assert_equal 1, check(files, '--strict').first
@@ -274,12 +274,12 @@ class CheckUsesTest < Minitest::Test
     _, output = check(files)
 
     expected = [
-      'extensions.rb:2: warning: class Billing::Invoice opens App::Billing from the other ' \
-        'Carton, changing a shared class or module: subclass it or use a refinement instead',
-      'extensions.rb:3: warning: class ::Billing::Invoice opens Billing from the billing ' \
-        'Carton, changing a shared class or module: subclass it or use a refinement instead',
-      'extensions.rb:5: warning: class App::Billing::Invoice opens App::Billing from the other ' \
-        'Carton, changing a shared class or module: subclass it or use a refinement instead',
+      'extensions.rb:2:3: warning: class Billing::Invoice opens App::Billing from the other.rb ' \
+        'Carton, changing a shared class or module: subclass it or use a refinement instead [reopened-class]',
+      'extensions.rb:3:3: warning: class ::Billing::Invoice opens Billing from the billing.rb ' \
+        'Carton, changing a shared class or module: subclass it or use a refinement instead [reopened-class]',
+      'extensions.rb:5:1: warning: class App::Billing::Invoice opens App::Billing from the other.rb ' \
+        'Carton, changing a shared class or module: subclass it or use a refinement instead [reopened-class]',
     ]
     assert_equal expected, warnings(output)
   end
@@ -293,8 +293,8 @@ class CheckUsesTest < Minitest::Test
     _, output = check(files)
 
     expected = [
-      'main.rb:2: warning: class Invoice opens Invoice from the invoice Carton, changing a ' \
-        'shared class or module: subclass it or use a refinement instead',
+      'main.rb:2:1: warning: class Invoice opens Invoice from the invoice.rb Carton, changing a ' \
+        'shared class or module: subclass it or use a refinement instead [reopened-class]',
     ]
     assert_equal expected, warnings(output)
   end
@@ -324,9 +324,9 @@ class CheckUsesTest < Minitest::Test
 
   private
 
-  def missing(line, code, name, file: 'main.rb')
-    "#{file}:#{line}: error: #{code}: the math Carton's export has no key " \
-      "#{name} (it has add, PI)"
+  def missing(line, code, name, column: 1, file: 'main.rb')
+    "#{file}:#{line}:#{column}: error: #{code}: the math.rb Carton's export " \
+      "has no key #{name} (it has add, PI) [missing-key]"
   end
 
   def errors(output) = output.lines(chomp: true).grep(/: error: /)

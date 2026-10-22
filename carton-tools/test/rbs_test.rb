@@ -63,6 +63,16 @@ class RbsTest < Minitest::Test
                     'Info: { VERSION: ::String, answer: ::Integer, other: untyped }'
   end
 
+  def test_self_export_is_typed
+    rbs =
+      generate(
+        'main.rb' => "import_relative 'version'\n",
+        'version.rb' => "self.export version: '1.0'\n",
+      )
+
+    assert_includes rbs, '("version" path) -> { version: ::String }'
+  end
+
   def test_literal_hash_export_is_a_record
     rbs =
       generate(
@@ -130,6 +140,69 @@ class RbsTest < Minitest::Test
         output,
       )
       assert_match(/Detected 1 problem/, output)
+    end
+  end
+
+  def test_unchanged_output_is_not_rewritten
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'main.rb'), "import_relative 'tools'\n")
+      File.write(File.join(dir, 'tools.rb'), "export x: 1\n")
+      run_cli(dir, 'rbs', 'main.rb')
+      path = File.join(dir, 'sig/generated/carton.rbs')
+      File.utime(0, 0, path)
+
+      status, output = run_cli(dir, 'rbs', 'main.rb')
+
+      assert_equal 0, status
+      assert_equal "sig/generated/carton.rbs is up to date\n", output
+      assert_equal 0, File.mtime(path).to_i
+    end
+  end
+
+  def test_check_reports_fresh_stale_and_missing_output
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'main.rb'), "import_relative 'tools'\n")
+      File.write(File.join(dir, 'tools.rb'), "export x: 1\n")
+      path = File.join(dir, 'sig/generated/carton.rbs')
+
+      missing =
+        "sig/generated/carton.rbs is missing: run carton rbs to write it\n"
+
+      assert_equal [1, missing], run_cli(dir, 'rbs', '--check', 'main.rb')
+      refute File.exist?(path)
+
+      run_cli(dir, 'rbs', 'main.rb')
+      assert_equal [0, "sig/generated/carton.rbs is up to date\n"],
+                   run_cli(dir, 'rbs', '--check', 'main.rb')
+
+      File.write(File.join(dir, 'tools.rb'), "export x: 'one'\n")
+      before = File.read(path)
+      status, output = run_cli(dir, 'rbs', '--check', 'main.rb')
+
+      assert_equal 1, status
+      assert_match(
+        %r{\Asig/generated/carton\.rbs is stale from line \d+: run carton rbs},
+        output,
+      )
+      assert_equal before, File.read(path)
+    end
+  end
+
+  def test_check_needs_an_output_file
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'main.rb'), "p 1\n")
+      err = StringIO.new
+      status =
+        Dir.chdir(dir) do
+          Carton::Tools::CLI.start(
+            %w[rbs --check -o - main.rb],
+            out: StringIO.new,
+            err:,
+          )
+        end
+
+      assert_equal 2, status
+      assert_match(/--check/, err.string)
     end
   end
 

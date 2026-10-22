@@ -12,7 +12,11 @@ Writes RBS for what each import returns, so Steep or another type checker can ty
 ```text
 Usage: carton rbs [options] PATH...
     -I, --include DIR                Add DIR to the load path for named imports
+        --exclude GLOB               Skip matching files in directory PATHs (and vendor/bundle)
     -o, --output FILE                Where to write the RBS (default sig/generated/carton.rbs, - for stdout)
+        --check                      Exit 1 if the output file is missing or stale; write nothing
+    -h, --help                       Show this help
+    -v, --version                    Show the version
 ```
 
 ## Options
@@ -20,7 +24,11 @@ Usage: carton rbs [options] PATH...
 | Option | Effect |
 | --- | --- |
 | `-I`, `--include DIR` | Add `DIR` to the load path for named imports. Repeatable. |
+| `--exclude GLOB` | Skip files in a directory `PATH` whose path relative to it, or a parent directory's, matches `GLOB`, such as `tmp` or `**/fixtures`. Repeatable. `**/vendor/bundle` is always skipped. Files reached by imports are still read |
 | `-o`, `--output FILE` | Where to write the RBS: `sig/generated/carton.rbs` by default, or `-` for stdout |
+| `--check` | Compare the RBS with the output file instead of writing it. Exit 1 if the file is missing or stale, naming the first line that differs. Use it in CI |
+| `-h`, `--help` | Print this usage to stdout and exit 0 |
+| `-v`, `--version` | Print the version to stdout and exit 0 |
 
 ## Output
 
@@ -32,8 +40,8 @@ The file types what each import returns:
 - Each literal import path as a `Kernel#import` or `Kernel#import_relative` overload, so a local variable bound to an import is typed too. An `import_relative` path that means different Cartons in different files gets none.
 - Each constant bound to an import, such as `Tools = import 'tools'`, unless the Carton's own RBS already declares that name.
 
-Writing a file prints `Wrote FILE` and creates its directory as needed.
+Writing a file prints `Wrote FILE` and creates its directory as needed. A file that already holds the same RBS is left untouched and prints `FILE is up to date`.
 
 ## Exit status
 
-0 on success and 2 for a usage error.
+0 on success, 1 when `--check` finds the file missing or stale, and 2 for a usage error or a file that cannot be read or written.

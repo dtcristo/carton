@@ -58,7 +58,7 @@ class ToolsGemspecTest < Minitest::Test
         )
 
       assert_equal 1, status.exitstatus, output
-      assert_match(/main\.rb:1: error: /, output)
+      assert_match(/main\.rb:1:1: error: /, output)
     end
   end
 

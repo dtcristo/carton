@@ -6,7 +6,8 @@ module Carton
   module Tools
     # What one Ruby file imports, requires, exports, and defines at top level,
     # read with Prism without running it. `carton rbs` and `carton check` build
-    # on these facts.
+    # on these facts. Each `line` counts from 1, and each `column` counts
+    # characters from 1.
     class SourceFile
       # An `import`, `import_relative`, `require`, or `require_relative` call.
       # `path` is nil when the argument is not a string literal. `lazy` is true
@@ -20,6 +21,7 @@ module Carton
           :path,
           :file,
           :line,
+          :column,
           :lazy,
           :constant,
           :local,
@@ -36,11 +38,20 @@ module Carton
       # uses cannot be followed. `member` is the name used, or nil for :value.
       # `rescued` lists the exception classes an enclosing `rescue` catches.
       Reference =
-        Data.define(:name, :local, :scope, :kind, :member, :line, :rescued)
+        Data.define(
+          :name,
+          :local,
+          :scope,
+          :kind,
+          :member,
+          :line,
+          :column,
+          :rescued,
+        )
 
       # A class or module definition, with its name as written and the
       # enclosing namespace, before entering its body.
-      Definition = Data.define(:name, :scope, :kind, :line)
+      Definition = Data.define(:name, :scope, :kind, :line, :column)
 
       # A hash pattern matched directly against an import: its Reference
       # `kind` (:fetch for `=>`, :lookup for `in`) and the keys it reads, with
@@ -50,12 +61,21 @@ module Carton
       # An `export` call at top level. `value` names the constant it exports,
       # if it is one. `keys` maps a keyword or Hash literal export's keys to
       # RBS types, or is nil. `symbol` is true when it was given a Symbol,
-      # which `export` refuses. `branches` lists the enclosing `if`,
+      # which `export` refuses. `arity` is the number of arguments, or nil
+      # when a splat may hide it; `export` takes exactly one. `branches` lists the enclosing `if`,
       # `unless`, and `case` branches as [conditional, branch] pairs, so two
       # calls in different branches of the same conditional are known never
       # to both run.
       Export =
-        Data.define(:value, :keys, :symbol, :line, :branches) do
+        Data.define(
+          :value,
+          :keys,
+          :symbol,
+          :arity,
+          :line,
+          :column,
+          :branches,
+        ) do
           def exclusive?(other)
             branches.any? do |id, branch|
               other.branches.any? do |other_id, other_branch|
@@ -64,6 +84,8 @@ module Carton
             end
           end
         end
+
+      Position = Data.define(:line, :column)
 
       IMPORTS = %i[import import_relative].freeze
       REQUIRES = %i[require require_relative].freeze
@@ -104,7 +126,7 @@ module Carton
         @local_writes = Hash.new(0)
         @errors =
           result.errors.map do |error|
-            [error.location.start_line, error.message]
+            [SourceFile.position(error.location), error.message]
           end
         @annotations =
           result.comments.to_h do |comment|
@@ -119,6 +141,14 @@ module Carton
         [line, line - 1].any? do |l|
           @annotations[l]&.include?('carton:dynamic')
         end
+      end
+
+      # A Prism location's start as a line and a 1-based character column.
+      def self.position(location)
+        Position.new(
+          line: location.start_line,
+          column: location.start_character_column + 1,
+        )
       end
 
       # The RBS type of a literal value node, or `untyped`.
@@ -216,7 +246,7 @@ module Carton
                (node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode))
             @file.export_lines << node.location.start_line
           end
-          record_call(node) if node.receiver.nil?
+          record_call(node) if node.receiver.nil? || self_export?(node)
           record_use(node) if bindable?(node.receiver)
           super
         end
@@ -337,8 +367,14 @@ module Carton
 
         private
 
+        def self_export?(node)
+          node.name == :export && node.receiver.is_a?(Prism::SelfNode)
+        end
+
         def record_call(node)
-          if IMPORTS.include?(node.name) || REQUIRES.include?(node.name)
+          if self_export?(node)
+            record_export(node) if top_level?
+          elsif IMPORTS.include?(node.name) || REQUIRES.include?(node.name)
             record_load(node)
           elsif node.name == :export && top_level?
             record_export(node)
@@ -353,11 +389,12 @@ module Carton
 
           call =
             Call.new(
-              kind: node.name.to_s,
+              kind: node.name,
               path:
                 (args.first.unescaped if args.first.is_a?(Prism::StringNode)),
               file: @file.path,
               line: node.location.start_line,
+              column: column(node),
               lazy: @defs.positive? || @blocks.positive?,
               constant: @constant,
               local: @local,
@@ -374,9 +411,21 @@ module Carton
             value: constant_name(arg),
             keys: hash_types(arg),
             symbol: arg.is_a?(Prism::SymbolNode) || arg.is_a?(Prism::DefNode),
+            arity: (args.size unless args.any? { |arg| splat?(arg) }),
             line: node.location.start_line,
+            column: column(node),
             branches: @branches.dup,
           )
+        end
+
+        # A splat hides how many values it passes, and an empty `**` keyword
+        # splat passes none.
+        def splat?(arg)
+          arg.is_a?(Prism::SplatNode) ||
+            (
+              arg.is_a?(Prism::KeywordHashNode) &&
+                arg.elements.any?(Prism::AssocSplatNode)
+            )
         end
 
         # `export version: '1.0'` or `export({ version: '1.0' })`: each
@@ -509,6 +558,7 @@ module Carton
             kind:,
             member:,
             line: node.location.start_line,
+            column: column(node),
             rescued: @rescued.flatten.uniq,
           )
         end
@@ -551,6 +601,7 @@ module Carton
             scope: @namespace.last,
             kind:,
             line: node.location.start_line,
+            column: column(node),
           )
 
           name = qualify(name)
@@ -611,6 +662,8 @@ module Carton
         end
 
         def top_level? = @namespace.empty? && @defs.zero?
+
+        def column(node) = node.location.start_character_column + 1
       end
       private_constant :Visitor
     end

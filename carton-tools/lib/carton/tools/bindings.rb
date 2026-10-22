@@ -10,7 +10,8 @@ module Carton
     # a local binding only in its own file, and only when nothing reassigns it.
     class Bindings
       # A name bound to an imported Carton, with each Use of it.
-      Binding = Data.define(:name, :local, :carton, :file, :line, :uses)
+      Binding =
+        Data.define(:name, :local, :carton, :file, :line, :column, :uses)
 
       # One Reference to a binding, and the file it is in.
       Use = Data.define(:file, :reference)
@@ -71,6 +72,7 @@ module Carton
             carton: edge.carton,
             file: call.file,
             line: call.line,
+            column: call.column,
             uses: [],
           )
         end

@@ -17,9 +17,9 @@ class SourceFileTest < Minitest::Test
 
     assert_equal(
       [
-        %w[import billing Billing],
-        %w[import_relative math App::MathTools],
-        ['import', nil, nil],
+        [:import, 'billing', 'Billing'],
+        [:import_relative, 'math', 'App::MathTools'],
+        [:import, nil, nil],
       ],
       file.imports.map { |call| [call.kind, call.path, call.constant] },
     )
@@ -52,7 +52,7 @@ class SourceFileTest < Minitest::Test
     file = parse("require 'json'\nrequire_relative 'billing/tax'\n")
 
     assert_equal(
-      [%w[require json], %w[require_relative billing/tax]],
+      [[:require, 'json'], [:require_relative, 'billing/tax']],
       file.requires.map { |call| [call.kind, call.path] },
     )
   end
@@ -190,7 +190,16 @@ class SourceFileTest < Minitest::Test
     file = parse("def broken(\n")
 
     refute_empty file.errors
-    assert_equal 1, file.errors.first.first
+    assert_equal 1, file.errors.first.first.line
+    assert_equal 12, file.errors.first.first.column
+  end
+
+  # Columns count characters from 1, not bytes.
+  def test_records_character_columns
+    file = parse("é = 1; import 'x'\nexport(é)\n")
+
+    assert_equal [1, 8], [file.imports.first.line, file.imports.first.column]
+    assert_equal [2, 1], [file.exports.first.line, file.exports.first.column]
   end
 
   private

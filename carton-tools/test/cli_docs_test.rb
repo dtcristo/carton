@@ -14,13 +14,13 @@ class CliDocsTest < Minitest::Test
   end
 
   def test_each_command_page_quotes_its_usage
-    %w[check rbs].each do |command|
+    %w[check rbs graph why].each do |command|
       assert_quoted usage(command), "#{command}.md"
     end
   end
 
   def test_each_option_has_a_row_in_its_command_page
-    %w[check rbs].each do |command|
+    %w[check rbs graph why].each do |command|
       page = File.read(File.join(PAGES, "#{command}.md"))
       usage(command)
         .scan(/--[a-z-]+/)

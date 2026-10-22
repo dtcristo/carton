@@ -15,43 +15,58 @@ module Carton
       # A Carton: its Entrypoint, its files (the Entrypoint plus its Interior),
       # and the `lib/` an Import of a Gem-shaped Directory adds to its load
       # path.
-      Carton =
-        Data.define(:entrypoint, :files, :load_path) do
-          def name = File.basename(entrypoint, '.rb')
-        end
+      Carton = Data.define(:entrypoint, :files, :load_path)
 
       # One import call and what it resolved to: a Carton, an error message,
       # or a name not found on the load path, which a gem activated at runtime
       # may still provide.
       Edge = Data.define(:call, :carton, :error, :unfound)
 
-      attr_reader :files, :cartons, :edges
+      # Directory scans skip installed gems.
+      DEFAULT_EXCLUDES = ['**/vendor/bundle'].freeze
 
-      # `path` relative to the current directory, for messages and comments.
-      def self.relative(path)
-        pwd = File.realpath(Dir.pwd)
-        path.start_with?("#{pwd}/") ? path.delete_prefix("#{pwd}/") : path
+      # A directory PATH with no Ruby files left to scan.
+      class EmptyError < StandardError
       end
 
-      def initialize(paths, load_path: [], specs: nil)
+      attr_reader :files, :cartons, :edges
+
+      # `exclude` lists globs, matched against each path inside a directory
+      # PATH and its parent directories, that the scan skips.
+      def initialize(paths, load_path: [], specs: nil, exclude: [])
+        @pwd = File.realpath(Dir.pwd)
+        # The working directory, where a path or a message's quote or
+        # punctuation starts and a path separator or the end follows.
+        @pwd_pattern =
+          %r{(?<![^\s'"(:,=])#{Regexp.escape(@pwd)}(/|(?=\z|[\s'"):,]))}
         @load_path = load_path
         @specs = specs
         @files = {}
         @cartons = {}
         @carton_by_file = {}
-        ruby_files(paths).each { |path| parse(path) }
-        discover
-        @edges = imports.map { |call| resolve(call) }
-        @edge_by_call = @edges.to_h { |edge| [edge.call, edge] }
+        @edge_by_call = {}.compare_by_identity
+        @exclude = DEFAULT_EXCLUDES + exclude
+        discover(ruby_files(paths).map { |path| parse(path) })
+        @edges = imports.map { |call| edge(call) }
       end
 
       # The absolute path an import or require loads, or nil.
       def target(call)
-        unless SourceFile::IMPORTS.include?(call.kind.to_sym)
-          return locate(call)
-        end
+        return locate(call) unless SourceFile::IMPORTS.include?(call.kind)
 
         @edge_by_call[call]&.carton&.entrypoint
+      end
+
+      # `text`, a path or a message, with paths inside the current directory
+      # made relative to it. Paths outside it stay absolute.
+      def relative(text)
+        text.gsub(@pwd_pattern) { Regexp.last_match(1) == '/' ? '' : '.' }
+      end
+
+      # A Carton's name in messages: its Entrypoint relative to the current
+      # directory, such as `billing.rb` or `../shared/billing.rb`.
+      def label(carton)
+        Pathname(carton.entrypoint).relative_path_from(@pwd).to_s
       end
 
       # The gem whose require paths hold `path`, or nil.
@@ -107,37 +122,72 @@ module Carton
           paths.flat_map do |path|
             next [path] unless File.directory?(path)
 
-            Dir.glob('**/*.rb', base: path).sort.map { |f| File.join(path, f) }
+            found =
+              Dir
+                .glob('**/*.rb', base: path)
+                .reject { |file| excluded?(file) }
+                .sort
+            raise EmptyError, "no Ruby files in #{path}" if found.empty?
+
+            found.map { |file| File.join(path, file) }
           end
         files.map { |path| File.realpath(path) }
       end
 
+      def excluded?(file)
+        parts = file.split('/')
+        prefixes = (1..parts.size).map { |size| parts.first(size).join('/') }
+        @exclude.any? do |pattern|
+          prefixes.any? do |prefix|
+            File.fnmatch?(
+              pattern,
+              prefix,
+              File::FNM_PATHNAME | File::FNM_EXTGLOB,
+            )
+          end
+        end
+      end
+
       def parse(path) = @files[path] ||= SourceFile.parse(path)
 
-      # Follow imports and `require_relative` calls until no new files or
-      # Cartons turn up. A file's load path depends on the Carton it belongs
-      # to, which may be found after the file is read.
-      def discover
-        loop do
-          required =
-            requires.select(&:relative?).filter_map { |call| locate(call) }
-          required = required.grep(/\.rb\z/).reject { |path| @files.key?(path) }
-          found = imports.filter_map { |call| resolve(call).carton }
-          fresh = found.reject { |carton| @cartons.key?(carton.entrypoint) }
-          break if required.empty? && fresh.empty?
+      # Follow imports and `require_relative` calls from each file in turn
+      # until no new files or Cartons turn up.
+      def discover(queue)
+        until queue.empty?
+          file = queue.shift
+          file.requires.each do |call|
+            next unless call.relative?
 
-          required.each { |path| parse(path) }
-          fresh.each { |carton| add_carton(carton) }
+            path = locate(call)
+            queue << parse(path) if path&.end_with?('.rb') && !@files.key?(path)
+          end
+          file.imports.each do |call|
+            carton = edge(call).carton
+            next if carton.nil? || @cartons.key?(carton.entrypoint)
+
+            queue.concat(add_carton(carton))
+          end
         end
       end
 
+      # The Carton's files to read again: new ones, and ones read before
+      # their Carton was found. A file's load path depends on its Carton, so
+      # the latter's imports resolve again.
       def add_carton(carton)
         @cartons[carton.entrypoint] = carton
-        carton.files.each do |file|
-          @carton_by_file[file] ||= carton
-          parse(file)
+        carton.files.filter_map do |path|
+          next if @carton_by_file.key?(path)
+
+          @carton_by_file[path] = carton
+          if @files.key?(path)
+            @files[path].imports.each { |call| @edge_by_call.delete(call) }
+          end
+          parse(path)
         end
       end
+
+      # Each import resolves once, unless its file's Carton changes.
+      def edge(call) = @edge_by_call[call] ||= resolve(call)
 
       def resolve(call)
         unless call.path
