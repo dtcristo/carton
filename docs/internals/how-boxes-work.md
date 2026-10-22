@@ -169,7 +169,7 @@ Carton handles that by carrying forward only the importer's load-path entry that
 
 Mutating `$LOAD_PATH` or loading application code in Root or Main does not change the Master Box a later Optional Box is copied from. Any state Carton wants to carry across the boundary must be propagated explicitly.
 
-This includes `Ruby::Box.root.eval`: on 4.0.7, a constant or monkey patch defined there is not visible in a Box created afterwards. Loading a framework such as Rails into Root so every Box inherits it, which worked before the Master Box in 4.0.6, no longer does. See [examples/rails_with_carton_domain](https://carton.dtcristo.com/guides/examples/rails-with-carton-domain/).
+This includes `Ruby::Box.root.eval`: on 4.0.7, a constant or monkey patch defined there is not visible in a Box created afterwards. Loading a framework such as Rails into Root so every Box inherits it, which worked before the Master Box in 4.0.6, no longer does. The [Rails example](https://carton.dtcristo.com/guides/examples/rails-in-cartons/) loads Rails once in a framework Carton.
 
 ## `current box` vs `loading box`
 
@@ -421,7 +421,7 @@ RubyGems registry state is Box-local, but `ENV` is process-global. Bundler reads
 
 ### Subclassing a class from another Box
 
-A Box can subclass a class object imported from another Box. The subclass's own methods run in its Box; inherited methods run in the Box that defined them, with that Box's constants and monkey patches. On 4.0.7 this is enough to define Active Record models and Action Controller controllers in domain Cartons while Rails loads once in a framework Carton ([examples/rails_in_cartons](https://carton.dtcristo.com/guides/examples/rails-in-cartons/)). Lookups by constant *name* inside the defining Box (Rails' `constantize`) need the exported namespace bound there too. The example uses isolated Rails Engines, registers their namespace objects, and keeps their Ruby files under Carton-owned Zeitwerk loaders; Rails' main loader ignores those directories.
+A Box can subclass a class object imported from another Box. The subclass's own methods run in its Box; inherited methods run in the Box that defined them, with that Box's constants and monkey patches. On 4.0.7 this is enough to define Active Record models and Action Controller controllers in domain Cartons while Rails loads once in a framework Carton ([examples/rails](https://carton.dtcristo.com/guides/examples/rails-in-cartons/)). Lookups by constant *name* inside the defining Box (Rails' `constantize`) need the exported namespace bound there too. The example uses isolated Rails Engines, registers their namespace objects, and keeps their Ruby files under Carton-owned Zeitwerk loaders; Rails' main loader ignores those directories.
 
 ### Which Box runs an autoload
 

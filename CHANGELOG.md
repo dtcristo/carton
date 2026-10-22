@@ -12,6 +12,8 @@
 
 ### Changed
 
+- Renamed the Rails and Hanami example directories to `examples/rails` and `examples/hanami`, with matching Rake tasks and updated fixture paths. Their existing docs URLs still work (#100).
+
 - Aligned the homepage, share previews, README, docs, and gem descriptions around explicit imports and exports, separate dependencies, and runtime boundaries. The homepage introduction is centred and its page title no longer repeats the project name (#98).
 - The website has three sections, Start here, Guides, and Reference, and the sidebar shows only the current one. Each example's guide moved from its README to a website page that shows its code from the repository. The reference is now API docs in YARD's shape, tested against `sig/carton.rbs`, with a page per `carton` command tested against its usage (#90).
 - Renamed the Rails-in-Main example to `rails_with_carton_domain` and aligned both Rails examples around Customers and Billing: domain-owned registration, validation, exact invoice pricing, and persistence through injected repositories. The conventional app keeps Rails adapters in Main; the Engine app owns them in its domain Cartons. Removed the unrelated jobs, updated the private reload fixture, and placed both examples together in the docs (#83).
@@ -28,6 +30,10 @@
 - `CONTEXT.md` groups the glossary and adds Interior, Gem-shaped Directory, Root Box, User Box, Carton Box, Template Box, Importer, First Importer, Second Copy, Dynamic Import, Helper, Gem Closure, Carton Bundle, and Undeclared Gem. The docs, comments, and `carton-tools` internals use these terms (#65).
 - `docs/internals/root-box-vs-main-box.md` is now `docs/internals/box-names.md`, which records upstream Ruby's Box names and how they were chosen (#65).
 - The examples guide explains each example's purpose and setup. The minimal app now contains only working Imports, with intentional violations in a separate file for static checks. The guides and comments follow `CONTEXT.md`, including Interior, Public Surface, Importer, Carton Bundle, and Helper. The Rails guides share restart guidance, and Bundler and Zeitwerk examples use clearer labels and names (#64).
+
+### Removed
+
+- Removed `examples/rails_with_carton_domain` and its guide, leaving one Rails example with domain-owned Engines (#100).
 
 ### Fixed
 

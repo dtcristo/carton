@@ -38,9 +38,8 @@ EXAMPLES = %w[
   bundler
   monorepo
   zeitwerk
-  rails_with_carton_domain
-  rails_in_cartons
-  hanami_in_cartons
+  rails
+  hanami
 ].freeze
 GEMS_EXAMPLE_BIGDECIMAL_VERSIONS = %w[4.1.1 3.3.1].freeze
 
@@ -157,7 +156,7 @@ namespace :spike do
   desc 'Run the private Rails reloading experiment against a scratch app'
   task :rails_reloading do
     Bundler.with_unbundled_env do
-      install_bundle('examples/rails_in_cartons/Gemfile')
+      install_bundle('examples/rails/Gemfile')
       sh 'RUBY_BOX=1 ruby spikes/rails_reloading/test/reloading_test.rb',
          verbose: false
     end

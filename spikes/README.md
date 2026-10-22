@@ -5,10 +5,10 @@ These directories hold research, unsupported behavior and private-runtime experi
 | Spike | Question | Result and status |
 | --- | --- | --- |
 | [Master prelude](master_prelude/README.md) | Can loading Active Support into Master make new Boxes inherit its patches? | Yes on Ruby 4.0.7, but it changes the process-wide copy source and can affect existing Boxes. Unsupported. |
-| [Rails reloading](rails_reloading/README.md) | Can domain Cartons reload while an initialized Rails app and database remain? | Two serial edits work with explicit reference replacement and private cache inspection. No supported reload API. Uses the Rails-in-Cartons example as a read-only fixture. |
+| [Rails reloading](rails_reloading/README.md) | Can domain Cartons reload while an initialized Rails app and database remain? | Two serial edits work with explicit reference replacement and private cache inspection. No supported reload API. Uses the Rails example as a read-only fixture. |
 | [Shared Gems](shared_gems/README.md) | Can public Ruby APIs reuse initialized gem definitions across independent Boxes? | Selected Active Support and Rails-domain checks work; ordinary gem loading and activation remain incompatible. |
 
-The [ordinary examples](https://carton.dtcristo.com/guides/examples/) demonstrate Carton use. Both Rails examples remain there: Rails in Main is the recommended setup today, and Rails in Cartons is an experimental integration direction. These spikes add no supported runtime API.
+The [ordinary examples](https://carton.dtcristo.com/guides/examples/) demonstrate Carton use. The Rails example is an experimental integration with namespaced Engines inside Cartons. These spikes add no supported runtime API.
 
 ## Run
 

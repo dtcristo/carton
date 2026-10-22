@@ -15,7 +15,7 @@ Ordered by priority within each section.
 - Parked: strict Gem Cartons, which load only a Gem Carton's declared dependencies at runtime. Wait for [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) to settle whether Boxes get resolved load paths, which would make this a load-path choice instead of more Bundler internals. `carton check` already reports undeclared gems.
 - Decide what non-Gem Cartons (plain `import_relative` directories) should see from the importer's bundle; today they see nothing unless they call `setup_bundle`.
 - Consider an escape hatch from Shared Imports (e.g. `import(path, fresh: true)`) if tests or tools need an isolated copy of a shared Carton.
-- Consider a small helper for the `register` pattern in `examples/rails_in_cartons` if more framework integrations need it.
+- Consider a small helper for the `register` pattern in `examples/rails` if more framework integrations need it.
 - Test that the gem builds, installs into a clean gem home, and can be required and imported.
 
 ## Tooling

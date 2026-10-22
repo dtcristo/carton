@@ -23,7 +23,7 @@ module Bench
   CARTON_COUNTS = QUICK ? [1, 5] : [1, 10, 50, 200]
   BUNDLE_SIZES = QUICK ? [5] : [10, 50, 200]
   GEM_CARTONS = QUICK ? 2 : 10
-  EXAMPLES = QUICK ? [] : %w[rails_with_carton_domain rails_in_cartons]
+  EXAMPLES = QUICK ? [] : %w[rails]
 
   # The child script's measurement: seconds spent in the block, and resident
   # memory before and after it, in KB.
@@ -93,12 +93,11 @@ module Bench
     puts
   end
 
-  # Whole-process wall time of the Rails examples, when their bundles are
-  # installed: Rails in the Main Box against Rails inside Cartons.
+  # Whole-process wall time of the Rails Engine example, with its bundle installed.
   def examples
     return if EXAMPLES.empty?
 
-    puts "## Rails examples\n\n"
+    puts "## Rails example\n\n"
     puts '| Example | process wall time (ms) |'
     puts '| --- | ---: |'
     EXAMPLES.each do |name|

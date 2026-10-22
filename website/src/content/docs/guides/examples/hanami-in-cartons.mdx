@@ -1,5 +1,5 @@
 ---
-title: hanami_in_cartons
+title: Hanami
 description: Hanami, Dry, and Rom inside Cartons, with conventional slices for the Customers and Billing workflow.
 sidebar:
   order: 11
@@ -7,7 +7,7 @@ sidebar:
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-[Hanakai](https://hanakai.org/) brings together Hanami, Dry, and Rom. This example uses all three for the same customer-registration and invoice-issuance workflow as [Rails in Cartons](/guides/examples/rails-in-cartons/). Customers and Billing are Hanami slices, each running inside its own Carton. The Shop Carton exports its Hanami Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami_in_cartons).
+[Hanakai](https://hanakai.org/) brings together Hanami, Dry, and Rom. This example uses all three for the same customer-registration and invoice-issuance workflow as [Rails](/guides/examples/rails-in-cartons/). Customers and Billing are Hanami slices, each running inside its own Carton. The Shop Carton exports its Hanami Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami).
 
 The application follows Hanami's shape: `config/app.rb`, `config/routes.rb`, `config/providers/`, `config/db/migrate/`, and `slices/`. Actions handle HTTP, operations implement workflows, contracts validate input, repos query relations, and views render templates. The app consists of slices, so it needs no root `app/` components. Carton adds Entrypoints beside those directories and explicit boot bridges; it changes no framework or runtime implementation.
 
@@ -74,13 +74,13 @@ The Framework Carton loads Hanami once. Shop imports Framework and defines the c
 
 `Framework.register` binds the exported namespaces for Hanami's qualified constant lookups. It accepts a repeated binding to the same module and rejects a conflicting one. The dependencies remain shared Ruby objects. `Carton.setup_bundle` activates the same lockfile in each Carton; it does not make separate dependency versions for this example.
 
-<ExampleFile path="hanami_in_cartons/shop.rb" />
+<ExampleFile path="hanami/shop.rb" />
 
-<ExampleFile path="hanami_in_cartons/config/app.rb" />
+<ExampleFile path="hanami/config/app.rb" />
 
-<ExampleFile path="hanami_in_cartons/config/slices/customers.rb" />
+<ExampleFile path="hanami/config/slices/customers.rb" />
 
-<ExampleFile path="hanami_in_cartons/config/routes.rb" />
+<ExampleFile path="hanami/config/routes.rb" />
 
 ## Loading boundaries
 
@@ -88,9 +88,9 @@ Each slice's Entrypoint sets up its own Zeitwerk loader and tells Hanami's loade
 
 The explicit `Ruby::Box.current.require_relative` in Framework's lifecycle bridge anchors deferred framework requires there, even while Shop is being imported. The CLI uses the same public Ruby API. Without that anchor, a deferred require during a nested Import can load part of Dry into the importing Carton. Neither bridge exposes a Box to Importers or uses private Carton state. Main and Master receive no Hanami, Dry, or Rom constants.
 
-<ExampleFile path="hanami_in_cartons/lib/framework.rb" />
+<ExampleFile path="hanami/lib/framework.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/customers.rb" />
+<ExampleFile path="hanami/slices/customers.rb" />
 
 ## Operations, contracts, and persistence
 
@@ -100,42 +100,42 @@ The custom Dry type accepts integer form strings while preserving strict integer
 
 Hanami's database provider manages the shared SQLite gateway; each slice owns its ROM relations and repos. The app's migrations create both tables and the customer foreign key. Importing Shop prepares the application and creates no tables. Run migrations before serving requests or requesting eager boot. Database state survives process restarts.
 
-<ExampleFile path="hanami_in_cartons/slices/billing/config/providers/customer_directory.rb" />
+<ExampleFile path="hanami/slices/billing/config/providers/customer_directory.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/types.rb" />
+<ExampleFile path="hanami/slices/billing/types.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/contracts/invoice.rb" />
+<ExampleFile path="hanami/slices/billing/contracts/invoice.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/operations/issue_invoice.rb" />
+<ExampleFile path="hanami/slices/billing/operations/issue_invoice.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/repos/invoice_repo.rb" />
+<ExampleFile path="hanami/slices/billing/repos/invoice_repo.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/relations/invoices.rb" />
+<ExampleFile path="hanami/slices/billing/relations/invoices.rb" />
 
 ## HTTP and views
 
 Hanami's error renderer maps malformed JSON from its body-parser middleware to 400 in every environment. Actions translate operation results into status codes and JSON. The show action rehydrates the invoice with its stored tax and either returns JSON or renders its Hanami view. Template escaping handles customer names; the view formats integer cents without floating point arithmetic.
 
-<ExampleFile path="hanami_in_cartons/slices/billing/actions/invoices/create.rb" />
+<ExampleFile path="hanami/slices/billing/actions/invoices/create.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/actions/invoices/show.rb" />
+<ExampleFile path="hanami/slices/billing/actions/invoices/show.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/views/invoices/show.rb" />
+<ExampleFile path="hanami/slices/billing/views/invoices/show.rb" />
 
-<ExampleFile path="hanami_in_cartons/slices/billing/templates/invoices/show.html.erb" />
+<ExampleFile path="hanami/slices/billing/templates/invoices/show.html.erb" />
 
 ## Run
 
 From the repository root:
 
 ```sh
-bundle exec rake example:hanami_in_cartons
+bundle exec rake example:hanami
 ```
 
 The task installs the locked bundle, runs the temporary-database demo, tests requests and Box ownership in lazy and eager modes, checks CLI commands and persistence across fresh processes, and starts Puma in production mode for a real HTTP workflow. For a persistent local app:
 
 ```sh
-cd examples/hanami_in_cartons
+cd examples/hanami
 bundle install
 RUBY_BOX=1 bin/hanami db migrate
 RUBY_BOX=1 bin/hanami routes
@@ -154,7 +154,7 @@ curl http://127.0.0.1:2300/invoices/1
 
 The default database is `db/shop.sqlite3`; Hanami derives `db/shop_test.sqlite3` in test. `DATABASE_URL` selects another SQLite URL, with the same test-name derivation. A development migration also migrates the test database through this app's CLI bridge. Set this example's `HANAMI_EAGER_LOAD=true` to boot all providers and components up front, after migrating. Otherwise components resolve lazily.
 
-<ExampleFile path="hanami_in_cartons/bin/hanami" />
+<ExampleFile path="hanami/bin/hanami" />
 
 ## Limits
 

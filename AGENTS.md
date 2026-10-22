@@ -29,11 +29,11 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 
 ## Rules
 
-- Keep supported integration examples under `examples/` and private-runtime or unsupported experiments under `spikes/`; both Rails examples remain examples. Run `bundle exec rake spikes` for the CI-covered experiments.
-- Each example's guide is its page under `website/src/content/docs/guides/examples/`, which shows the example's files with `<ExampleFile>`; its README only links there. Update the page when an example changes.
+- Keep supported integration examples under `examples/` and private-runtime or unsupported experiments under `spikes/`. Run `bundle exec rake spikes` for the CI-covered experiments.
+- Each example's guide is its page under `website/src/content/docs/guides/examples/`, which shows the example's files with `<ExampleFile>`; its README only links there. Update the page when an example changes. Use readable display titles while keeping source directories, routes, and task names stable. `<ExampleFile>` shows a leading checkout-relative Carton load as `require 'carton'`; runnable files retain the checkout load.
 - For shared dependency or template Box work, read [the Shared Gems spike](spikes/shared_gems/results.md): method transplantation works, but normal gem activation and loading remain incompatible, and Ruby 4.0.7 visibility-only builtin changes can leak to Master.
 
-- The Rails examples implement the same Customers/Billing invoice workflow in two domain Cartons. `rails_with_carton_domain` keeps Rails and its repository adapters in Main; `rails_in_cartons` uses namespaced Engines with Carton-owned loaders and an explicit CLI bridge. Both keep boot imports in module scope to avoid Rake's top-level `import`. No new runtime patches belong in examples.
+- The Rails example, `rails`, implements the Customers/Billing invoice workflow with namespaced Engines, Carton-owned loaders, and an explicit CLI bridge. Keep boot imports in module scope to avoid Rake's top-level `import`. No new runtime patches belong in examples.
 - For Hanami integration work, read [the Hanami example guide](website/src/content/docs/guides/examples/hanami-in-cartons.mdx). Slice Entrypoints own source loading; Framework anchors deferred lifecycle and CLI requires in its own Box.
 - For Rails reloading work, read [the spike's findings and limits](spikes/rails_reloading/README.md). Its private runtime inspection is experimental; ordinary apps still restart on change.
 - Before Box/gem/Bundler work, read `docs/internals/how-boxes-work.md` and `docs/internals/how-gems-work.md`; read `docs/internals/upstream.md` for upstream questions.

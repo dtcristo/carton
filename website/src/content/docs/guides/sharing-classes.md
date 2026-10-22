@@ -47,4 +47,4 @@ checkout.call(order_id: 42)
 
 An injected object's methods run in the Box where they were defined, with that Box's constants and gems. The Carton needs only the methods it calls, so tests can pass fakes through the same interface. Objects are shared, not copied; keep per-instance dependencies on instances instead of the shared exported module. Prefer plain values for inputs and results when each side loads its own gem classes.
 
-The [dependency_injection example](/guides/examples/dependency-injection/) runs this checkout with file-backed adapters and tests it through its export with fakes.
+The [Dependency injection example](/guides/examples/dependency-injection/) runs this checkout with file-backed adapters and tests it through its export with fakes.

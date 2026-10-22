@@ -16,7 +16,7 @@ RUBY_BOX=1 ruby spikes/shared_gems/run.rb
 The runner starts a fresh process for each case and checks both successful experiments and specific expected failures. Recorded failure expectations target Ruby 4.0.7; a later Ruby release may require a fresh classification. The Rails case also needs the existing example bundle:
 
 ```sh
-BUNDLE_GEMFILE=examples/rails_in_cartons/Gemfile bundle install
+BUNDLE_GEMFILE=examples/rails/Gemfile bundle install
 ```
 
 `11_gem_contract.rb` checks independent Active Support 8.1.2 alongside the shared 8.1.4 bundle, and needs both versions installed. The Gem Carton failure case uses the existing `test/fixtures/shared_gems` bundle. The repository's full `bundle exec rake` installs that fixture's BigDecimal versions. These are explicit experiment prerequisites, not new production dependencies.
