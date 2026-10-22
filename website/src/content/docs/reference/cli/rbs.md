@@ -28,7 +28,7 @@ The file types what each import returns:
 
 - An exported constant, such as `export Billing`, as `singleton(::Billing)`. The Carton declares `Billing` in its own RBS, as a gem would.
 - A keyword export as a record, such as `{ version: ::String }`.
-- An export whose type cannot be inferred statically as `untyped`. An Entrypoint with no export also gets `untyped`; use [`carton check`](/reference/cli/check/) to report the missing export before runtime.
+- An export whose type cannot be inferred statically as `untyped`.
 - Each literal import path as a `Kernel#import` or `Kernel#import_relative` overload, so a local variable bound to an import is typed too. An `import_relative` path that means different Cartons in different files gets none.
 - Each constant bound to an import, such as `Tools = import 'tools'`, unless the Carton's own RBS already declares that name.
 

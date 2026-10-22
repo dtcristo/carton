@@ -25,7 +25,6 @@ export default defineConfig({
     '/guides/examples/rails-with-carton-domain/': '/guides/rails/',
     '/guides/examples/rails-in-cartons/': '/guides/examples/rails/',
     '/guides/examples/hanami-in-cartons/': '/guides/examples/hanami/',
-    '/guides/bare-cartons/': '/guides/legacy-code/',
   },
   integrations: [
     starlight({
@@ -94,7 +93,7 @@ export default defineConfig({
             },
             {
               label: 'How-to',
-              items: ['guides/legacy-code', 'guides/bundler', 'guides/testing', 'guides/types-and-checks', 'guides/rails'],
+              items: ['guides/bundler', 'guides/testing', 'guides/types-and-checks', 'guides/rails'],
             },
             { label: 'Examples', items: [{ autogenerate: { directory: 'guides/examples' } }] },
           ],

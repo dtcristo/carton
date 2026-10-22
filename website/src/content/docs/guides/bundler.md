@@ -37,7 +37,7 @@ export version: BigDecimal::VERSION
 
 ## Gem Cartons
 
-Importing a file from a gem the Importer has activated, such as a path gem in the app's Gemfile, activates that gem and its runtime dependencies in the Carton's Box at the Importer's versions. The gem needs no Gemfile of its own, but its Entrypoint must explicitly export a value. For a legacy gem without an export, [require it inside an adapter Carton](/guides/legacy-code/#legacy-gems):
+Importing a file from a gem the Importer has activated, such as a path gem in the app's Gemfile, activates that gem and its runtime dependencies in the Carton's Box at the Importer's versions. The gem needs no Gemfile of its own, but its Entrypoint must explicitly export a value. For a gem without an export, require it inside a Carton and explicitly export the value Importers need:
 
 ```ruby title="Gemfile"
 gem 'bigdecimal', '3.3.1'

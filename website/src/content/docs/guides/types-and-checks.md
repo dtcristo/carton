@@ -20,7 +20,7 @@ It reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it
 
 - An exported constant, such as `export Billing`, types as `singleton(::Billing)`. The Carton declares `Billing` in its own RBS, as a gem would; Steep reports a missing declaration as an unknown type.
 - A keyword export, such as `export version: '1.0'`, types as a record, `{ version: ::String }`.
-- An export whose type cannot be inferred statically is `untyped`. An Entrypoint with no export also gets `untyped`; `carton check` reports the missing export, and importing it raises `Carton::ExportError`.
+- An export whose type cannot be inferred statically is `untyped`.
 - `Billing = import 'billing'` needs nothing more, and a local variable, `billing = import 'billing'`, types through a `Kernel#import` overload on the literal path.
 
 Load Carton's own signatures and the generated file in the Steepfile, and regenerate the file whenever an import or export changes:

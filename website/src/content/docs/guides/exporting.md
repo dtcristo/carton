@@ -72,6 +72,6 @@ import_relative('info') => { version: }
 
 Only the imported Entrypoint's `export` counts. In any other file, including one loaded with plain `require` by an app or by another Carton, `export` checks its argument, returns it, and does nothing else.
 
-An `export` in a required file does not satisfy the Entrypoint's requirement. To load existing Ruby without changing it, use a [legacy adapter Entrypoint](/guides/legacy-code/).
+An `export` in a required file does not satisfy the Entrypoint's requirement.
 
 A gem can add `export MyGem` and keep working for apps that just `require 'my_gem'`, as long as `require 'carton'` comes first so the method exists.
