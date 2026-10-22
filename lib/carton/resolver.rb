@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'rbconfig'
+
 module Carton
   # Maps an Import path to the file that should load, without evaluating any
   # code or reading Box state. The runtime passes the Importer's

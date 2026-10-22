@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 class KernelVisibilityTest < Minitest::Test
-  METHODS = %i[import import_relative export export].freeze
+  METHODS = %i[import import_relative export].freeze
 
   def test_methods_are_private_kernel_methods
     METHODS.each do |name|
