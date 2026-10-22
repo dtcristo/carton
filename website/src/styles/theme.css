@@ -210,6 +210,11 @@ header.header {
   margin-inline-start: calc((1.15rem - 2rem) / 2);
 }
 
+/* Docs sits 4px further from Examples than the flex gap alone. Scoped to the header because the mobile footer reuses these links. */
+.right-group .nav-link:first-child {
+  margin-inline-end: calc(-0.5em + 0.25rem);
+}
+
 .site-title img {
   height: 2.25rem;
 }
