@@ -2,13 +2,12 @@
 
 module Carton
   module Runtime
-    # Carton's own library, which every Carton Box loads so its Entrypoint can
-    # call `import` and `export`. It is not an Entrypoint.
-    LIBRARY = File.expand_path('../carton.rb', __dir__)
-    private_constant :LIBRARY
     # Used only when this Box is the Main Box. Carton Boxes reuse the Main
     # Box cache, so every Carton is built by the Main Box loader.
-    IMPORT_CACHE = ImportCache.new { |target| load_import(target) }
+    IMPORT_CACHE =
+      ImportCache.new do |target, gems:, locked_gems:|
+        Box.new(IMPORT_CACHE).import(target, gems:, locked_gems:)
+      end
     private_constant :IMPORT_CACHE
 
     module_function
@@ -25,18 +24,15 @@ module Carton
       importer_box = Ruby::Box.current
       load_path = importer_box.eval('$LOAD_PATH.to_a')
       target = Resolver.resolve(path, load_path:, base_dir:)
-      loaded_specs = importer_box.eval('defined?(Gem) ? Gem.loaded_specs : {}')
-      target.gems = GemActivation.closure(target.feature, loaded_specs)
-      unless target.gems.empty?
-        target.locked_gems = GemActivation.locked(importer_box, loaded_specs)
+      unless File.absolute_path?(target.feature)
+        raise LoadError, missing_name_message(path, from)
       end
-      begin
-        import_cache.import(target)
-      rescue LoadError => e
-        raise unless e.path == target.feature && base_dir.nil?
 
-        raise LoadError, missing_name_message(path, e.message, from)
-      end
+      loaded_specs = importer_box.eval('defined?(Gem) ? Gem.loaded_specs : {}')
+      gems = GemActivation.closure(target.feature, loaded_specs)
+      locked_gems =
+        (GemActivation.locked(importer_box, loaded_specs) unless gems.empty?)
+      import_cache.import(target, gems:, locked_gems:).export
     end
 
     # Make `value` the current Carton's Export, which `import` returns as
@@ -49,17 +45,18 @@ module Carton
                 'export a module, or keywords for a Hash'
       end
 
-      entrypoint_box(file)&.__send__(:declare_export, value)
+      entrypoint_box(file)&.declare_export(value)
       value
     end
 
     # A name not on `$LOAD_PATH` is the usual mistake of `import` for a file
     # beside the calling file, so point at `import_relative` when one is there.
-    def missing_name_message(path, message, from)
-      message = "#{message}: import searches $LOAD_PATH, like require"
-      dir = from && File.dirname(File.expand_path(from))
-      return message unless dir
+    def missing_name_message(path, from)
+      message =
+        "cannot load such file -- #{path}: import searches $LOAD_PATH, like require"
+      return message unless from
 
+      dir = File.dirname(from)
       file = Resolver.locate(path, load_path: [], base_dir: dir).feature
       "#{message}; use import_relative #{path.to_s.inspect} for #{file}"
     rescue LoadError
@@ -67,19 +64,8 @@ module Carton
     end
     private_class_method :missing_name_message
 
-    def load_import(target)
-      Box.new.__send__(
-        :import_target,
-        target,
-        library: LIBRARY,
-        import_cache: IMPORT_CACHE,
-      )
-    end
-    private_class_method :load_import
-
     def import_cache
-      box = Box.for(Ruby::Box.current)
-      box ? box.__send__(:import_cache) : IMPORT_CACHE
+      Box.for(Ruby::Box.current)&.import_cache || IMPORT_CACHE
     end
     private_class_method :import_cache
 
@@ -88,7 +74,7 @@ module Carton
     # files and gems still load the ordinary way.
     def entrypoint_box(file)
       box = Box.for(Ruby::Box.current)
-      box if box&.__send__(:entrypoint?, file)
+      box if box&.entrypoint?(file)
     end
     private_class_method :entrypoint_box
   end

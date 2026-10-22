@@ -80,10 +80,29 @@ class ResolverTest < Minitest::Test
         '',
       )
 
-      target = resolve('single_export', load_path: [native, FIXTURES])
-
-      assert_equal 'single_export', target.feature
+      error =
+        assert_raises(Carton::ImportError) do
+          resolve('single_export', load_path: [native, FIXTURES])
+        end
+      assert_match(/not Ruby source: only a \.rb Entrypoint/, error.message)
     end
+  end
+
+  # `require` would load the native extension, so `carton check` sees no
+  # Ruby file there.
+  def test_locate_returns_bare_name_for_a_native_extension
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "native.#{RbConfig::CONFIG['DLEXT']}"), '')
+
+      target = Resolver.locate('native', load_path: [dir])
+
+      assert_equal 'native', target.feature
+      assert_nil target.load_path
+    end
+  end
+
+  def test_targets_are_immutable
+    assert_predicate resolve("#{FIXTURES}/single_export"), :frozen?
   end
 
   # A Carton is its Entrypoint `billing.rb` plus the `billing/` directory

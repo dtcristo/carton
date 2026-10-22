@@ -14,7 +14,12 @@ class ImportTest < Minitest::Test
     assert_equal 'Hello, Bob!', user.greet
   end
 
-  def test_import_by_name_uses_parent_non_gem_load_path
+  def test_import_accepts_a_pathname
+    result = import Pathname("#{FIXTURES_DIR}/single_export")
+    assert_equal 'User', result.name
+  end
+
+  def test_import_by_name_uses_importer_non_gem_load_path
     added = !$LOAD_PATH.include?(FIXTURES_DIR)
     $LOAD_PATH.unshift(FIXTURES_DIR) if added
 

@@ -60,6 +60,25 @@ class ExportTest < Minitest::Test
                  error.message
   end
 
+  # A method that calls `export` after the Import finishes declares
+  # nothing, as `export` outside an Entrypoint does.
+  def test_export_is_inert_after_the_import_finishes
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'late.rb')
+      File.write(path, <<~RUBY)
+        module Late
+          def self.export_again = export(:ignored.to_s)
+        end
+        export Late
+      RUBY
+
+      late = import path
+
+      assert_equal 'ignored', late.export_again
+      assert_same late, import(path)
+    end
+  end
+
   def test_export_requires_a_value
     assert_raises(ArgumentError) { import "#{FIXTURES}/empty_export" }
   end

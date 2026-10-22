@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# Required inside a Carton Box by `Carton::Box#activate_gems`. `$LOAD_PATH`
+# Required inside a Carton Box by `Carton::Box#import`. `$LOAD_PATH`
 # resolves to the Box of the file being loaded, so activating from a file
 # required here updates this Box even during a nested Import.
 Carton.const_get(:GemActivation).activate(
-  *Carton.const_get(:Box).for(Ruby::Box.current).__send__(:pending_gems),
+  *Carton.const_get(:Box).for(Ruby::Box.current).pending_gems,
 )

@@ -69,6 +69,25 @@ class GemActivationTest < Minitest::Test
                  closure('/gems/app/lib/app.rb', specs).map(&:name)
   end
 
+  # Each require path is a binary search over sorted features, so a sibling
+  # directory sharing a name prefix does not count.
+  def test_owning_selects_specs_with_a_loaded_feature
+    specs = loaded(json: [], json_pure: [], money: []).values
+    features = %w[
+      /gems/json_pure/lib/json/pure.rb
+      /gems/money/lib/money.rb
+      /other/json/lib/json.rb
+    ]
+
+    names = GemActivation.owning(specs, features).map(&:name)
+
+    assert_equal %w[json_pure money], names
+  end
+
+  def test_owning_is_empty_without_features
+    assert_empty GemActivation.owning(loaded(json: []).values, [])
+  end
+
   private
 
   def closure(feature, specs)

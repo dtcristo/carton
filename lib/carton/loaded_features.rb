@@ -7,4 +7,4 @@
 Carton
   .const_get(:Box)
   .for(Ruby::Box.current)
-  .__send__(:receive_loaded_features, $LOADED_FEATURES.to_a)
+  .receive_loaded_features($LOADED_FEATURES.to_a)

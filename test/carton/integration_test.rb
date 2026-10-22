@@ -270,7 +270,7 @@ class IntegrationTest < Minitest::Test
 
     output = run_boxed(script)
     assert_match(
-      /sloppy_gem\.rb was imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      /sloppy_gem\.rb was imported with bigdecimal 3\.3\.1, but this import locks bigdecimal 4\.1\.1/,
       output,
     )
   end
@@ -294,7 +294,7 @@ class IntegrationTest < Minitest::Test
     RUBY
 
     assert_match(
-      /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      /imported with bigdecimal 3\.3\.1, but this import locks bigdecimal 4\.1\.1/,
       run_boxed(script),
     )
   end
@@ -320,7 +320,7 @@ class IntegrationTest < Minitest::Test
       output = run_boxed(lazy_sloppy_script(gems))
       assert_match(/\A3\.3\.1$/, output)
       assert_match(
-        /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+        /imported with bigdecimal 3\.3\.1, but this import locks bigdecimal 4\.1\.1/,
         output,
       )
     end
