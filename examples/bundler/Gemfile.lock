@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    carton (0.3.0)
+    carton (0.4.0)
 
 PATH
   remote: cartoned_gem
@@ -23,7 +23,7 @@ DEPENDENCIES
 
 CHECKSUMS
   bundler (4.0.20) sha256=7978a8ac648767f5e635bc522445b79e80a52b907a39a36c2d8085ed6bc762ae
-  carton (0.3.0)
+  carton (0.4.0)
   cartoned_gem (0.1.0)
 
 BUNDLED WITH

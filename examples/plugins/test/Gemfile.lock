@@ -1,7 +1,7 @@
 PATH
   remote: ../../..
   specs:
-    carton (0.3.0)
+    carton (0.4.0)
 
 GEM
   remote: https://rubygems.org/
@@ -18,7 +18,7 @@ DEPENDENCIES
 
 CHECKSUMS
   bundler (4.0.20) sha256=7978a8ac648767f5e635bc522445b79e80a52b907a39a36c2d8085ed6bc762ae
-  carton (0.3.0)
+  carton (0.4.0)
   minitest (5.27.0) sha256=2d3b17f8a36fe7801c1adcffdbc38233b938eb0b4966e97a6739055a45fa77d5
 
 BUNDLED WITH
