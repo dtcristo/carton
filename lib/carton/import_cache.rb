@@ -6,8 +6,7 @@ module Carton
   # The Main Box creates one instance and every Carton Box receives that same
   # object, so each Entrypoint loads once no matter which Carton imports it.
   # Ruby objects are shared across Boxes; only definitions are Box-local, so
-  # the Main Box's loader builds every Carton. A cached Namespace is then the
-  # Main Box's `Carton::Namespace`, whichever Carton imported it first.
+  # the Main Box's loader builds every Carton and caches its Export.
   class ImportCache
     # Returned by `claim` when the calling thread should load the Entrypoint.
     LOAD = Object.new.freeze

@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-An Entrypoint exports one value with `export`, and importing the Carton returns that value itself. Most Cartons have one main class or module, so they export it, as `require` would leave a constant behind:
+Every imported Entrypoint must call `export` exactly once. If it finishes loading without an Export, the import raises `Carton::ExportError`. Importing returns the exported value itself. Most Cartons have one main class or module, so they export it, as `require` would leave a constant behind:
 
 ```ruby
 # user.rb
@@ -71,5 +71,7 @@ import_relative('info') => { version: }
 ## Exports under plain `require`
 
 Only the imported Entrypoint's `export` counts. In any other file, including one loaded with plain `require` by an app or by another Carton, `export` checks its argument, returns it, and does nothing else.
+
+An `export` in a required file does not satisfy the Entrypoint's requirement.
 
 A gem can add `export MyGem` and keep working for apps that just `require 'my_gem'`, as long as `require 'carton'` comes first so the method exists.

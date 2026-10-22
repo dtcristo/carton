@@ -13,15 +13,15 @@ Carton is the package system Ruby has always needed: real boundaries for Ruby co
 
 ## Decisions
 
-- Importers never get another Carton's Box; Bare Cartons return `Carton::Namespace`.
+- Every imported Entrypoint must call `export` exactly once; a missing Export raises `Carton::ExportError` after loading. Importers never get another Carton's Box.
 - A Carton is an Entrypoint `x.rb` plus its Interior, the `x/` directory beside it (gem `lib/` shape, Zeitwerk namespaces); no gemspec or manifest required (user decision). Interior files cannot be imported; the outermost Entrypoint wins.
 - Imports are cached process-wide by Entrypoint real path.
 - `Carton::Box` wraps a plain `Ruby::Box`; never subclass `Ruby::Box` (autoloads would load in the importer's Box).
 - Only the imported Entrypoint's `export` counts; elsewhere it is inert.
 - `export` takes one value, once per Entrypoint; Named Exports are gone, since a Ruby module is already a namespace (user decision). Keywords export a plain Hash, and a Symbol raises `ExportError`.
-- `import` returns the exported value itself, never a wrapper.
+- `import` returns the exported value itself, including `nil` and `false`, never a wrapper.
 - Use Ruby's `private_constant` for visibility; Carton adds none.
-- A Bare Carton helper that would hide a `Carton::Namespace` method raises `ExportError`.
+- Adapt legacy Ruby or gems with a distinct Entrypoint that requires the legacy code and explicitly exports a chosen value, setting up its own bundle when needed. Plain `require` stays legal; exports in required files remain inert.
 - `carton check` warns about class/module definitions opening directly followed Imports; there is no runtime guard against shared-class reopening (subclass, refine, freeze).
 - No `carton run` or `carton exec`: `RUBY_BOX=1` is the interface (user decision). The `carton` command only reads code (Prism).
 - Two gems, released together at one version: `carton` is the runtime only, with no dependencies and no executable, since every gem built on Carton depends on it; `carton-tools` (`carton-tools/`, `Carton::Tools`) holds the `carton` command and static analysis, depends on exactly the same `carton`, and may use its internals (user decision).

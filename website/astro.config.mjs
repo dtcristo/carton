@@ -88,7 +88,6 @@ export default defineConfig({
                 'guides/cartons',
                 'guides/exporting',
                 'guides/importing',
-                'guides/bare-cartons',
                 'guides/sharing-classes',
               ],
             },
@@ -104,7 +103,7 @@ export default defineConfig({
           items: [
             {
               label: 'API',
-              items: ['reference/kernel', 'reference/carton', 'reference/namespace', 'reference/errors'],
+              items: ['reference/kernel', 'reference/carton', 'reference/errors'],
             },
             { label: 'CLI', items: [{ autogenerate: { directory: 'reference/cli' } }] },
             'reference/glossary',

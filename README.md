@@ -16,6 +16,8 @@ Split your app into Cartons with explicit imports and exports. Each has its own 
 - **monkey patches to builtin classes** stay in the Carton that makes them;
 - two Cartons can use **different versions of the same gem**.
 
+Every imported Entrypoint must call `export` exactly once. Loading without an Export raises `Carton::ExportError`; importing returns the exported value itself.
+
 A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory beside it. There is no manifest, and with a gemspec a Carton can leave the app as a gem.
 
 ## Quick start

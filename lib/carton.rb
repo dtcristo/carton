@@ -2,8 +2,6 @@
 
 require_relative 'carton/error'
 require_relative 'carton/bundler'
-require_relative 'carton/namespace_methods'
-require_relative 'carton/namespace'
 require_relative 'carton/box'
 require_relative 'carton/gem_activation'
 require_relative 'carton/import_cache'
@@ -16,7 +14,6 @@ module Carton
   private_constant :GemActivation
   private_constant :ImportCache
   private_constant :KernelPatch
-  private_constant :NamespaceMethods
   private_constant :Resolver
   private_constant :Runtime
 end

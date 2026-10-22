@@ -19,8 +19,6 @@ The website's [Status](https://carton.dtcristo.com/start/status/) page owns what
 | `lib/carton/resolver.rb` | Maps an Import path to a Carton's Entrypoint, given a load path, without evaluating code |
 | `lib/carton/import_cache.rb` | Process-wide import cache shared by every Box |
 | `lib/carton/box.rb` | The Carton Box: wraps a plain `Ruby::Box`, runs one Import from boot to Public Surface, and holds its Export |
-| `lib/carton/namespace.rb` | `Carton::Namespace`, the module a Bare Carton's Importers receive |
-| `lib/carton/namespace_methods.rb` | Shared `[]`, `fetch`, `fetch_values`, `values_at`, `key?`, and destructuring |
 | `lib/carton/gem_activation.rb` | Gem Closure activation for Gem Cartons; the only place Carton calls Bundler internals |
 | `lib/carton/activate_gems.rb` | Required inside a new Box so activation writes that Box's `$LOAD_PATH` |
 | `lib/carton/bundler.rb` | `Carton.setup_bundle` and Gemfile discovery from the calling file |
@@ -45,9 +43,9 @@ The `carton` command ships in the `carton-tools` gem, under `carton-tools/`, as 
 5. If the target was found by name, only the load-path entry that matched is added to the new Box.
 6. If an activated gem in the importer owns the target, Carton activates that gem's Gem Closure in the new Box at the importer's versions, dependencies first. If the importer ran Bundler setup, the Box is first restricted to the importer's locked gems and all of them are activated, as `Bundler.setup` does.
 7. The target file is required inside the Box.
-8. The Export is returned as is. With no export, the constants and Helpers the Entrypoint defined are wrapped in a `Carton::Namespace` instead. The Box itself never leaves Carton.
+8. The Export is returned as is. If the Entrypoint never called `export`, the import raises `Carton::ExportError` after loading. The Box itself never leaves Carton.
 
-Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box` and `Carton::Namespace`, whichever Carton imports it first. Ruby objects are shared across Boxes, so cached values cross Box boundaries unchanged.
+Imports are cached process-wide, keyed by the Entrypoint's real path. The Main Box owns one `Carton::ImportCache` and hands it to every Carton Box it builds, so nested imports hit the same cache. The cache also holds the Main Box's loader, so every Carton is built with the Main Box's `Carton::Box`, whichever Carton imports it first. Ruby objects are shared across Boxes, so cached values cross Box boundaries unchanged.
 
 Each cache entry records the gem versions activated for it. A later import of the same Entrypoint whose importer has different versions activated raises instead of reusing the entry, so one shared Carton never serves two lockfiles.
 
@@ -55,14 +53,9 @@ A mutex guards only the cache's bookkeeping, never a running Entrypoint, so an E
 
 ## Export model
 
-There are two return shapes:
+Every imported Entrypoint must call `export` exactly once. The import returns exactly that value, including `nil` or `false`; loading without an Export raises `Carton::ExportError`. A second call also raises. `export` takes one value. Keywords are Ruby's own braceless Hash argument, so `export version: '1.0'` exports a plain Hash. A Symbol raises, since `export def add` would otherwise export `:add` itself. `KernelPatch#export` passes the calling file to `Runtime`, which declares only when that file is the importing Box's Entrypoint; elsewhere `export` validates its argument, returns it, and does nothing else. The Box keeps the one exported value.
 
-- Export: the value given to `export`, returned as is
-- Bare Carton: a `Carton::Namespace` of its constants and Helpers
-
-`export` takes one value, once per Entrypoint, so the import returns exactly what the author exported. Keywords are Ruby's own braceless Hash argument, so `export version: '1.0'` exports a plain Hash. A Symbol raises, since `export def add` would otherwise export `:add` itself. `KernelPatch#export` passes the calling file to `Runtime`, which declares only when that file is the importing Box's Entrypoint; elsewhere `export` validates its argument, returns it, and does nothing else. The Box keeps the one exported value.
-
-A Bare Carton's Public Surface is the constants and Helpers its Entrypoint introduced; constants the runtime defined beforehand are excluded. Carton reads the constants when the import finishes and builds a `Carton::Namespace`: a `Module` with a forwarding singleton method for each Helper and a constant for each constant. Lookups through `NamespaceMethods` return the recorded `Method` object without calling it, and full deconstruction enumerates every member without calling one.
+Legacy code stays ordinary Ruby. A distinct adapter Entrypoint can set up its own bundle, require the legacy file or gem in its Carton Box, then explicitly export the chosen value. An `export` in a required file cannot satisfy the adapter's requirement. This uses ordinary `require` and `export`; Carton adds no legacy-loading API.
 
 ## Load path model
 

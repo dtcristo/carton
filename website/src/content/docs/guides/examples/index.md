@@ -11,10 +11,10 @@ The repository's [examples](/guides/examples/) are small, separate programs, and
 | Question | Example |
 | --- | --- |
 | How do I draw a boundary and export a module? | [Minimal](/guides/examples/minimal/), with code for `carton check` to reject and RBS for Steep |
-| What can an import return? How do I load existing Ruby? | [Exports](/guides/examples/exports/): Hashes, callables, Bare Carton Helpers, and pattern matching |
+| What can an import return? How do I load existing Ruby? | [Exports](/guides/examples/exports/): Hashes, callables, an explicit legacy adapter, and pattern matching |
 | How does a Carton use the app's database or services? | [Dependency injection](/guides/examples/dependency-injection/): a checkout with host adapters and fakes |
 | How do I select gem versions without Bundler? | [Gems](/guides/examples/gems/): explicit RubyGems activation in two Cartons |
-| How do Carton Bundles work across imports? | [Bundler](/guides/examples/bundler/): Gem-shaped Directories, a Transitive Carton, a Bare Carton gem, and a path gem |
+| How do Carton Bundles work across imports? | [Bundler](/guides/examples/bundler/): Gem-shaped Directories, a Transitive Carton that requires a legacy gem, and a path gem |
 | How do Cartons share one app lockfile? | [Monorepo](/guides/examples/monorepo/): path gems, declared dependencies, and unit and integration tests |
 | How do I host plugins with conflicting gems? | [Plugins](/guides/examples/plugins/): Dynamic Imports, a shared interface, Carton Bundles, and a contained builtin patch |
 | How do autoloading and reloading interact with imports? | [Zeitwerk](/guides/examples/zeitwerk/): loaders per Box, lazy namespaces, and references that stay stale after reload |

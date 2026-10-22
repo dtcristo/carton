@@ -23,7 +23,7 @@ With `RUBY_BOX=1`, Ruby defines `Ruby::Box.master`, `.root`, and `.main`, and `#
 
 ## How the names were chosen
 
-- **Box, not Namespace.** The feature was called Namespace while it was developed. [Misc #21385](https://bugs.ruby-lang.org/issues/21385) renamed it, because classes and modules already are Ruby's namespaces. Carton's own `Carton::Namespace` keeps the ordinary Ruby meaning: a module holding a Bare Carton's names.
+- **Box, not Namespace.** The feature was called Namespace while it was developed. [Misc #21385](https://bugs.ruby-lang.org/issues/21385) renamed it, because classes and modules already are Ruby's namespaces.
 - **Master, not source.** [Bug #21881](https://bugs.ruby-lang.org/issues/21881) split the copy source out of the root box. Its first proposal renamed root to "source" and the bootstrap Box to root, and then kept "root" for the bootstrap Box "because the name and idea of the root box is known by Ruby users". The copy source became "master" (master copy), since "the word 'source' is used everywhere both in CRuby and Ruby code". The [change](https://github.com/ruby/ruby/commit/276f0d9b3efbabe46e74510e5e3585924b37772c) first shipped in Ruby 4.0.6.
 
 ## Carton's names

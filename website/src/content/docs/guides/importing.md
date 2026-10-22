@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-An import loads a Carton into its own Box and returns its export. Only an import crosses a Carton boundary: code loaded with plain `require` stays inside the current Carton.
+An import loads a Carton into its own Box and returns its explicitly exported value. Every imported Entrypoint must call `export` exactly once; if it finishes loading without an Export, the import raises `Carton::ExportError`. Only an import crosses a Carton boundary: code loaded with plain `require` stays inside the current Carton.
 
 ## `import_relative`
 

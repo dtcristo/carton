@@ -63,34 +63,15 @@ class RbsTest < Minitest::Test
                     'Info: { VERSION: ::String, answer: ::Integer, other: untyped }'
   end
 
-  def test_bare_carton_surface_becomes_a_module
+  def test_literal_hash_export_is_a_record
     rbs =
       generate(
-        'main.rb' => "Util = import_relative 'util'\n",
-        'util.rb' => "LIMIT = 3\nclass Helper; end\ndef run(x) = x\n",
+        'main.rb' => "Info = import_relative 'info'\n",
+        'info.rb' => "export({ enabled: false, default: nil, tags: [] })\n",
       )
 
-    assert_includes rbs, <<~RBS
-      module Carton::Namespace::Util
-        extend ::Carton::NamespaceMethods
-        def self.run: (untyped x) -> untyped
-        LIMIT: ::Integer
-        Helper: singleton(::Helper)
-      end
-    RBS
-  end
-
-  def test_cartons_sharing_a_name_get_their_directory
-    rbs =
-      generate(
-        'main.rb' =>
-          "A = import_relative 'a/math'\nB = import_relative 'b/math'\n",
-        'a/math.rb' => "X = 1\n",
-        'b/math.rb' => "Y = 1\n",
-      )
-
-    assert_includes rbs, 'module Carton::Namespace::AMath'
-    assert_includes rbs, 'module Carton::Namespace::BMath'
+    assert_includes rbs,
+                    'Info: { enabled: bool, default: nil, tags: ::Array[untyped] }'
   end
 
   # The same relative path names two Cartons in two files, so a single
@@ -99,9 +80,9 @@ class RbsTest < Minitest::Test
     rbs =
       generate(
         'main.rb' => "import_relative 'a/main'\nimport_relative 'b/main'\n",
-        'a/main.rb' => "import_relative 'tools'\n",
+        'a/main.rb' => "import_relative 'tools'\nexport x: 1\n",
         'a/tools.rb' => "export x: 1\n",
-        'b/main.rb' => "import_relative 'tools'\n",
+        'b/main.rb' => "import_relative 'tools'\nexport x: 1\n",
         'b/tools.rb' => "export y: 1\n",
       )
 
@@ -112,19 +93,19 @@ class RbsTest < Minitest::Test
   def test_writes_the_default_output_file
     Dir.mktmpdir do |dir|
       File.write(File.join(dir, 'main.rb'), "import_relative 'tools'\n")
-      File.write(File.join(dir, 'tools.rb'), "X = 1\n")
+      File.write(File.join(dir, 'tools.rb'), "export x: 1\n")
 
       status, output = run_cli(dir, 'rbs', 'main.rb')
 
       assert_equal 0, status
       assert_equal "Wrote sig/generated/carton.rbs\n", output
       assert_includes File.read(File.join(dir, 'sig/generated/carton.rbs')),
-                      'module Carton::Namespace::Tools'
+                      '("tools" path) -> { x: ::Integer }'
     end
   end
 
   # End to end: Steep accepts the minimal example with its generated RBS,
-  # and catches a misuse of a Bare Carton helper's annotated type.
+  # and catches a misuse of an exported module's annotated type.
   def test_steep_checks_imports_with_generated_signatures
     assert_steep(MINIMAL)
 

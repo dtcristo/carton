@@ -17,6 +17,7 @@ class CheckGemsTest < Minitest::Test
       Pricing = import 'pricing'
       Shipping = import 'shipping'
       require 'tax'
+      export Pricing: Pricing, Shipping: Shipping
     RUBY
     problems =
       with_gems(
@@ -42,7 +43,8 @@ class CheckGemsTest < Minitest::Test
   end
 
   def test_own_files_default_gems_and_carton_are_allowed
-    billing = "require 'billing/tax'\nrequire 'json_like'\nrequire 'carton'\n"
+    billing =
+      "require 'billing/tax'\nrequire 'json_like'\nrequire 'carton'\nexport({})\n"
     problems =
       with_gems(
         {
@@ -69,7 +71,7 @@ class CheckGemsTest < Minitest::Test
       with_gems(
         { 'tools' => nil, 'extra' => nil },
         app: "import 'tools'\nrequire 'extra'\nimport_relative 'local'\n",
-        local: "require 'extra'\n",
+        local: "require 'extra'\nexport({})\n",
       )
 
     assert_empty problems
@@ -109,7 +111,8 @@ class CheckGemsTest < Minitest::Test
           options ||= {}
           lib = File.join(dir, 'gems', name, 'lib')
           FileUtils.mkdir_p(lib)
-          File.write(File.join(lib, "#{name}.rb"), options.fetch(:source, ''))
+          source = options.fetch(:source, "export({})\n")
+          File.write(File.join(lib, "#{name}.rb"), source)
           options
             .fetch(:files, {})
             .each do |path, source|

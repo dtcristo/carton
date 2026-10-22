@@ -10,19 +10,13 @@ class ImportRelativeTest < Minitest::Test
     assert_equal 'Hello, Carol!', user.greet
   end
 
-  def test_import_relative_bare_math
-    result = import_relative '../fixtures/bare_math'
-    assert_kind_of Carton::Namespace, result
+  def test_import_relative_module
+    result = import_relative '../fixtures/math_export'
+    assert_instance_of Module, result
     assert_equal 8, result.add(3, 5)
     assert_equal 2, result.subtract(5, 3)
     assert_equal '1.0.0', result::VERSION
     assert_in_delta 3.14159, result::PI
-  end
-
-  def test_import_relative_destructuring
-    import_relative('../fixtures/bare_math') => { add:, PI: pi }
-    assert_equal 7, add.(3, 4)
-    assert_in_delta 3.14159, pi
   end
 
   def test_import_relative_nested_with_re_import
@@ -35,12 +29,6 @@ class ImportRelativeTest < Minitest::Test
   def test_import_relative_chained
     result = import_relative '../fixtures/relative_importer'
     assert_equal 'Hello, World!', result.greeting
-  end
-
-  def test_import_relative_bare
-    result = import_relative '../fixtures/bare'
-    assert_kind_of Carton::Namespace, result
-    assert_equal 'hello from bare', result.fetch(:GREETING)
   end
 
   # `json` exists in the stdlib but not next to this file.

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
-Money = import_relative('money')
+module Wallet
+  Money = import_relative 'money'
+  def self.pay(cents) = Money.new(cents)
+end
 
-def pay(cents) = Money.new(cents)
+export Wallet

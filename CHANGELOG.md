@@ -2,12 +2,16 @@
 
 ## [Unreleased]
 
+### Breaking
+
+- Every imported Entrypoint must call `export` exactly once; an import with no Export raises `Carton::ExportError` after loading. Removed Bare Cartons and `Carton::Namespace`; adapt legacy files and gems with a distinct Entrypoint that requires them and explicitly exports the chosen value. Imports still return that value exactly, including `nil` and `false`, and plain `require` keeps working (#107).
+
 ### Added
 
 - `examples/hanami_in_cartons` implements the Rails examples' Customers/Billing workflow with Hanami slices, Dry contracts, types and operations, ROM SQLite repos, HTML/JSON responses, and a CLI bridge. Tests cover lazy/eager loading, Box ownership, persistence across processes, and Puma HTTP (#93).
 - `carton check` warns about unused import bindings and class/module definitions that open imported shared objects, and `--format json` reports problems and counts for CI and editors. This recovers the applicable parts of the stranded static-checks work; its unused Named Export check is obsolete under the single-value Export model (#54, #82).
 - An experimental Rails-in-Cartons reloading spike rebuilds changed domain Cartons and their Importers in a scratch copy, explicitly refreshes a retained Rails host's domain references and registered classes, and verifies requests after two reloads without losing records. It adds no runtime reload interface (#67).
-- `examples/exports` demonstrates Hash and callable exports, Bare Carton Helpers, and Ruby pattern matching without gems or Bundler. The plugin testing recipe is now a runnable test with its own bundle (#64).
+- `examples/exports` demonstrates Hash and callable exports, an explicit adapter for legacy Ruby, and Ruby pattern matching without gems or Bundler. The plugin testing recipe is now a runnable test with its own bundle (#64, #107).
 - `examples/dependency_injection`: a checkout Carton receives order storage, payments, and logging from its host through constructor arguments. File-backed demo adapters stay in Main, and integration tests import the Carton with fakes (#63).
 
 ### Changed

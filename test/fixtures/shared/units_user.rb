@@ -1,3 +1,7 @@
 # frozen_string_literal: true
 
-Units = import_relative 'units'
+module UnitsUser
+  Units = import_relative 'units'
+end
+
+export UnitsUser

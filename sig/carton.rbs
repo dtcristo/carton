@@ -23,27 +23,3 @@ end
 
 class Carton::GemfileNotFound < Carton::Error
 end
-
-# Lookup helpers on every `Carton::Namespace`. `carton rbs` extends its
-# generated `Carton::Namespace::*` modules with these.
-module Carton::NamespaceMethods
-  type key = ::String | ::Symbol
-
-  # Helpers come back as Method objects; constants as set.
-  def []: (key key) -> untyped
-  def deconstruct_keys: (nil keys) -> ::Hash[::Symbol, untyped]
-                      | (::Array[::Symbol] keys) -> ::Hash[::Symbol, untyped]
-  def fetch: (key key) -> untyped
-           | (key key, untyped default) -> untyped
-           | [T] (key key) { (key key) -> T } -> (untyped | T)
-  def fetch_values: (*key keys) -> ::Array[untyped]
-  def keys: () -> ::Array[::Symbol]
-  def to_h: () -> ::Hash[::Symbol, untyped]
-  def has_key?: (key key) -> bool
-  def key?: (key key) -> bool
-  def values_at: (*key keys) -> ::Array[untyped]
-end
-
-class Carton::Namespace < ::Module
-  include ::Carton::NamespaceMethods
-end

@@ -61,7 +61,7 @@ Verified means the assertions passed for the specific experiment, not for all li
 | Conflicting versions inside a shared consumer | Unsupported | No resolver or safety guard is implemented; sharing must not be selected for such a Carton. |
 | Shared Zeitwerk loader for application code | Failed by default | `11`: loader creates SharedWidget in Gems, absent from the child. Explicit child namespaces remain untested here. |
 | Two plain Cartons, nested imports and cache identity | Verified | `07`, using a process-local private lifecycle hook. |
-| Public Surface and private application constants | Verified | Bare Carton exposes only LOCAL; explicit exports and application class identities stay separate. |
+| Public Surface and private application constants | Verified | The Entrypoint explicitly exports its local value; application class identities stay separate. |
 | Existing Gem Carton activation | Failed | `07 --gem`: Psych reload reopens shared objects and raises SyntaxError in generated ClassLoader code. |
 | Two compatible Gem Cartons | Untested | Activation fails before the first fixture Gem Carton completes. |
 | Two Active Record domain Cartons | Verified | `10`: separate Invoice classes use present?, insert rows and query the same in-memory SQLite database. |
