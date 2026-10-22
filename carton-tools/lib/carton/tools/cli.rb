@@ -91,6 +91,7 @@ module Carton
 
       def rbs(args)
         output = RBS_OUTPUT
+        check = false
         project =
           project(args, 'rbs') do |o|
             o.on(
@@ -98,18 +99,51 @@ module Carton
               '--output FILE',
               "Where to write the RBS (default #{RBS_OUTPUT}, - for stdout)",
             ) { |file| output = file }
+            o.on(
+              '--check',
+              'Exit 1 if the output file is missing or stale; write nothing',
+            ) { check = true }
           end
         return 2 unless project
 
         rbs = Signatures.new(project).to_s
+        return rbs_check(output, rbs) if check
+
         if output == '-'
           @out.print rbs
+        elsif File.file?(output) && File.read(output) == rbs
+          @out.puts "#{output} is up to date"
         else
           FileUtils.mkdir_p(File.dirname(output))
           File.write(output, rbs)
           @out.puts "Wrote #{output}"
         end
         0
+      end
+
+      def rbs_check(output, rbs)
+        if output == '-'
+          @err.puts 'carton: --check compares with a file, so -o - is not allowed'
+          return 2
+        end
+        unless File.exist?(output)
+          @out.puts "#{output} is missing: run carton rbs to write it"
+          return 1
+        end
+
+        current = File.read(output)
+        if current == rbs
+          @out.puts "#{output} is up to date"
+          return 0
+        end
+
+        line = first_difference(current.lines, rbs.lines) + 1
+        @out.puts "#{output} is stale from line #{line}: run carton rbs to update it"
+        1
+      end
+
+      def first_difference(old, new)
+        (0...[old.size, new.size].max).find { |index| old[index] != new[index] }
       end
 
       def check(args)
