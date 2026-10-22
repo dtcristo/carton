@@ -10,11 +10,16 @@
 - `--exclude GLOB` skips files in directory scans, which now always skip `vendor/bundle`. A directory with no Ruby files is a usage error (#111).
 - `carton --version`, `carton -v`, and `carton help [COMMAND]`, plus `-h`/`--help` and `-v`/`--version` on every command (#111).
 - `carton check` reports `export` with no value or several (#111).
+- Add `examples/rack`, where a plain `config.ru` mounts domain Cartons that each export a Rack app, with no web framework (#PR).
 
 ### Changed
 
 - `carton check` gives each problem a stable rule ID and a column. Text output is `file:line:column: level: message [rule]` with pluralised counts, and JSON adds `version: 1`, `rule`, and `column` (#111).
 - `carton check` names Cartons by their Entrypoint path relative to the working directory, such as `billing.rb`, instead of the basename (#111).
+- Use Faraday instead of bigdecimal as the third-party gem in the Plugins and Monorepo examples and the docs. Plugins loads Faraday 1.10 and 2.15 side by side, one through a Transitive Carton with its own Carton Bundle (#PR).
+- Move the Zeitwerk example's checks from `main.rb` into `test/zeitwerk_test.rb`, leaving a short demo (#PR).
+- Align the Rails and Hanami examples: one `Framework.register` signature, one import-wrapper naming scheme, no `Carton.setup_bundle` in Hanami's Gem Cartons, and shorter `main.rb` demos (#PR).
+- Label Carton, bundle, and export boundaries the same way in every example (#PR).
 - Set both gems' homepages to the Carton website and retain their GitHub source links (#108).
 - Simplify the example gemspecs to required metadata, packaged files, and dependencies (#108).
 - Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/` (#108).
@@ -39,7 +44,8 @@
 
 ### Removed
 
-- Remove the manual RubyGems example; the Bundler and Plugins examples still demonstrate conflicting gem versions (#108).
+- Remove the manual RubyGems example; the Plugins example still demonstrates conflicting gem versions (#108, #PR).
+- Remove the Bundler example, which duplicated the Plugins and Monorepo examples; Plugins now covers its Transitive Carton with its own Carton Bundle (#PR).
 
 ## [0.4.0] - 2026-10-22
 
