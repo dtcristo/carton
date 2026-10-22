@@ -5,7 +5,6 @@ sidebar:
   order: 11
 ---
 
-import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 [Hanakai](https://hanakai.org/) brings together Hanami, Dry, and Rom. This example uses all three for the same customer-registration and invoice-issuance workflow as [Rails in Cartons](/guides/examples/rails-in-cartons/). Customers and Billing are Hanami slices, each running inside its own Carton. The Shop Carton exports its Hanami Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami_in_cartons).
@@ -28,87 +27,46 @@ Both POSTs return 201. Form fields and JSON bodies work. Ten percent tax rounds 
 
 ## Layout
 
-<FileTree>
-
-- `Gemfile` one locked bundle, activated separately in each Carton
-- `Gemfile.lock` one locked bundle, activated separately in each Carton
-- `main.rb` repeatable demo with temporary SQLite databases
-- **`shop.rb`** Shop Entrypoint; exports Shop::App
-- `config.ru` Rack bootstrap imports Shop
-- `bin/`
-  - `hanami` CLI bootstrap imports Shop, then enters Framework
-- `config/`
-  - `app.rb` Hanami app configuration and JSON body parser
-  - `routes.rb` ordinary Hanami slice routes
-  - `slices/`
-    - `customers.rb` import and bind the existing slice namespaces
-    - `billing.rb` import and bind the existing slice namespaces
-  - `providers/`
-    - `db.rb` DATABASE_URL and derived test database
-  - `db/`
-    - `migrate/` shared database schema, managed by Hanami CLI
-- `lib/`
-  - **`framework.rb`** Framework Entrypoint; owns Hanami, Dry, and Rom
-  - `framework/`
-    - `prepare.rb` anchored framework lifecycle and CLI
-    - `cli.rb` anchored framework lifecycle and CLI
-- `slices/`
-  - **`customers.rb`** Customers Entrypoint and local Zeitwerk loader
-  - `customers/`
-    - `config/`
-      - `slice.rb`
-    - `action.rb`
-    - `operation.rb`
-    - `directory.rb`
-    - `actions/`
-      - `customers/`
-        - `create.rb`
-    - `contracts/`
-      - `customer.rb`
-    - `operations/`
-      - `register_customer.rb`
-    - `db/`
-      - `relation.rb`
-      - `repo.rb`
-    - `relations/`
-      - `customers.rb`
-    - `repos/`
-      - `customer_repo.rb`
-  - **`billing.rb`** Billing Entrypoint and local Zeitwerk loader
-  - `billing/`
-    - `config/`
-      - `slice.rb`
-      - `providers/`
-        - `customer_directory.rb`
-    - `action.rb`
-    - `operation.rb`
-    - `view.rb`
-    - `types.rb`
-    - `invoice.rb`
-    - `tax_policy.rb`
-    - `actions/`
-      - `invoices/`
-        - `create.rb`
-        - `show.rb`
-    - `contracts/`
-      - `invoice.rb`
-    - `operations/`
-      - `issue_invoice.rb`
-    - `db/`
-      - `relation.rb`
-      - `repo.rb`
-    - `relations/`
-      - `invoices.rb`
-    - `repos/`
-      - `invoice_repo.rb`
-    - `views/`
-      - `invoices/`
-        - `show.rb`
-    - `templates/`
-      - `invoices/`
-        - `show.html.erb`
-
-</FileTree>
+```text
+Gemfile, Gemfile.lock               # one locked bundle, activated separately in each Carton
+main.rb                            # repeatable demo with temporary SQLite databases
+shop.rb                            # Shop Entrypoint; exports Shop::App
+config.ru                          # Rack bootstrap imports Shop
+bin/hanami                         # CLI bootstrap imports Shop, then enters Framework
+config/
+  app.rb                           # Hanami app configuration and JSON body parser
+  routes.rb                        # ordinary Hanami slice routes
+  slices/{customers,billing}.rb     # import and bind the existing slice namespaces
+  providers/db.rb                  # DATABASE_URL and derived test database
+  db/migrate/                      # shared database schema, managed by Hanami CLI
+lib/
+  framework.rb                     # Framework Entrypoint; owns Hanami, Dry, and Rom
+  framework/{prepare,cli}.rb        # anchored framework lifecycle and CLI
+slices/
+  customers.rb                     # Customers Entrypoint and local Zeitwerk loader
+  customers/
+    config/slice.rb
+    action.rb, operation.rb, directory.rb
+    actions/customers/create.rb
+    contracts/customer.rb
+    operations/register_customer.rb
+    db/{relation,repo}.rb
+    relations/customers.rb
+    repos/customer_repo.rb
+  billing.rb                       # Billing Entrypoint and local Zeitwerk loader
+  billing/
+    config/slice.rb
+    config/providers/customer_directory.rb
+    action.rb, operation.rb, view.rb, types.rb, invoice.rb, tax_policy.rb
+    actions/invoices/{create,show}.rb
+    contracts/invoice.rb
+    operations/issue_invoice.rb
+    db/{relation,repo}.rb
+    relations/invoices.rb
+    repos/invoice_repo.rb
+    views/invoices/show.rb
+    templates/invoices/show.html.erb
+```
 
 ## Application and slices
 

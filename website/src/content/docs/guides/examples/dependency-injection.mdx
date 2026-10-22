@@ -5,23 +5,18 @@ sidebar:
   order: 3
 ---
 
-import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 A domain Carton cannot see the application's database models, payment client, or logger by constant name. Pass the objects it needs through ordinary constructor arguments. This checkout Carton calculates an order's total, charges it, saves the payment reference, and logs success. Its host supplies storage, payments, and logging. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/dependency_injection).
 
-<FileTree>
-
-- `main.rb` Main: sets up the bundle, imports checkout, wires adapters
-- `adapters.rb` Main: JSON order storage and simulated payments
-- **`checkout.rb`** Carton Entrypoint: export Checkout
-- `checkout/`
-  - `service.rb` Inside the Carton: Checkout::Service
-- `test/`
-  - `checkout_test.rb` Imports checkout and supplies fakes
-  - `host_test.rb` Imports checkout and exercises the file-backed adapters
-
-</FileTree>
+```
+main.rb                  # Main: sets up the bundle, imports checkout, wires adapters
+adapters.rb              # Main: JSON order storage and simulated payments
+checkout.rb              # Carton Entrypoint: export Checkout
+checkout/service.rb      # Inside the Carton: Checkout::Service
+test/checkout_test.rb    # Imports checkout and supplies fakes
+test/host_test.rb        # Imports checkout and exercises the file-backed adapters
+```
 
 ## The Carton
 

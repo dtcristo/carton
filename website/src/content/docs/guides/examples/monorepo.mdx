@@ -5,30 +5,24 @@ sidebar:
   order: 6
 ---
 
-import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 Directories alone do not enforce boundaries between an app's domains. Here each domain is a Gem Carton: a path gem with declared runtime gems, an Interior, and a Public Surface. Each runs in its own Carton Box, with Bundler selecting its gem versions ([#32](https://github.com/dtcristo/carton/issues/32)). [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/monorepo).
 
-<FileTree>
-
-- `Gemfile` carton, the three Cartons, bigdecimal 4.1.1
-- `main.rb` Carton.setup_bundle, then import each Carton
-- `cartons/`
-  - `pricing/`
-    - `pricing.gemspec` depends on bigdecimal
-    - `lib/`
-      - **`pricing.rb`** Entrypoint: export Pricing
-  - `billing/`
-    - `billing.gemspec` depends on pricing
-    - `lib/`
-      - **`billing.rb`** Pricing = import 'pricing'
-  - `shipping/`
-    - `shipping.gemspec` only depends on carton
-    - `lib/`
-      - **`shipping.rb`**
-
-</FileTree>
+```
+Gemfile                    # carton, the three Cartons, bigdecimal 4.1.1
+main.rb                    # Carton.setup_bundle, then import each Carton
+cartons/
+  pricing/
+    pricing.gemspec        # depends on bigdecimal
+    lib/pricing.rb         # Entrypoint: export Pricing
+  billing/
+    billing.gemspec        # depends on pricing
+    lib/billing.rb         # Pricing = import 'pricing'
+  shipping/
+    shipping.gemspec       # only depends on carton
+    lib/shipping.rb
+```
 
 - One `Gemfile` and `Gemfile.lock` cover the whole monorepo and pin every third-party version.
 - `import 'billing'` loads a Carton by gem name in its own Carton Box. Only its Export crosses back.

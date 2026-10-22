@@ -5,7 +5,6 @@ sidebar:
   order: 8
 ---
 
-import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk, so moving that code into Cartons means running Zeitwerk inside them. Done carelessly, a Carton's files can load in the app's Box instead of the Carton's, often without an error, and the boundary is gone. A Carton has Zeitwerk's gem layout, so its Entrypoint can run a loader of its own. Two things then need care: [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/zeitwerk).
@@ -15,28 +14,21 @@ Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk, so m
 
 Lazy autoloading needs no care: a constant a Carton leaves to autoload loads in the Carton Box even when the app references it first, including a namespace defined in a Zeitwerk nsfile. This example shows each case, with no Rails involved. `main.rb` raises if any behavior below stops holding.
 
-<FileTree>
-
-- `Gemfile` carton, zeitwerk 2.8.3 for the app
-- `main.rb` the app's loader for lib/, then the imports
-- `lib/`
-  - `order_summary.rb` the app's own code, autoloaded in the Main Box
-  - **`shipping.rb`** shipping Carton's Entrypoint: reloadable loader with nsfiles
-  - `shipping/`
-    - `rate.rb` inside the shipping Carton
-    - `carriers/`
-      - `ns.rb` nsfile: defines Shipping::Carriers, left lazy
-      - `post.rb` Shipping::Carriers::Post
-- `cartons/`
-  - `billing/`
-    - `Gemfile` zeitwerk 2.7.5 for this Carton only
-    - `lib/`
-      - **`billing.rb`** billing Carton's Entrypoint: Zeitwerk::Loader.for_gem
-      - `billing/`
-        - `invoice.rb` eager loaded inside the Carton
-        - `archive.rb` left lazy; still loads in the Carton Box
-
-</FileTree>
+```
+Gemfile                      # carton, zeitwerk 2.8.3 for the app
+main.rb                      # the app's loader for lib/, then the imports
+lib/
+  order_summary.rb           # the app's own code, autoloaded in the Main Box
+  shipping.rb                # shipping Carton's Entrypoint: reloadable loader with nsfiles
+  shipping/rate.rb           # inside the shipping Carton
+  shipping/carriers/ns.rb    # nsfile: defines Shipping::Carriers, left lazy
+  shipping/carriers/post.rb  # Shipping::Carriers::Post
+cartons/billing/
+  Gemfile                    # zeitwerk 2.7.5 for this Carton only
+  lib/billing.rb             # billing Carton's Entrypoint: Zeitwerk::Loader.for_gem
+  lib/billing/invoice.rb     # eager loaded inside the Carton
+  lib/billing/archive.rb     # left lazy; still loads in the Carton Box
+```
 
 ## A Carton with `Zeitwerk::Loader.for_gem`
 

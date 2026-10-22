@@ -5,20 +5,13 @@ sidebar:
   order: 1
 ---
 
-import { FileTree } from '@astrojs/starlight/components';
-
 A Carton is an Entrypoint file plus the directory named after it, the same shape as a gem's `lib/` and a Zeitwerk explicit namespace:
 
-<FileTree>
-
-- `lib/`
-  - **`billing.rb`** the Entrypoint
-  - `billing/`
-    - `invoice.rb` inside the billing Carton
-    - `models/`
-      - `charge.rb` inside too: models/ has no models.rb
-
-</FileTree>
+```
+lib/billing.rb                # the Entrypoint
+lib/billing/invoice.rb        # inside the billing Carton
+lib/billing/models/charge.rb  # inside too: models/ has no models.rb
+```
 
 - The Entrypoint loads the Carton's other files with `require`, `require_relative`, or a Zeitwerk loader, all inside the Carton's one Box.
 - Only the Entrypoint can be imported. Importing a file inside a Carton raises `Carton::ImportError` naming the import to use, because loading it on its own would create a Second Copy of the Carton's classes.
