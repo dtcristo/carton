@@ -15,9 +15,13 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
 - Bundler 4.0.20 or later, if you use Bundler
 - `require 'carton'` before the app first calls `import`, `import_relative`, or `export`; every Carton Box gets Carton automatically
 
+## Quick start
+
+Build a two-Carton app in five steps, then check the boundary.
+
 <Steps>
 
-1. ## Install
+1. ### Install
 
    ```sh
    gem install carton
@@ -29,7 +33,7 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
    gem 'carton'
    ```
 
-2. ## Write a Carton
+2. ### Write a Carton
 
    A Carton's Entrypoint is a Ruby file that exports one value, usually its root module. Start with a tax Carton:
 
@@ -42,7 +46,7 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
    export Tax # the only value that leaves this Carton
    ```
 
-3. ## Import it
+3. ### Import it
 
    Cartons import each other. The billing Carton imports tax:
 
@@ -69,7 +73,7 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
 
    `import_relative` returns the exported value itself, and defines nothing in the Importer. Bind it to a constant of the same name.
 
-4. ## Run it
+4. ### Run it
 
    Run it with Boxes enabled:
 
@@ -77,7 +81,7 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
    RUBY_BOX=1 ruby main.rb # prints 110
    ```
 
-5. ## See the boundary
+5. ### See the boundary
 
    Add a line to `main.rb` that reaches past billing:
 
