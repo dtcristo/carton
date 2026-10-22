@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'tmpdir'
 
 FIXTURES = File.expand_path('../fixtures', __dir__)
 
@@ -82,124 +83,51 @@ class ExportTest < Minitest::Test
                 import("#{FIXTURES}/rescues_nested_export_error")
   end
 
-  def test_bare_carton_returns_a_namespace_not_its_box
-    result = import "#{FIXTURES}/bare"
+  def test_entrypoint_must_export_explicitly
+    error =
+      assert_raises(Carton::ExportError) { import "#{FIXTURES}/no_export" }
 
-    assert_kind_of Carton::Namespace, result
-    refute_kind_of Ruby::Box, result
-    refute_respond_to result, :eval
-    refute_respond_to result, :require
+    assert_match(/no_export\.rb.*must call export/, error.message)
   end
 
-  def test_bare_carton_exposes_constants_and_callable_helpers
-    result = import "#{FIXTURES}/bare"
+  def test_missing_export_is_not_cached
+    Dir.mktmpdir do |dir|
+      entry = File.join(dir, 'retry.rb')
+      File.write(entry, "VALUE = 1\n")
+      assert_raises(Carton::ExportError) { import entry }
 
-    assert_equal 'hello from bare', result::GREETING
-    assert_equal 42, result.helper
-    assert_empty result.lookup_calls
+      File.write(entry, "export 42\n")
+      assert_equal 42, import(entry)
+    end
   end
 
-  def test_bare_carton_helpers_forward_arguments_keywords_and_block
-    result = import "#{FIXTURES}/method_export"
+  def test_only_the_imported_entrypoints_export_counts
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'dependency.rb'), "export 42\n")
+      entry = File.join(dir, 'entry.rb')
+      File.write(entry, "require_relative 'dependency'\n")
 
-    assert_equal 'HI?', result.decorate('hi', suffix: '?', &:upcase)
-    assert_equal 'HI!', result.decorate('hi', &:upcase)
+      assert_raises(Carton::ExportError) { import entry }
+    end
   end
 
-  def test_bare_carton_fetch_constant
-    result = import "#{FIXTURES}/bare"
-    assert_equal 'hello from bare', result.fetch(:GREETING)
-  end
+  def test_legacy_adapter_keeps_its_export_when_required_code_adds_export
+    Dir.mktmpdir do |dir|
+      dependency = File.join(dir, 'foo.rb')
+      source = "module Foo; def self.label = 'foo'; end\n"
+      File.write(dependency, source)
+      File.write(
+        File.join(dir, 'before.rb'),
+        "require_relative 'foo'\nexport Foo\n",
+      )
+      assert_equal 'foo', import(File.join(dir, 'before')).label
 
-  def test_bare_carton_fetch_method
-    result = import "#{FIXTURES}/bare"
-    helper = result.fetch(:helper)
-
-    assert_instance_of Method, helper
-    assert_equal :helper, helper.name
-    assert_equal 42, helper.call
-  end
-
-  def test_bare_carton_index_lookup
-    result = import "#{FIXTURES}/bare"
-    assert_equal 'hello from bare', result[:GREETING]
-    assert_equal 42, result[:helper].call
-    assert_nil result[:missing]
-  end
-
-  def test_bare_carton_lookup_does_not_invoke_helpers
-    result = import "#{FIXTURES}/bare"
-
-    result[:effectful_helper]
-    result.fetch(:effectful_helper)
-    assert_empty result.fetch(:lookup_calls).call
-  end
-
-  def test_bare_carton_does_not_evaluate_expressions
-    result = import "#{FIXTURES}/bare"
-
-    assert_nil result['1 + 1']
-    assert_nil result['nil']
-    refute result.key?('1 + 1')
-    refute result.key?('nil')
-  end
-
-  def test_bare_carton_key_query_does_not_invoke_helpers
-    result = import "#{FIXTURES}/bare"
-
-    assert result.key?(:effectful_helper)
-    assert_empty result.fetch(:lookup_calls).call
-  end
-
-  def test_bare_carton_preserves_nil_and_false_values
-    result = import "#{FIXTURES}/bare"
-
-    assert result.key?(:NIL_VALUE)
-    assert_nil result.fetch(:NIL_VALUE)
-    assert result.key?(:FALSE_VALUE)
-    assert_equal false, result.fetch(:FALSE_VALUE)
-  end
-
-  def test_bare_carton_helper_errors_propagate_when_called
-    result = import "#{FIXTURES}/bare"
-
-    name_error =
-      assert_raises(NameError) { result.fetch(:raises_name_error).call }
-    assert_equal :MISSING_FROM_HELPER, name_error.name
-
-    method_error =
-      assert_raises(NoMethodError) do
-        result.fetch(:raises_no_method_error).call
-      end
-    assert_equal :missing_from_helper, method_error.name
-  end
-
-  def test_bare_carton_excludes_runtime_constants_and_box_methods
-    result = import "#{FIXTURES}/bare"
-
-    refute result.key?(:Object)
-    refute result.key?(:load_path)
-    refute result.key?(:require_in_box)
-  end
-
-  def test_bare_carton_destructuring_enumerates_its_public_surface
-    import("#{FIXTURES}/bare_deconstruct") => {
-      BARE_LABEL: label, effectful_helper:, **rest
-    }
-
-    assert_equal 'bare', label
-    assert_instance_of Method, effectful_helper
-    assert_equal %i[DECONSTRUCTION_CALLS helper], rest.keys.sort
-    assert_empty rest.fetch(:DECONSTRUCTION_CALLS)
-    assert_equal :effect, effectful_helper.call
-    assert_equal 42, rest.fetch(:helper).call
-  end
-
-  def test_bare_carton_destructuring_does_not_invoke_helpers
-    result = import "#{FIXTURES}/bare_deconstruct_error"
-    broken_helper = result.deconstruct_keys(nil).fetch(:broken_helper)
-
-    error = assert_raises(NameError) { broken_helper.call }
-    assert_equal :MISSING_FROM_DECONSTRUCTION, error.name
+      File.write(dependency, "#{source}export Foo\n")
+      File.write(
+        File.join(dir, 'after.rb'),
+        "require_relative 'foo'\nexport Foo\n",
+      )
+      assert_equal 'foo', import(File.join(dir, 'after')).label
+    end
   end
 end

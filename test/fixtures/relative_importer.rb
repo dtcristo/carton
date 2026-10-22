@@ -1,3 +1,6 @@
-Sibling = import_relative('single_export')
+module RelativeImporter
+  Sibling = import_relative 'single_export'
+  def self.greeting = Sibling.new('World').greet
+end
 
-def greeting = Sibling.new('World').greet
+export RelativeImporter

@@ -2,19 +2,15 @@
 
 require_relative '../../lib/carton'
 
-# Carton boundaries: each file runs in its own Carton Box. Its Import returns a
-# Hash, a Proc, or a Namespace for a file without export, respectively.
+# Each Entrypoint runs in its own Carton Box and explicitly exports a value.
 settings = import_relative 'settings'
 money = import_relative 'formatter'
-Legacy = import_relative 'legacy'
+legacy = import_relative 'legacy_adapter'
 
-# A Hash Export uses Ruby's own pattern matching.
+# Hash Exports use Ruby's own pattern matching, including Method values.
 settings => { currency: }
-puts "#{Legacy.label(42)}: #{currency} #{money.call(4_200)}"
-
-# A Bare Carton supports pattern matching too. A Helper is a Method value;
-# extracting it does not call it.
-Legacy => { label: }
-puts "Captured Helper: #{label.call(7)}"
-puts "Legacy prefix: #{Legacy::PREFIX}"
+legacy => { label:, prefix: }
+puts "#{label.call(42)}: #{currency} #{money.call(4_200)}"
+puts "Captured method: #{label.call(7)}"
+puts "Legacy prefix: #{prefix}"
 puts "PREFIX defined in Main: #{!defined?(PREFIX).nil?}"

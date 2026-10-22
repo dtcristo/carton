@@ -33,9 +33,9 @@ module Carton
     private
 
     # The whole Import lifecycle, in order: boot Carton in this Box, load the
-    # target, then build its Public Surface with `build`. Runtime calls only
-    # this, so the ordering lives here.
-    def import_target(target, library:, import_cache:, &build)
+    # target, then return its Export. Runtime calls only this, so the ordering
+    # lives here.
+    def import_target(target, library:, import_cache:)
       configure_for_import(library:, import_cache:)
       load_import(
         target.feature,
@@ -44,7 +44,7 @@ module Carton
         locked_gems: target.locked_gems,
       )
       record_used_gems(target)
-      export_public_surface(&build)
+      exported_value
     end
 
     # The gems this Carton depends on: its Gem Closure, plus the locked gems
@@ -95,14 +95,8 @@ module Carton
     def load_import(feature, load_path: nil, gems: [], locked_gems: nil)
       activate_gems(gems, locked_gems) unless gems.empty?
       add_import_load_path(load_path) if load_path
-      # After activation, which loads Bundler and Psych here: a Bare
-      # Carton's Public Surface is only what its Entrypoint adds.
-      snapshot_preloaded_names
-
       @entrypoint = real_path(feature)
-      result = require_in_box(feature)
-      discover_bare_surface
-      result
+      require_in_box(feature)
     end
 
     attr_reader :import_cache, :pending_gems
@@ -172,38 +166,18 @@ module Carton
       @export = value
     end
 
-    # The Export, or for a Bare Carton the constants and Helpers its
-    # Entrypoint defined, which `build` wraps, so Importers never receive the
-    # Box itself.
-    def export_public_surface
-      NO_EXPORT.equal?(@export) ? yield(*bare_surface) : @export
-    end
+    # Every Entrypoint deliberately chooses the value its Importers receive.
+    def exported_value
+      if NO_EXPORT.equal?(@export)
+        raise ExportError,
+              "#{@entrypoint} must call export: export a module or another value"
+      end
 
-    def bare_surface
-      constants =
-        @constant_names.to_h { |name| [name, @box.const_get(name, false)] }
-      [@helpers, constants]
+      @export
     end
 
     def reset_export
       @export = NO_EXPORT
-    end
-
-    def snapshot_preloaded_names
-      @preloaded_constant_names = @box.constants(false).map(&:to_s)
-      @preloaded_method_names = top_level_methods.keys
-    end
-
-    def discover_bare_surface
-      @constant_names =
-        @box.constants(false).map(&:to_s) - @preloaded_constant_names
-      @helpers = top_level_methods.except(*@preloaded_method_names)
-    end
-
-    def top_level_methods
-      @box.eval(
-        'Object.private_instance_methods(false).to_h { |name| [name.to_s, method(name)] }',
-      )
     end
   end
 end

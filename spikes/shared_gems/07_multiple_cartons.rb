@@ -37,7 +37,7 @@ Dir.mktmpdir('shared-gems-cartons') do |dir|
     PRIVATE_VALUE = :shipping
     export Invoice
   CODE
-  File.write(File.join(dir, 'bare.rb'), 'LOCAL = :only_local')
+  File.write(File.join(dir, 'local.rb'), 'export local: :only_local')
   billing = import(File.join(dir, 'billing.rb'))
   shipping = import(File.join(dir, 'shipping.rb'))
   equal(true, billing.new.valid_name?('hello'))
@@ -45,11 +45,11 @@ Dir.mktmpdir('shared-gems-cartons') do |dir|
   equal(1_209_600, billing.new.days)
   assert(!billing.equal?(shipping))
   assert(billing.equal?(import(File.join(dir, 'billing.rb'))))
-  equal([:LOCAL], import(File.join(dir, 'bare.rb')).constants)
+  equal({ local: :only_local }, import(File.join(dir, 'local.rb')))
   equal(false, Object.const_defined?(:PRIVATE_VALUE))
   equal(false, ''.respond_to?(:blank?))
 end
-puts 'PASS two plain Cartons, nested import, cache identity, local constants, exports and Bare Carton discovery'
+puts 'PASS two plain Cartons, nested import, cache identity, local constants, exports and explicit Exports'
 # A real Gem Carton still passes through the existing activation lifecycle.
 if ARGV.include?('--gem')
   Carton.setup_bundle(

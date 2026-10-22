@@ -30,12 +30,12 @@ class SharedImportTest < Minitest::Test
     assert bank.deposit(wallet.pay(100))
   end
 
-  def test_namespace_first_imported_by_a_carton_is_a_main_box_namespace
+  def test_module_first_imported_by_a_carton_is_shared
     from_carton = import "#{SHARED_DIR}/units_user"
     units = import "#{SHARED_DIR}/units"
 
     assert_same from_carton::Units, units
-    assert_kind_of Carton::Namespace, units
+    assert_instance_of Module, units
   end
 
   def test_circular_import_raises

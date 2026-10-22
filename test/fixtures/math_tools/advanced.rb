@@ -1,10 +1,11 @@
-Basic = import_relative 'basic'
-PI = Basic::PI
+module Advanced
+  Basic = import_relative 'basic'
+  PI = Basic::PI
 
-def add(...) = Basic.add(...)
+  def self.add(...) = Basic.add(...)
+  def self.circle_area(radius) = PI * (radius**2)
 
-def circle_area(radius)
-  PI * (radius**2)
+  VERSION = '2.0.0'
 end
 
-VERSION = '2.0.0'
+export Advanced

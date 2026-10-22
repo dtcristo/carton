@@ -3,9 +3,8 @@
 # This Carton Bundle uses its own Gemfile; activation stays in the Carton Box.
 Carton.setup_bundle
 
-# `import 'bigdecimal'` treats the gem Entrypoint like another Carton. It has
-# no Export, so its top-level constants come back in a Namespace
-# instead of becoming top-level here.
-BigDecimalCarton = import 'bigdecimal'
+# Legacy gems load inside this Carton with require. Only the explicit Export
+# crosses into the Importer; BigDecimal itself stays in this Carton Box.
+require 'bigdecimal'
 
-export version: BigDecimalCarton::BigDecimal::VERSION
+export version: BigDecimal::VERSION

@@ -13,9 +13,8 @@ module Carton
 
     module_function
 
-    # Load the target in a new Carton Box and return its Export, or for a Bare
-    # Carton a `Carton::Namespace` of its definitions. Each Entrypoint loads
-    # once per process; later imports return the same value. `base_dir` is
+    # Load the target in a new Carton Box and return its Export. Each Entrypoint
+    # loads once per process; later imports return the same value. `base_dir` is
     # given for `import_relative`; plain `import` searches the Importer's
     # `$LOAD_PATH`, and `from` names the calling file for its error message.
     def import(path, base_dir: nil, from: nil)
@@ -69,14 +68,12 @@ module Carton
     private_class_method :missing_name_message
 
     def load_import(target)
-      Box
-        .new
-        .__send__(
-          :import_target,
-          target,
-          library: LIBRARY,
-          import_cache: IMPORT_CACHE,
-        ) { |helpers, constants| Namespace.new(helpers, constants) }
+      Box.new.__send__(
+        :import_target,
+        target,
+        library: LIBRARY,
+        import_cache: IMPORT_CACHE,
+      )
     end
     private_class_method :load_import
 

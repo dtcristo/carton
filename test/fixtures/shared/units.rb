@@ -1,3 +1,7 @@
 # frozen_string_literal: true
 
-SCALE = 100
+module Units
+  SCALE = 100
+end
+
+export Units

@@ -12,9 +12,8 @@ module Carton
   class ImportError < Error
   end
 
-  # An `export` that breaks the rules: called twice in one Entrypoint, given
-  # a Symbol, or a Bare Carton Helper that would hide a `Carton::Namespace`
-  # method.
+  # An Entrypoint finished without exporting, called `export` twice, or
+  # gave it a Symbol.
   class ExportError < Error
   end
 

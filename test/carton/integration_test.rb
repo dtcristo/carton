@@ -37,17 +37,12 @@ class IntegrationTest < Minitest::Test
     user_class = import("#{FIXTURES}/single_export")
 
     # Use import_relative
-    math = import_relative '../fixtures/bare_math'
+    math = import_relative '../fixtures/math_export'
 
     # Both work correctly in the same context
     alice = user_class.new('Alice')
     assert_equal 'Hello, Alice!', alice.greet
     assert_equal 10, math.add(3, 7)
-  end
-
-  def test_destructuring_with_rename
-    import("#{FIXTURES}/bare_math") => { add: sum }
-    assert_equal 42, sum.(20, 22)
   end
 
   def test_re_export_through_chain
@@ -224,18 +219,33 @@ class IntegrationTest < Minitest::Test
     refute payload.fetch('main_minitest')
   end
 
-  # Gem activation loads Bundler, Psych and Date into the Carton's Box, but
-  # they are Carton's support, not the Bare Carton's surface.
-  def test_bare_gem_carton_exposes_only_what_its_entrypoint_defines
-    script = <<~RUBY
-      require File.expand_path('lib/carton', Dir.pwd)
-      Carton.setup_bundle(gemfile: File.expand_path('test/fixtures/shared_gems/Gemfile', Dir.pwd))
-      puts import('bigdecimal').keys.sort.join(' ')
-      STDOUT.flush
-      Process.exit!(0)
-    RUBY
+  def test_legacy_gem_needs_an_adapter_with_an_explicit_export
+    Dir.mktmpdir('carton-legacy-gem') do |dir|
+      adapter = File.join(dir, 'decimal.rb')
+      gemfile = File.join(FIXTURES, 'shared_gems/Gemfile')
+      File.write(adapter, <<~RUBY)
+        Carton.setup_bundle(gemfile: #{gemfile.inspect})
+        require 'bigdecimal'
+        export BigDecimal
+      RUBY
+      script = <<~RUBY
+        require File.expand_path('lib/carton', Dir.pwd)
+        Carton.setup_bundle(gemfile: #{gemfile.inspect})
+        begin
+          import 'bigdecimal'
+        rescue Carton::ExportError => e
+          puts e.message
+        end
+        decimal = import #{adapter.inspect}
+        puts decimal::VERSION
+        STDOUT.flush
+        Process.exit!(0)
+      RUBY
 
-    assert_equal 'BigDecimal BigMath', run_boxed(script).strip
+      output = run_boxed(script)
+      assert_match(/bigdecimal\.rb must call export/, output)
+      assert_equal '3.3.1', output.lines.last.strip
+    end
   end
 
   # The cache also compares locked gems a Carton loaded without declaring
@@ -466,12 +476,12 @@ class IntegrationTest < Minitest::Test
     assert_includes output, 'bigdecimal loaded in the Main Box: false'
   end
 
-  def test_exports_example_uses_values_and_legacy_helpers_across_boxes
+  def test_exports_example_uses_values_and_a_legacy_adapter_across_boxes
     output = run_boxed("load #{File.join(EXAMPLES, 'exports/main.rb').inspect}")
 
     expected = [
       'INV-0042: USD 42.00',
-      'Captured Helper: INV-0007',
+      'Captured method: INV-0007',
       'Legacy prefix: INV',
       'PREFIX defined in Main: false',
     ]
