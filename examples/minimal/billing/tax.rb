@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Another Carton, imported across a boundary: billing sees only its exports.
+# Carton boundary: math is another Carton, and billing sees only its Export.
 MathTools = import_relative '../math'
 
 module Billing

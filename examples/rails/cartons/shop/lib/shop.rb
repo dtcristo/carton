@@ -3,7 +3,8 @@
 require 'carton'
 require 'logger'
 
-# Import inside the app namespace: Rake also defines top-level `import`.
+# Carton boundary: import inside the app namespace, since Rake also defines a
+# top-level `import`.
 module Shop
   Framework = import 'framework'
   Customers = import 'customers'
@@ -14,5 +15,5 @@ end
 require_relative 'shop/application'
 Shop::Application.initialize!
 
-# The Main Box receives the Rack application, not a Box.
+# Export: the Main Box receives the Rack application, not a Box.
 export Shop::Application

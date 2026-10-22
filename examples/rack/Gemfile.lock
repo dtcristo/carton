@@ -1,0 +1,34 @@
+PATH
+  remote: ../..
+  specs:
+    carton (0.4.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    minitest (5.27.0)
+    rack (3.2.7)
+    rackup (2.3.1)
+      rack (>= 3)
+    webrick (1.9.2)
+
+PLATFORMS
+  arm64-darwin-27
+  ruby
+
+DEPENDENCIES
+  carton!
+  minitest (~> 5.16)
+  rack (~> 3.2)
+  rackup (~> 2.2)
+  webrick (~> 1.9)
+
+CHECKSUMS
+  carton (0.4.0)
+  minitest (5.27.0) sha256=2d3b17f8a36fe7801c1adcffdbc38233b938eb0b4966e97a6739055a45fa77d5
+  rack (3.2.7) sha256=93e13e1c24f93556671d85d2d79fa228c3485815c50d7e2f265b5330c6528fb7
+  rackup (2.3.1) sha256=6c79c26753778e90983761d677a48937ee3192b3ffef6bc963c0950f94688868
+  webrick (1.9.2) sha256=beb4a15fc474defed24a3bda4ffd88a490d517c9e4e6118c3edce59e45864131
+
+BUNDLED WITH
+  4.0.23

@@ -6,7 +6,7 @@ require 'carton'
 require 'bigdecimal'
 
 module Pricing
-  # Hidden from importers by Ruby's own visibility, which holds across Boxes.
+  # Hidden from Importers by Ruby's own visibility, which holds across Boxes.
   module Rounding
     def self.cents(amount) = amount.round(2)
   end
@@ -19,5 +19,5 @@ module Pricing
   def self.bigdecimal_version = BigDecimal::VERSION
 end
 
-# The Carton's Export is its root module.
+# Export: the Carton's root module.
 export Pricing

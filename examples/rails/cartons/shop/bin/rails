@@ -3,7 +3,7 @@
 
 require_relative '../config/boot'
 
-# Runner evaluates user code in Main. These are references to the shared
+# Carton boundary: runner evaluates user code in Main. These are references to the shared
 # modules, not another require of Rails or the Engine implementations.
 module ShopCLI
   Framework = import 'framework'

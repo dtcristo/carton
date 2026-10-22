@@ -9,4 +9,5 @@ module Shipping
   def self.quote(kilograms) = kilograms * RATE_PER_KG
 end
 
+# Export: the Carton's root module.
 export Shipping

@@ -3,11 +3,13 @@
 
 require_relative '../config/boot'
 
-module HanamiCLI
+# Carton boundary: import in a module, so the CLI's constants stay out of
+# Object.
+module ShopCLI
   App = import 'shop'
   Framework = import 'framework'
 end
 
 script = File.expand_path(__FILE__)
 Dir.chdir(File.expand_path('..', __dir__))
-HanamiCLI::Framework.cli(ARGV.dup, script: script)
+ShopCLI::Framework.cli(ARGV.dup, script: script)

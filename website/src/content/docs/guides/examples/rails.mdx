@@ -2,7 +2,7 @@
 title: Rails
 description: "Experimental: Customers and Billing as namespaced Rails Engines, with Carton-owned loaders and a CLI bridge."
 sidebar:
-  order: 10
+  order: 9
 ---
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
@@ -39,7 +39,7 @@ cartons/
     db/migrate/
   billing/
     lib/billing.rb                       # Entrypoint, imports Framework and Customers
-    lib/billing/{invoice,issue_invoice,invalid_invoice,engine}.rb
+    lib/billing/{invoice,issue_invoice,invalid_invoice,tax_policy,engine}.rb
     app/models/billing/invoice_record.rb
     app/repositories/billing/invoice_repository.rb
     app/controllers/billing/
@@ -100,6 +100,8 @@ RUBY_BOX=1 bin/rails server -b 127.0.0.1
 ```
 
 Each Engine exposes its migrations to Rails, so `db:prepare` creates the tables; importing the app creates none. Development and test use separate databases under `shop/storage/`. Set `SHOP_DATABASE` to choose another path. Generated databases, schemas, and logs are git-ignored.
+
+The workflow tests live in `cartons/shop/test/` and run through `bin/rails test`, Rails' own runner; `test/commands_test.rb` starts it. The Hanami example's tests import Shop directly instead.
 
 ## CLI and limits
 

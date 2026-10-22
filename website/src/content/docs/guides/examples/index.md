@@ -14,21 +14,21 @@ The repository's examples are small, separate programs, and CI runs every one. E
 
 Draw a boundary, export a module, and import it from an app.
 
-### [Tooling](/guides/examples/tooling/)
-
-Check import and export problems with `carton check`, then generate RBS for Steep.
-
 ### [Exports](/guides/examples/exports/)
 
 Export Hashes and callables, adapt legacy Ruby, and use pattern matching.
+
+### [Tooling](/guides/examples/tooling/)
+
+Check import and export problems with `carton check`, then generate RBS for Steep.
 
 ### [Dependency injection](/guides/examples/dependency-injection/)
 
 Pass host adapters into a checkout Carton and test it with fakes.
 
-### [Bundler](/guides/examples/bundler/)
+### [Rack](/guides/examples/rack/)
 
-Set up Carton Bundles across imports, including a Transitive Carton and a path gem.
+Mount Cartons that export Rack apps in a plain `config.ru`, with no web framework.
 
 ### [Monorepo](/guides/examples/monorepo/)
 
@@ -48,7 +48,7 @@ Run Customers and Billing inside Rails Engines with Carton-owned loaders and an 
 
 ### [Hanami](/guides/examples/hanami/)
 
-Run Customers and Billing in Hanami slices with contracts, operations, ROM repos, views, and a CLI bridge.
+Run Customers and Billing in Hanami slices with contracts, operations, ROM repos, views, and a CLI bridge. This integration is experimental.
 
 ## Run one
 

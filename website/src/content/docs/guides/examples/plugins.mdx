@@ -1,6 +1,6 @@
 ---
 title: Plugins
-description: A report runner loads two plugins that need incompatible bigdecimal versions, each in its own Carton with its own bundle.
+description: A report runner loads two plugins that need incompatible Faraday versions, each in its own Carton with its own bundle.
 sidebar:
   order: 7
 ---
@@ -11,20 +11,20 @@ Two plugins that need incompatible versions of the same gem cannot load into one
 
 ## The problem
 
-Each plugin computes money with `bigdecimal`, and each is stuck on a different major version:
+Each plugin sends the month's orders to a service with Faraday, and each is stuck on a different major version:
 
 | Plugin | Gemfile | Why it can't move |
 | --- | --- | --- |
-| `sales_tax` | `bigdecimal ~> 3.1` | calls `BigDecimal#precs`, which 4.0 removed |
-| `growth` | `bigdecimal ~> 4.1` | calls `BigMath.cbrt`, which 4.0 added |
+| `crm` | `faraday ~> 1.10`, through its vendored `crm_client` | calls `request :basic_auth`, which 2.0 removed |
+| `webhook` | `faraday ~> 2.0` | calls `request :authorization, :basic, ...`, which 2.0 added |
 
-Plain Ruby activates one version of a gem per process. Load `sales_tax` first and `growth` fails:
+Plain Ruby activates one version of a gem per process. Load `crm` first and `webhook` fails:
 
 ```
-Gem::LoadError: can't activate bigdecimal-4.1.1, already activated bigdecimal-3.3.1
+Gem::LoadError: can't activate faraday-2.15.0, already activated faraday-1.10.6
 ```
 
-No single lockfile satisfies both, so Bundler can't help. The usual fixes are to fork one plugin, run each in its own process, or wait for its maintainer to upgrade. `sales_tax` also carries a legacy patch that prints every `Float` with two decimals, which in plain Ruby changes `Float#to_s` for the host and `growth` too.
+No single lockfile satisfies both, so Bundler can't help. The usual fixes are to fork one plugin, run each in its own process, or wait for its maintainer to upgrade. `crm` also carries a legacy patch that prints every `Float` with two decimals, which in plain Ruby changes `Float#to_s` for the host and `webhook` too.
 
 ## The host
 
@@ -33,68 +33,73 @@ No single lockfile satisfies both, so Bundler can't help. The usual fixes are to
 <ExampleFile path="plugins/main.rb" />
 
 ```
-main.rb                      # the host: finds, imports, and runs plugins
+main.rb                        # the host: finds, imports, and runs plugins
 plugins/
-  sales_tax/
-    Gemfile, Gemfile.lock    # bigdecimal 3.3.1
-    lib/sales_tax.rb         # Entrypoint: setup_bundle, export SalesTax
-    lib/sales_tax/
-      float_as_money.rb      # the Float#to_s patch, inside the Carton
-  growth/
-    Gemfile, Gemfile.lock    # bigdecimal 4.1.1
-    lib/growth.rb            # Entrypoint: setup_bundle, export Growth
+  crm/
+    lib/crm.rb                 # Entrypoint: imports crm_client, export Crm
+    lib/crm/
+      float_as_money.rb        # the Float#to_s patch, inside the Carton
+    cartons/crm_client/
+      Gemfile, Gemfile.lock    # faraday 1.10.6
+      lib/crm_client.rb        # Entrypoint: setup_bundle, export CrmClient
+  webhook/
+    Gemfile, Gemfile.lock      # faraday 2.15.0
+    lib/webhook.rb             # Entrypoint: setup_bundle, export Webhook
 ```
 
-The host never loads bigdecimal and has no Gemfile. Adding a plugin is a new directory with its own `Gemfile`.
+The host never loads Faraday and has no Gemfile. Adding a plugin is a new directory with its own `Gemfile`, or with Cartons that have one. Both plugins use Faraday's test adapter, so the example runs offline.
 
 ## The plugins
 
-Each Entrypoint calls `Carton.setup_bundle`, so `sales_tax` gets bigdecimal 3.3.1 and `growth` gets 4.1.1, side by side:
+`webhook` calls `Carton.setup_bundle` in its Entrypoint, so it gets Faraday 2.15.0 in its own Box:
 
-<ExampleFile path="plugins/plugins/sales_tax/lib/sales_tax.rb" />
+<ExampleFile path="plugins/plugins/webhook/lib/webhook.rb" />
 
-The `Float#to_s` patch stays in `sales_tax`'s Box:
+`crm` has no Gemfile. It imports its vendored API client, `crm_client`, which sets up its own Carton Bundle with Faraday 1.10.6. `crm_client` is a Transitive Carton: the host reaches it only through `crm`, and Faraday stays in `crm_client`'s Box:
 
-<ExampleFile path="plugins/plugins/sales_tax/lib/sales_tax/float_as_money.rb" />
+<ExampleFile path="plugins/plugins/crm/lib/crm.rb" />
 
-<ExampleFile path="plugins/plugins/growth/lib/growth.rb" />
+<ExampleFile path="plugins/plugins/crm/cartons/crm_client/lib/crm_client.rb" />
+
+The `Float#to_s` patch stays in `crm`'s Box, so `crm_client` and `webhook` print Floats as Ruby does:
+
+<ExampleFile path="plugins/plugins/crm/lib/crm/float_as_money.rb" />
 
 ## Run
 
 ```sh
-bundle exec rake example:plugins   # installs each plugin's bundle, then runs
+bundle exec rake example:plugins   # installs each bundle, then runs
 RUBY_BOX=1 ruby examples/plugins/main.rb
 ```
 
 ```
-== Monthly growth (bigdecimal 4.1.1) ==
-2026-06  1000.00
-2026-07  1080.00  +8.0%
-2026-08  1250.00  +15.7%
-2026-09  1331.00  +6.5%
-Average +10.0% a month
+== CRM (faraday 1.10.6) ==
+CA  2211.50  synced
+NY  1300.25  synced
+TX  1149.25  synced
 
-== Sales tax (bigdecimal 3.3.1) ==
-CA  sales 2211.50  tax 160.33
-NY  sales 1300.25  tax 52.01
-TX  sales 1149.25  tax 71.83
-Effective rate 6.10%
+== Webhook (faraday 2.15.0) ==
+2026-06  1000.0
+2026-07  1080.0
+2026-08  1250.0
+2026-09  1331.0
+POST /month-end  202  4 months
 
 == Host ==
-BigDecimal defined: false
+Faraday defined: false
 0.1 + 0.2 = 0.30000000000000004
 ```
 
 ## Sharing a Carton between plugins
 
-A Carton loads once per process, keyed by its Entrypoint's path. If both plugins import the same third Carton, such as a shared path gem, they get one copy, built with the gem versions its First Importer selected. When the other plugin's Carton Bundle locks a different version of a gem that Carton uses, its import raises `Carton::ImportError` naming the gem and both versions, rather than sharing a copy built against the wrong one. Either lock the same versions in both plugins, or give each its own copy: a Carton at another path, such as a vendored copy, is a separate Carton.
+A Carton loads once per process, keyed by its Entrypoint's path. If both plugins import the same third Carton, such as a shared path gem, they get one copy, built with the gem versions its First Importer selected. When the other plugin's Carton Bundle locks a different version of a gem that Carton uses, its import raises `Carton::ImportError` naming the gem and both versions, rather than sharing a copy built against the wrong one. Either lock the same versions in both plugins, or give each its own copy: a Carton at another path, such as `crm`'s vendored `crm_client`, is a separate Carton.
 
 ## Testing plugins
 
-Test a plugin the way the host uses it: import its directory and call its interface. `test/growth_test.rb` does this with minitest from `test/Gemfile`, separate from the plugin's Carton Bundle, so the host still needs no Gemfile:
+Test a plugin the way the host uses it: import its directory and call its interface. `test/webhook_test.rb` does this with minitest from `test/Gemfile`, separate from the plugin's Carton Bundle, so the host still needs no Gemfile:
 
 ```sh
-RUBY_BOX=1 ruby examples/plugins/test/growth_test.rb
+RUBY_BOX=1 ruby examples/plugins/test/webhook_test.rb
 ```
 
 Each Carton loads once per process, so a plugin's state carries from one test to the next. Keep plugins stateless, or run each plugin's tests in its own process. To test a plugin's Interior, require its files directly without Boxes; see [Testing](/guides/testing/).
@@ -102,7 +107,7 @@ Each Carton loads once per process, so a plugin's state carries from one test to
 ## Limits
 
 - Box is not a security boundary. Plugins run with the host's full privileges, so load only plugins you trust.
-- Objects are shared, not copied. A plugin can mutate what the host passes it, so the host freezes `ORDERS`. Pass plain values such as Strings and Hashes: each Box loads its own `BigDecimal` class, so a `BigDecimal` from one plugin is not a `BigDecimal` to the host or the other plugin.
+- Objects are shared, not copied. A plugin can mutate what the host passes it, so the host freezes `ORDERS`. Pass plain values such as Strings, Numbers, and Hashes: each Box loads its own gem classes, so a `Faraday::Response` from one plugin is not a `Faraday::Response` to the host or the other plugin.
 - Box isolates patches to builtins such as `Float`. Classes a plugin defines are shared, so reopening another plugin's class changes it everywhere; see [Sharing classes and services](/guides/sharing-classes/).
 - `ENV` is process-wide. `setup_bundle` restores it, but load plugins while booting, before starting threads that read `ENV`.
 - Each Box costs tens of milliseconds to create, plus its own gem loading.

@@ -180,18 +180,17 @@ class IntegrationTest < Minitest::Test
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
-      gemfile = File.expand_path('examples/bundler/Gemfile', Dir.pwd)
+      gemfile = File.expand_path('examples/monorepo/Gemfile', Dir.pwd)
       Carton.setup_bundle(gemfile:)
 
       before_loaded = Gem.loaded_specs.keys.sort
       before_load_path = $LOAD_PATH.to_a
 
-      cartoned_gem = import 'cartoned_gem'
-      resolved = $LOAD_PATH.resolve_feature_path('cartoned_gem')
+      shipping = import 'shipping'
+      resolved = $LOAD_PATH.resolve_feature_path('shipping')
 
       puts JSON.generate(
-        version: cartoned_gem::VERSION,
-        label: cartoned_gem.invoice_label('42'),
+        quote: shipping.quote(3),
         resolved: resolved&.last,
         main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
         main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
@@ -203,9 +202,8 @@ class IntegrationTest < Minitest::Test
     output = run_boxed(script)
 
     payload = JSON.parse(output)
-    assert_equal '0.1.0', payload.fetch('version')
-    assert_equal 'INV-0042', payload.fetch('label')
-    assert_match %r{/examples/bundler/cartoned_gem/lib/cartoned_gem\.rb\z},
+    assert_equal 12, payload.fetch('quote')
+    assert_match %r{/examples/monorepo/cartons/shipping/lib/shipping\.rb\z},
                  payload.fetch('resolved')
     assert payload.fetch('main_loaded_unchanged')
     assert payload.fetch('main_load_path_unchanged')
@@ -455,31 +453,27 @@ class IntegrationTest < Minitest::Test
     )
   end
 
-  def test_bundler_example_imported_cartons_keep_separate_gem_versions
+  def test_plugins_example_cartons_keep_separate_gem_versions
     script = <<~RUBY
       require 'json'
 
-      examples = File.expand_path('examples/bundler', Dir.pwd)
-      require File.expand_path('../../lib/carton', examples)
-
-      Carton.setup_bundle(gemfile: File.join(examples, 'Gemfile'))
+      plugins = File.expand_path('examples/plugins/plugins', Dir.pwd)
+      require File.expand_path('../../../lib/carton', plugins)
 
       Dir
-        .glob(File.join(examples, 'cartons/*/lib'))
+        .glob(File.join(plugins, '*/lib'))
         .each { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
 
       before_loaded = Gem.loaded_specs.keys.sort
       before_load_path = $LOAD_PATH.to_a
 
-      math_helper = import 'math_helper'
-      billing = import 'billing'
-      cartoned_gem = import 'cartoned_gem'
+      webhook = import 'webhook'
+      crm = import 'crm'
 
       puts JSON.generate(
-        math_helper_version: math_helper.fetch(:version),
-        billing_rounding_version: billing.fetch(:rounding_version),
-        cartoned_gem_version: cartoned_gem::VERSION,
-        main_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
+        webhook_title: webhook.title,
+        crm_title: crm.title,
+        main_faraday: Gem.loaded_specs['faraday']&.version&.to_s,
         main_loaded_unchanged: Gem.loaded_specs.keys.sort == before_loaded,
         main_load_path_unchanged: $LOAD_PATH.to_a == before_load_path,
       )
@@ -490,10 +484,10 @@ class IntegrationTest < Minitest::Test
     output = run_boxed(script)
 
     payload = JSON.parse(output)
-    assert_equal '4.1.1', payload.fetch('math_helper_version')
-    assert_equal '3.3.1', payload.fetch('billing_rounding_version')
-    assert_equal '0.1.0', payload.fetch('cartoned_gem_version')
-    assert_nil payload.fetch('main_bigdecimal')
+    assert_equal 'Webhook (faraday 2.15.0)', payload.fetch('webhook_title')
+    # crm has no bundle; its Transitive Carton crm_client sets up faraday 1.
+    assert_equal 'CRM (faraday 1.10.6)', payload.fetch('crm_title')
+    assert_nil payload.fetch('main_faraday')
     assert payload.fetch('main_loaded_unchanged')
     assert payload.fetch('main_load_path_unchanged')
   end
@@ -586,14 +580,14 @@ class IntegrationTest < Minitest::Test
       require 'json'
       require File.expand_path('lib/carton', Dir.pwd)
 
-      math_helper_lib = File.expand_path('examples/bundler/cartons/math_helper/lib', Dir.pwd)
-      $LOAD_PATH.unshift(math_helper_lib) unless $LOAD_PATH.include?(math_helper_lib)
+      crm_client_lib = File.expand_path('examples/plugins/plugins/crm/cartons/crm_client/lib', Dir.pwd)
+      $LOAD_PATH.unshift(crm_client_lib) unless $LOAD_PATH.include?(crm_client_lib)
 
-      math_helper = import 'math_helper'
+      crm_client = import 'crm_client'
 
       puts JSON.generate(
-        bigdecimal_version: math_helper.fetch(:version),
-        root_bigdecimal: Gem.loaded_specs['bigdecimal']&.version&.to_s,
+        faraday_version: crm_client.faraday_version,
+        root_faraday: Gem.loaded_specs['faraday']&.version&.to_s,
       )
       STDOUT.flush
       Process.exit!(0)
@@ -602,8 +596,8 @@ class IntegrationTest < Minitest::Test
     output = run_boxed(script)
 
     payload = JSON.parse(output)
-    assert_equal '4.1.1', payload.fetch('bigdecimal_version')
-    assert_nil payload.fetch('root_bigdecimal')
+    assert_equal '1.10.6', payload.fetch('faraday_version')
+    assert_nil payload.fetch('root_faraday')
   end
 
   private

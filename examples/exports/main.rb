@@ -2,7 +2,8 @@
 
 require_relative '../../lib/carton'
 
-# Each Entrypoint runs in its own Carton Box and explicitly exports a value.
+# Carton boundary: each Entrypoint runs in its own Carton Box and explicitly
+# exports a value.
 settings = import_relative 'settings'
 money = import_relative 'formatter'
 legacy = import_relative 'legacy_adapter'

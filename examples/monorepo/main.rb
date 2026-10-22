@@ -6,7 +6,7 @@ require_relative '../../lib/carton'
 # load path, so Cartons are imported by gem name.
 Carton.setup_bundle
 
-# Each import loads one Carton in its own Box.
+# Carton boundary: each import loads one Carton in its own Box.
 Billing = import 'billing'
 Shipping = import 'shipping'
 Pricing = import 'pricing'

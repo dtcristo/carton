@@ -3,53 +3,27 @@
 require_relative '../../lib/carton'
 require 'tmpdir'
 
+# Bundle boundary: the app's Gemfile. Main only needs rack; Rails loads in the
+# framework Carton's Box.
 Carton.setup_bundle
 require 'rack'
-require 'json'
 
-def demonstrate(directory)
-  previous_database = ENV['SHOP_DATABASE']
-  previous_environment = ENV['RAILS_ENV']
-  ENV['SHOP_DATABASE'] = File.join(directory, 'demo.sqlite3')
+Dir.mktmpdir do |directory|
+  # A throwaway test database, prepared by the shop's own bin/rails.
   ENV['RAILS_ENV'] = 'test'
-  script = File.expand_path('cartons/shop/bin/rails', __dir__)
-  unless system(RbConfig.ruby, script, 'db:prepare', out: File::NULL)
-    abort 'database preparation failed'
-  end
+  ENV['SHOP_DATABASE'] = File.join(directory, 'demo.sqlite3')
+  rails = File.join(__dir__, 'cartons/shop/bin/rails')
+  system(RbConfig.ruby, rails, 'db:prepare', out: File::NULL, exception: true)
 
-  shop = import 'shop'
-  http =
-    Rack::MockRequest.new(
-      ->(env) { shop.call(env.merge('HTTP_HOST' => 'example.org')) },
-    )
-  customer =
-    http.post(
-      'http://example.org/customers',
-      params: {
-        customer: {
-          name: 'Ada',
-        },
-      },
-    )
-  abort "customer: #{customer.status}" unless customer.status == 201
-  invoice =
-    http.post(
-      'http://example.org/invoices.json',
-      params: {
-        invoice: {
-          customer_id: JSON.parse(customer.body).fetch('id'),
-          subtotal_cents: '4200',
-        },
-      },
-    )
-  abort "invoice: #{invoice.status}" unless invoice.status == 201
-  puts "POST /invoices: #{invoice.body}"
-  puts "GET /invoices/1: #{http.get('http://example.org/invoices/1').status}"
-  abort 'Rails leaked into Main' if defined?(Rails)
-  puts 'Rails loaded in Main: false'
-ensure
-  ENV['SHOP_DATABASE'] = previous_database
-  ENV['RAILS_ENV'] = previous_environment
+  # Carton boundary: Main receives the shop's Rack application.
+  http = Rack::MockRequest.new(import('shop'))
+
+  # Rails' host authorization needs a Host header that config.hosts allows.
+  host = { 'HTTP_HOST' => 'example.org' }
+  http.post('/customers', host.merge(params: { customer: { name: 'Ada' } }))
+  invoice = { customer_id: 1, subtotal_cents: 4200 }
+  puts 'POST /invoices.json: ' \
+         "#{http.post('/invoices.json', host.merge(params: { invoice: })).body}"
+  puts "GET /invoices/1: #{http.get('/invoices/1', host).status}"
+  puts "Rails loaded in Main: #{!defined?(Rails).nil?}"
 end
-
-Dir.mktmpdir('carton-rails-engines') { |directory| demonstrate(directory) }

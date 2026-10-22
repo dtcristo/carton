@@ -9,7 +9,7 @@ Carton.setup_bundle
 require 'minitest/autorun'
 
 class AppTest < Minitest::Test
-  # --- Carton boundary: only each Carton's Export crosses ---
+  # Carton boundary: only each Carton's Export crosses.
   # Imports are cached per process, so every test shares these Cartons.
   Billing = import 'billing'
   Pricing = import 'pricing'

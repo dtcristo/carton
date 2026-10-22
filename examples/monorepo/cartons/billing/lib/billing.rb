@@ -4,8 +4,8 @@
 require 'carton'
 
 module Billing
-  # Pricing is an Imported Carton, declared in billing's gemspec. Every
-  # Importer receives the same Export.
+  # Carton boundary: pricing is an Imported Carton, declared in billing's
+  # gemspec. Every Importer receives the same Export.
   Pricing = import 'pricing'
 
   def self.invoice(number, prices)
@@ -13,4 +13,5 @@ module Billing
   end
 end
 
+# Export: the Carton's root module.
 export Billing
