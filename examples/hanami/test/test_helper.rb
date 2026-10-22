@@ -13,7 +13,7 @@ require 'minitest/autorun'
 require 'rack'
 require 'json'
 
-script = File.expand_path('../bin/hanami', __dir__)
+script = File.expand_path('../components/shop/bin/hanami', __dir__)
 unless system(
          { 'HANAMI_EAGER_LOAD' => 'false' },
          RbConfig.ruby,
@@ -26,7 +26,7 @@ unless system(
 end
 
 module HanamiTestBoot
-  App = import_relative '../shop'
+  App = import 'shop'
 end
 
 Minitest.after_run do

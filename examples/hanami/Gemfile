@@ -15,3 +15,10 @@ gem 'rackup', '~> 2.3'
 gem 'sqlite3', '~> 2.10'
 
 gem 'minitest', '~> 5.16'
+
+# Cartons. `require: false` keeps them out of the Main Box; each is imported
+# into its own Box instead.
+gem 'billing', path: 'components/billing', require: false
+gem 'customers', path: 'components/customers', require: false
+gem 'framework', path: 'components/framework', require: false
+gem 'shop', path: 'components/shop', require: false

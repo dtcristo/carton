@@ -16,7 +16,7 @@ module Billing
       @id = id
       @customer_id = customer_id
       @subtotal_cents = subtotal_cents
-      @tax_cents = tax_cents || TaxPolicy.tax_cents(subtotal_cents)
+      @tax_cents = tax_cents || TaxPolicy.call(subtotal_cents)
       unless @tax_cents.is_a?(Integer) && @tax_cents >= 0
         raise InvalidInvoice.new(tax_cents: ['must be a non-negative integer'])
       end

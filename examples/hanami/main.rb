@@ -13,7 +13,7 @@ def demonstrate(directory)
   ENV['DATABASE_URL'] = "sqlite://#{directory}/shop.sqlite3"
   ENV['HANAMI_ENV'] = 'test'
 
-  script = File.expand_path('bin/hanami', __dir__)
+  script = File.expand_path('components/shop/bin/hanami', __dir__)
   unless system(
            { 'HANAMI_EAGER_LOAD' => 'false' },
            RbConfig.ruby,
@@ -25,7 +25,7 @@ def demonstrate(directory)
     abort 'migration failed'
   end
 
-  app = import_relative 'shop'
+  app = import 'shop'
   http = Rack::MockRequest.new(app)
 
   customer = http.post('/customers', params: { customer: { name: 'Ada' } })

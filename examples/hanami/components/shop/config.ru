@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../../lib/carton'
+require_relative 'config/boot'
 
 module ShopBoot
-  App = import_relative 'shop'
+  App = import 'shop'
 end
 
 run ShopBoot::App

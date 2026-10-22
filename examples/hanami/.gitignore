@@ -1,3 +1,3 @@
-/db/*.sqlite3*
-/log/
-/config/db/structure.sql
+/components/shop/db/*.sqlite3*
+/components/shop/log/
+/components/shop/config/db/structure.sql

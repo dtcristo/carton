@@ -6,9 +6,9 @@ require_relative '../config/boot'
 # Runner evaluates user code in Main. These are references to the shared
 # modules, not another require of Rails or the Engine implementations.
 module ShopCLI
-  Framework = import_relative '../../framework/lib/framework'
-  Customers = import_relative '../../customers/lib/customers'
-  Billing = import_relative '../../billing/lib/billing'
+  Framework = import 'framework'
+  Customers = import 'customers'
+  Billing = import 'billing'
 end
 Rails = ShopCLI::Framework::Rails
 Customers = ShopCLI::Customers

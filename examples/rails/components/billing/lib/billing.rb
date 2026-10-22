@@ -9,11 +9,6 @@ module Billing
   Customers = import 'customers'
   private_constant :Customers
 
-  module TaxPolicy
-    def self.tax_cents(subtotal_cents) = (subtotal_cents + 5) / 10
-  end
-  private_constant :TaxPolicy
-
   # This Box's Zeitwerk owns the Engine's Ruby code, including lazy autoloads.
   LOADER = Zeitwerk::Loader.new
   %w[models controllers repositories].each do |directory|
@@ -23,7 +18,7 @@ module Billing
   LOADER.push_dir(File.expand_path('billing', __dir__), namespace: Billing)
   LOADER.ignore(File.expand_path('billing/engine.rb', __dir__))
   LOADER.setup
-  private_constant :LOADER
+  private_constant :LOADER, :TaxPolicy
 end
 
 require_relative 'billing/engine'

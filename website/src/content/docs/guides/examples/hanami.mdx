@@ -7,13 +7,13 @@ sidebar:
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-Customers and Billing are Hanami slices, each imported as a Carton. Customers registers customers; Billing imports Customers, validates invoices, calculates tax, and persists them. The Framework Carton loads Hanami, Dry, and Rom once, and the Shop Carton exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami).
+Customers and Billing are two Hanami slices, and each is imported as its own Carton. Customers registers customers. Billing imports Customers, validates invoices, calculates tax, and stores them. The framework Carton loads Hanami, Dry, and Rom once. The shop Carton exports its Rack app to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami).
 
-This is the same workflow as the [Rails example](/guides/examples/rails/). It uses public Hanami, Dry, Rom, and Carton interfaces and adds no runtime patches.
+This is the same workflow as the [Rails example](/guides/examples/rails/). The example uses only public Hanami, Dry, Rom, and Carton APIs, and it patches nothing.
 
 ## Business workflow
 
-1. `POST /customers` with `customer: { name: "  Ada  " }` registers a customer and returns its ID and trimmed name.
+1. `POST /customers` with `customer: { name: "Ada" }` registers a customer and returns its ID and trimmed name.
 2. `POST /invoices.json` with `invoice: { customer_id: 1, subtotal_cents: 4200 }` issues an invoice for that customer. Billing imports Customers and uses its Directory to resolve the customer before persisting the invoice.
 3. `GET /invoices/1.json` returns `id`, `customer_id`, `subtotal_cents`, `tax_cents`, and `total_cents`; `GET /invoices/1` renders HTML with the escaped customer name and total.
 
@@ -22,38 +22,53 @@ Both POSTs return 201. Tax is ten percent, rounded half up in integer cents: 420
 ## Layout
 
 ```text
-Gemfile, Gemfile.lock              # one locked bundle, activated in each Carton
-main.rb                            # repeatable Rack demo, temporary SQLite
-shop.rb                            # Shop Entrypoint; exports Shop::App
-config.ru                          # Rack bootstrap imports Shop
-bin/hanami                         # CLI bootstrap imports Shop, then enters Framework
-config/
-  app.rb                           # Hanami app configuration and JSON body parser
-  routes.rb                        # slice routes
-  slices/{customers,billing}.rb    # import and bind the existing slice namespaces
-  providers/db.rb                  # DATABASE_URL and derived test database
-  db/migrate/                      # shared schema, run by the Hanami CLI
-lib/
-  framework.rb                     # Framework Entrypoint; owns Hanami, Dry, and Rom
-  framework/{prepare,cli}.rb       # anchored framework lifecycle and CLI
-slices/
-  customers.rb                     # Customers Entrypoint and local Zeitwerk loader
-  customers/                       # actions, operations, contracts, repos, relations
-  billing.rb                       # Billing Entrypoint and local Zeitwerk loader
-  billing/                         # actions, operations, views, repos, relations, templates
+Gemfile, Gemfile.lock                        # one locked bundle; path gems for each Carton
+main.rb                                      # repeatable Rack demo, temporary SQLite
+test/                                        # command, HTTP, and isolation tests
+components/
+  framework/
+    lib/framework.rb                         # Framework Entrypoint; owns Hanami, Dry, and Rom
+    lib/framework/{prepare,cli}.rb           # anchored framework lifecycle and CLI
+  customers/
+    lib/customers.rb                         # Entrypoint, imports Framework, local Zeitwerk loader
+    lib/customers/config/slice.rb            # Hanami slice rooted in this Carton
+    lib/customers/{actions,operations,contracts,repos,relations}/
+  billing/
+    lib/billing.rb                           # Entrypoint, imports Framework and Customers
+    lib/billing/config/{slice,providers/customer_directory}.rb
+    lib/billing/{actions,operations,contracts,repos,relations,views,templates}/
+  shop/
+    lib/shop.rb                              # imports and registers domains, exports Shop::App
+    config.ru                                # Rack bootstrap imports Shop
+    bin/hanami                               # CLI bootstrap imports Shop, then enters Framework
+    config/
+      boot.rb                                # sets up Bundler for the shop's Imports
+      app.rb                                 # Hanami app configuration and JSON body parser
+      routes.rb                              # slice routes
+      slices/{customers,billing}.rb          # import and bind the existing slice namespaces
+      providers/db.rb                        # DATABASE_URL and derived test database
+      db/migrate/                            # shared schema, run by the Hanami CLI
 ```
 
-Repository calls exchange IDs and plain Hashes. Customers' Directory returns a plain customer Hash, so Billing never touches Customers' repos or relations.
+Repositories pass IDs and plain Hashes between Cartons. Customers' Directory returns a plain customer Hash, so Billing never touches Customers' repos or relations.
 
-## Loader and Hanami ownership
+## How it fits together
 
-Shop imports Framework and defines `Shop::App` in `config/app.rb`. Hanami discovers `config/slices/billing.rb` and `config/slices/customers.rb`, which import the Carton Entrypoints instead of requiring second copies. Each slice's Entrypoint sets up its own Zeitwerk loader and tells Hanami's loader to ignore that source tree. Hanami still discovers the slice's components and supplies its `Deps` mixin, and resolving a component triggers the Carton-owned autoload. Actions, operations, contracts, and repos therefore run in their domain's Carton Box, in both lazy and eager modes. Slice configuration, providers, and migrations run in Framework. Setting `HANAMI_EAGER_LOAD=true` boots all providers and components up front, after migrating.
+The shop's Entrypoint imports Framework and loads `Shop::App` from `config/app.rb`. Hanami finds the slices in `config/slices/`. Each slice file imports its Carton instead of requiring a second copy.
 
-Each exported namespace is bound in the framework Box for Hanami's qualified constant lookups by its own `Framework.register` call: `Customers` and `Billing` from their slice configs, and `Shop` from `shop.rb`. It accepts a repeated binding to the same module and rejects a conflicting one. Framework's lifecycle bridge anchors deferred framework requires in its own Box, even while Shop is being imported. Without that anchor, a deferred require during a nested Import can load part of Dry into the importing Carton. Main receives no Hanami, Dry, or Rom constants.
+Each Carton loads its own code with its own Zeitwerk loader and tells Hanami's loader to skip that source tree. Hanami still wires the components and provides the `Deps` mixin. When a component is resolved, the Carton's autoload runs. Actions, operations, contracts, and repos therefore run in their domain's Carton, in both lazy and eager modes. Slice configuration, providers, and migrations run in Framework. Setting `HANAMI_EAGER_LOAD=true` boots all providers and components up front, after migrating.
 
-<ExampleFile path="hanami/shop.rb" />
+Each exported namespace is bound in the framework Box by its own `Framework.register` call. Customers and Billing register from their slice configs, and Shop registers from `lib/shop.rb`. Registering the same module again is allowed. Registering a different module under the same name is rejected.
 
-<ExampleFile path="hanami/slices/billing.rb" />
+Framework also keeps its deferred requires in its own Box. Without that, a require made during a nested Import could load part of Dry into the importing Carton. Main receives no Hanami, Dry, or Rom constants.
+
+<ExampleFile path="hanami/components/framework/lib/framework.rb" />
+
+<ExampleFile path="hanami/components/customers/lib/customers.rb" />
+
+<ExampleFile path="hanami/components/billing/lib/billing.rb" />
+
+<ExampleFile path="hanami/components/shop/lib/shop.rb" />
 
 ## Run
 
@@ -63,18 +78,18 @@ From the repository root:
 bundle exec rake example:hanami
 ```
 
-The task installs the bundle, runs the temporary-database demo, and runs command and HTTP tests in fresh processes. Integrations run with lazy and eager loading. For a persistent local app, after installing the bundle:
+The task installs the bundle, runs the temporary-database demo, and runs the command and HTTP tests in fresh processes. It runs them with both lazy and eager loading. For a persistent local app, install the bundle, then run:
 
 ```sh
-cd examples/hanami
+cd examples/hanami/components/shop
 RUBY_BOX=1 bin/hanami db migrate
 RUBY_BOX=1 bin/hanami routes
 RUBY_BOX=1 bin/hanami run 'puts Hanami.app.slices.keys.inspect'
 RUBY_BOX=1 bin/hanami server --host=127.0.0.1 --port=2300
 ```
 
-Development and test use separate SQLite databases under `db/`; `DATABASE_URL` selects another, and the test database name is derived from it. Generated databases and logs are ignored. Migrations create the tables, and importing Shop creates none.
+Development and test use separate SQLite databases under `components/shop/db/`. Set `DATABASE_URL` to choose another, and the test database name is derived from it. Generated databases and logs are git-ignored. Migrations create the tables; importing Shop creates none.
 
 ## CLI and limits
 
-Use this app's `bin/hanami`, which imports Shop before invoking the standard CLI in Framework. Verified commands are `db migrate`, `routes`, `run`, and `server`. Stock `bundle exec hanami`, generators, console, asset builds, mailers, and background jobs are not covered. Restart after source edits; no Carton reloading hooks are installed. Shared framework classes and registries remain mutable shared objects, as in the Rails example.
+Use the shop's `bin/hanami`. It imports Shop before invoking the standard CLI in Framework. Verified commands are `db migrate`, `routes`, `run`, and `server`. Stock `bundle exec hanami`, generators, the console, asset builds, mailers, and background jobs are not covered. Restart after source edits, since no Carton reloading hooks are installed. Shared framework classes and registries are still mutable objects, as in the Rails example.

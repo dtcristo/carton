@@ -9,10 +9,7 @@ module Billing
       subtotal =
         value.is_a?(String) ? Integer(value, 10, exception: false) : value
       issue =
-        IssueInvoice.new(
-          invoices: InvoiceRepository.new,
-          customers: Customers::CustomerRepository.new,
-        )
+        IssueInvoice.new(invoices: InvoiceRepository.new, customers: directory)
       invoice =
         issue.call(
           customer_id: attributes[:customer_id],
@@ -25,14 +22,18 @@ module Billing
 
     def show
       @invoice = Invoice.new(**InvoiceRepository.new.fetch(params[:id]))
-      @customer =
-        Customers::Directory.new(
-          customers: Customers::CustomerRepository.new,
-        ).fetch(@invoice.customer_id)
+      @customer = directory.fetch(@invoice.customer_id)
       respond_to do |format|
         format.html
         format.json { render json: @invoice.to_h }
       end
+    end
+
+    private
+
+    # Billing reaches Customers only through its public Directory.
+    def directory
+      Customers::Directory.new(customers: Customers::CustomerRepository.new)
     end
   end
 end

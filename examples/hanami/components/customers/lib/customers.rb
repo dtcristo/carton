@@ -7,7 +7,7 @@ Carton.setup_bundle
 require 'json'
 
 module Customers
-  Framework = import_relative '../lib/framework'
+  Framework = import 'framework'
   Hanami = Framework::Hanami
   Dry = Framework::Dry
 
