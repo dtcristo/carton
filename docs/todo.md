@@ -29,10 +29,9 @@ Ordered by priority within each section.
 
 ## Upstream
 
-- Report the [Ruby 4.0.7 visibility leak](../spikes/shared_gems/09_visibility_leak.rb) separately from template Boxes: changing an existing builtin method's visibility in an Optional Box mutates the shared method entry, reaching Main and Master. See the [source diagnosis](../spikes/shared_gems/results.md#ruby-source-and-the-missing-vm-support).
-
 See [upstream.md](internals/upstream.md) for detail.
 
+- Report the [Ruby 4.0.7 visibility leak](../spikes/shared_gems/09_visibility_leak.rb) separately from template Boxes: changing an existing builtin method's visibility in an Optional Box mutates the shared method entry, reaching Main and Master. See the [source diagnosis](../spikes/shared_gems/results.md#ruby-source-and-the-missing-vm-support).
 - Measure and report `Ruby::Box.new` cost (about 55 ms and 2.2 MB per Box on 4.0.7, see [performance.md](performance.md)), the floor for every import.
 - Comment on [Ruby #22275](https://bugs.ruby-lang.org/issues/22275) with Carton's use case, supporting Boxes created from a resolved load path (proposed there on 2026-09-25), and reframe [dtcristo/carton#16](https://github.com/dtcristo/carton/issues/16) around it.
 - Post the template Box proposal ([dtcristo/carton#25](https://github.com/dtcristo/carton/issues/25)) to bugs.ruby-lang.org: official template Box support, framed as requirements derived from how Box copy-on-write works, leaving Master clean.
@@ -41,4 +40,4 @@ See [upstream.md](internals/upstream.md) for detail.
 
 ## Docs
 
-- Extend the website's Rails guide: passing records into Cartons and testing Cartons in a Rails app. For reloading, the Rails examples document restarting on change; Zeitwerk reloading inside a Carton works only for `push_dir(..., namespace:)` loaders and never updates classes or objects importers (or Rails, via `register`) already hold. See [examples/zeitwerk](https://carton.dtcristo.com/guides/examples/zeitwerk/#reloading).
+- Extend the [Rails example](https://carton.dtcristo.com/guides/examples/rails/) page: passing records into Cartons and testing Cartons in a Rails app. For reloading, the Rails examples document restarting on change; Zeitwerk reloading inside a Carton works only for `push_dir(..., namespace:)` loaders and never updates classes or objects importers (or Rails, via `register`) already hold. See [examples/zeitwerk](https://carton.dtcristo.com/guides/examples/zeitwerk/#reloading).
