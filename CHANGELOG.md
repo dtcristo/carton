@@ -12,6 +12,7 @@
 
 ### Changed
 
+- The Hanami example's Framework, Customers, Billing, and Shop are gem-shaped components under `components/`, matching the Rails example, and import each other with `import 'name'` instead of `import_relative`. Both example guides show the framework and customers Entrypoints above billing and shop (#103).
 - Renamed the Rails and Hanami example directories to `examples/rails` and `examples/hanami`, with matching Rake tasks and updated fixture paths. Their existing docs URLs still work (#100).
 
 - Aligned the homepage, share previews, README, docs, and gem descriptions around explicit imports and exports, separate dependencies, and runtime boundaries. The homepage introduction is centred and its page title no longer repeats the project name (#98).
