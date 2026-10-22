@@ -10,8 +10,10 @@ import Default from '@astrojs/starlight/components/SocialIcons.astro';
 
 <style>
   /* Same header hover as the wordmark and GitHub icon: ink, then ruby. */
+  /* Stock social-link box: the negative margin cancels the padding, so the flex gap alone sets the spacing. */
   .nav-link {
-    padding: 0.35rem 0.75rem;
+    padding: 0.5em;
+    margin: -0.5em;
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;

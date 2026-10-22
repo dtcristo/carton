@@ -1,25 +1,45 @@
 ---
 // Replaces Starlight's theme dropdown with one icon button that cycles through
-// system, light, and dark. The header and the mobile menu render it on every
+// auto, light, and dark. The header and the mobile menu render it on every
 // page. It stores the choice under Starlight's key, so the head script still
 // applies it before paint.
 import { Icon } from '@astrojs/starlight/components';
 ---
 
 <carton-theme-select>
-  <button type="button" class="theme-toggle" data-choice="auto">
+  <button
+    type="button"
+    class="theme-toggle"
+    data-choice="auto"
+    data-label="Auto"
+    aria-label="Theme: Auto. Click to change."
+  >
     <span class="icon icon-auto"><Icon name="laptop" size="1.15rem" /></span>
     <span class="icon icon-light"><Icon name="sun" size="1.15rem" /></span>
     <span class="icon icon-dark"><Icon name="moon" size="1.15rem" /></span>
   </button>
+  <script is:inline>
+    // Sets the stored choice before the module script runs, so a full page load
+    // does not flash the auto icon.
+    {
+      const stored = localStorage.getItem('starlight-theme');
+      const choice = stored === 'light' || stored === 'dark' ? stored : 'auto';
+      const button = document.currentScript.previousElementSibling;
+      button.dataset.choice = choice;
+      button.dataset.label = { auto: 'Auto', light: 'Light', dark: 'Dark' }[choice];
+    }
+  </script>
 </carton-theme-select>
 
 <style>
+  /* Starlight's mobile footer stretches this element to the height of the link row, so centre the button in it. */
   carton-theme-select {
     display: flex;
+    align-items: center;
   }
 
   .theme-toggle {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -42,6 +62,32 @@ import { Icon } from '@astrojs/starlight/components';
     border-radius: 0.4rem;
   }
 
+  .theme-toggle::after {
+    content: attr(data-label);
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    left: 50%;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--carton-line);
+    border-radius: 0.35rem;
+    background: var(--carton-card);
+    box-shadow: var(--carton-shadow);
+    color: var(--sl-color-white);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-50%);
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .theme-toggle:hover::after,
+  .theme-toggle:focus-visible::after {
+    opacity: 1;
+  }
+
   .icon {
     display: none;
     line-height: 0;
@@ -59,7 +105,7 @@ import { Icon } from '@astrojs/starlight/components';
 
   const storageKey = 'starlight-theme';
   const next: Record<Choice, Choice> = { auto: 'light', light: 'dark', dark: 'auto' };
-  const labels: Record<Choice, string> = { auto: 'System', light: 'Light', dark: 'Dark' };
+  const labels: Record<Choice, string> = { auto: 'Auto', light: 'Light', dark: 'Dark' };
   const systemIsLight = matchMedia('(prefers-color-scheme: light)');
 
   const loadChoice = (): Choice => {
@@ -67,35 +113,45 @@ import { Icon } from '@astrojs/starlight/components';
     return stored === 'light' || stored === 'dark' ? stored : 'auto';
   };
 
-  const apply = (choice: Choice) => {
-    document.documentElement.dataset.theme =
-      choice === 'auto' ? (systemIsLight.matches ? 'light' : 'dark') : choice;
-    // An empty value means "follow the system", as Starlight stores it.
-    localStorage.setItem(storageKey, choice === 'auto' ? '' : choice);
+  const applyTheme = (choice: Choice, root: HTMLElement = document.documentElement) => {
+    root.dataset.theme = choice === 'auto' ? (systemIsLight.matches ? 'light' : 'dark') : choice;
   };
+
+  // Astro copies the new page's <html> attributes on every client-side navigation,
+  // and the server renders them as dark. Set the stored theme on the incoming document first.
+  document.addEventListener('astro:before-swap', (event) => {
+    applyTheme(loadChoice(), event.newDocument.documentElement);
+  });
 
   const render = (choice: Choice) => {
     document.querySelectorAll<HTMLButtonElement>('carton-theme-select button').forEach((button) => {
       button.dataset.choice = choice;
-      button.title = `Theme: ${labels[choice]}`;
+      button.dataset.label = labels[choice];
       button.setAttribute('aria-label', `Theme: ${labels[choice]}. Click to change.`);
     });
   };
 
   systemIsLight.addEventListener('change', () => {
-    if (loadChoice() === 'auto') apply('auto');
+    if (loadChoice() === 'auto') applyTheme('auto');
   });
 
   customElements.define(
     'carton-theme-select',
     class extends HTMLElement {
-      connectedCallback() {
-        render(loadChoice());
-        this.querySelector('button')?.addEventListener('click', () => {
+      constructor() {
+        super();
+        // Listen on the element so the handler attaches once, not on every connect.
+        this.addEventListener('click', () => {
           const choice = next[loadChoice()];
-          apply(choice);
+          // An empty value means "follow the system", as Starlight stores it.
+          localStorage.setItem(storageKey, choice === 'auto' ? '' : choice);
+          applyTheme(choice);
           render(choice);
         });
+      }
+
+      connectedCallback() {
+        render(loadChoice());
       }
     },
   );
