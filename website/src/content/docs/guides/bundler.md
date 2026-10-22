@@ -12,12 +12,12 @@ Carton works with or without Bundler. Each Box has its own RubyGems state, so a 
 A Carton that needs its own gems sets up a Carton Bundle, from its own Gemfile, in its Entrypoint. Other Cartons need no setup.
 
 ```ruby
-# cartons/math_helper/lib/math_helper.rb
-Carton.setup_bundle # uses cartons/math_helper/Gemfile, only in this Box
+# cartons/crm_client/lib/crm_client.rb
+Carton.setup_bundle # uses cartons/crm_client/Gemfile, only in this Box
 
-require 'bigdecimal' # this Carton's locked version
+require 'faraday' # this Carton's locked version
 
-export version: BigDecimal::VERSION
+export version: Faraday::VERSION
 ```
 
 [`Carton.setup_bundle`](/reference/carton/#setup_bundle) works like `Bundler.setup`, and the top-level app uses the same line:
