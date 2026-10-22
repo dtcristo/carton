@@ -22,6 +22,7 @@ export default defineConfig({
     '/project/status/': '/start/status/',
     '/project/glossary/': '/reference/glossary/',
     '/start/examples/': '/guides/examples/',
+    '/guides/examples/rails-with-carton-domain/': '/guides/rails/',
   },
   integrations: [
     starlight({

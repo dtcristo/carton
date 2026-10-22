@@ -38,7 +38,6 @@ EXAMPLES = %w[
   bundler
   monorepo
   zeitwerk
-  rails_with_carton_domain
   rails_in_cartons
   hanami_in_cartons
 ].freeze

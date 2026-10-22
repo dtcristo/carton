@@ -29,6 +29,10 @@
 - `docs/internals/root-box-vs-main-box.md` is now `docs/internals/box-names.md`, which records upstream Ruby's Box names and how they were chosen (#65).
 - The examples guide explains each example's purpose and setup. The minimal app now contains only working Imports, with intentional violations in a separate file for static checks. The guides and comments follow `CONTEXT.md`, including Interior, Public Surface, Importer, Carton Bundle, and Helper. The Rails guides share restart guidance, and Bundler and Zeitwerk examples use clearer labels and names (#64).
 
+### Removed
+
+- Removed `examples/rails_with_carton_domain` and its guide, leaving one Rails example with domain-owned Engines.
+
 ### Fixed
 
 - Sample path gems declare and require Carton instead of relying on the host to preload it; the monorepo's leaf gems also work with ordinary `require` without Boxes enabled. The Rails shop gem includes its database configuration. Example docs distinguish bundle installation from activation and correct the undeclared-import demonstration and Rails class-sharing explanation (#64).

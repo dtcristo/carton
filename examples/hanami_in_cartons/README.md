@@ -1,4 +1,4 @@
-# Hanami in Cartons
+# Hanami
 
 This example is documented at https://carton.dtcristo.com/guides/examples/hanami-in-cartons/, with its code and how to run it.
 

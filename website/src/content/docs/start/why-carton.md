@@ -35,7 +35,7 @@ Static checks only see what they can parse. Packwerk's authors note that a packa
 
 ## Where it fits today
 
-- **The domains of an app or a monorepo**, as tens of Cartons. See the [monorepo](/guides/examples/monorepo/) example, and [Rails](/guides/rails/) for domain Cartons beside a Rails app in the Main Box.
-- **Plugin hosts whose plugins need conflicting gem versions**, which plain Ruby cannot load together; see [plugins](/guides/examples/plugins/).
-- **Rails inside Cartons** is an experimental integration direction ([rails_in_cartons](/guides/examples/rails-in-cartons/)). It uses namespaced Rails Engines, explicit namespace registration, Carton-owned loaders, and an example-local Rails CLI bridge. Rails reloading remains unsupported. A separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) explores private runtime hooks; the ordinary example does not use them.
+- **The domains of an app or a monorepo**, as tens of Cartons. See the [Monorepo](/guides/examples/monorepo/) example, and [Rails](/guides/rails/) for domain Cartons beside a Rails app in the Main Box.
+- **Plugin hosts whose plugins need conflicting gem versions**, which plain Ruby cannot load together; see [Plugins](/guides/examples/plugins/).
+- **Rails inside Cartons** is an experimental integration direction ([Rails](/guides/examples/rails-in-cartons/)). It uses namespaced Rails Engines, explicit namespace registration, Carton-owned loaders, and an example-local Rails CLI bridge. Rails reloading remains unsupported. A separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) explores private runtime hooks; the ordinary example does not use them.
 - **Not yet file by file.** Each Carton costs about 60 ms and 2.4 MB, most of it `Ruby::Box.new`, so aim for tens of Cartons, not hundreds.

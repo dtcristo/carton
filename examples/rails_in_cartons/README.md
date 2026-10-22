@@ -1,4 +1,4 @@
-# Rails Engines in Cartons
+# Rails
 
 This example is documented at https://carton.dtcristo.com/guides/examples/rails-in-cartons/, with its code and how to run it.
 

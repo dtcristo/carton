@@ -41,4 +41,4 @@ A Carton's Entrypoint can run its own Zeitwerk loader, such as `Zeitwerk::Loader
 - Only a loader that manages the Interior, `push_dir(..., namespace:)`, can reload. A `for_gem` loader manages the Entrypoint too, so it cannot; see [reloading](/guides/examples/zeitwerk/#reloading).
 - A loader inside a Carton may use nsfiles (Zeitwerk 2.8+, `loader.nsfile = 'ns.rb'`), so `carriers/ns.rb` defines `Carriers`. The Carton itself still needs an Entrypoint beside its directory, such as `shipping.rb` beside `shipping/`; an Entrypoint inside its directory, like `shipping/ns.rb`, is not a Carton boundary.
 
-The [zeitwerk example](/guides/examples/zeitwerk/) shows each case.
+The [Zeitwerk example](/guides/examples/zeitwerk/) shows each case.

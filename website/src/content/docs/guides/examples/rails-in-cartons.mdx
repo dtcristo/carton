@@ -1,17 +1,19 @@
 ---
-title: rails_in_cartons
-description: "Experimental: the same Customers and Billing workflow as namespaced Rails Engines inside Cartons, with Carton-owned loaders and a CLI bridge."
+title: Rails
+description: "Experimental: Customers and Billing as namespaced Rails Engines inside Cartons, with Carton-owned loaders and a CLI bridge."
 sidebar:
   order: 10
 ---
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. They implement the same customer-registration and invoice-issuance workflow as [Rails with Carton domains](/guides/examples/rails-with-carton-domain/). Here, the domains also own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons).
+Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. Customers registers customers; Billing imports Customers, validates invoices, calculates tax, and persists them. The domains own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons).
 
-This integration uses public Rails, Zeitwerk, and Carton interfaces. It adds no runtime patches. The conventional-host example remains the simpler way to adopt Carton in an existing Rails application. See the canonical [Rails guide](/guides/rails/) for a direct comparison.
+This integration uses public Rails, Zeitwerk, and Carton interfaces. It adds no runtime patches. See the [Rails guide](/guides/rails/) for Box ownership, setup, and integration limits.
 
-## The same business workflow
+<span id="the-same-business-workflow" />
+
+## Business workflow
 
 1. `POST /customers` with `customer: { name: "Ada" }` registers a customer and returns its ID and trimmed name.
 2. `POST /invoices.json` with `invoice: { customer_id: 1, subtotal_cents: 4200 }` issues an invoice for that customer. Billing imports Customers and uses its Directory to resolve the customer before persisting the invoice.
@@ -53,7 +55,7 @@ components/
     test/integration/engines_test.rb
 ```
 
-The domain values and workflows match the conventional-host example. Repository calls exchange IDs and plain Hashes. Engine storage records use qualified names, including `Customers::CustomerRecord` and `Billing::InvoiceRecord`, and their associations resolve across Carton boundaries. Per-workflow repository instances keep request state out of the shared exported modules.
+Repository calls exchange IDs and plain Hashes. Engine storage records use qualified names, including `Customers::CustomerRecord` and `Billing::InvoiceRecord`, and their associations resolve across Carton boundaries. Per-workflow repository instances keep request state out of the shared exported modules.
 
 ## Loader and Rails ownership
 
