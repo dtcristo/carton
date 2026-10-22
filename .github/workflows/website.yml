@@ -43,6 +43,12 @@ jobs:
         uses: jdx/mise-action@v5
         with:
           install_args: node
+      # Restores npm's download cache so warm runs skip registry downloads.
+      - uses: actions/cache@v6
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('website/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
       - run: npm ci
       - run: npm test
       - name: Build, checking every internal link
@@ -71,6 +77,11 @@ jobs:
         uses: jdx/mise-action@v5
         with:
           install_args: node
+      - uses: actions/cache@v6
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('website/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
       - run: npm ci
       - uses: actions/download-artifact@v8
         with:
