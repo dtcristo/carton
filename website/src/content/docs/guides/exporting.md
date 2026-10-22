@@ -74,4 +74,4 @@ Only the imported Entrypoint's `export` counts. In any other file, including one
 
 An `export` in a required file does not satisfy the Entrypoint's requirement.
 
-A gem can add `export MyGem` and keep working for apps that just `require 'my_gem'`, as long as `require 'carton'` comes first so the method exists.
+A gem can add `export MyGem` and keep working under plain `require 'my_gem'`: declare `carton` as a runtime dependency and `require 'carton'` at the top of its Entrypoint.

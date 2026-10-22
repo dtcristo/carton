@@ -5,9 +5,9 @@ sidebar:
   order: 5
 ---
 
-Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. Classes a Carton defines are different. An exported class is one object with one definition, shared by every Importer, as in ordinary Ruby. Reopening it from another Carton, including `class Customer` in a Box where `Customer` names the imported class, changes it for every Carton.
+Boxes isolate monkey patches to builtin classes: patching `String` in one Carton does not change `String` anywhere else. The exception is a [Ruby 4.0.7 bug](/start/status/#before-production): changing only a builtin method's visibility leaks to every Box. Classes a Carton defines are different. An exported class is one object with one definition, shared by every Importer, as in ordinary Ruby. Reopening it from another Carton, including `class Customer` in a Box where `Customer` names the imported class, changes it for every Carton.
 
-Box is not a security boundary, so this cannot be prevented outright. These habits avoid it by accident.
+Box is not a security boundary, so this cannot be prevented outright. These habits prevent accidental reopening.
 
 `carton check` warns about class/module definitions that open a directly imported value or a constant beneath it, such as `class Billing::Invoice`. This is a static warning, not a runtime guard: aliases and dynamic mutation through `class_eval` or `define_method` are not followed. Subclassing does not warn.
 
@@ -26,7 +26,18 @@ Changes to a subclass never reach its parent.
 
 ## Refine to extend another Carton's class
 
-A refinement applies only to files that activate it with `using`, so the owning Carton never sees it.
+A refinement applies only to files that activate it with `using`, so the owning Carton never sees it:
+
+```ruby
+# shop.rb
+module Discounts
+  refine Billing::Invoice do
+    def discounted(rate) = total * (1 - rate)
+  end
+end
+
+using Discounts # only this file sees Invoice#discounted
+```
 
 ## Freeze plain-Ruby exports
 
