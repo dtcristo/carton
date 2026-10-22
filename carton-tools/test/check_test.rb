@@ -17,7 +17,7 @@ class CheckTest < Minitest::Test
       )
 
     assert_equal 0, status
-    assert_equal "3 files, 1 Cartons, 0 errors, 0 warnings\n", output
+    assert_equal "3 files, 1 Carton, 0 errors, 0 warnings\n", output
   end
 
   def test_missing_relative_import_is_an_error
@@ -25,7 +25,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      %r{^main\.rb:1: error: cannot load such file -- nope \(tried nope\.rb and nope/lib/nope\.rb in \.\)$},
+      %r{^main\.rb:1:1: error: cannot load such file -- nope \(tried nope\.rb and nope/lib/nope\.rb in \.\) \[import-error\]$},
       output,
     )
   end
@@ -35,7 +35,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 0, status
     assert_match(
-      /^main\.rb:1: warning: cannot find some_gem on the load path/,
+      /^main\.rb:1:1: warning: cannot find some_gem on the load path/,
       output,
     )
   end
@@ -49,7 +49,7 @@ class CheckTest < Minitest::Test
       )
 
     assert_equal 0, status
-    assert_match(/1 Cartons, 0 errors, 0 warnings/, output)
+    assert_match(/1 Carton, 0 errors, 0 warnings/, output)
   end
 
   # The directory scan reads x/lib/x/helper.rb before z.rb imports the
@@ -99,7 +99,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 0, status
     assert_match(
-      /^main\.rb:1: warning: import_relative path is not a literal/,
+      /^main\.rb:1:1: warning: import_relative path is not a literal/,
       output,
     )
   end
@@ -114,7 +114,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      %r{^main\.rb:1: error: billing/tax\.rb is inside the Carton billing\.rb},
+      %r{^main\.rb:1:1: error: billing/tax\.rb is inside the Carton billing\.rb},
       output,
     )
   end
@@ -129,7 +129,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^a\.rb:1: error: import cycle: a\.rb -> b\.rb -> a\.rb$/,
+      /^a\.rb:1:1: error: import cycle: a\.rb -> b\.rb -> a\.rb \[import-cycle\]$/,
       output,
     )
     assert_equal 1, output.scan('import cycle').size
@@ -163,11 +163,11 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^a\.rb:1: error: import cycle: a\.rb -> b\.rb -> c\.rb -> a\.rb$/,
+      /^a\.rb:1:1: error: import cycle: a\.rb -> b\.rb -> c\.rb -> a\.rb \[import-cycle\]$/,
       output,
     )
     assert_match(
-      /^x\.rb:1: error: import cycle: x\.rb -> y\.rb -> x\.rb$/,
+      /^x\.rb:1:1: error: import cycle: x\.rb -> y\.rb -> x\.rb \[import-cycle\]$/,
       output,
     )
     assert_equal 2, output.scan('import cycle').size
@@ -185,7 +185,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^a\.rb:1: error: import cycle: a\.rb -> b\.rb -> c\.rb -> a\.rb$/,
+      /^a\.rb:1:1: error: import cycle: a\.rb -> b\.rb -> c\.rb -> a\.rb \[import-cycle\]$/,
       output,
     )
     assert_equal 1, output.scan('import cycle').size
@@ -248,8 +248,8 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_includes output,
-                    "billing.rb:1: error: require_relative 'math' loads a " \
-                      "second copy of the math.rb Carton's Entrypoint: import it instead\n"
+                    "billing.rb:1:1: error: require_relative 'math' loads a " \
+                      "second copy of the math.rb Carton's Entrypoint: import it instead [second-copy]\n"
     # billing is never imported, so requiring it is ordinary Ruby.
     refute_match(/^main\.rb/, output)
   end
@@ -265,7 +265,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^main\.rb:2: error: .* billing\.rb Carton's file: import it instead$/,
+      /^main\.rb:2:1: error: .* billing\.rb Carton's file: import it instead \[second-copy\]$/,
       output,
     )
     refute_match(/^billing\.rb/, output)
@@ -281,11 +281,11 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^twice\.rb:2: error: export may be called only once per Entrypoint$/,
+      /^twice\.rb:2:1: error: export may be called only once per Entrypoint \[export-twice\]$/,
       output,
     )
     assert_match(
-      /^named\.rb:1: error: export takes the value to export, not a name: /,
+      /^named\.rb:1:1: error: export takes the value to export, not a name: /,
       output,
     )
   end
@@ -299,10 +299,10 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^billing\.rb:1: error: an imported Entrypoint must call export$/,
+      /^billing\.rb:1:1: error: an imported Entrypoint must call export \[missing-export\]$/,
       output,
     )
-    assert_match(/1 errors, 0 warnings/, output)
+    assert_match(/1 error, 0 warnings/, output)
   end
 
   def test_empty_imported_entrypoint_without_export_is_an_error
@@ -311,7 +311,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^empty\.rb:1: error: an imported Entrypoint must call export$/,
+      /^empty\.rb:1:1: error: an imported Entrypoint must call export \[missing-export\]$/,
       output,
     )
   end
@@ -417,11 +417,11 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^none\.rb:1: error: export takes exactly one value, not 0$/,
+      /^none\.rb:1:1: error: export takes exactly one value, not 0 \[export-arity\]$/,
       output,
     )
     assert_match(
-      /^two\.rb:3: error: export takes exactly one value, not 2$/,
+      /^two\.rb:3:1: error: export takes exactly one value, not 2 \[export-arity\]$/,
       output,
     )
     refute_match(/^splat\.rb/, output)
@@ -436,9 +436,12 @@ class CheckTest < Minitest::Test
       )
 
     assert_equal 1, status
-    assert_match(/^twice\.rb:2: error: export may be called only once/, output)
     assert_match(
-      /^symbol\.rb:1: error: export takes the value to export/,
+      /^twice\.rb:2:1: error: export may be called only once/,
+      output,
+    )
+    assert_match(
+      /^symbol\.rb:1:1: error: export takes the value to export/,
       output,
     )
   end
@@ -457,7 +460,7 @@ class CheckTest < Minitest::Test
 
     assert_equal %w[3 5],
                  output.scan(
-                   /^both\.rb:(\d+): error: export may be called only once/,
+                   /^both\.rb:(\d+):\d+: error: export may be called only once/,
                  ).flatten
   end
 
@@ -471,7 +474,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 0, status
     assert_match(
-      %r{^billing/tax\.rb:1: warning: export outside an Entrypoint does nothing},
+      %r{^billing/tax\.rb:1:1: warning: export outside an Entrypoint does nothing},
       output,
     )
   end
@@ -486,17 +489,17 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^billing\.rb:1: error: an imported Entrypoint must call export$/,
+      /^billing\.rb:1:1: error: an imported Entrypoint must call export \[missing-export\]$/,
       output,
     )
-    assert_match(/1 errors, 1 warnings/, output)
+    assert_match(/1 error, 1 warning/, output)
   end
 
   def test_parse_error_is_an_error
     status, output = check('main.rb' => "def broken(\n")
 
     assert_equal 1, status
-    assert_match(/^main\.rb:1: error: /, output)
+    assert_match(/^main\.rb:1:1: error: /, output)
   end
 
   # Keep the working app clean and teach diagnostics in a separate file.
@@ -511,7 +514,7 @@ class CheckTest < Minitest::Test
                       'the Carton tooling/pricing.rb: import that file, or require ' \
                       'it from inside that Carton'
     assert_match(
-      / files, 1 Cartons, 2 errors, 0 warnings\z/,
+      / files, 1 Carton, 2 errors, 0 warnings\z/,
       output.lines.last.chomp,
     )
   end

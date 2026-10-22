@@ -190,7 +190,16 @@ class SourceFileTest < Minitest::Test
     file = parse("def broken(\n")
 
     refute_empty file.errors
-    assert_equal 1, file.errors.first.first
+    assert_equal 1, file.errors.first.first.line
+    assert_equal 12, file.errors.first.first.column
+  end
+
+  # Columns count characters from 1, not bytes.
+  def test_records_character_columns
+    file = parse("é = 1; import 'x'\nexport(é)\n")
+
+    assert_equal [1, 8], [file.imports.first.line, file.imports.first.column]
+    assert_equal [2, 1], [file.exports.first.line, file.exports.first.column]
   end
 
   private

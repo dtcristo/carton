@@ -145,26 +145,44 @@ module Carton
         failures.zero? ? 0 : 1
       end
 
+      # `file:line:column: level: message [rule]`, like a compiler, then
+      # the counts.
       def print_text(project, problems, summary)
         problems.each do |problem|
-          @out.puts "#{project.relative(problem.file)}:#{problem.line}: " \
-                      "#{problem.level}: #{project.relative(problem.message)}"
+          @out.puts "#{project.relative(problem.file)}:#{problem.line}:" \
+                      "#{problem.column}: #{problem.level}: " \
+                      "#{project.relative(problem.message)} [#{problem.rule}]"
         end
-        @out.puts "#{summary[:files]} files, #{summary[:cartons]} Cartons, " \
-                    "#{summary[:errors]} errors, #{summary[:warnings]} warnings"
+        @out.puts summary
+                    .map { |key, count| count(count, NOUNS.fetch(key)) }
+                    .join(', ')
       end
 
+      NOUNS = {
+        files: 'file',
+        cartons: 'Carton',
+        errors: 'error',
+        warnings: 'warning',
+      }.freeze
+      private_constant :NOUNS
+
+      def count(number, noun) = "#{number} #{noun}#{'s' unless number == 1}"
+
+      # The JSON report's `version` changes only when a field is removed or
+      # changes meaning.
       def print_json(project, problems, summary)
         list =
           problems.map do |problem|
             {
               level: problem.level,
+              rule: problem.rule,
               file: project.relative(problem.file),
               line: problem.line,
+              column: problem.column,
               message: project.relative(problem.message),
             }
           end
-        @out.puts JSON.pretty_generate(problems: list, **summary)
+        @out.puts JSON.pretty_generate(version: 1, problems: list, **summary)
       end
 
       # Parse options shared by every command, then scan PATHs. Named imports

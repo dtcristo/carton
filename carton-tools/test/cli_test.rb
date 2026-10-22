@@ -118,6 +118,7 @@ class CliTest < Minitest::Test
       assert_equal 0, status
       assert_empty err
       expected = {
+        'version' => 1,
         'problems' => [],
         'files' => 1,
         'cartons' => 0,
@@ -130,18 +131,23 @@ class CliTest < Minitest::Test
 
   def test_check_json_reports_problems_counts_and_relative_paths
     expected = {
+      'version' => 1,
       'problems' => [
         {
           'level' => 'warning',
+          'rule' => 'unused-import',
           'file' => 'main.rb',
           'line' => 1,
+          'column' => 10,
           'message' =>
             'Unused is bound to an import of the other.rb Carton but never used',
         },
         {
           'level' => 'error',
+          'rule' => 'export-twice',
           'file' => 'other.rb',
           'line' => 2,
+          'column' => 1,
           'message' => 'export may be called only once per Entrypoint',
         },
       ],

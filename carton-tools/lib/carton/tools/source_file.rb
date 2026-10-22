@@ -6,7 +6,8 @@ module Carton
   module Tools
     # What one Ruby file imports, requires, exports, and defines at top level,
     # read with Prism without running it. `carton rbs` and `carton check` build
-    # on these facts.
+    # on these facts. Each `line` counts from 1, and each `column` counts
+    # characters from 1.
     class SourceFile
       # An `import`, `import_relative`, `require`, or `require_relative` call.
       # `path` is nil when the argument is not a string literal. `lazy` is true
@@ -20,6 +21,7 @@ module Carton
           :path,
           :file,
           :line,
+          :column,
           :lazy,
           :constant,
           :local,
@@ -36,11 +38,20 @@ module Carton
       # uses cannot be followed. `member` is the name used, or nil for :value.
       # `rescued` lists the exception classes an enclosing `rescue` catches.
       Reference =
-        Data.define(:name, :local, :scope, :kind, :member, :line, :rescued)
+        Data.define(
+          :name,
+          :local,
+          :scope,
+          :kind,
+          :member,
+          :line,
+          :column,
+          :rescued,
+        )
 
       # A class or module definition, with its name as written and the
       # enclosing namespace, before entering its body.
-      Definition = Data.define(:name, :scope, :kind, :line)
+      Definition = Data.define(:name, :scope, :kind, :line, :column)
 
       # A hash pattern matched directly against an import: its Reference
       # `kind` (:fetch for `=>`, :lookup for `in`) and the keys it reads, with
@@ -56,7 +67,15 @@ module Carton
       # calls in different branches of the same conditional are known never
       # to both run.
       Export =
-        Data.define(:value, :keys, :symbol, :arity, :line, :branches) do
+        Data.define(
+          :value,
+          :keys,
+          :symbol,
+          :arity,
+          :line,
+          :column,
+          :branches,
+        ) do
           def exclusive?(other)
             branches.any? do |id, branch|
               other.branches.any? do |other_id, other_branch|
@@ -65,6 +84,8 @@ module Carton
             end
           end
         end
+
+      Position = Data.define(:line, :column)
 
       IMPORTS = %i[import import_relative].freeze
       REQUIRES = %i[require require_relative].freeze
@@ -105,7 +126,7 @@ module Carton
         @local_writes = Hash.new(0)
         @errors =
           result.errors.map do |error|
-            [error.location.start_line, error.message]
+            [SourceFile.position(error.location), error.message]
           end
         @annotations =
           result.comments.to_h do |comment|
@@ -120,6 +141,14 @@ module Carton
         [line, line - 1].any? do |l|
           @annotations[l]&.include?('carton:dynamic')
         end
+      end
+
+      # A Prism location's start as a line and a 1-based character column.
+      def self.position(location)
+        Position.new(
+          line: location.start_line,
+          column: location.start_character_column + 1,
+        )
       end
 
       # The RBS type of a literal value node, or `untyped`.
@@ -365,6 +394,7 @@ module Carton
                 (args.first.unescaped if args.first.is_a?(Prism::StringNode)),
               file: @file.path,
               line: node.location.start_line,
+              column: column(node),
               lazy: @defs.positive? || @blocks.positive?,
               constant: @constant,
               local: @local,
@@ -384,6 +414,7 @@ module Carton
             arity:
               (args.size unless args.any? { |a| a.is_a?(Prism::SplatNode) }),
             line: node.location.start_line,
+            column: column(node),
             branches: @branches.dup,
           )
         end
@@ -518,6 +549,7 @@ module Carton
             kind:,
             member:,
             line: node.location.start_line,
+            column: column(node),
             rescued: @rescued.flatten.uniq,
           )
         end
@@ -560,6 +592,7 @@ module Carton
             scope: @namespace.last,
             kind:,
             line: node.location.start_line,
+            column: column(node),
           )
 
           name = qualify(name)
@@ -620,6 +653,8 @@ module Carton
         end
 
         def top_level? = @namespace.empty? && @defs.zero?
+
+        def column(node) = node.location.start_character_column + 1
       end
       private_constant :Visitor
     end
