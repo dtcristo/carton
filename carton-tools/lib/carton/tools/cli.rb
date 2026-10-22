@@ -20,7 +20,7 @@ module Carton
         'why' => 'Show the imports that lead from one file to a Carton',
       }.freeze
 
-      USAGE = <<~TEXT
+      USAGE = <<~TEXT.freeze
         Usage: carton COMMAND [options] PATH...
 
         Commands:
@@ -166,9 +166,10 @@ module Carton
         graph = ImportGraph.new(project)
         ids =
           graph.nodes.each_with_index.to_h { |node, index| [node, "n#{index}"] }
-        label = ->(node) do
-          node ? project.label(project.cartons.fetch(node)) : 'Main'
-        end
+        label =
+          lambda do |node|
+            node ? project.label(project.cartons.fetch(node)) : 'Main'
+          end
         target = ->(edge) { edge.carton.entrypoint }
         source = ->(edge) { project.owner(edge.call.file)&.entrypoint }
         if format == 'dot'

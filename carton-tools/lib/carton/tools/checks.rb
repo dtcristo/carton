@@ -187,34 +187,34 @@ module Carton
       # never do.
       def declaration_problems(file)
         file.exports.each_with_index.flat_map do |export, index|
-          problems = []
-          if export.symbol
-            problems << error(
-              'export-symbol',
-              file.path,
-              export,
-              'export takes the value to export, not a name: ' \
-                'export a module, or keywords for a Hash',
-            )
+          declaration_rules(file, export, index).map do |rule, message|
+            error(rule, file.path, export, message)
           end
-          if export.arity && export.arity != 1
-            problems << error(
-              'export-arity',
-              file.path,
-              export,
-              "export takes exactly one value, not #{export.arity}",
-            )
-          end
-          if file.exports.first(index).any? { |e| !e.exclusive?(export) }
-            problems << error(
-              'export-twice',
-              file.path,
-              export,
-              'export may be called only once per Entrypoint',
-            )
-          end
-          problems
         end
+      end
+
+      def declaration_rules(file, export, index)
+        rules = []
+        if export.symbol
+          rules << [
+            'export-symbol',
+            'export takes the value to export, not a name: ' \
+              'export a module, or keywords for a Hash',
+          ]
+        end
+        if export.arity && export.arity != 1
+          rules << [
+            'export-arity',
+            "export takes exactly one value, not #{export.arity}",
+          ]
+        end
+        if file.exports.first(index).any? { |e| !e.exclusive?(export) }
+          rules << [
+            'export-twice',
+            'export may be called only once per Entrypoint',
+          ]
+        end
+        rules
       end
 
       # Only imported Entrypoints must export. The presence of a call is
@@ -399,8 +399,9 @@ module Carton
 
       def name(carton) = @project.label(carton)
 
-      def error(rule, file, at, message) =
+      def error(rule, file, at, message)
         problem(:error, rule, file, at, message)
+      end
 
       def warning(rule, file, at, message)
         problem(:warning, rule, file, at, message)

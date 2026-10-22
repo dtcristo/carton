@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'pathname'
 require 'carton/error'
 require 'carton/resolver'
 require_relative 'source_file'

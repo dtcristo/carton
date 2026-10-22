@@ -165,11 +165,10 @@ class RbsTest < Minitest::Test
       File.write(File.join(dir, 'tools.rb'), "export x: 1\n")
       path = File.join(dir, 'sig/generated/carton.rbs')
 
-      assert_equal [
-                     1,
-                     "sig/generated/carton.rbs is missing: run carton rbs to write it\n",
-                   ],
-                   run_cli(dir, 'rbs', '--check', 'main.rb')
+      missing =
+        "sig/generated/carton.rbs is missing: run carton rbs to write it\n"
+
+      assert_equal [1, missing], run_cli(dir, 'rbs', '--check', 'main.rb')
       refute File.exist?(path)
 
       run_cli(dir, 'rbs', 'main.rb')

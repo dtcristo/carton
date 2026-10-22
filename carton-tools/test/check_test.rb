@@ -24,10 +24,9 @@ class CheckTest < Minitest::Test
     status, output = check('main.rb' => "import_relative 'nope'\n")
 
     assert_equal 1, status
-    assert_match(
-      %r{^main\.rb:1:1: error: cannot load such file -- nope \(tried nope\.rb and nope/lib/nope\.rb in \.\) \[import-error\]$},
-      output,
-    )
+    assert_includes output,
+                    'main.rb:1:1: error: cannot load such file -- nope (tried ' \
+                      "nope.rb and nope/lib/nope.rb in .) [import-error]\n"
   end
 
   def test_name_not_on_the_load_path_is_a_warning

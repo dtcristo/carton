@@ -83,54 +83,56 @@ module Carton
       # exhaust the stack. Only components that hold a cycle: more than one
       # node, or a node that imports itself.
       def components
-        index = {}
-        low = {}
-        stack = []
-        on_stack = {}
+        @index = {}
+        @low = {}
+        @stack = []
+        @on_stack = {}
         found = []
-        nodes.each do |root|
-          next if index.key?(root)
+        nodes.each { |root| connect(root, found) unless @index.key?(root) }
+        found.select do |component|
+          component.size > 1 || @adjacent[component.first].key?(component.first)
+        end
+      end
 
-          work = [[root, 0]]
-          index[root] = low[root] = index.size
-          stack << root
-          on_stack[root] = true
-          until work.empty?
-            node, position = work.last
-            targets = successors(node)
-            if position < targets.size
-              work.last[1] += 1
-              target = targets[position]
-              if !index.key?(target)
-                index[target] = low[target] = index.size
-                stack << target
-                on_stack[target] = true
-                work << [target, 0]
-              elsif on_stack[target]
-                low[node] = [low[node], index[target]].min
-              end
-            else
-              work.pop
-              low[work.last[0]] = [
-                low[work.last[0]],
-                low[node],
-              ].min if work.any?
-              next unless low[node] == index[node]
-
-              component = []
-              loop do
-                member = stack.pop
-                on_stack.delete(member)
-                component << member
-                break if member == node
-              end
-              if component.size > 1 || @adjacent[node].key?(node)
-                found << component
-              end
+      def connect(root, found)
+        enter(root)
+        work = [[root, 0]]
+        until work.empty?
+          node, position = work.last
+          targets = successors(node)
+          if position < targets.size
+            work.last[1] += 1
+            target = targets[position]
+            if !@index.key?(target)
+              enter(target)
+              work << [target, 0]
+            elsif @on_stack[target]
+              @low[node] = [@low[node], @index[target]].min
             end
+          else
+            work.pop
+            parent = work.last&.first
+            @low[parent] = [@low[parent], @low[node]].min if work.any?
+            found << leave(node) if @low[node] == @index[node]
           end
         end
-        found
+      end
+
+      def enter(node)
+        @index[node] = @low[node] = @index.size
+        @stack << node
+        @on_stack[node] = true
+      end
+
+      # Pop the component whose root is `node`.
+      def leave(node)
+        component = []
+        loop do
+          member = @stack.pop
+          @on_stack.delete(member)
+          component << member
+          return component if member == node
+        end
       end
 
       # The shortest cycle within `members`, by breadth-first search from

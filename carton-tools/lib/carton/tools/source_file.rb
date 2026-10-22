@@ -411,8 +411,7 @@ module Carton
             value: constant_name(arg),
             keys: hash_types(arg),
             symbol: arg.is_a?(Prism::SymbolNode) || arg.is_a?(Prism::DefNode),
-            arity:
-              (args.size unless args.any? { |a| a.is_a?(Prism::SplatNode) }),
+            arity: (args.size unless args.any?(Prism::SplatNode)),
             line: node.location.start_line,
             column: column(node),
             branches: @branches.dup,
