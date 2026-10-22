@@ -43,9 +43,9 @@ Static checks only see what they can parse. Packwerk's authors note that a packa
 
 ## Where it fits today
 
-- **Upgrade a gem in one domain without upgrading the app.** Each Carton can set up its own bundle; see the [Bundler](/guides/examples/bundler/) example.
+- **Upgrade a gem in one domain without upgrading the app.** Each Carton can set up its own bundle; see [A Carton's own bundle](/guides/bundler/#a-cartons-own-bundle).
 - **Keep a vendor SDK's core extensions out of the rest of the app.** Require the SDK in an adapter Carton and export only the client you need, as the [Exports](/guides/examples/exports/) example's adapter does.
 - **Load plugins that need conflicting gem versions**, which plain Ruby cannot load together; see the [Plugins](/guides/examples/plugins/) example.
-- **Rails and Hanami** work as experimental integrations; see the [Rails](/guides/examples/rails/) and [Hanami](/guides/examples/hanami/) examples.
+- **Mount domain Cartons in a web app.** Each Carton can export a Rack app, as in the [Rack](/guides/examples/rack/) example. Rails and Hanami work as experimental integrations; see the [Rails](/guides/examples/rails/) and [Hanami](/guides/examples/hanami/) examples.
 
 Each Carton has a startup and memory cost, so aim for tens of Cartons, not hundreds; [Status](/start/status/) has the numbers and what must change before production. [Adopting Carton](/guides/adopting/) shows how to start in an existing app.

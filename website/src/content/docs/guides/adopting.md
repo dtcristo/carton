@@ -61,7 +61,7 @@ gem 'carton-tools', group: %i[development test]
 bundle exec carton check main.rb
 ```
 
-Once the app is clean, add `--strict` so warnings fail the build too.
+Each problem prints as `file:line:column: level: message [rule]`, and `--format json` gives the same problems with their rule IDs for CI annotations. Once the app is clean, add `--strict` so warnings fail the build too. If you commit RBS from [`carton rbs`](/reference/cli/rbs/), `carton rbs --check` fails CI when it is stale. [`carton graph`](/reference/cli/graph/) and [`carton why`](/reference/cli/why/) show which Cartons import which as the app grows.
 
 ## 5. Grow to tens of Cartons
 
@@ -77,4 +77,4 @@ Carton files are plain Ruby. Under plain `require`, `export` returns its argumen
 - **Every entry point.** Set `RUBY_BOX=1` wherever the app starts: servers, job workers, Rake tasks, consoles, CI, and the environment of your Dockerfile or Procfile. An `import` without it raises `Carton::ImportError`.
 - **Native extensions.** Ruby copies a native extension to a temporary file for each Box that loads it, so memory and disk use grow with every Carton that loads the extension. Running with a read-only temporary directory is untested.
 - **Process-global state.** Boxes isolate definitions and load state, not the process. `ENV` (see [Bundler](/guides/bundler/#env)), the working directory, signal traps, `at_exit` hooks, threads, and file descriptors are shared by every Box: a `trap` in a Carton replaces the app's handler for that signal, and `Dir.chdir` in a Carton moves the whole process. Objects passed between Cartons are shared too; see [Sharing classes and services](/guides/sharing-classes/).
-- **Servers and boot caches.** The [Hanami example](/guides/examples/hanami/) tests HTTP requests through Puma. Forking servers, preloading, and Bootsnap are untested with Carton.
+- **Servers and boot caches.** The [Rails](/guides/examples/rails/) and [Hanami](/guides/examples/hanami/) examples test HTTP requests through Puma. Forking servers, preloading, and Bootsnap are untested with Carton.
