@@ -1,6 +1,6 @@
 # Shared Gems Boxes results
 
-Measured on 2026-10-20 from `origin/main` commit `ea6b649`, on branch `spike/shared-gems`. Ruby `4.0.7`, revision `229531a6cf`, Prism, `arm64-darwin27`; RubyGems and Bundler `4.0.23`; Apple M5 Pro Virtual, 16 GiB RAM. Active Support `8.1.4`, concurrent-ruby `1.3.8`, Zeitwerk `2.8.3`. The standalone [lockfile](Gemfile.lock) pins the dependency set. Rails experiments use the unchanged [Rails example lockfile](../../examples/rails_in_cartons/Gemfile.lock).
+Measured on 2026-10-20 from `origin/main` commit `ea6b649`, on branch `spike/shared-gems`. Ruby `4.0.7`, revision `229531a6cf`, Prism, `arm64-darwin27`; RubyGems and Bundler `4.0.23`; Apple M5 Pro Virtual, 16 GiB RAM. Active Support `8.1.4`, concurrent-ruby `1.3.8`, Zeitwerk `2.8.3`. The standalone [lockfile](Gemfile.lock) pins the dependency set. Rails experiments use the unchanged [Rails example lockfile](../../examples/rails/Gemfile.lock).
 
 ## Recommendation
 

@@ -20,9 +20,9 @@ The test uses [the Rails example](https://carton.dtcristo.com/guides/examples/ra
 
 ## Ownership and fixture dependency
 
-This directory owns the experimental reload observer, host/framework hooks and regression test. The fixture app and its resolved dependencies remain in `examples/rails_in_cartons/`; copying them here would create a second Rails app to maintain. The fixture files are read, copied into temporary storage, and never edited in place. Only the scratch entrypoints load `hooks/shop.rb` and `hooks/framework.rb`, using absolute paths to this directory.
+This directory owns the experimental reload observer, host/framework hooks and regression test. The fixture app and its resolved dependencies remain in `examples/rails/`; copying them here would create a second Rails app to maintain. The fixture files are read, copied into temporary storage, and never edited in place. Only the scratch entrypoints load `hooks/shop.rb` and `hooks/framework.rb`, using absolute paths to this directory.
 
-The ordinary `example:rails_in_cartons` task runs the Rails app without loading or testing this experiment. The Rails example stays under `examples/`. `bundle exec rake spikes` runs this experiment and Master prelude in separate processes, and CI runs that task separately from the default checks. The Shared Gems experiment retains its own documented runner.
+The ordinary `example:rails` task runs the Rails app without loading or testing this experiment. The Rails example stays under `examples/`. `bundle exec rake spikes` runs this experiment and Master prelude in separate processes, and CI runs that task separately from the default checks. The Shared Gems experiment retains its own documented runner.
 
 ## What it proves
 

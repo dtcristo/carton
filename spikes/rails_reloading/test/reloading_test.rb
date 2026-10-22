@@ -7,7 +7,7 @@ require_relative '../../../lib/carton'
 # The Rails example is a read-only fixture. Edit only its scratch copy.
 scratch = File.realpath(Dir.mktmpdir('carton-rails-reloading'))
 at_exit { FileUtils.remove_entry(scratch) }
-fixture = File.expand_path('../../../examples/rails_in_cartons', __dir__)
+fixture = File.expand_path('../../../examples/rails', __dir__)
 root = File.expand_path('../../..', __dir__)
 FileUtils.cp_r(File.join(fixture, 'components'), scratch)
 %w[framework shop].each do |name|

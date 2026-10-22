@@ -7,7 +7,7 @@ sidebar:
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. Customers registers customers; Billing imports Customers, validates invoices, calculates tax, and persists them. The domains own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons).
+Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. Customers registers customers; Billing imports Customers, validates invoices, calculates tax, and persists them. The domains own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails).
 
 This integration uses public Rails, Zeitwerk, and Carton interfaces. It adds no runtime patches. See the [Rails guide](/guides/rails/) for Box ownership, setup, and integration limits.
 
@@ -65,22 +65,22 @@ Rails discovers the Engines, loads their route files, mounts their routes, and f
 
 The shop's `config/application.rb` imports its Entrypoint rather than requiring a Second Copy. The application class lives in the shop Carton's Interior. Domain methods execute in their Cartons, while inherited framework methods execute beside Rails. The ordinary Rack host never binds Rails in Main.
 
-<ExampleFile path="rails_in_cartons/components/billing/lib/billing.rb" />
+<ExampleFile path="rails/components/billing/lib/billing.rb" />
 
-<ExampleFile path="rails_in_cartons/components/shop/lib/shop.rb" />
+<ExampleFile path="rails/components/shop/lib/shop.rb" />
 
 ## Run
 
 From the repository root:
 
 ```sh
-bundle exec rake example:rails_in_cartons
+bundle exec rake example:rails
 ```
 
 The task installs the bundle, runs the temporary-database Rack demo, and runs command and HTTP tests in fresh processes. Integrations run with lazy and eager loading. For a persistent local app, after installing the bundle:
 
 ```sh
-cd examples/rails_in_cartons/components/shop
+cd examples/rails/components/shop
 RUBY_BOX=1 bin/rails db:prepare
 RUBY_BOX=1 bin/rails routes
 RUBY_BOX=1 bin/rails runner 'puts Customers::CustomerRecord.count'

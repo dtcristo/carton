@@ -23,7 +23,7 @@ module Bench
   CARTON_COUNTS = QUICK ? [1, 5] : [1, 10, 50, 200]
   BUNDLE_SIZES = QUICK ? [5] : [10, 50, 200]
   GEM_CARTONS = QUICK ? 2 : 10
-  EXAMPLES = QUICK ? [] : %w[rails_in_cartons]
+  EXAMPLES = QUICK ? [] : %w[rails]
 
   # The child script's measurement: seconds spent in the block, and resident
   # memory before and after it, in KB.

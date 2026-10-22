@@ -33,7 +33,7 @@ Engine namespace isolation alone does not choose a Ruby Box. Each Engine Carton 
 Domain methods execute beside the Engine's storage models, in the domain's Carton Box; inherited Rails implementations execute in the framework Box. Framework classes and registries remain shared mutable Ruby objects. [Reopening shared classes](/guides/sharing-classes/) still affects their holders.
 
 ```sh
-cd examples/rails_in_cartons/components/shop
+cd examples/rails/components/shop
 RUBY_BOX=1 bin/rails db:prepare
 RUBY_BOX=1 bin/rails routes
 RUBY_BOX=1 bin/rails test
@@ -47,7 +47,7 @@ Use the example's `bin/rails`. It enters the framework Carton before loading Rai
 From the repository root, run the demo and tests:
 
 ```sh
-bundle exec rake example:rails_in_cartons
+bundle exec rake example:rails
 ```
 
 The tests verify customer/invoice requests, invalid inputs, unknown customers, stored pricing, escaped HTML, associations, and Box ownership under lazy and eager loading. Command tests exercise migrations, routes, runner, and Zeitwerk checks; Puma tests use real HTTP.

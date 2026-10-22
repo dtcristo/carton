@@ -5,5 +5,5 @@ This example is documented at https://carton.dtcristo.com/guides/examples/hanami
 From the repository root:
 
 ```sh
-bundle exec rake example:hanami_in_cartons
+bundle exec rake example:hanami
 ```

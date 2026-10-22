@@ -33,7 +33,7 @@ require_relative "../../../lib/carton.rb"`, {
   }), `require 'minitest/autorun'
 require 'carton'`);
   assert.equal(exampleCode("require_relative '../../../../../lib/carton'", {
-    file: '/project/examples/rails_in_cartons/components/shop/config/boot.rb', carton,
+    file: '/project/examples/rails/components/shop/config/boot.rb', carton,
   }), "require 'carton'");
 });
 

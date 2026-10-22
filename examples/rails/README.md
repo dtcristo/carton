@@ -5,5 +5,5 @@ This example is documented at https://carton.dtcristo.com/guides/examples/rails-
 From the repository root:
 
 ```sh
-bundle exec rake example:rails_in_cartons
+bundle exec rake example:rails
 ```

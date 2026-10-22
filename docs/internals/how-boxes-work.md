@@ -421,7 +421,7 @@ RubyGems registry state is Box-local, but `ENV` is process-global. Bundler reads
 
 ### Subclassing a class from another Box
 
-A Box can subclass a class object imported from another Box. The subclass's own methods run in its Box; inherited methods run in the Box that defined them, with that Box's constants and monkey patches. On 4.0.7 this is enough to define Active Record models and Action Controller controllers in domain Cartons while Rails loads once in a framework Carton ([examples/rails_in_cartons](https://carton.dtcristo.com/guides/examples/rails-in-cartons/)). Lookups by constant *name* inside the defining Box (Rails' `constantize`) need the exported namespace bound there too. The example uses isolated Rails Engines, registers their namespace objects, and keeps their Ruby files under Carton-owned Zeitwerk loaders; Rails' main loader ignores those directories.
+A Box can subclass a class object imported from another Box. The subclass's own methods run in its Box; inherited methods run in the Box that defined them, with that Box's constants and monkey patches. On 4.0.7 this is enough to define Active Record models and Action Controller controllers in domain Cartons while Rails loads once in a framework Carton ([examples/rails](https://carton.dtcristo.com/guides/examples/rails-in-cartons/)). Lookups by constant *name* inside the defining Box (Rails' `constantize`) need the exported namespace bound there too. The example uses isolated Rails Engines, registers their namespace objects, and keeps their Ruby files under Carton-owned Zeitwerk loaders; Rails' main loader ignores those directories.
 
 ### Which Box runs an autoload
 

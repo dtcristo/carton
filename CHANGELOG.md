@@ -12,6 +12,8 @@
 
 ### Changed
 
+- Renamed the Rails and Hanami example directories to `examples/rails` and `examples/hanami`, with matching Rake tasks and updated fixture paths. Their existing docs URLs still work (#100).
+
 - Aligned the homepage, share previews, README, docs, and gem descriptions around explicit imports and exports, separate dependencies, and runtime boundaries. The homepage introduction is centred and its page title no longer repeats the project name (#98).
 - The website has three sections, Start here, Guides, and Reference, and the sidebar shows only the current one. Each example's guide moved from its README to a website page that shows its code from the repository. The reference is now API docs in YARD's shape, tested against `sig/carton.rbs`, with a page per `carton` command tested against its usage (#90).
 - Renamed the Rails-in-Main example to `rails_with_carton_domain` and aligned both Rails examples around Customers and Billing: domain-owned registration, validation, exact invoice pricing, and persistence through injected repositories. The conventional app keeps Rails adapters in Main; the Engine app owns them in its domain Cartons. Removed the unrelated jobs, updated the private reload fixture, and placed both examples together in the docs (#83).

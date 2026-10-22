@@ -6,8 +6,7 @@ require 'tmpdir'
 started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 shared =
   SharedGemsPrototype.new(
-    gemfile:
-      File.expand_path('../../examples/rails_in_cartons/Gemfile', __dir__),
+    gemfile: File.expand_path('../../examples/rails/Gemfile', __dir__),
     extra_builtins: %w[Enumerable Range Float Regexp],
   )
 shared.load(
@@ -36,7 +35,7 @@ hook =
   end
 Carton.const_get(:Box).prepend(hook)
 if ARGV.include?('--existing')
-  load File.expand_path('../../examples/rails_in_cartons/main.rb', __dir__)
+  load File.expand_path('../../examples/rails/main.rb', __dir__)
   exit
 end
 Dir.mktmpdir('shared-gems-rails') do |dir|
