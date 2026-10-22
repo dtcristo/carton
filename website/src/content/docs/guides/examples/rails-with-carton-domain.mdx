@@ -5,6 +5,7 @@ sidebar:
   order: 9
 ---
 
+import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 Customers and Billing own customer registration and invoice issuance in separate Cartons. A conventional Rails app in Main supplies HTTP, HTML templates, and Active Record repositories. Neither domain can resolve Rails models by name. Compare [Rails Engines in Cartons](/guides/examples/rails-in-cartons/), which implements the same customer and invoice workflow with Rails application code inside the two domain Cartons. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails_with_carton_domain).
@@ -38,22 +39,37 @@ Business validation belongs to Customers and Billing. Rails controllers coerce f
 
 ## Layout
 
-```text
-bin/rails                         # ordinary Rails command loader
-config/initializers/billing.rb    # module-scoped Imports for Customers and Billing
-app/controllers/                  # HTTP adapters in Main
-app/models/                       # Main's Customer and Invoice storage records
-app/repositories/                 # Main's Active Record adapters
-app/views/invoices/show.html.erb
-db/migrate/
-components/customers/lib/         # Customers domain and its own loader
-components/billing/lib/           # Billing domain, imports Customers
-main.rb                          # temporary-database demo
-test/billing_test.rb              # exported Billing workflow with a fake repository
-test/customers_test.rb            # exported Customers workflow with a fake repository
-test/integration/invoices_test.rb # requests, persistence, and Box isolation
-test/{commands,server}_test.rb    # CLI and real Puma HTTP checks
-```
+<FileTree>
+
+- `bin/`
+  - `rails` ordinary Rails command loader
+- `config/`
+  - `initializers/`
+    - `billing.rb` module-scoped Imports for Customers and Billing
+- `app/`
+  - `controllers/` HTTP adapters in Main
+  - `models/` Main's Customer and Invoice storage records
+  - `repositories/` Main's Active Record adapters
+  - `views/`
+    - `invoices/`
+      - `show.html.erb`
+- `db/`
+  - `migrate/`
+- `components/`
+  - `customers/`
+    - `lib/` Customers domain and its own loader
+  - `billing/`
+    - `lib/` Billing domain, imports Customers
+- `main.rb` temporary-database demo
+- `test/`
+  - `billing_test.rb` exported Billing workflow with a fake repository
+  - `customers_test.rb` exported Customers workflow with a fake repository
+  - `integration/`
+    - `invoices_test.rb` requests, persistence, and Box isolation
+  - `commands_test.rb` CLI and real Puma HTTP checks
+  - `server_test.rb` CLI and real Puma HTTP checks
+
+</FileTree>
 
 <ExampleFile path="rails_with_carton_domain/config/initializers/billing.rb" />
 

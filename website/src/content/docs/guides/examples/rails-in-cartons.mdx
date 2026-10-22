@@ -5,6 +5,7 @@ sidebar:
   order: 10
 ---
 
+import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 Customers and Billing are isolated Rails Engines, each imported as a Gem Carton. They implement the same customer-registration and invoice-issuance workflow as [Rails with Carton domains](/guides/examples/rails-with-carton-domain/). Here, the domains also own their Rails controllers, storage models, and repositories. Rails loads once in a framework Carton, and a shop Carton mounts the Engines and exports its Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails_in_cartons).
@@ -21,37 +22,79 @@ Both POSTs return 201. Tax is ten percent, rounded half up in integer cents: 420
 
 ## Layout
 
-```text
-main.rb                                 # repeatable Rack demo, temporary SQLite
-components/
-  framework/lib/framework.rb             # shared Rails implementation and base classes
-  customers/
-    lib/customers.rb                     # Entrypoint, private framework Import, local loader
-    lib/customers/{customer,directory,invalid_customer,engine}.rb
-    app/models/customers/customer_record.rb
-    app/repositories/customers/customer_repository.rb
-    app/controllers/customers/
-    config/routes.rb
-    db/migrate/
-  billing/
-    lib/billing.rb                       # Entrypoint, imports Framework and Customers
-    lib/billing/{invoice,issue_invoice,invalid_invoice,engine}.rb
-    app/models/billing/invoice_record.rb
-    app/repositories/billing/invoice_repository.rb
-    app/controllers/billing/
-    app/views/billing/invoices/show.html.erb
-    config/routes.rb
-    db/migrate/
-  shop/
-    bin/rails                            # explicit CLI bridge into the framework Carton
-    config/{boot,application,environment,routes}.rb
-    config/database.yml
-    config.ru
-    Rakefile
-    lib/shop.rb                          # imports/registers domains and exports application
-    lib/shop/application.rb
-    test/integration/engines_test.rb
-```
+<FileTree>
+
+- `main.rb` repeatable Rack demo, temporary SQLite
+- `components/`
+  - `framework/`
+    - `lib/`
+      - **`framework.rb`** shared Rails implementation and base classes
+  - `customers/`
+    - `lib/`
+      - **`customers.rb`** Entrypoint, private framework Import, local loader
+      - `customers/`
+        - `customer.rb`
+        - `directory.rb`
+        - `invalid_customer.rb`
+        - `engine.rb`
+    - `app/`
+      - `models/`
+        - `customers/`
+          - `customer_record.rb`
+      - `repositories/`
+        - `customers/`
+          - `customer_repository.rb`
+      - `controllers/`
+        - `customers/`
+    - `config/`
+      - `routes.rb`
+    - `db/`
+      - `migrate/`
+  - `billing/`
+    - `lib/`
+      - **`billing.rb`** Entrypoint, imports Framework and Customers
+      - `billing/`
+        - `invoice.rb`
+        - `issue_invoice.rb`
+        - `invalid_invoice.rb`
+        - `engine.rb`
+    - `app/`
+      - `models/`
+        - `billing/`
+          - `invoice_record.rb`
+      - `repositories/`
+        - `billing/`
+          - `invoice_repository.rb`
+      - `controllers/`
+        - `billing/`
+      - `views/`
+        - `billing/`
+          - `invoices/`
+            - `show.html.erb`
+    - `config/`
+      - `routes.rb`
+    - `db/`
+      - `migrate/`
+  - `shop/`
+    - `bin/`
+      - `rails` explicit CLI bridge into the framework Carton
+    - `config/`
+      - `boot.rb`
+      - `application.rb`
+      - `environment.rb`
+      - `routes.rb`
+      - `database.yml`
+    - `config.ru`
+    - `Rakefile`
+    - `lib/`
+      - **`shop.rb`** imports/registers domains and exports application
+      - `shop/`
+        - `application.rb`
+    - `test/`
+      - `integration/`
+        - `engines_test.rb`
+
+</FileTree>
 
 The domain values and workflows match the conventional-host example. Repository calls exchange IDs and plain Hashes. Engine storage records use qualified names, including `Customers::CustomerRecord` and `Billing::InvoiceRecord`, and their associations resolve across Carton boundaries. Per-workflow repository instances keep request state out of the shared exported modules.
 

@@ -5,6 +5,7 @@ sidebar:
   order: 7
 ---
 
+import { FileTree } from '@astrojs/starlight/components';
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
 Two plugins that need incompatible versions of the same gem cannot load into one Ruby process. This month-end report runner loads both anyway, each in its own Carton. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/plugins).
@@ -32,18 +33,24 @@ No single lockfile satisfies both, so Bundler can't help. The usual fixes are to
 
 <ExampleFile path="plugins/main.rb" />
 
-```
-main.rb                      # the host: finds, imports, and runs plugins
-plugins/
-  sales_tax/
-    Gemfile, Gemfile.lock    # bigdecimal 3.3.1
-    lib/sales_tax.rb         # Entrypoint: setup_bundle, export SalesTax
-    lib/sales_tax/
-      float_as_money.rb      # the Float#to_s patch, inside the Carton
-  growth/
-    Gemfile, Gemfile.lock    # bigdecimal 4.1.1
-    lib/growth.rb            # Entrypoint: setup_bundle, export Growth
-```
+<FileTree>
+
+- `main.rb` the host: finds, imports, and runs plugins
+- `plugins/`
+  - `sales_tax/`
+    - `Gemfile` bigdecimal 3.3.1
+    - `Gemfile.lock` bigdecimal 3.3.1
+    - `lib/`
+      - **`sales_tax.rb`** Entrypoint: setup_bundle, export SalesTax
+      - `sales_tax/`
+        - `float_as_money.rb` the Float#to_s patch, inside the Carton
+  - `growth/`
+    - `Gemfile` bigdecimal 4.1.1
+    - `Gemfile.lock` bigdecimal 4.1.1
+    - `lib/`
+      - **`growth.rb`** Entrypoint: setup_bundle, export Growth
+
+</FileTree>
 
 The host never loads bigdecimal and has no Gemfile. Adding a plugin is a new directory with its own `Gemfile`.
 
