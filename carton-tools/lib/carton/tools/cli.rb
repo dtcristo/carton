@@ -4,6 +4,7 @@ require 'fileutils'
 require 'json'
 require 'optparse'
 require_relative 'checks'
+require_relative 'import_graph'
 require_relative 'signatures'
 require_relative 'version'
 
@@ -15,6 +16,8 @@ module Carton
       COMMANDS = {
         'check' => 'Report import and export problems without running code',
         'rbs' => 'Write RBS for what each import returns',
+        'graph' => 'Print the import graph as Mermaid or DOT',
+        'why' => 'Show the imports that lead from one file to a Carton',
       }.freeze
 
       USAGE = <<~TEXT
@@ -146,6 +149,77 @@ module Carton
         (0...[old.size, new.size].max).find { |index| old[index] != new[index] }
       end
 
+      # Nodes are Cartons, named by Entrypoint, and Main for the app. A
+      # dashed edge is lazy: every import behind it runs in a method or block.
+      def graph(args)
+        format = 'mermaid'
+        project =
+          project(args, 'graph') do |o|
+            o.on(
+              '--format FORMAT',
+              %w[mermaid dot],
+              'mermaid (default) or dot',
+            ) { |value| format = value }
+          end
+        return 2 unless project
+
+        graph = ImportGraph.new(project)
+        ids =
+          graph.nodes.each_with_index.to_h { |node, index| [node, "n#{index}"] }
+        label = ->(node) do
+          node ? project.label(project.cartons.fetch(node)) : 'Main'
+        end
+        target = ->(edge) { edge.carton.entrypoint }
+        source = ->(edge) { project.owner(edge.call.file)&.entrypoint }
+        if format == 'dot'
+          @out.puts 'digraph cartons {'
+          ids.each do |node, id|
+            shape = node ? '' : ', shape=box'
+            @out.puts "  #{id} [label=#{dot_string(label.(node))}#{shape}];"
+          end
+          graph.edges.each do |edge|
+            style = edge.call.lazy ? ' [style=dashed]' : ''
+            @out.puts "  #{ids[source.(edge)]} -> #{ids[target.(edge)]}#{style};"
+          end
+          @out.puts '}'
+        else
+          @out.puts 'flowchart LR'
+          ids.each do |node, id|
+            text = label.(node).gsub('"', '#quot;')
+            @out.puts node ? "  #{id}[\"#{text}\"]" : "  #{id}([\"#{text}\"])"
+          end
+          graph.edges.each do |edge|
+            arrow = edge.call.lazy ? '-.->' : '-->'
+            @out.puts "  #{ids[source.(edge)]} #{arrow} #{ids[target.(edge)]}"
+          end
+        end
+        0
+      end
+
+      def dot_string(text) = "\"#{text.gsub(/["\\]/) { |c| "\\#{c}" }}\""
+
+      # The shortest chain of imports from FROM, a file the app or a Carton
+      # runs, to the Carton that holds TO. Exits 1 when there is none.
+      def why(args)
+        project, from, to = project(args, 'why', operands: %w[FROM TO])
+        return 2 unless project
+
+        start = project.owner(File.realpath(from))&.entrypoint
+        goal = project.carton_containing(File.realpath(to))&.entrypoint
+        path = goal && ImportGraph.new(project).path(start, goal)
+        unless path
+          @out.puts "#{from} does not import #{to}"
+          return 1
+        end
+
+        path.each do |edge|
+          call = edge.call
+          @out.puts "#{project.relative(call.file)}:#{call.line}:#{call.column}: " \
+                      "#{call.kind} '#{call.path}' -> #{project.label(edge.carton)}"
+        end
+        0
+      end
+
       def check(args)
         strict = false
         format = 'text'
@@ -223,23 +297,28 @@ module Carton
       # resolve against `-I` directories, then this process's `$LOAD_PATH`,
       # which includes the bundle's gems under `bundle exec`, and files belong
       # to the gems RubyGems knows: the bundle's, or every installed gem.
-      def project(args, command)
+      # `why` takes exactly FROM and TO and reads only FROM, so its
+      # `operands` are returned instead of scanned.
+      def project(args, command, operands: nil)
         includes = []
         exclude = []
         parser =
           OptionParser.new do |o|
             o.program_name = 'carton'
             o.version = VERSION
-            o.banner = "Usage: carton #{command} [options] PATH..."
+            o.banner =
+              "Usage: carton #{command} [options] #{operands&.join(' ') || 'PATH...'}"
             o.on(
               '-I',
               '--include DIR',
               'Add DIR to the load path for named imports',
             ) { |dir| includes << File.expand_path(dir) }
-            o.on(
-              '--exclude GLOB',
-              'Skip matching files in directory PATHs (and vendor/bundle)',
-            ) { |glob| exclude << glob }
+            unless operands
+              o.on(
+                '--exclude GLOB',
+                'Skip matching files in directory PATHs (and vendor/bundle)',
+              ) { |glob| exclude << glob }
+            end
             yield o if block_given?
             o.on_tail('-h', '--help', 'Show this help') do
               @out.puts o
@@ -251,12 +330,15 @@ module Carton
             end
           end
         paths = parser.parse(args)
-        if paths.empty?
+        if operands ? paths.size != operands.size : paths.empty?
           @err.puts parser
           return
         end
 
-        Project.new(paths, load_path: includes + $LOAD_PATH, exclude:)
+        load_path = includes + $LOAD_PATH
+        return Project.new(paths, load_path:, exclude:) unless operands
+
+        [Project.new(paths.first(1), load_path:), *paths]
       end
     end
   end

@@ -23,10 +23,10 @@ module Carton
         end
       end
 
-      # Every node with an import in or out, the app first, then by path.
+      # The app, then every Carton with an import in or out, by path.
       def nodes
         found = @adjacent.flat_map { |from, targets| [from, *targets.keys] }
-        found.uniq.sort_by { |node| node ? [1, node] : [0, ''] }
+        [nil, *found.compact.uniq.sort]
       end
 
       # One edge per importing pair, ordered by node.

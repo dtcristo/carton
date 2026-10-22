@@ -20,6 +20,8 @@ Usage: carton COMMAND [options] PATH...
 Commands:
   check  Report import and export problems without running code
   rbs    Write RBS for what each import returns
+  graph  Print the import graph as Mermaid or DOT
+  why    Show the imports that lead from one file to a Carton
 
 Options:
   -h, --help     Show this help
@@ -34,6 +36,8 @@ Run carton help COMMAND for a command's options.
 | --- | --- |
 | <span id="carton-check"></span>[`carton check`](/reference/cli/check/) | Report import and export problems without running code |
 | <span id="carton-rbs"></span>[`carton rbs`](/reference/cli/rbs/) | Write RBS for what each import returns |
+| [`carton graph`](/reference/cli/graph/) | Print the import graph as Mermaid or DOT |
+| [`carton why`](/reference/cli/why/) | Show the imports that lead from one file to a Carton |
 
 <span id="json-reports"></span>`carton check --format json` reports problems as JSON; see [JSON output](/reference/cli/check/#json-output). `carton --help` prints the synopsis, `carton help COMMAND` or `carton COMMAND --help` prints a command's usage, and `carton --version` prints the version. Help and version go to stdout with exit status 0. A command with no `PATH` prints its usage to stderr with exit status 2.
 
@@ -46,5 +50,5 @@ Run carton help COMMAND for a command's options.
 | Status | Meaning |
 | --- | --- |
 | 0 | Success |
-| 1 | `carton check` found errors, or warnings with `--strict` |
+| 1 | `carton check` found errors, or warnings with `--strict`; `carton rbs --check` found the file missing or stale; or `carton why` found no chain of imports |
 | 2 | A usage error, such as an unknown command or option or no `PATH`, or a file that cannot be read or written; the message goes to stderr |
