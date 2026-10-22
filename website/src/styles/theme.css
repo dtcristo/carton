@@ -205,6 +205,11 @@ header.header {
   color: var(--sl-color-white);
 }
 
+/* Pull the 2rem button onto its 1.15rem glyph (0.425rem in), so the header divider sits as far from the theme glyph as from the GitHub glyph. */
+.right-group > carton-theme-select > .theme-toggle {
+  margin-inline-start: calc((1.15rem - 2rem) / 2);
+}
+
 .site-title img {
   height: 2.25rem;
 }
