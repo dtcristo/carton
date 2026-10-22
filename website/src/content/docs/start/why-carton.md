@@ -10,7 +10,7 @@ Ruby has gems to share code and Bundler to pick their versions, but nothing insi
 Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundaries at runtime:
 
 - other Cartons reach **only what a Carton exports**;
-- **monkey patches to builtin classes**, such as `String#blank?`, stay in the Carton that makes them;
+- **monkey patches to builtin classes**, such as `String#blank?`, stay in the Carton that makes them, apart from a [Ruby 4.0.7 visibility bug](/start/status/#before-production);
 - two Cartons can use **different versions of the same gem**.
 
 ## Compared with Bundler and Packwerk
@@ -19,12 +19,14 @@ Split your app into Cartons with explicit imports and exports. Each has its own 
 | --- | --- | --- | --- |
 | App boundaries | None | Static checks | Runtime enforcement |
 | Private code | None | No privacy checks | Explicit Export |
-| Dynamic constants | No boundary | Not checked | Inside the boundary |
+| Lookups by name (`const_get`, `constantize`) | Unchecked | Unchecked | Enforced by the Box |
 | Gem versions | One per app | One per app | One per Carton |
 | Builtin patches | Global | Global | Per Carton |
 | Distribution | Gem | App-local pack | Gem-shaped Carton |
 
 Only a Carton's Export crosses its boundary. When that Export is a module, Ruby's `private_constant` hides selected constants within it. Packwerk removed its privacy checks in version 3.0.
+
+Rails Engines and plain path gems split code into directories and gemspecs, but still load into one namespace: any file can reach an Engine's constants, a patch in one gem applies everywhere, and the app's Gemfile picks one version of each gem. A Carton can be a path gem or wrap an Engine, as the [Monorepo](/guides/examples/monorepo/) and [Rails](/guides/examples/rails/) examples do; the Box adds the boundary.
 
 Carton also provides static checks through `carton check`. Its gem-shaped Entrypoint and Interior let a Carton become a gem without changing how Importers use it.
 
@@ -35,11 +37,15 @@ Static checks only see what they can parse. Packwerk's authors note that a packa
 - **Shared objects.** Classes and objects a Carton exports are shared, not copied, so reopening an exported class or changing a shared object affects every Importer. See [Sharing classes and services](/guides/sharing-classes/).
 - **Plain `require`.** A `require` of a Carton's files loads a Second Copy outside its boundary, which `carton check` reports.
 - **Process lifetime.** Each Carton loads once per process: its state lasts as long as the process, and its First Importer fixes its gem versions.
+- **Builtin visibility changes.** A Ruby 4.0.7 bug: changing only a builtin method's visibility (`private`, `protected`, `public`) leaks to every Box. Redefining methods stays isolated.
+- **Process-global state.** `ENV`, the working directory, signal traps, `at_exit` hooks, threads, and file descriptors belong to the process. See [Operations](/guides/adopting/#operations).
 - **Security.** Box isolates definitions and load state, not objects. It is not a sandbox.
 
 ## Where it fits today
 
-- **The domains of an app or a monorepo**, as tens of Cartons. See the [Monorepo](/guides/examples/monorepo/) example.
-- **Plugin hosts whose plugins need conflicting gem versions**, which plain Ruby cannot load together; see [Plugins](/guides/examples/plugins/).
-- **Rails** is an experimental integration direction ([Rails example](/guides/examples/rails/)). It uses namespaced Rails Engines, explicit namespace registration, Carton-owned loaders, and an example-local Rails CLI bridge. Rails reloading remains unsupported. A separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) explores private runtime hooks; the ordinary example does not use them.
-- **Not yet file by file.** Each Carton costs about 60 ms and 2.4 MB, most of it `Ruby::Box.new`, so aim for tens of Cartons, not hundreds.
+- **Upgrade a gem in one domain without upgrading the app.** Each Carton can set up its own bundle; see the [Bundler](/guides/examples/bundler/) example.
+- **Keep a vendor SDK's core extensions out of the rest of the app.** Require the SDK in an adapter Carton and export only the client you need, as the [Exports](/guides/examples/exports/) example's adapter does.
+- **Load plugins that need conflicting gem versions**, which plain Ruby cannot load together; see the [Plugins](/guides/examples/plugins/) example.
+- **Rails and Hanami** work as experimental integrations; see the [Rails](/guides/examples/rails/) and [Hanami](/guides/examples/hanami/) examples.
+
+Each Carton has a startup and memory cost, so aim for tens of Cartons, not hundreds; [Status](/start/status/) has the numbers and what must change before production. [Adopting Carton](/guides/adopting/) shows how to start in an existing app.
