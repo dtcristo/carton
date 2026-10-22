@@ -108,7 +108,10 @@ class CheckTest < Minitest::Test
       )
 
     assert_equal 1, status
-    assert_match(/^a\.rb:1: error: import cycle: a -> b -> a$/, output)
+    assert_match(
+      /^a\.rb:1: error: import cycle: a\.rb -> b\.rb -> a\.rb$/,
+      output,
+    )
     assert_equal 1, output.scan('import cycle').size
   end
 
@@ -122,7 +125,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 0, status
     assert_match(
-      /warning: import cycle: a -> b -> a \(an import runs lazily/,
+      /warning: import cycle: a\.rb -> b\.rb -> a\.rb \(an import runs lazily/,
       output,
     )
   end
@@ -139,8 +142,14 @@ class CheckTest < Minitest::Test
       )
 
     assert_equal 1, status
-    assert_match(/^a\.rb:1: error: import cycle: a -> b -> c -> a$/, output)
-    assert_match(/^x\.rb:1: error: import cycle: x -> y -> x$/, output)
+    assert_match(
+      /^a\.rb:1: error: import cycle: a\.rb -> b\.rb -> c\.rb -> a\.rb$/,
+      output,
+    )
+    assert_match(
+      /^x\.rb:1: error: import cycle: x\.rb -> y\.rb -> x\.rb$/,
+      output,
+    )
     assert_equal 2, output.scan('import cycle').size
   end
 
@@ -155,7 +164,10 @@ class CheckTest < Minitest::Test
       )
 
     assert_equal 1, status
-    assert_match(/^a\.rb:1: error: import cycle: a -> b -> c -> a$/, output)
+    assert_match(
+      /^a\.rb:1: error: import cycle: a\.rb -> b\.rb -> c\.rb -> a\.rb$/,
+      output,
+    )
     assert_equal 1, output.scan('import cycle').size
   end
 
@@ -176,6 +188,34 @@ class CheckTest < Minitest::Test
     assert_operator elapsed, :<, 10
   end
 
+  # From app/, ../app-x shares app's prefix but is outside it, and two
+  # Cartons share the basename billing.
+  def test_paths_beside_the_working_directory_keep_their_names
+    Dir.mktmpdir do |root|
+      root = File.realpath(root)
+      {
+        'app/main.rb' =>
+          "X = import_relative '../app-x/a/billing'\n" \
+            "import_relative '../app-x/missing'\nputs X\n",
+        'app-x/a/billing.rb' =>
+          "B2 = import_relative '../b/billing'\nexport B2\n",
+        'app-x/b/billing.rb' =>
+          "B1 = import_relative '../a/billing'\nexport B1\n",
+      }.each do |path, source|
+        FileUtils.mkdir_p(File.dirname(File.join(root, path)))
+        File.write(File.join(root, path), source)
+      end
+      _, output = run_cli(File.join(root, 'app'), 'check', 'main.rb')
+
+      assert_includes output,
+                      "cannot load such file -- #{root}/app-x/missing " \
+                        "(tried missing.rb and missing/lib/missing.rb in #{root}/app-x)"
+      assert_includes output,
+                      'import cycle: ../app-x/a/billing.rb -> ' \
+                        '../app-x/b/billing.rb -> ../app-x/a/billing.rb'
+    end
+  end
+
   def test_requiring_an_imported_carton_is_an_error
     status, output =
       check(
@@ -189,7 +229,7 @@ class CheckTest < Minitest::Test
     assert_equal 1, status
     assert_includes output,
                     "billing.rb:1: error: require_relative 'math' loads a " \
-                      "second copy of the math Carton's Entrypoint: import it instead\n"
+                      "second copy of the math.rb Carton's Entrypoint: import it instead\n"
     # billing is never imported, so requiring it is ordinary Ruby.
     refute_match(/^main\.rb/, output)
   end
@@ -205,7 +245,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_match(
-      /^main\.rb:2: error: .* billing Carton's file: import it instead$/,
+      /^main\.rb:2: error: .* billing\.rb Carton's file: import it instead$/,
       output,
     )
     refute_match(/^billing\.rb/, output)
@@ -394,7 +434,7 @@ class CheckTest < Minitest::Test
 
     assert_equal 1, status
     assert_includes output,
-                    'Pricing::Tax is a private constant of the pricing Carton'
+                    'Pricing::Tax is a private constant of the tooling/pricing.rb Carton'
     assert_includes output,
                     'tooling/pricing/tax.rb is inside ' \
                       'the Carton tooling/pricing.rb: import that file, or require ' \

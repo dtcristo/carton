@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pathname'
 require 'carton/error'
 require 'carton/resolver'
 require_relative 'source_file'
@@ -15,10 +16,7 @@ module Carton
       # A Carton: its Entrypoint, its files (the Entrypoint plus its Interior),
       # and the `lib/` an Import of a Gem-shaped Directory adds to its load
       # path.
-      Carton =
-        Data.define(:entrypoint, :files, :load_path) do
-          def name = File.basename(entrypoint, '.rb')
-        end
+      Carton = Data.define(:entrypoint, :files, :load_path)
 
       # One import call and what it resolved to: a Carton, an error message,
       # or a name not found on the load path, which a gem activated at runtime
@@ -27,13 +25,12 @@ module Carton
 
       attr_reader :files, :cartons, :edges
 
-      # `path` relative to the current directory, for messages and comments.
-      def self.relative(path)
-        pwd = File.realpath(Dir.pwd)
-        path.start_with?("#{pwd}/") ? path.delete_prefix("#{pwd}/") : path
-      end
-
       def initialize(paths, load_path: [], specs: nil)
+        @pwd = File.realpath(Dir.pwd)
+        # The working directory, where a path or a message's quote or
+        # punctuation starts and a path separator or the end follows.
+        @pwd_pattern =
+          %r{(?<![^\s'"(:,=])#{Regexp.escape(@pwd)}(/|(?=\z|[\s'"):,]))}
         @load_path = load_path
         @specs = specs
         @files = {}
@@ -52,6 +49,18 @@ module Carton
         end
 
         @edge_by_call[call]&.carton&.entrypoint
+      end
+
+      # `text`, a path or a message, with paths inside the current directory
+      # made relative to it. Paths outside it stay absolute.
+      def relative(text)
+        text.gsub(@pwd_pattern) { Regexp.last_match(1) == '/' ? '' : '.' }
+      end
+
+      # A Carton's name in messages: its Entrypoint relative to the current
+      # directory, such as `billing.rb` or `../shared/billing.rb`.
+      def label(carton)
+        Pathname(carton.entrypoint).relative_path_from(@pwd).to_s
       end
 
       # The gem whose require paths hold `path`, or nil.

@@ -105,39 +105,34 @@ module Carton
           warnings: problems.size - errors,
         }
         if format == 'json'
-          print_json(problems, summary)
+          print_json(project, problems, summary)
         else
-          print_text(problems, summary)
+          print_text(project, problems, summary)
         end
         failures = strict ? problems.size : errors
         failures.zero? ? 0 : 1
       end
 
-      def print_text(problems, summary)
+      def print_text(project, problems, summary)
         problems.each do |problem|
-          @out.puts "#{Project.relative(problem.file)}:#{problem.line}: " \
-                      "#{problem.level}: #{relative_message(problem.message)}"
+          @out.puts "#{project.relative(problem.file)}:#{problem.line}: " \
+                      "#{problem.level}: #{project.relative(problem.message)}"
         end
         @out.puts "#{summary[:files]} files, #{summary[:cartons]} Cartons, " \
                     "#{summary[:errors]} errors, #{summary[:warnings]} warnings"
       end
 
-      def print_json(problems, summary)
+      def print_json(project, problems, summary)
         list =
           problems.map do |problem|
             {
               level: problem.level,
-              file: Project.relative(problem.file),
+              file: project.relative(problem.file),
               line: problem.line,
-              message: relative_message(problem.message),
+              message: project.relative(problem.message),
             }
           end
         @out.puts JSON.pretty_generate(problems: list, **summary)
-      end
-
-      def relative_message(message)
-        pwd = File.realpath(Dir.pwd)
-        message.gsub("#{pwd}/", '').gsub(pwd, '.')
       end
 
       # Parse options shared by every command, then scan PATHs. Named imports

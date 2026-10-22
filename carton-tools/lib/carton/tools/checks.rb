@@ -82,7 +82,10 @@ module Carton
           .cycles
           .map do |cycle|
             first = cycle.first.call
-            names = [cycle.last.carton, *cycle.map(&:carton)].map(&:name)
+            names =
+              [cycle.last.carton, *cycle.map(&:carton)].map do |carton|
+                name(carton)
+              end
             message = "import cycle: #{names.join(' -> ')}"
             if cycle.any? { |edge| edge.call.lazy }
               warning(
@@ -107,7 +110,7 @@ module Carton
           error(
             call.file,
             call.line,
-            "#{call.kind} '#{call.path}' loads a second copy of the #{carton.name} " \
+            "#{call.kind} '#{call.path}' loads a second copy of the #{name(carton)} " \
               "Carton's #{path == carton.entrypoint ? 'Entrypoint' : 'file'}: import it instead",
           )
         end
@@ -268,8 +271,8 @@ module Carton
         caught.intersect?([*raised, 'StandardError', 'Exception'])
       end
 
-      def missing_message(code, name, carton, names)
-        "#{code}: the #{carton.name} Carton's export has no key #{name} " \
+      def missing_message(code, key, carton, names)
+        "#{code}: the #{name(carton)} Carton's export has no key #{key} " \
           "(it has #{names.join(', ')})"
       end
 
@@ -299,7 +302,7 @@ module Carton
               use.file,
               reference.line,
               "#{reference.name}::#{reference.member} is a private constant " \
-                "of the #{binding.carton.name} Carton",
+                "of the #{name(binding.carton)} Carton",
             )
           end
         end
@@ -322,7 +325,7 @@ module Carton
           warning(
             binding.file,
             binding.line,
-            "#{binding.name} is bound to an import of the #{binding.carton.name} " \
+            "#{binding.name} is bound to an import of the #{name(binding.carton)} " \
               'Carton but never used',
           )
         end
@@ -351,13 +354,15 @@ module Carton
             path,
             site.line,
             "#{site.kind} #{site.name} opens #{binding.name} from the " \
-              "#{binding.carton.name} Carton, changing a shared class or module: " \
+              "#{name(binding.carton)} Carton, changing a shared class or module: " \
               'subclass it or use a refinement instead',
           )
         end
       end
 
-      def display(path) = Project.relative(path)
+      def display(path) = @project.relative(path)
+
+      def name(carton) = @project.label(carton)
 
       def error(file, line, message) = Problem.new(:error, file, line, message)
 

@@ -79,7 +79,7 @@ class CliTest < Minitest::Test
           'file' => 'main.rb',
           'line' => 1,
           'message' =>
-            'Unused is bound to an import of the other Carton but never used',
+            'Unused is bound to an import of the other.rb Carton but never used',
         },
         {
           'level' => 'error',
