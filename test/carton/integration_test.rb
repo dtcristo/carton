@@ -519,11 +519,11 @@ class IntegrationTest < Minitest::Test
     output =
       run_boxed("load #{File.join(EXAMPLES, 'monorepo/main.rb').inspect}")
 
-    assert_includes output, 'Invoice 42: 25.0'
-    assert_includes output, 'Pricing uses bigdecimal 4.1.1'
+    assert_includes output, 'Invoice 42: 25.00'
+    assert_includes output, 'Shipping uses faraday 2.15.0'
     assert_includes output, 'Billing and the app share one pricing Carton: true'
     assert_includes output, 'Pricing::Rounding is private'
-    assert_includes output, 'bigdecimal loaded in the Main Box: false'
+    assert_includes output, 'faraday loaded in the Main Box: false'
   end
 
   def test_exports_example_uses_values_and_a_legacy_adapter_across_boxes
@@ -543,7 +543,7 @@ class IntegrationTest < Minitest::Test
     script = <<~RUBY
       require 'pricing'
       require 'shipping'
-      puts Pricing.total(%w[19.99 5.01]).to_s('F')
+      puts Pricing.total(%w[19.99 5.01])
       puts Shipping.quote(3)
     RUBY
     output, error, status =
@@ -556,7 +556,7 @@ class IntegrationTest < Minitest::Test
       )
 
     assert status.success?, error
-    assert_equal %w[25.0 12], output.lines(chomp: true)
+    assert_equal %w[25/1 12], output.lines(chomp: true)
   end
 
   def test_imported_file_can_require_carton_by_name

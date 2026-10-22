@@ -43,7 +43,7 @@ class PricingTest < Minitest::Test
   Rounding = Pricing.const_get(:Rounding)
 
   def test_cents
-    assert_equal BigDecimal('1.01'), Rounding.cents(BigDecimal('1.005'))
+    assert_equal Rational('1.01'), Rounding.cents(Rational('1.005'))
   end
 end
 ```
