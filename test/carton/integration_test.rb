@@ -105,6 +105,31 @@ class IntegrationTest < Minitest::Test
                  result.fetch_values(:env_gemfile, :env_lockfile)
   end
 
+  # Each Box loads its own copy of Carton, so `setup_bundle` calls on
+  # different threads only take turns if every Box uses the Main Box's lock.
+  def test_setup_bundle_lock_is_shared_by_every_box
+    Dir.mktmpdir('carton-env-lock') do |dir|
+      entry = File.join(dir, 'lock.rb')
+      File.write(entry, "export Carton.__send__(:env_lock)\n")
+
+      assert_same Carton.__send__(:env_lock), import(entry)
+    end
+  end
+
+  # Bundler's own search prefers gems.rb, then Gemfile, from the nearest
+  # directory up.
+  def test_setup_bundle_finds_gems_rb
+    Dir.mktmpdir('carton-setup-bundle') do |dir|
+      FileUtils.mkdir_p(File.join(dir, 'nested'))
+      File.write(File.join(dir, 'gems.rb'), '')
+      File.write(File.join(dir, 'Gemfile'), '')
+      call_site = Struct.new(:absolute_path).new("#{dir}/nested/entry.rb")
+
+      assert_equal "#{dir}/gems.rb",
+                   Carton.__send__(:resolve_bundle_gemfile, nil, call_site)
+    end
+  end
+
   def test_setup_bundle_raises_when_explicit_gemfile_is_missing
     Dir.mktmpdir('carton-setup-bundle') do |dir|
       entry = File.join(dir, 'missing_gemfile.rb')

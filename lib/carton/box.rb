@@ -106,6 +106,10 @@ module Carton
       @export = value
     end
 
+    # The lock every Box's `setup_bundle` holds while it changes `ENV`. This
+    # method runs in the Main Box, so every Box gets the Main Box's lock.
+    def env_lock = ENV_LOCK
+
     private
 
     # `Ruby::Box#eval` does not switch the loading Box, so during a nested
