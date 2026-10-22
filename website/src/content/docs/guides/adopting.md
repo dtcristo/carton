@@ -47,7 +47,7 @@ require 'vendor_sdk' # loads, with its core extensions, inside this Box
 export VendorSDK::Client
 ```
 
-The gem's monkey patches to builtin classes stay in the adapter's Box, apart from the [visibility bug](/start/status/#before-production) in Ruby 4.0.7. The [Exports example](/guides/examples/exports/) includes an adapter for an existing file.
+The gem's monkey patches to builtin classes stay in the adapter's Box. The [Exports example](/guides/examples/exports/) includes an adapter for an existing file.
 
 ## 4. Check boundaries in CI
 

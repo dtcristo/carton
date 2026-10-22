@@ -13,7 +13,6 @@ A team should not rely on Carton in production until these change:
 
 - **`Ruby::Box` leaves experimental status.** Upstream Ruby. Every process run with `RUBY_BOX=1` prints Ruby's experimental warning, and Box behavior may change between Ruby releases.
 - **Cheaper Boxes.** Upstream Ruby. Template Boxes ([#25](https://github.com/dtcristo/carton/issues/25)) or Boxes started from a resolved load path ([Ruby #22275](https://bugs.ruby-lang.org/issues/22275)) would lower the [cost per Carton](#cost-per-carton).
-- **Builtin visibility isolation.** Upstream Ruby. On Ruby 4.0.7, changing only a builtin method's visibility (`private`, `protected`, `public`) leaks to every Box: `class String; protected :upcase; end` in one Carton changes `String#upcase` everywhere. Redefining a builtin method stays in the Carton. See the [reproduction](https://github.com/dtcristo/carton/blob/main/spikes/shared_gems/09_visibility_leak.rb).
 - **Rails reloading.** Carton. Rails apps restart on change. A [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) rebuilds changed Cartons through private hooks, but the runtime has no reload interface.
 - **Runtime dependency enforcement.** Carton, waiting on Ruby #22275. A Gem Carton sees its Importer's whole lockfile at runtime; see [Dependency enforcement](#dependency-enforcement).
 
@@ -38,6 +37,10 @@ A Gem Carton's gemspec declares its dependencies, and `carton check` reports Und
 ## Rails integration
 
 The experimental [Rails example](/guides/examples/rails/) runs Customers and Billing as isolated Engines, with Carton-owned loaders and an explicit CLI bridge. Domain Cartons load their own Active Support extensions, and the example does not establish compatibility with arbitrary Rails features or third-party Engines.
+
+## Ruby bugs
+
+On Ruby 4.0.7, changing only a builtin method's visibility (such as `protected :upcase` on `String`) leaks from a Box to every other Box ([reproduction](https://github.com/dtcristo/carton/blob/main/spikes/shared_gems/09_visibility_leak.rb)). This is an upstream Ruby bug, not a Carton limitation.
 
 ## Possible future features
 

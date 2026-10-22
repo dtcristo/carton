@@ -10,7 +10,7 @@ Ruby has gems to share code and Bundler to pick their versions, but nothing insi
 Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundaries at runtime:
 
 - other Cartons reach **only what a Carton exports**;
-- **monkey patches to builtin classes**, such as `String#blank?`, stay in the Carton that makes them, apart from a [Ruby 4.0.7 visibility bug](/start/status/#before-production);
+- **monkey patches to builtin classes**, such as `String#blank?`, stay in the Carton that makes them;
 - two Cartons can use **different versions of the same gem**.
 
 ## Compared with Bundler and Packwerk
@@ -37,7 +37,6 @@ Static checks only see what they can parse. Packwerk's authors note that a packa
 - **Shared objects.** Classes and objects a Carton exports are shared, not copied, so reopening an exported class or changing a shared object affects every Importer. See [Sharing classes and services](/guides/sharing-classes/).
 - **Plain `require`.** A `require` of a Carton's files loads a Second Copy outside its boundary, which `carton check` reports.
 - **Process lifetime.** Each Carton loads once per process: its state lasts as long as the process, and its First Importer fixes its gem versions.
-- **Builtin visibility changes.** A Ruby 4.0.7 bug: changing only a builtin method's visibility (`private`, `protected`, `public`) leaks to every Box. Redefining methods stays isolated.
 - **Process-global state.** `ENV`, the working directory, signal traps, `at_exit` hooks, threads, and file descriptors belong to the process. See [Operations](/guides/adopting/#operations).
 - **Security.** Box isolates definitions and load state, not objects. It is not a sandbox.
 
