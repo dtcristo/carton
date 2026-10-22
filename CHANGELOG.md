@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- `carton graph PATH...` prints the import graph as Mermaid (default) or DOT, with lazy imports dashed and the app as `Main` (#111).
+- `carton why FROM TO` prints the shortest chain of imports from a file to a Carton (#111).
+- `carton rbs --check` exits 1 when the RBS file is missing or stale and writes nothing; `carton rbs` no longer rewrites an unchanged file (#111).
+- `--exclude GLOB` skips files in directory scans, which now always skip `vendor/bundle`. A directory with no Ruby files is a usage error (#111).
+- `carton --version`, `carton -v`, and `carton help [COMMAND]`, plus `-h`/`--help` and `-v`/`--version` on every command (#111).
+- `carton check` reports `export` with no value or several (#111).
+
+### Changed
+
+- `carton check` gives each problem a stable rule ID and a column. Text output is `file:line:column: level: message [rule]` with pluralised counts, and JSON adds `version: 1`, `rule`, and `column` (#111).
+- `carton check` names Cartons by their Entrypoint path relative to the working directory, such as `billing.rb`, instead of the basename (#111).
+- Set both gems' homepages to the Carton website and retain their GitHub source links (#108).
+- Simplify the example gemspecs to required metadata, packaged files, and dependencies (#108).
+- Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/` (#108).
+- Keep the Minimal example focused on runtime boundaries and move static-check and RBS/Steep demonstrations into the Tooling example (#108).
+
 ### Fixed
 
 - `require 'carton'` works without RubyGems, as under `ruby --disable-gems`, and defines `Carton::VERSION` (#110).
@@ -12,13 +30,12 @@
 - `export` in an Entrypoint method called after its Import finishes is inert, instead of raising or setting an unread value (#110).
 - A Shared Import's version conflict with a locked gem now says the import "locks" that version, not "activates" it (#110).
 - The RBS signatures accept a `Pathname` for `import` and `import_relative`, and String groups for `setup_bundle` (#110).
-
-### Changed
-
-- Set both gems' homepages to the Carton website and retain their GitHub source links (#108).
-- Simplify the example gemspecs to required metadata, packaged files, and dependencies (#108).
-- Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/` (#108).
-- Keep the Minimal example focused on runtime boundaries and move static-check and RBS/Steep demonstrations into the Tooling example (#108).
+- `carton check` finds import cycles in linear time; it took exponential time even without cycles. It reports one shortest cycle per set of Cartons that import each other (#111).
+- Paths sharing the working directory's prefix, such as `../app-x` from `app/`, are no longer mangled in messages (#111).
+- `--help` on a command no longer calls `exit` or writes to `$stdout` directly, and `--version` on a command works (#111).
+- Unreadable files and an `rbs -o` directory exit 2 with `carton: PATH: reason` instead of a backtrace (#111).
+- `self.export` gets the same duplicate, Symbol, and arity checks and RBS typing as `export` (#111).
+- Discovery resolves each import once instead of on every pass (#111).
 
 ### Removed
 
