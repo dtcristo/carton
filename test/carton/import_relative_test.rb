@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+require 'open3'
+require 'rbconfig'
+require 'tmpdir'
 
 class ImportRelativeTest < Minitest::Test
   def test_import_relative_single_export
@@ -29,6 +32,38 @@ class ImportRelativeTest < Minitest::Test
   def test_import_relative_chained
     result = import_relative '../fixtures/relative_importer'
     assert_equal 'Hello, World!', result.greeting
+  end
+
+  # A script run by relative path, as in `ruby main.rb`, still resolves
+  # against its own directory after it changes directory.
+  def test_resolves_against_the_calling_file_after_chdir
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'sibling.rb'), "export :ok.to_s\n")
+      File.write(File.join(dir, 'main.rb'), <<~RUBY)
+        require 'carton'
+        Dir.chdir('/')
+        puts import_relative('sibling')
+      RUBY
+
+      output, error, status =
+        Open3.capture3(
+          { 'RUBY_BOX' => '1', 'RUBYOPT' => nil, 'RUBYLIB' => nil },
+          RbConfig.ruby,
+          '-I',
+          File.expand_path('../../lib', __dir__),
+          'main.rb',
+          chdir: dir,
+        )
+
+      assert status.success?, error
+      assert_equal "ok\n", output
+    end
+  end
+
+  # Like `require_relative`, `eval` code has no file to resolve against.
+  def test_raises_inside_eval
+    error = assert_raises(LoadError) { eval("import_relative 'x'") }
+    assert_equal 'cannot infer basepath', error.message
   end
 
   # `json` exists in the stdlib but not next to this file.

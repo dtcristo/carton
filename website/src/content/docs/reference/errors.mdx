@@ -22,7 +22,7 @@ StandardError
 
 ## `Carton::Error`
 
-<Signature owner="Carton::Error" rbs="class Carton::Error < ::StandardError" source="lib/carton/error.rb#L7" />
+<Signature owner="Carton::Error" rbs="class Carton::Error < ::StandardError" source="lib/carton/error.rb#L6" />
 
 The base class of every error Carton raises itself. Carton never raises it directly.
 
@@ -37,27 +37,28 @@ An import that cannot go ahead.
 - Raised by [`import`](/reference/kernel/#import) and [`import_relative`](/reference/kernel/#import_relative) when:
   - Boxes are disabled; run Ruby with `RUBY_BOX=1`.
   - The target is a file in a Carton's Interior; only its Entrypoint can be imported.
+  - The target is not Ruby source, such as a native extension found on `$LOAD_PATH`; only a `.rb` Entrypoint can be imported.
   - The import is circular, including a Carton importing itself.
-  - A Shared Gem Carton was built against other gem versions than this import activates. The message names the gem and both versions.
+  - A Shared Gem Carton was built against other gem versions than this import activates or locks. The message names the gem and both versions.
 
 </Tag>
 
 ## `Carton::ExportError`
 
-<Signature owner="Carton::ExportError" rbs="class Carton::ExportError < Carton::Error" source="lib/carton/error.rb#L18" />
+<Signature owner="Carton::ExportError" rbs="class Carton::ExportError < Carton::Error" source="lib/carton/error.rb#L17" />
 
 A missing or invalid Export.
 
 <Tag label="Raises">
 
-- Raised by [`export`](/reference/kernel/#export) on a second call in one Entrypoint, or for a Symbol.
+- Raised by [`export`](/reference/kernel/#export) on a second call while an Entrypoint loads, or for a Symbol. Once the Import finishes, a call from the Entrypoint's methods is inert.
 - Raised by [`import`](/reference/kernel/#import) or [`import_relative`](/reference/kernel/#import_relative) when the Entrypoint finishes loading without calling `export`. An `export` in a required file does not count.
 
 </Tag>
 
 ## `Carton::GemfileNotFound`
 
-<Signature owner="Carton::GemfileNotFound" rbs="class Carton::GemfileNotFound < Carton::Error" source="lib/carton/error.rb#L22" />
+<Signature owner="Carton::GemfileNotFound" rbs="class Carton::GemfileNotFound < Carton::Error" source="lib/carton/error.rb#L21" />
 
 <Tag label="Raises">
 

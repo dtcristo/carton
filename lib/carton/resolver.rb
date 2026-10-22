@@ -1,26 +1,18 @@
 # frozen_string_literal: true
 
+require 'rbconfig'
+
 module Carton
   # Maps an Import path to the file that should load, without evaluating any
   # code or reading Box state. The runtime passes the Importer's
   # `$LOAD_PATH`; a static analyzer can pass any load path it has computed.
   module Resolver
     # `feature` is what the new Box requires. `load_path` is the single Importer
-    # load-path entry that matched a name-based Import, if any. The runtime
-    # fills `gems` with the Gem Closure to activate in the new Box, and
-    # `locked_gems` with the Importer's locked specs when it ran Bundler setup.
-    # After loading, the Carton Box sets `gem_usage`, a callable returning the
-    # gems the Carton depends on at that moment: its Gem Closure plus every
-    # locked gem whose files it has loaded so far.
+    # load-path entry that matched a name-based Import, if any.
     Target =
-      Struct.new(
-        :feature,
-        :load_path,
-        :gems,
-        :locked_gems,
-        :gem_usage,
-        keyword_init: true,
-      )
+      Data.define(:feature, :load_path) do
+        def initialize(feature:, load_path: nil) = super
+      end
 
     EXTENSIONS = ['.rb', ".#{RbConfig::CONFIG['DLEXT']}"].freeze
     private_constant :EXTENSIONS
@@ -30,24 +22,26 @@ module Carton
     # Resolve `path` like `require_relative` when `base_dir` is given, like
     # `require` with an absolute path, or by searching `load_path` in order.
     # A missing relative or absolute target raises LoadError, as
-    # `require_relative` does. A name that matches no Ruby source file, such
-    # as a native extension, comes back as the bare `path`. A file inside a
-    # Carton raises ImportError: only its Entrypoint can be imported.
+    # `require_relative` does, and a name on no load-path entry comes back as
+    # the bare `path`. A native extension or an Interior file raises
+    # ImportError: only a Carton's `.rb` Entrypoint can be imported.
     def resolve(path, load_path:, base_dir: nil)
-      target = locate(path, load_path:, base_dir:)
-      reject_inside_carton(path.to_s, target)
+      path = path.to_s
+      target = find(path, load_path, base_dir)
+      reject_native_extension(path, target)
+      reject_inside_carton(path, target)
       target
     end
 
-    # Like `resolve`, but a file inside a Carton comes back as is, as
-    # `require` would load it. `carton check` uses this for `require` calls.
+    # Like `resolve`, but an Interior file comes back as is, as `require`
+    # would load it, and a name that matches a native extension comes back as
+    # the bare `path`. `carton check` uses this for `require` calls.
     def locate(path, load_path:, base_dir: nil)
       path = path.to_s
-      if base_dir || File.absolute_path?(path)
-        resolve_file(File.expand_path(path, base_dir))
-      else
-        resolve_name(path, load_path) || Target.new(feature: path)
-      end
+      target = find(path, load_path, base_dir)
+      return Target.new(feature: path) if target.load_path && native?(target)
+
+      target
     end
 
     # A Carton is its Entrypoint `x.rb` plus the `x/` directory beside it,
@@ -64,6 +58,27 @@ module Carton
       end
       entrypoint
     end
+
+    def find(path, load_path, base_dir)
+      if base_dir || File.absolute_path?(path)
+        resolve_file(File.expand_path(path, base_dir))
+      else
+        resolve_name(path, load_path) || Target.new(feature: path)
+      end
+    end
+    private_class_method :find
+
+    def native?(target) = !target.feature.end_with?('.rb')
+    private_class_method :native?
+
+    def reject_native_extension(path, target)
+      return unless File.absolute_path?(target.feature) && native?(target)
+
+      raise ImportError,
+            "#{path} resolves to #{target.feature}, which is not Ruby source: " \
+              'only a .rb Entrypoint can be imported'
+    end
+    private_class_method :reject_native_extension
 
     def reject_inside_carton(path, target)
       return unless File.absolute_path?(target.feature)
@@ -130,7 +145,6 @@ module Carton
         candidates.each do |candidate|
           file = File.join(dir, candidate)
           next unless File.file?(file)
-          return nil unless file.end_with?('.rb')
 
           return Target.new(feature: file, load_path: dir)
         end

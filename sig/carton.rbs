@@ -1,15 +1,15 @@
 module Kernel
   private
 
-  def import: (::String path) -> untyped
-  def import_relative: (::String path) -> untyped
+  def import: (::String | ::Pathname path) -> untyped
+  def import_relative: (::String | ::Pathname path) -> untyped
   def export: [T] (T value) -> T
 end
 
 module Carton
   VERSION: ::String
 
-  def self.setup_bundle: (*::Symbol groups, ?gemfile: ::String?) -> untyped
+  def self.setup_bundle: (*(::Symbol | ::String) groups, ?gemfile: ::String?) -> untyped
 end
 
 class Carton::Error < ::StandardError

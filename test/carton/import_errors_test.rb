@@ -5,14 +5,13 @@ require 'tmpdir'
 
 class ImportErrorsTest < Minitest::Test
   def test_missing_name_suggests_import_relative_for_a_sibling
-    Dir.mktmpdir do |dir|
+    Dir.mktmpdir do |tmp|
+      dir = File.realpath(tmp)
       File.write(File.join(dir, 'sibling.rb'), "export 1\n")
       main = File.join(dir, 'main.rb')
+      File.write(main, "import 'sibling'\n")
 
-      error =
-        assert_raises(LoadError) do
-          eval("import 'sibling'", TOPLEVEL_BINDING, main)
-        end
+      error = assert_raises(LoadError) { load main }
 
       assert_equal 'cannot load such file -- sibling: import searches ' \
                      '$LOAD_PATH, like require; use import_relative "sibling" ' \
@@ -27,6 +26,17 @@ class ImportErrorsTest < Minitest::Test
     assert_equal 'cannot load such file -- carton_missing_feature_name: ' \
                    'import searches $LOAD_PATH, like require',
                  error.message
+  end
+
+  # Ruby would load the native extension, which can never export.
+  def test_native_extension_name_is_not_an_entrypoint
+    error = assert_raises(Carton::ImportError) { import 'etc' }
+
+    assert_match(/\Aetc resolves to .*etc\.#{RbConfig::CONFIG['DLEXT']}, /, error.message)
+    assert_match(
+      /which is not Ruby source: only a \.rb Entrypoint can be imported\z/,
+      error.message,
+    )
   end
 
   # A failing require inside the Carton keeps Ruby's own error.

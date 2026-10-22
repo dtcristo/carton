@@ -7,13 +7,19 @@ module Carton
     # Import a Carton by absolute path, or by feature name from the Importer's
     # current `$LOAD_PATH`.
     def import(path)
-      Runtime.import(path, from: caller_locations(1, 1).first.path)
+      Runtime.import(path, from: caller_locations(1, 1).first.absolute_path)
     end
 
-    # Import a Carton relative to the calling file, like `require_relative`.
+    # Import a Carton relative to the calling file, like `require_relative`:
+    # relative to the current directory under `ruby -e`, and never from
+    # `eval`.
     def import_relative(path)
-      caller_dir = File.dirname(caller_locations(1, 1).first.path)
-      Runtime.import(path, base_dir: caller_dir)
+      location = caller_locations(1, 1).first
+      file = location.absolute_path
+      base_dir = file ? File.dirname(file) : (Dir.pwd if location.path == '-e')
+      raise LoadError, 'cannot infer basepath' unless base_dir
+
+      Runtime.import(path, base_dir:)
     end
 
     # Export one value from the current Carton; `import` returns it as is.
@@ -25,5 +31,4 @@ module Carton
   end
 end
 
-# Inject only the Kernel patch module into Kernel.
 Kernel.prepend(Carton::KernelPatch)

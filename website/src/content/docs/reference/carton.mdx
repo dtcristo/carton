@@ -23,15 +23,15 @@ Carton's namespace. Its public members are the bundle setup and the version; eve
 
 <span id="cartonsetup_bundle"></span>
 
-<Signature owner="Carton" rbs="def self.setup_bundle: (*::Symbol groups, ?gemfile: ::String?) -> untyped" source="lib/carton/bundler.rb#L12" />
+<Signature owner="Carton" rbs="def self.setup_bundle: (*(::Symbol | ::String) groups, ?gemfile: ::String?) -> untyped" source="lib/carton/bundler.rb#L20" />
 
 Sets up a bundle in the current Box, like `Bundler.setup`. In a Carton's Entrypoint, it gives that Carton a Carton Bundle of its own; in the app, it sets up the app's bundle. It uses gems that are already installed and never installs missing ones.
 
-`ENV` is restored when setup finishes, so the bundle never leaks into the Importer's subprocesses, and Bundler errors raise instead of exiting the process.
+`ENV` is restored when setup finishes, so the bundle never leaks into the Importer's subprocesses, and Bundler errors raise instead of exiting the process. Calls on different threads, from any Carton, take turns, so each sees only its own Gemfile in `ENV`.
 
 <Tag label="Parameters">
 
-- `*groups` (`Symbol`): the Gemfile groups to set up, such as `:default, :test`. With none, every group is set up.
+- `*groups` (`Symbol`, `String`): the Gemfile groups to set up, such as `:default, :test`. With none, every group is set up.
 - `gemfile:` (`String`, `nil`): the Gemfile, relative to the calling file. Without it, Carton searches upward from the calling file for `gems.rb` or `Gemfile`.
 
 </Tag>

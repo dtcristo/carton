@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 module Carton
+  # Held while `setup_bundle` changes `ENV`. Each Carton Box loads its own
+  # copy of Carton, so Boxes share the Main Box's lock through `Box#env_lock`.
+  ENV_LOCK = Thread::Mutex.new
+  private_constant :ENV_LOCK
+  BUNDLE_GEMFILE_NAMES = %w[gems.rb Gemfile].freeze
+  private_constant :BUNDLE_GEMFILE_NAMES
+
   class << self
     # Set up the current Carton's bundle, like `Bundler.setup(*groups)`.
     #
@@ -8,7 +15,8 @@ module Carton
     # or the real process cwd. Carton resolves the Gemfile from the calling
     # file (or `gemfile:`, relative to it), points Bundler at it, and clears any
     # stale `BUNDLE_LOCKFILE` so Bundler derives the matching lockfile. All of
-    # `ENV` is restored afterwards; Bundler keeps the selected Gemfile.
+    # `ENV` is restored afterwards; Bundler keeps the selected Gemfile. Calls
+    # on different threads, from any Carton, take turns.
     def setup_bundle(*groups, gemfile: nil)
       path = resolve_bundle_gemfile(gemfile, caller_locations(1, 1).first)
 
@@ -22,13 +30,27 @@ module Carton
 
     # `ENV` is process-global. Bundler reads the Gemfile from it and exports
     # subprocess variables such as `RUBYOPT` into it, so restore all of it.
-    def with_bundle_env(gemfile)
+    def with_bundle_env(gemfile, &)
+      lock = env_lock
+      # A Gemfile may import a Carton that sets up its own bundle on this
+      # thread, inside this one.
+      return swap_bundle_env(gemfile, &) if lock.owned?
+
+      lock.synchronize { swap_bundle_env(gemfile, &) }
+    end
+
+    def swap_bundle_env(gemfile)
       previous_env = ENV.to_h
       ENV['BUNDLE_GEMFILE'] = gemfile
       ENV.delete 'BUNDLE_LOCKFILE'
       yield
     ensure
-      ENV.replace(previous_env)
+      ENV.replace(previous_env) if previous_env
+    end
+
+    def env_lock
+      box = Ruby::Box.current
+      (box && Box.for(box)&.env_lock) || ENV_LOCK
     end
 
     def resolve_bundle_gemfile(gemfile, call_site)
@@ -38,7 +60,7 @@ module Carton
       current = caller_dir
 
       loop do
-        bundle_gemfile_names.each do |name|
+        BUNDLE_GEMFILE_NAMES.each do |name|
           candidate = File.join(current, name)
           return candidate if File.file?(candidate)
         end
@@ -60,14 +82,8 @@ module Carton
     end
 
     def caller_directory(call_site)
-      path = call_site&.absolute_path || call_site&.path
-      return Dir.pwd unless path && !path.start_with?('(')
-
-      File.dirname(File.expand_path(path))
-    end
-
-    def bundle_gemfile_names
-      %w[gems.rb Gemfile]
+      path = call_site&.absolute_path
+      path ? File.dirname(path) : Dir.pwd
     end
   end
 end

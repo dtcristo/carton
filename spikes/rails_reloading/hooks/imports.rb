@@ -36,10 +36,7 @@ module ReloadingSpike
       end
 
       evicted = affected & @reloadable
-      evicted.each do |path|
-        @cache.instance_variable_get(:@values).delete(path)
-        @cache.instance_variable_get(:@gem_usage).delete(path)
-      end
+      evicted.each { |path| @cache.instance_variable_get(:@entries).delete(path) }
       host.reload_domains
       evicted
     end

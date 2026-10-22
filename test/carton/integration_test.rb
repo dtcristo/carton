@@ -105,6 +105,62 @@ class IntegrationTest < Minitest::Test
                  result.fetch_values(:env_gemfile, :env_lockfile)
   end
 
+  # Each Box loads its own copy of Carton, so `setup_bundle` calls on
+  # different threads only take turns if every Box uses the Main Box's lock.
+  def test_setup_bundle_lock_is_shared_by_every_box
+    Dir.mktmpdir('carton-env-lock') do |dir|
+      entry = File.join(dir, 'lock.rb')
+      File.write(entry, "export Carton.__send__(:env_lock)\n")
+
+      assert_same Carton.__send__(:env_lock), import(entry)
+    end
+  end
+
+  # Bundler evaluates a Gemfile while the lock is held, and the Gemfile may
+  # import a Carton that sets up its own bundle on the same thread.
+  def test_setup_bundle_nests_through_a_gemfile_import
+    Dir.mktmpdir('carton-nested-bundle') do |dir|
+      # A private inner Carton, so no other test shares its cached Export.
+      inner = File.join(dir, 'inner')
+      FileUtils.mkdir_p(inner)
+      %w[Gemfile Gemfile.lock].each do |name|
+        FileUtils.cp("#{FIXTURES}/auto_bundle/#{name}", inner)
+      end
+      File.write(File.join(inner, 'entry.rb'), <<~RUBY)
+        Carton.setup_bundle
+        export Bundler.root.to_s
+      RUBY
+      File.write(File.join(dir, 'Gemfile'), <<~RUBY)
+        source 'https://rubygems.org'
+        $carton_nested_root = import(#{File.join(inner, 'entry').inspect})
+      RUBY
+      entry = File.join(dir, 'outer.rb')
+      File.write(entry, <<~RUBY)
+        Carton.setup_bundle
+        export inner_root: $carton_nested_root, gemfile: ENV['BUNDLE_GEMFILE']
+      RUBY
+
+      result = import entry
+
+      assert_equal File.realpath(inner), File.realpath(result.fetch(:inner_root))
+      assert_equal [ENV['BUNDLE_GEMFILE']], result.fetch_values(:gemfile)
+    end
+  end
+
+  # Bundler's own search prefers gems.rb, then Gemfile, from the nearest
+  # directory up.
+  def test_setup_bundle_finds_gems_rb
+    Dir.mktmpdir('carton-setup-bundle') do |dir|
+      FileUtils.mkdir_p(File.join(dir, 'nested'))
+      File.write(File.join(dir, 'gems.rb'), '')
+      File.write(File.join(dir, 'Gemfile'), '')
+      call_site = Struct.new(:absolute_path).new("#{dir}/nested/entry.rb")
+
+      assert_equal "#{dir}/gems.rb",
+                   Carton.__send__(:resolve_bundle_gemfile, nil, call_site)
+    end
+  end
+
   def test_setup_bundle_raises_when_explicit_gemfile_is_missing
     Dir.mktmpdir('carton-setup-bundle') do |dir|
       entry = File.join(dir, 'missing_gemfile.rb')
@@ -270,7 +326,7 @@ class IntegrationTest < Minitest::Test
 
     output = run_boxed(script)
     assert_match(
-      /sloppy_gem\.rb was imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      /sloppy_gem\.rb was imported with bigdecimal 3\.3\.1, but this import locks bigdecimal 4\.1\.1/,
       output,
     )
   end
@@ -294,7 +350,7 @@ class IntegrationTest < Minitest::Test
     RUBY
 
     assert_match(
-      /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+      /imported with bigdecimal 3\.3\.1, but this import locks bigdecimal 4\.1\.1/,
       run_boxed(script),
     )
   end
@@ -320,7 +376,7 @@ class IntegrationTest < Minitest::Test
       output = run_boxed(lazy_sloppy_script(gems))
       assert_match(/\A3\.3\.1$/, output)
       assert_match(
-        /imported with bigdecimal 3\.3\.1, but this import activates bigdecimal 4\.1\.1/,
+        /imported with bigdecimal 3\.3\.1, but this import locks bigdecimal 4\.1\.1/,
         output,
       )
     end
