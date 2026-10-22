@@ -61,8 +61,7 @@ class ZeitwerkTest < Minitest::Test
   end
 
   def test_app_code_calls_both_cartons
-    assert_equal 'invoice $42.00 + shipping $11.00',
-                 OrderSummary.line(4200, 3)
+    assert_equal 'invoice $42.00 + shipping $11.00', OrderSummary.line(4200, 3)
   end
 
   def test_reload_replaces_classes_but_not_held_references

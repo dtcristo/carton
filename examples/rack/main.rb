@@ -12,9 +12,9 @@ app = Rack::Builder.parse_file(File.join(__dir__, 'config.ru'))
 request = Rack::MockRequest.new(app)
 
 puts "GET /catalog => #{request.get('/catalog').body}"
-puts "GET /orders/quote?sku=tea&quantity=2 => " \
+puts 'GET /orders/quote?sku=tea&quantity=2 => ' \
        "#{request.get('/orders/quote?sku=tea&quantity=2').body}"
-puts "GET /orders/quote?sku=cake&quantity=1 => " \
+puts 'GET /orders/quote?sku=cake&quantity=1 => ' \
        "#{request.get('/orders/quote?sku=cake&quantity=1').status}"
 puts
 

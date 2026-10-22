@@ -12,7 +12,7 @@ Orders =
   lambda do |env|
     params = URI.decode_www_form(env['QUERY_STRING']).to_h
     price = Catalog.price(params['sku'])
-    next [404, { 'content-type' => 'text/plain' }, ['Unknown SKU']] unless price
+    next 404, { 'content-type' => 'text/plain' }, ['Unknown SKU'] unless price
 
     quote = { sku: params['sku'], total: price * Integer(params['quantity']) }
     [200, { 'content-type' => 'application/json' }, [quote.to_json]]
