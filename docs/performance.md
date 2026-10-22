@@ -38,7 +38,7 @@ Whole-process wall time, including Ruby's own boot, for the earlier smoke exampl
 | Example | process wall time (ms) |
 | --- | ---: |
 | rails_in_main, now rails_with_carton_domain | 1497.5 |
-| rails_in_cartons | 2467.2 |
+| rails_in_cartons, now rails | 2467.2 |
 
 ## Where the time goes
 
@@ -54,7 +54,7 @@ Each import costs about the same no matter how many came before, so cost grows l
 
 - **Creating a Box is the floor.** Ruby copies its builtin classes into every new Box, about 55 ms and 2.2 MB on this machine. Carton adds little on top of it. That makes Carton suited to gem-sized or domain-sized units, tens of Cartons rather than hundreds. 200 one-file Cartons take 12 seconds to boot.
 - **Gem Cartons pay for Psych.** Carton rebuilds the importer's gem specs in each new Box with a YAML round trip, and the first one loads Psych into that Box. That is almost half of a Gem Carton's cost. The bundle's size matters much less: 190 more locked gems add about 85 ms per import.
-- **Rails in Cartons** booted about a second slower in this snapshot than Rails in the Main Box: four Carton Boxes, and Rails' gems activated in the framework Box.
+- **Rails example** booted about a second slower in this snapshot than Rails in the Main Box: four Carton Boxes, and Rails' gems activated in the framework Box.
 
 [todo.md](todo.md) tracks rebuilding specs without YAML and reporting Box creation cost upstream.
 

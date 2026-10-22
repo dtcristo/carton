@@ -1,6 +1,6 @@
 # Hanami
 
-This example is documented at https://carton.dtcristo.com/guides/examples/hanami-in-cartons/, with its code and how to run it.
+This example is documented at https://carton.dtcristo.com/guides/examples/hanami/, with its code and how to run it.
 
 From the repository root:
 

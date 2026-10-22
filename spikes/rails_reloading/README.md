@@ -16,7 +16,7 @@ The task installs the Rails fixture bundle and runs only this spike's request-le
 RUBY_BOX=1 ruby spikes/rails_reloading/test/reloading_test.rb
 ```
 
-The test uses [the Rails example](https://carton.dtcristo.com/guides/examples/rails-in-cartons/) as a read-only fixture. It copies that app's Cartons and lockfile into a temporary directory, points the scratch Gemfile at this checkout, and installs the experiment's hooks in that copy only. It edits those copied files, uses an in-memory database, and deletes the copy on exit. The ordinary example still requires restarting after edits.
+The test uses [the Rails example](https://carton.dtcristo.com/guides/examples/rails/) as a read-only fixture. It copies that app's Cartons and lockfile into a temporary directory, points the scratch Gemfile at this checkout, and installs the experiment's hooks in that copy only. It edits those copied files, uses an in-memory database, and deletes the copy on exit. The ordinary example still requires restarting after edits.
 
 ## Ownership and fixture dependency
 

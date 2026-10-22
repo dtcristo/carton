@@ -5,7 +5,7 @@ sidebar:
   order: 9
 ---
 
-The [Rails example](/guides/examples/rails-in-cartons/) runs Customers and Billing as isolated Rails Engines, each in its own Carton. Customers registers a customer; Billing imports Customers, validates an invoice, calculates tax, and persists it. Each domain owns its business classes, controllers, storage records, repositories, routes, views, and migrations.
+The [Rails example](/guides/examples/rails/) runs Customers and Billing as isolated Rails Engines, each in its own Carton. Customers registers a customer; Billing imports Customers, validates an invoice, calculates tax, and persists it. Each domain owns its business classes, controllers, storage records, repositories, routes, views, and migrations.
 
 Rails loads once in a shared framework Carton. A shop Carton mounts both Engines and exports its Rack application to the Main Box. This is an experimental integration with the CLI and reloading limits described below.
 
@@ -24,7 +24,7 @@ Invoice JSON contains `id`, `customer_id`, `subtotal_cents`, `tax_cents`, and `t
 
 Blank customer names and invalid subtotals return 422 with domain errors. Subtotals must be non-negative Integers after the controller coerces form strings; fractional and malformed values are rejected. Issuing an invoice for an unknown customer returns 404. Neither Carton holds per-request repositories in module-level state.
 
-<span id="rails-engines-in-cartons"></span>
+<span id="rails-engines"></span>
 
 ## Box ownership and loading
 
@@ -40,7 +40,7 @@ RUBY_BOX=1 bin/rails test
 RUBY_BOX=1 bin/rails server -b 127.0.0.1
 ```
 
-Use the example's `bin/rails`. It enters the framework Carton before loading Rails commands, and supplies the explicitly exported namespaces to `runner`. Stock Rails/Rake commands, interactive console, generators, and arbitrary third-party Engines are outside that example's verified contract. `SHOP_DATABASE` selects its database; the [example guide](/guides/examples/rails-in-cartons/) lists the commands and layout.
+Use the example's `bin/rails`. It enters the framework Carton before loading Rails commands, and supplies the explicitly exported namespaces to `runner`. Stock Rails/Rake commands, interactive console, generators, and arbitrary third-party Engines are outside that example's verified contract. `SHOP_DATABASE` selects its database; the [example guide](/guides/examples/rails/) lists the commands and layout.
 
 ## Testing and development
 

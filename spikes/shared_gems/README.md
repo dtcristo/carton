@@ -39,7 +39,7 @@ BUNDLE_GEMFILE=examples/rails/Gemfile bundle install
 | `08_benchmark.rb` | What are time, retained RSS, source compilation and feature-load costs at 1, 5, 10, 25 and 50 Boxes? |
 | `09_visibility_leak.rb` | Does a visibility-only builtin mutation stay isolated? Verified VM failure, asserted in a disposable process. |
 | `10_rails.rb` | Can two Active Record domain Cartons use shared Rails dependencies and SQLite? |
-| `10_rails.rb --existing` | Can the same hook run the unmodified Rails-in-Cartons example? Expected activation failure. |
+| `10_rails.rb --existing` | Can the same hook run the unmodified Rails example? Expected activation failure. |
 | `11_gem_contract.rb` | Do JSON, Zeitwerk, bundle restrictions and independent version selection follow the intended model? |
 
 The prototype helper retains method objects and an explicit manifest in memory. Its `summary` lists installed method names, visibility, removals, ancestor additions and unsupported state changes. It binds newly loaded top-level constants by identity. It does not copy loaded features, intercept require, activate child gems, or claim to copy a complete Box. Existing top-level autoloads are not transferred. The integration hook uses private Carton internals and exists only in the scripts' processes.

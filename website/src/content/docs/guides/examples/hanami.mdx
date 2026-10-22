@@ -7,7 +7,7 @@ sidebar:
 
 import ExampleFile from '../../../../components/ExampleFile.astro';
 
-[Hanakai](https://hanakai.org/) brings together Hanami, Dry, and Rom. This example uses all three for the same customer-registration and invoice-issuance workflow as [Rails](/guides/examples/rails-in-cartons/). Customers and Billing are Hanami slices, each running inside its own Carton. The Shop Carton exports its Hanami Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami).
+[Hanakai](https://hanakai.org/) brings together Hanami, Dry, and Rom. This example uses all three for the same customer-registration and invoice-issuance workflow as [Rails](/guides/examples/rails/). Customers and Billing are Hanami slices, each running inside its own Carton. The Shop Carton exports its Hanami Rack application to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/hanami).
 
 The application follows Hanami's shape: `config/app.rb`, `config/routes.rb`, `config/providers/`, `config/db/migrate/`, and `slices/`. Actions handle HTTP, operations implement workflows, contracts validate input, repos query relations, and views render templates. The app consists of slices, so it needs no root `app/` components. Carton adds Entrypoints beside those directories and explicit boot bridges; it changes no framework or runtime implementation.
 

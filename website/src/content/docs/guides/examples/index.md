@@ -18,8 +18,8 @@ The repository's [examples](/guides/examples/) are small, separate programs, and
 | How do Cartons share one app lockfile? | [Monorepo](/guides/examples/monorepo/): path gems, declared dependencies, and unit and integration tests |
 | How do I host plugins with conflicting gems? | [Plugins](/guides/examples/plugins/): Dynamic Imports, a shared interface, Carton Bundles, and a contained builtin patch |
 | How do autoloading and reloading interact with imports? | [Zeitwerk](/guides/examples/zeitwerk/): loaders per Box, lazy namespaces, and references that stay stale after reload |
-| Can Rails itself live inside Cartons? | [Rails](/guides/examples/rails-in-cartons/), experimental: Customers and Billing inside Rails Engines, with Carton-owned loaders and an explicit CLI bridge |
-| Can Hanami, Dry, and Rom live inside Cartons? | [Hanami](/guides/examples/hanami-in-cartons/): Customers and Billing in Hanami slices, with contracts, operations, ROM repos, views, and a CLI bridge |
+| Can Rails itself live inside Cartons? | [Rails](/guides/examples/rails/), experimental: Customers and Billing inside Rails Engines, with Carton-owned loaders and an explicit CLI bridge |
+| Can Hanami, Dry, and Rom live inside Cartons? | [Hanami](/guides/examples/hanami/): Customers and Billing in Hanami slices, with contracts, operations, ROM repos, views, and a CLI bridge |
 
 Gems, Bundler, and Plugins all load conflicting bigdecimal versions, but teach different loading choices. Gems is the shortest version-isolation demonstration, Bundler shows setup details, and Plugins applies them.
 
