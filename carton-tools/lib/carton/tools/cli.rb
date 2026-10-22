@@ -5,21 +5,31 @@ require 'json'
 require 'optparse'
 require_relative 'checks'
 require_relative 'signatures'
+require_relative 'version'
 
 module Carton
   module Tools
     # `carton rbs` and `carton check`. Both read code with Prism and never run
     # it, so neither needs `RUBY_BOX=1`.
     class CLI
+      COMMANDS = {
+        'check' => 'Report import and export problems without running code',
+        'rbs' => 'Write RBS for what each import returns',
+      }.freeze
+
       USAGE = <<~TEXT
         Usage: carton COMMAND [options] PATH...
 
         Commands:
-          rbs    Write RBS for what each import returns
-          check  Report import and export problems without running code
+        #{COMMANDS.map { |name, summary| "  #{name.ljust(6)} #{summary}" }.join("\n")}
+
+        Options:
+          -h, --help     Show this help
+          -v, --version  Show the version
 
         PATH is a Ruby file or a directory of them, such as main.rb or app.
         Imports are followed into every Carton they reach.
+        Run carton help COMMAND for a command's options.
       TEXT
 
       RBS_OUTPUT = 'sig/generated/carton.rbs'
@@ -34,28 +44,50 @@ module Carton
       end
 
       # Returns the exit status: 0 on success, 1 when `check` finds errors,
-      # and 2 for a usage error.
+      # and 2 for a usage or file error. `--help` and `--version` print to
+      # `out` and return 0.
       def run(argv)
         command, *args = argv
-        case command
-        when 'rbs'
-          rbs(args)
-        when 'check'
-          check(args)
-        when '-h', '--help'
-          @out.puts USAGE
-          0
-        else
-          @err.puts "carton: unknown command #{command}\n\n" if command
-          @err.puts USAGE
-          2
+        catch(:exit) do
+          case command
+          when *COMMANDS.keys
+            send(command, args)
+          when 'help'
+            help(args)
+          when '-h', '--help'
+            @out.puts USAGE
+            0
+          when '-v', '--version'
+            @out.puts "carton #{VERSION}"
+            0
+          else
+            @err.puts "carton: unknown command #{command}\n\n" if command
+            @err.puts USAGE
+            2
+          end
         end
-      rescue OptionParser::ParseError, Errno::ENOENT => e
+      rescue OptionParser::ParseError => e
         @err.puts "carton: #{e.message}"
+        2
+      rescue SystemCallError => e
+        @err.puts "carton: #{system_message(e)}"
         2
       end
 
       private
+
+      def help(args)
+        return run([args.first, '--help']) if COMMANDS.key?(args.first)
+
+        run(args.empty? ? ['--help'] : args)
+      end
+
+      # `PATH: strerror`, without Ruby's ` @ function` detail.
+      def system_message(error)
+        reason = SystemCallError.new(nil, error.errno).message
+        path = error.message.delete_prefix(reason).sub(/\A(?: @ \S+)? - /, '')
+        path.empty? || path == error.message ? reason : "#{path}: #{reason}"
+      end
 
       def rbs(args)
         output = RBS_OUTPUT
@@ -143,6 +175,8 @@ module Carton
         includes = []
         parser =
           OptionParser.new do |o|
+            o.program_name = 'carton'
+            o.version = VERSION
             o.banner = "Usage: carton #{command} [options] PATH..."
             o.on(
               '-I',
@@ -150,6 +184,14 @@ module Carton
               'Add DIR to the load path for named imports',
             ) { |dir| includes << File.expand_path(dir) }
             yield o if block_given?
+            o.on_tail('-h', '--help', 'Show this help') do
+              @out.puts o
+              throw :exit, 0
+            end
+            o.on_tail('-v', '--version', 'Show the version') do
+              @out.puts "carton #{VERSION}"
+              throw :exit, 0
+            end
           end
         paths = parser.parse(args)
         if paths.empty?
@@ -160,7 +202,5 @@ module Carton
         Project.new(paths, load_path: includes + $LOAD_PATH)
       end
     end
-
-    private_constant :Checks, :Project, :Signatures, :SourceFile
   end
 end

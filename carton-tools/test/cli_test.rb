@@ -38,11 +38,68 @@ class CliTest < Minitest::Test
     assert_match(/\AUsage: carton check \[options\] PATH\.\.\./, err)
   end
 
+  def test_version_prints_the_version
+    %w[-v --version].each do |flag|
+      assert_equal [0, "carton #{Carton::Tools::VERSION}\n", ''], run_cli(flag)
+    end
+  end
+
+  def test_help_command_prints_usage
+    assert_equal run_cli('--help'), run_cli('help')
+  end
+
+  # OptionParser's own --help and --version print to $stdout and exit.
+  def test_command_help_and_version_return_a_status
+    %w[check rbs].each do |command|
+      status, out, err = run_cli(command, '--help')
+
+      assert_equal 0, status
+      assert_match(/\AUsage: carton #{command} \[options\] PATH\.\.\./, out)
+      assert_match(/^    -h, --help /, out)
+      assert_empty err
+      assert_equal [status, out, err], run_cli('help', command)
+      assert_equal [status, out, err], run_cli(command, '-h')
+      assert_equal [0, "carton #{Carton::Tools::VERSION}\n", ''],
+                   run_cli(command, '--version')
+    end
+  end
+
+  def test_help_for_an_unknown_command_fails
+    status, out, err = run_cli('help', 'run')
+
+    assert_equal 2, status
+    assert_empty out
+    assert_match(/\Acarton: unknown command run$/, err)
+  end
+
   def test_missing_path_fails
     status, _, err = run_cli('check', 'nope.rb')
 
     assert_equal 2, status
-    assert_match(/\Acarton: No such file or directory/, err)
+    assert_equal "carton: nope.rb: No such file or directory\n", err
+  end
+
+  def test_unreadable_file_fails
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'main.rb'), "p 1\n")
+      File.chmod(0o000, File.join(dir, 'main.rb'))
+      skip 'running as root' if File.readable?(File.join(dir, 'main.rb'))
+      status, _, err = Dir.chdir(dir) { run_cli('check', 'main.rb') }
+
+      assert_equal 2, status
+      assert_match(/\Acarton: \S*main\.rb: Permission denied\n\z/, err)
+    end
+  end
+
+  def test_rbs_output_to_a_directory_fails
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'main.rb'), "p 1\n")
+      Dir.mkdir(File.join(dir, 'sig'))
+      status, _, err = Dir.chdir(dir) { run_cli('rbs', '-o', 'sig', 'main.rb') }
+
+      assert_equal 2, status
+      assert_equal "carton: sig: Is a directory\n", err
+    end
   end
 
   def test_bad_option_fails

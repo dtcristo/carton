@@ -14,6 +14,8 @@ Usage: carton check [options] PATH...
     -I, --include DIR                Add DIR to the load path for named imports
         --strict                     Fail on warnings too, not only errors
         --format FORMAT              text (default) or json
+    -h, --help                       Show this help
+    -v, --version                    Show the version
 ```
 
 ## Options
@@ -23,6 +25,8 @@ Usage: carton check [options] PATH...
 | `-I`, `--include DIR` | Add `DIR` to the load path for named imports. Repeatable. |
 | `--strict` | Exit 1 on warnings too, not only errors |
 | `--format FORMAT` | `text` (default) or `json` |
+| `-h`, `--help` | Print this usage to stdout and exit 0 |
+| `-v`, `--version` | Print the version to stdout and exit 0 |
 
 ## Exit status
 

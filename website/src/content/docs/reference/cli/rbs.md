@@ -13,6 +13,8 @@ Writes RBS for what each import returns, so Steep or another type checker can ty
 Usage: carton rbs [options] PATH...
     -I, --include DIR                Add DIR to the load path for named imports
     -o, --output FILE                Where to write the RBS (default sig/generated/carton.rbs, - for stdout)
+    -h, --help                       Show this help
+    -v, --version                    Show the version
 ```
 
 ## Options
@@ -21,6 +23,8 @@ Usage: carton rbs [options] PATH...
 | --- | --- |
 | `-I`, `--include DIR` | Add `DIR` to the load path for named imports. Repeatable. |
 | `-o`, `--output FILE` | Where to write the RBS: `sig/generated/carton.rbs` by default, or `-` for stdout |
+| `-h`, `--help` | Print this usage to stdout and exit 0 |
+| `-v`, `--version` | Print the version to stdout and exit 0 |
 
 ## Output
 
