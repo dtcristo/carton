@@ -5,6 +5,7 @@
 ### Changed
 
 - Set both gems' homepages to the Carton website and retain their GitHub source links.
+- Simplify the example gemspecs to required metadata, packaged files, and dependencies.
 
 ## [0.4.0] - 2026-10-22
 

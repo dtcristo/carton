@@ -6,8 +6,6 @@ Gem::Specification.new do |spec|
   spec.summary = 'Loads Rails once and shares its base classes'
   spec.authors = ['Carton']
   spec.files = Dir['{app,lib}/**/*.rb']
-  spec.required_ruby_version = '>= 4.0.7'
-  spec.metadata['rubygems_mfa_required'] = 'true'
   spec.add_dependency 'actionpack'
   spec.add_dependency 'activerecord'
   spec.add_dependency 'carton'
