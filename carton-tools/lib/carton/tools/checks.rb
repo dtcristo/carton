@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'bindings'
+require_relative 'import_graph'
 require_relative 'project'
 
 module Carton
@@ -76,49 +77,23 @@ module Carton
       # runs while its file loads. An import inside a method or block may run
       # after the other Carton has loaded.
       def cycles
-        graph = Hash.new { |hash, key| hash[key] = [] }
-        @project.edges.each do |edge|
-          from = @project.owner(edge.call.file)
-          graph[from.entrypoint] << edge if from && edge.carton
-        end
-        find_cycles(graph).map do |cycle|
-          first = cycle.first.call
-          names = [cycle.last.carton, *cycle.map(&:carton)].map(&:name)
-          message = "import cycle: #{names.join(' -> ')}"
-          if cycle.any? { |edge| edge.call.lazy }
-            warning(
-              first.file,
-              first.line,
-              "#{message} (an import runs lazily, so it may load)",
-            )
-          else
-            error(first.file, first.line, message)
+        ImportGraph
+          .new(@project)
+          .cycles
+          .map do |cycle|
+            first = cycle.first.call
+            names = [cycle.last.carton, *cycle.map(&:carton)].map(&:name)
+            message = "import cycle: #{names.join(' -> ')}"
+            if cycle.any? { |edge| edge.call.lazy }
+              warning(
+                first.file,
+                first.line,
+                "#{message} (an import runs lazily, so it may load)",
+              )
+            else
+              error(first.file, first.line, message)
+            end
           end
-        end
-      end
-
-      # Each elementary cycle once, starting from its smallest Entrypoint. Of
-      # parallel imports between the same Cartons, the eager one counts.
-      def find_cycles(graph)
-        cycles = []
-        graph.each_key.to_a.each do |start|
-          walk(graph, start, start, [], cycles)
-        end
-        cycles
-          .sort_by { |cycle| cycle.count { |edge| edge.call.lazy } }
-          .uniq { |cycle| cycle.map { |edge| edge.carton.entrypoint } }
-      end
-
-      def walk(graph, start, node, path, cycles)
-        graph[node].each do |edge|
-          target = edge.carton.entrypoint
-          if target == start
-            cycles << [*path, edge]
-          elsif target > start &&
-                path.none? { |e| e.carton.entrypoint == target }
-            walk(graph, start, target, [*path, edge], cycles)
-          end
-        end
       end
 
       # A `require` of an imported Carton's file from outside it loads a second

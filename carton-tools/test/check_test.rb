@@ -127,6 +127,55 @@ class CheckTest < Minitest::Test
     )
   end
 
+  def test_longer_cycles_are_each_reported_once
+    status, output =
+      check(
+        'main.rb' => "import_relative 'a'\nimport_relative 'x'\n",
+        'a.rb' => "import_relative 'b'\nexport({})\n",
+        'b.rb' => "import_relative 'c'\nexport({})\n",
+        'c.rb' => "import_relative 'a'\nexport({})\n",
+        'x.rb' => "import_relative 'y'\nexport({})\n",
+        'y.rb' => "import_relative 'x'\nexport({})\n",
+      )
+
+    assert_equal 1, status
+    assert_match(/^a\.rb:1: error: import cycle: a -> b -> c -> a$/, output)
+    assert_match(/^x\.rb:1: error: import cycle: x -> y -> x$/, output)
+    assert_equal 2, output.scan('import cycle').size
+  end
+
+  def test_an_eager_cycle_wins_over_a_shorter_lazy_one
+    status, output =
+      check(
+        'main.rb' => "import_relative 'a'\n",
+        'a.rb' => "import_relative 'b'\nexport({})\n",
+        'b.rb' =>
+          "def a = import_relative('a')\nimport_relative 'c'\nexport({})\n",
+        'c.rb' => "import_relative 'a'\nexport({})\n",
+      )
+
+    assert_equal 1, status
+    assert_match(/^a\.rb:1: error: import cycle: a -> b -> c -> a$/, output)
+    assert_equal 1, output.scan('import cycle').size
+  end
+
+  def test_a_large_acyclic_graph_is_checked_quickly
+    files = { 'main.rb' => "X = import_relative 'c0'\np X\n" }
+    200.times do |i|
+      files["c#{i}.rb"] = "A = import_relative 'c#{i + 1}'\n" \
+        "B = import_relative 'c#{i + 2}'\n" \
+        "export({ a: A, b: B })\n"
+    end
+    files['c200.rb'] = files['c201.rb'] = "export 1\n"
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    status, output = check(files)
+    elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+
+    assert_equal 0, status, output
+    assert_operator elapsed, :<, 10
+  end
+
   def test_requiring_an_imported_carton_is_an_error
     status, output =
       check(
