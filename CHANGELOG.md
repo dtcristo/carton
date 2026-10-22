@@ -2,9 +2,9 @@
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-10-21
+## [0.4.0] - 2026-10-22
 
-`carton check` adds unused import and shared-object reopening warnings plus JSON reports. The Rails examples now share a Customers and Billing workflow, and Bundler support starts at 4.0.20 (#71, #79, #82, #83).
+Every imported Entrypoint now requires an explicit Export; Bare Cartons and `Carton::Namespace` are removed. `carton check` adds unused import and shared-object reopening warnings plus JSON reports. The Rails and Hanami examples share a Customers and Billing workflow, and Bundler support starts at 4.0.20 (#71, #79, #82, #83, #93, #100, #107).
 
 ### Breaking
 
