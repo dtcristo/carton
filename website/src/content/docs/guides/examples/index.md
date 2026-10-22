@@ -26,10 +26,6 @@ Export Hashes and callables, adapt legacy Ruby, and use pattern matching.
 
 Pass host adapters into a checkout Carton and test it with fakes.
 
-### [Bundler](/guides/examples/bundler/)
-
-Set up Carton Bundles across imports, including a Transitive Carton and a path gem.
-
 ### [Monorepo](/guides/examples/monorepo/)
 
 Share one app lockfile across path gems with declared dependencies and unit and integration tests.

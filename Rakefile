@@ -35,7 +35,6 @@ EXAMPLES = %w[
   exports
   dependency_injection
   plugins
-  bundler
   monorepo
   zeitwerk
   rails
@@ -104,7 +103,7 @@ task :test do
   Bundler.with_unbundled_env do
     install_test_bigdecimals
     Dir
-      .glob(File.join('examples', '{bundler,monorepo,plugins}', '**/Gemfile'))
+      .glob(File.join('examples', '{monorepo,plugins}', '**/Gemfile'))
       .each { |gemfile| install_bundle(gemfile) }
     sh(command, verbose: false)
   end
