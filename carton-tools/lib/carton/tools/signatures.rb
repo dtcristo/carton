@@ -28,7 +28,7 @@ module Carton
       # the untyped signature.
       def kernel
         overloads =
-          %w[import import_relative].filter_map do |kind|
+          SourceFile::IMPORTS.filter_map do |kind|
             types =
               edges_by_path(kind).filter_map do |path, cartons|
                 next unless cartons.uniq.size == 1

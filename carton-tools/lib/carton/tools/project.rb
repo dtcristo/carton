@@ -36,17 +36,14 @@ module Carton
         @files = {}
         @cartons = {}
         @carton_by_file = {}
-        ruby_files(paths).each { |path| parse(path) }
-        discover
-        @edges = imports.map { |call| resolve(call) }
-        @edge_by_call = @edges.to_h { |edge| [edge.call, edge] }
+        @edge_by_call = {}.compare_by_identity
+        discover(ruby_files(paths).map { |path| parse(path) })
+        @edges = imports.map { |call| edge(call) }
       end
 
       # The absolute path an import or require loads, or nil.
       def target(call)
-        unless SourceFile::IMPORTS.include?(call.kind.to_sym)
-          return locate(call)
-        end
+        return locate(call) unless SourceFile::IMPORTS.include?(call.kind)
 
         @edge_by_call[call]&.carton&.entrypoint
       end
@@ -123,30 +120,44 @@ module Carton
 
       def parse(path) = @files[path] ||= SourceFile.parse(path)
 
-      # Follow imports and `require_relative` calls until no new files or
-      # Cartons turn up. A file's load path depends on the Carton it belongs
-      # to, which may be found after the file is read.
-      def discover
-        loop do
-          required =
-            requires.select(&:relative?).filter_map { |call| locate(call) }
-          required = required.grep(/\.rb\z/).reject { |path| @files.key?(path) }
-          found = imports.filter_map { |call| resolve(call).carton }
-          fresh = found.reject { |carton| @cartons.key?(carton.entrypoint) }
-          break if required.empty? && fresh.empty?
+      # Follow imports and `require_relative` calls from each file in turn
+      # until no new files or Cartons turn up.
+      def discover(queue)
+        until queue.empty?
+          file = queue.shift
+          file.requires.each do |call|
+            next unless call.relative?
 
-          required.each { |path| parse(path) }
-          fresh.each { |carton| add_carton(carton) }
+            path = locate(call)
+            queue << parse(path) if path&.end_with?('.rb') && !@files.key?(path)
+          end
+          file.imports.each do |call|
+            carton = edge(call).carton
+            next if carton.nil? || @cartons.key?(carton.entrypoint)
+
+            queue.concat(add_carton(carton))
+          end
         end
       end
 
+      # The Carton's files to read again: new ones, and ones read before
+      # their Carton was found. A file's load path depends on its Carton, so
+      # the latter's imports resolve again.
       def add_carton(carton)
         @cartons[carton.entrypoint] = carton
-        carton.files.each do |file|
-          @carton_by_file[file] ||= carton
-          parse(file)
+        carton.files.filter_map do |path|
+          next if @carton_by_file.key?(path)
+
+          @carton_by_file[path] = carton
+          if @files.key?(path)
+            @files[path].imports.each { |call| @edge_by_call.delete(call) }
+          end
+          parse(path)
         end
       end
+
+      # Each import resolves once, unless its file's Carton changes.
+      def edge(call) = @edge_by_call[call] ||= resolve(call)
 
       def resolve(call)
         unless call.path

@@ -17,9 +17,9 @@ class SourceFileTest < Minitest::Test
 
     assert_equal(
       [
-        %w[import billing Billing],
-        %w[import_relative math App::MathTools],
-        ['import', nil, nil],
+        [:import, 'billing', 'Billing'],
+        [:import_relative, 'math', 'App::MathTools'],
+        [:import, nil, nil],
       ],
       file.imports.map { |call| [call.kind, call.path, call.constant] },
     )
@@ -52,7 +52,7 @@ class SourceFileTest < Minitest::Test
     file = parse("require 'json'\nrequire_relative 'billing/tax'\n")
 
     assert_equal(
-      [%w[require json], %w[require_relative billing/tax]],
+      [[:require, 'json'], [:require_relative, 'billing/tax']],
       file.requires.map { |call| [call.kind, call.path] },
     )
   end

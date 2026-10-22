@@ -360,7 +360,7 @@ module Carton
 
           call =
             Call.new(
-              kind: node.name.to_s,
+              kind: node.name,
               path:
                 (args.first.unescaped if args.first.is_a?(Prism::StringNode)),
               file: @file.path,

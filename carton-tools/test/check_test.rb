@@ -52,6 +52,26 @@ class CheckTest < Minitest::Test
     assert_match(/1 Cartons, 0 errors, 0 warnings/, output)
   end
 
+  # The directory scan reads x/lib/x/helper.rb before z.rb imports the
+  # gem-shaped x, whose lib/ then resolves helper's named import.
+  def test_file_read_before_its_carton_resolves_with_the_carton_load_path
+    Dir.mktmpdir do |dir|
+      {
+        'z.rb' => "X = import_relative 'x'\np X\n",
+        'x/lib/x.rb' => "require_relative 'x/helper'\nexport 1\n",
+        'x/lib/x/helper.rb' => "Y = import 'y'\np Y\n",
+        'x/lib/y.rb' => "export 2\n",
+      }.each do |path, source|
+        FileUtils.mkdir_p(File.dirname(File.join(dir, path)))
+        File.write(File.join(dir, path), source)
+      end
+      status, output = run_cli(dir, 'check', '.')
+
+      assert_equal 0, status
+      assert_match(/2 Cartons, 0 errors, 0 warnings/, output)
+    end
+  end
+
   def test_strict_fails_on_warnings
     files = { 'main.rb' => "import_relative(ENV['X'])\n" }
 
