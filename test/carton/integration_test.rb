@@ -116,6 +116,28 @@ class IntegrationTest < Minitest::Test
     end
   end
 
+  # Bundler evaluates a Gemfile while the lock is held, and the Gemfile may
+  # import a Carton that sets up its own bundle on the same thread.
+  def test_setup_bundle_nests_through_a_gemfile_import
+    Dir.mktmpdir('carton-nested-bundle') do |dir|
+      inner = "#{FIXTURES}/auto_bundle/nested/auto_gemfile"
+      File.write(File.join(dir, 'Gemfile'), <<~RUBY)
+        source 'https://rubygems.org'
+        $carton_nested_root = import(#{inner.inspect}).fetch(:selected_root)
+      RUBY
+      entry = File.join(dir, 'outer.rb')
+      File.write(entry, <<~RUBY)
+        Carton.setup_bundle
+        export inner_root: $carton_nested_root, gemfile: ENV['BUNDLE_GEMFILE']
+      RUBY
+
+      result = import entry
+
+      assert_equal "#{FIXTURES}/auto_bundle", result.fetch(:inner_root)
+      assert_equal [ENV['BUNDLE_GEMFILE']], result.fetch_values(:gemfile)
+    end
+  end
+
   # Bundler's own search prefers gems.rb, then Gemfile, from the nearest
   # directory up.
   def test_setup_bundle_finds_gems_rb

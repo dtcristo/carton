@@ -30,15 +30,22 @@ module Carton
 
     # `ENV` is process-global. Bundler reads the Gemfile from it and exports
     # subprocess variables such as `RUBYOPT` into it, so restore all of it.
-    def with_bundle_env(gemfile)
-      env_lock.synchronize do
-        previous_env = ENV.to_h
-        ENV['BUNDLE_GEMFILE'] = gemfile
-        ENV.delete 'BUNDLE_LOCKFILE'
-        yield
-      ensure
-        ENV.replace(previous_env) if previous_env
-      end
+    def with_bundle_env(gemfile, &)
+      lock = env_lock
+      # A Gemfile may import a Carton that sets up its own bundle on this
+      # thread, inside this one.
+      return swap_bundle_env(gemfile, &) if lock.owned?
+
+      lock.synchronize { swap_bundle_env(gemfile, &) }
+    end
+
+    def swap_bundle_env(gemfile)
+      previous_env = ENV.to_h
+      ENV['BUNDLE_GEMFILE'] = gemfile
+      ENV.delete 'BUNDLE_LOCKFILE'
+      yield
+    ensure
+      ENV.replace(previous_env) if previous_env
     end
 
     def env_lock
