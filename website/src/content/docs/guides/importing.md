@@ -13,7 +13,7 @@ An import loads a Carton into its own Box and returns its explicitly exported va
 
 ```ruby
 Billing = import_relative 'billing'               # billing.rb
-Billing = import_relative '../components/billing' # components/billing/lib/billing.rb
+Billing = import_relative '../cartons/billing' # cartons/billing/lib/billing.rb
 ```
 
 A path that names a [Gem-shaped Directory](/guides/cartons/#gem-shaped-directories) imports its `lib/<name>.rb` Entrypoint and puts its `lib/` on the Carton's load path. A file of the same name wins over the directory.

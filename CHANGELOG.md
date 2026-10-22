@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Set both gems' homepages to the Carton website and retain their GitHub source links (#108).
+- Simplify the example gemspecs to required metadata, packaged files, and dependencies (#108).
+- Rename the Rails and Hanami examples' Carton directories from `components/` to `cartons/` (#108).
+- Keep the Minimal example focused on runtime boundaries and move static-check and RBS/Steep demonstrations into the Tooling example (#108).
+
+### Removed
+
+- Remove the manual RubyGems example; the Bundler and Plugins examples still demonstrate conflicting gem versions (#108).
+
 ## [0.4.0] - 2026-10-22
 
 Every imported Entrypoint now requires an explicit Export; Bare Cartons and `Carton::Namespace` are removed. `carton check` adds unused import and shared-object reopening warnings plus JSON reports. The Rails and Hanami examples share a Customers and Billing workflow, and Bundler support starts at 4.0.20 (#71, #79, #82, #83, #93, #100, #107).

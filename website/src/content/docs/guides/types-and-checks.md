@@ -14,6 +14,8 @@ gem 'carton-tools', group: :development
 
 It reads code with Prism and never runs it, so it needs no `RUBY_BOX=1`. Give it the app's files or directories; it follows each import into the Cartons it reaches. Named imports resolve against `-I DIR` and then the command's own `$LOAD_PATH`, so run it under `bundle exec` in a bundled app.
 
+The [Tooling example](/guides/examples/tooling/) runs boundary checks, generates import signatures, and checks an app with Steep. It also includes deliberate boundary violations and a test that proves Steep catches an incorrect method call.
+
 ## RBS for imports
 
 `carton rbs main.rb` writes `sig/generated/carton.rbs` (`-o FILE` to change it, `-o -` for stdout), which tells a type checker such as [Steep](https://github.com/soutaro/steep) what each import returns:

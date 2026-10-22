@@ -53,7 +53,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 ```ruby
 Billing = import 'billing'               # billing.rb on $LOAD_PATH
 Billing.invoice(40)
-import '/srv/app/components/billing'     # an absolute path
+import '/srv/app/cartons/billing'        # an absolute path
 ```
 
 </Tag>
@@ -86,7 +86,7 @@ Like [`#import`](#import), but resolves `path` relative to the calling file, lik
 
 ```ruby
 # app/main.rb
-Billing = import_relative '../components/billing'
+Billing = import_relative '../cartons/billing'
 ```
 
 </Tag>

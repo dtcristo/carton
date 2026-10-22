@@ -73,7 +73,7 @@ Guides and reference live at [carton.dtcristo.com](https://carton.dtcristo.com) 
 - [CONTEXT.md](CONTEXT.md): the glossary
 - [Examples](https://carton.dtcristo.com/guides/examples/): runnable apps, starting with [minimal](https://carton.dtcristo.com/guides/examples/minimal/); run one with `bundle exec rake example:<name>`
 
-The `carton` command, for RBS and boundary checks, is in the [`carton-tools`](carton-tools/README.md) gem.
+The `carton` command, for RBS and boundary checks, is in the [`carton-tools`](carton-tools/README.md) gem. The [Tooling example](https://carton.dtcristo.com/guides/examples/tooling/) runs those commands and checks an app with Steep.
 
 ## Development
 

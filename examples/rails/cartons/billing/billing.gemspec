@@ -3,11 +3,10 @@
 Gem::Specification.new do |spec|
   spec.name = 'billing'
   spec.version = '0.1.0'
-  spec.summary = 'Billing domain: Hanami slice that imports Customers'
+  spec.summary = 'Billing domain: isolated Rails Engine'
   spec.authors = ['Carton']
-  spec.files = Dir['{lib}/**/*'].select { |path| File.file?(path) }
-  spec.required_ruby_version = '>= 4.0.7'
-  spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.files =
+    Dir['{app,lib,config,db}/**/*'].select { |path| File.file?(path) }
   spec.add_dependency 'carton'
   spec.add_dependency 'customers'
   spec.add_dependency 'framework'

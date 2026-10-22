@@ -5,9 +5,7 @@ Gem::Specification.new do |spec|
   spec.version = '0.1.0'
   spec.summary = 'Loads Hanami, Dry, and Rom once and shares their APIs'
   spec.authors = ['Carton']
-  spec.files = Dir['{lib}/**/*.rb']
-  spec.required_ruby_version = '>= 4.0.7'
-  spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.files = Dir['lib/**/*.rb']
   spec.add_dependency 'carton'
   spec.add_dependency 'dry-operation'
   spec.add_dependency 'dry-validation'

@@ -15,14 +15,18 @@ Split your app into Cartons with explicit imports and exports. Each has its own 
 
 ## Compared with Bundler and Packwerk
 
-| | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
+| Capability | Bundler | [Packwerk](https://github.com/Shopify/packwerk) | Carton |
 | --- | --- | --- | --- |
-| Boundaries inside an app | No | Checked statically, in CI | Enforced at runtime, and checked statically by `carton check` |
-| Private code | No | Privacy checks removed in 3.0 | Only the Export crosses; `private_constant` hides the rest |
-| Constants loaded dynamically | n/a | Not seen | Inside the boundary like any other |
+| App boundaries | None | Static checks | Runtime enforcement |
+| Private code | None | No privacy checks | Explicit Export |
+| Dynamic constants | No boundary | Not checked | Inside the boundary |
 | Gem versions | One per app | One per app | One per Carton |
-| Monkey patches to builtins | Global | Global | Stay in their Carton |
-| Unit of distribution | A gem | A pack, which stays in the app | A gem-shaped Carton, which can become a gem |
+| Builtin patches | Global | Global | Per Carton |
+| Distribution | Gem | App-local pack | Gem-shaped Carton |
+
+Only a Carton's Export crosses its boundary. When that Export is a module, Ruby's `private_constant` hides selected constants within it. Packwerk removed its privacy checks in version 3.0.
+
+Carton also provides static checks through `carton check`. Its gem-shaped Entrypoint and Interior let a Carton become a gem without changing how Importers use it.
 
 Static checks only see what they can parse. Packwerk's authors note that a package with zero violations "may actually crash with name errors when its code is executed" ([A Packwerk Retrospective](https://shopify.engineering/a-packwerk-retrospective)). A Carton's boundary is the Box it runs in, so Ruby holds it even for code no tool can follow. `carton check` adds what the runtime cannot enforce, such as Second Copies from plain `require` and Undeclared Gems, before the code runs.
 

@@ -7,6 +7,7 @@ From the repository root:
 ```sh
 bundle install
 bundle exec rake example:minimal   # one example
+bundle exec rake example:tooling   # boundary checks, RBS generation, and Steep
 bundle exec rake examples          # every example
 ```
 

@@ -25,10 +25,10 @@ Cartons can nest in another Carton's tree, as long as they sit outside its Inter
 
 ## Gem-shaped directories
 
-A directory such as `components/billing/` holding `lib/billing.rb` imports by its path. The import resolves to `lib/billing.rb` as the Entrypoint and puts `lib/` on the Carton's load path, so the Carton can `require 'billing/invoice'` as a gem would.
+A directory such as `cartons/billing/` holding `lib/billing.rb` imports by its path. The import resolves to `lib/billing.rb` as the Entrypoint and puts `lib/` on the Carton's load path, so the Carton can `require 'billing/invoice'` as a gem would.
 
 ```ruby
-Billing = import_relative '../components/billing' # components/billing/lib/billing.rb
+Billing = import_relative '../cartons/billing' # cartons/billing/lib/billing.rb
 ```
 
 ## Zeitwerk

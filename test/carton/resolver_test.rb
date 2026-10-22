@@ -151,11 +151,11 @@ class ResolverTest < Minitest::Test
   # A Carton laid out like a gem can be imported by its root directory.
   def test_resolves_a_gem_shaped_directory_to_its_entrypoint
     Dir.mktmpdir do |dir|
-      lib = File.join(File.realpath(dir), 'components/billing/lib')
+      lib = File.join(File.realpath(dir), 'cartons/billing/lib')
       FileUtils.mkdir_p(lib)
       File.write("#{lib}/billing.rb", '')
 
-      target = resolve('components/billing', base_dir: File.realpath(dir))
+      target = resolve('cartons/billing', base_dir: File.realpath(dir))
 
       assert_equal "#{lib}/billing.rb", target.feature
     end

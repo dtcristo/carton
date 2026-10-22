@@ -1,0 +1,4 @@
+# Only the pricing Carton's Public Surface needs an RBS declaration.
+module Pricing
+  def self.total: (Integer subtotal) -> Float
+end

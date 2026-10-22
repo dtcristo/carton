@@ -11,7 +11,7 @@ gem 'sqlite3', '~> 2.10'
 
 # Cartons. `require: false` keeps them out of the Main Box; each is imported
 # into its own Box instead.
-gem 'billing', path: 'components/billing', require: false
-gem 'customers', path: 'components/customers', require: false
-gem 'framework', path: 'components/framework', require: false
-gem 'shop', path: 'components/shop', require: false
+gem 'billing', path: 'cartons/billing', require: false
+gem 'customers', path: 'cartons/customers', require: false
+gem 'framework', path: 'cartons/framework', require: false
+gem 'shop', path: 'cartons/shop', require: false

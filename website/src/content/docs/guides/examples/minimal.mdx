@@ -1,6 +1,6 @@
 ---
 title: Minimal
-description: The smallest app with Carton boundaries, with no gems or Bundler, plus code for carton check to reject and RBS for Steep.
+description: A runtime-only app with Carton boundaries, with no gems or Bundler.
 sidebar:
   order: 1
 ---
@@ -15,7 +15,6 @@ billing.rb           # the billing Carton's Entrypoint: export Billing
 billing/invoice.rb   # inside the billing Carton
 billing/tax.rb       # inside too; imports math
 math.rb              # a Carton of one file: export MathTools
-violations.rb        # deliberately invalid code for carton check
 ```
 
 ## The app
@@ -48,31 +47,4 @@ Its Interior is the `billing/` directory beside it:
 RUBY_BOX=1 ruby examples/minimal/main.rb
 ```
 
-## Checks
-
-`violations.rb` tries to reach the private `Billing::Tax` and to import `billing/invoice` directly. Both cross the boundary:
-
-<ExampleFile path="minimal/violations.rb" />
-
-From the repository root, the working app passes static checks and the violations report two errors, without running either file:
-
-```sh
-bundle exec carton check examples/minimal/main.rb
-bundle exec carton check examples/minimal/violations.rb # exits 1, as intended
-```
-
-Running `violations.rb` as Ruby instead stops at its first `NameError`.
-
-## Types
-
-`sig/billing.rbs` and `sig/math_tools.rbs` declare each Carton's types, as a gem's RBS would. `carton rbs main.rb` generated `sig/generated/carton.rbs`, which types each import, and Steep checks `main.rb` against both:
-
-```sh
-cd examples/minimal
-bundle exec carton rbs main.rb
-bundle exec steep check
-```
-
-<ExampleFile path="minimal/sig/generated/carton.rbs" />
-
-See [Types and checks](/guides/types-and-checks/) for both commands.
+See [Tooling](/guides/examples/tooling/) for boundary checks, generated RBS, and Steep in a separate app.

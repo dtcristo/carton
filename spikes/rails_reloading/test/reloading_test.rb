@@ -9,9 +9,9 @@ scratch = File.realpath(Dir.mktmpdir('carton-rails-reloading'))
 at_exit { FileUtils.remove_entry(scratch) }
 fixture = File.expand_path('../../../examples/rails', __dir__)
 root = File.expand_path('../../..', __dir__)
-FileUtils.cp_r(File.join(fixture, 'components'), scratch)
+FileUtils.cp_r(File.join(fixture, 'cartons'), scratch)
 %w[framework shop].each do |name|
-  entrypoint = File.join(scratch, "components/#{name}/lib/#{name}.rb")
+  entrypoint = File.join(scratch, "cartons/#{name}/lib/#{name}.rb")
   hook = File.expand_path("../hooks/#{name}.rb", __dir__)
   File.open(entrypoint, 'a') { |file| file.puts "\nrequire #{hook.inspect}" }
 end
@@ -41,14 +41,14 @@ class RailsReloadingSpikeTest < Minitest::Test
       ReloadingSpike::Imports.new(
         reloadable:
           %w[customers billing].map do |name|
-            File.join(ROOT, "components/#{name}/lib/#{name}.rb")
+            File.join(ROOT, "cartons/#{name}/lib/#{name}.rb")
           end,
       )
     shop = import 'shop'
     framework = import 'framework'
     migrations =
       %w[customers billing].map do |name|
-        File.join(ROOT, "components/#{name}/db/migrate")
+        File.join(ROOT, "cartons/#{name}/db/migrate")
       end
     framework::ActiveRecord::MigrationContext.new(migrations).migrate
     http =
@@ -90,7 +90,7 @@ class RailsReloadingSpikeTest < Minitest::Test
     file =
       File.join(
         ROOT,
-        'components/customers/app/models/customers/customer_record.rb',
+        'cartons/customers/app/models/customers/customer_record.rb',
       )
     File.write(
       file,
@@ -102,7 +102,7 @@ class RailsReloadingSpikeTest < Minitest::Test
     controller =
       File.join(
         ROOT,
-        'components/billing/app/controllers/billing/invoices_controller.rb',
+        'cartons/billing/app/controllers/billing/invoices_controller.rb',
       )
     File.write(
       controller,
@@ -113,7 +113,7 @@ class RailsReloadingSpikeTest < Minitest::Test
     )
 
     imports.reload(
-      File.join(ROOT, 'components/customers/lib/customers.rb'),
+      File.join(ROOT, 'cartons/customers/lib/customers.rb'),
       host: shop,
     )
 
@@ -139,7 +139,7 @@ class RailsReloadingSpikeTest < Minitest::Test
     # new classes with the retained framework again.
     File.write(file, File.read(file).sub('strip.upcase', 'strip.downcase'))
     imports.reload(
-      File.join(ROOT, 'components/customers/lib/customers.rb'),
+      File.join(ROOT, 'cartons/customers/lib/customers.rb'),
       host: shop,
     )
     response = http.get('http://example.org/invoices/1')

@@ -9,7 +9,7 @@ import ExampleFile from '../../../../components/ExampleFile.astro';
 
 Customers and Billing are two Rails Engines, and each is imported as its own Carton. Customers registers customers. Billing imports Customers, validates invoices, calculates tax, and stores them. Rails loads once, in a framework Carton. A shop Carton mounts both Engines and exports the Rack app to Main. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/rails).
 
-The example uses only public Rails, Zeitwerk, and Carton APIs. It adds no runtime patches. For Box ownership, setup, and limits, see the [Rails guide](/guides/rails/).
+The example uses only public Rails, Zeitwerk, and Carton APIs. It adds no runtime patches.
 
 <span id="the-same-business-workflow" />
 
@@ -21,11 +21,13 @@ The example uses only public Rails, Zeitwerk, and Carton APIs. It adds no runtim
 
 Both POSTs return 201. Tax is ten percent, rounded half up in integer cents, so 4200 gives 420 tax and 4620 total. The stored tax is kept when the invoice is read later. Blank customer names or invalid subtotals return 422 with domain errors. An unknown customer returns 404.
 
+Subtotals must be non-negative Integers after the controller coerces form strings. Fractional and malformed values are rejected.
+
 ## Layout
 
 ```text
 main.rb                                 # repeatable Rack demo, temporary SQLite
-components/
+cartons/
   framework/lib/framework.rb             # shared Rails implementation and base classes
   customers/
     lib/customers.rb                     # Entrypoint, private framework Import, local loader
@@ -63,17 +65,19 @@ Each Engine loads its own Ruby code with its own Zeitwerk loader. Its models, co
 
 `isolate_namespace` keeps each Engine's names and routes separate. It does not choose a Box.
 
+Domain methods execute in the domain's Carton Box beside its storage models. Inherited Rails implementations execute in the framework Box. Framework classes and registries remain shared mutable Ruby objects; [reopening shared classes](/guides/sharing-classes/) affects their holders.
+
 Rails finds each Engine's routes, migrations, and views as usual. The framework Carton registers the exported namespaces so Rails can look them up. It rejects name collisions and never copies their classes into Object.
 
 The shop's `config/application.rb` imports `shop` rather than requiring it again, so there is one copy. The application class lives in the shop Carton. Main never loads Rails.
 
-<ExampleFile path="rails/components/framework/lib/framework.rb" />
+<ExampleFile path="rails/cartons/framework/lib/framework.rb" />
 
-<ExampleFile path="rails/components/customers/lib/customers.rb" />
+<ExampleFile path="rails/cartons/customers/lib/customers.rb" />
 
-<ExampleFile path="rails/components/billing/lib/billing.rb" />
+<ExampleFile path="rails/cartons/billing/lib/billing.rb" />
 
-<ExampleFile path="rails/components/shop/lib/shop.rb" />
+<ExampleFile path="rails/cartons/shop/lib/shop.rb" />
 
 ## Run
 
@@ -83,10 +87,10 @@ From the repository root:
 bundle exec rake example:rails
 ```
 
-The task installs the bundle, runs the temporary-database Rack demo, and runs the command and HTTP tests in fresh processes. It runs them with both lazy and eager loading. For a persistent local app, install the bundle, then run:
+The task installs the bundle, runs the temporary-database Rack demo, and runs the command and HTTP tests in fresh processes. The tests cover requests, invalid inputs, unknown customers, stored pricing, escaped HTML, associations, and Box ownership under lazy and eager loading. For a persistent local app, install the bundle, then run:
 
 ```sh
-cd examples/rails/components/shop
+cd examples/rails/cartons/shop
 RUBY_BOX=1 bin/rails db:prepare
 RUBY_BOX=1 bin/rails routes
 RUBY_BOX=1 bin/rails runner 'puts Customers::CustomerRecord.count'
@@ -101,4 +105,6 @@ Each Engine exposes its migrations to Rails, so `db:prepare` creates the tables;
 
 Use the shop's `bin/rails`. It enters the framework Carton, sets Rails' standard `APP_PATH` there, and makes the exported namespaces available to `runner`. Rails source loads only in the framework Carton. Verified commands are `db:prepare`, `db:migrate`, `routes`, `runner`, `zeitwerk:check`, `test`, and `server` with Puma. Stock `bundle exec rails`, direct `rake`, the console, and generators are not covered. Boot Imports live inside modules because Rake also defines a top-level `import`.
 
-Restart the server after edits. The separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) copies this app and tests two serial Customers and Billing replacements with private hooks. This example never loads those hooks. Shared Rails classes and registries are still mutable objects, and Active Support patches stay Box-local. Jobs, mailers, external queues, and other Rails subsystems are outside this example.
+Restart the server after edits. Rails reloading is disabled and Imports stay cached. The separate [reloading spike](https://github.com/dtcristo/carton/tree/main/spikes/rails_reloading) copies this app and tests two serial Customers and Billing replacements with private hooks. This example never loads those hooks.
+
+The app selects its Railties explicitly. Full `rails/all` initialization on Ruby 4.0.7 with Boxes enabled can reach upstream issues through Action Cable and mail dependencies. Active Support extensions stay Box-local; domain code that needs them must declare and require them explicitly. Arbitrary third-party Engines, jobs, mailers, external queues, and other Rails subsystems are outside this example.

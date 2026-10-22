@@ -12,7 +12,7 @@ def demonstrate(directory)
   previous_environment = ENV['RAILS_ENV']
   ENV['SHOP_DATABASE'] = File.join(directory, 'demo.sqlite3')
   ENV['RAILS_ENV'] = 'test'
-  script = File.expand_path('components/shop/bin/rails', __dir__)
+  script = File.expand_path('cartons/shop/bin/rails', __dir__)
   unless system(RbConfig.ruby, script, 'db:prepare', out: File::NULL)
     abort 'database preparation failed'
   end

@@ -7,8 +7,6 @@ Gem::Specification.new do |spec|
   spec.authors = ['Carton']
   paths = %w[lib/**/* config/**/* config.ru Rakefile bin/rails]
   spec.files = Dir.glob(paths).select { |path| File.file?(path) }
-  spec.required_ruby_version = '>= 4.0.7'
-  spec.metadata['rubygems_mfa_required'] = 'true'
   spec.add_dependency 'billing'
   spec.add_dependency 'carton'
   spec.add_dependency 'customers'

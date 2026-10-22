@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-import { Steps } from '@astrojs/starlight/components';
+import { CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 
 Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
 
@@ -17,7 +17,7 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
 
 ## Quick start
 
-Build a two-Carton app in five steps, then check the boundary.
+Build a two-Carton app, then check the boundary.
 
 <Steps>
 
@@ -119,7 +119,10 @@ Each Carton loads once per process, and every later import returns the same valu
 
 ## Next steps
 
-- [Cartons](/guides/cartons/): what belongs to a Carton, and how Zeitwerk fits.
-- [Exporting](/guides/exporting/) and [Importing](/guides/importing/): the whole language.
-- [Bundler](/guides/bundler/): give a Carton its own gems.
-- [Examples](/guides/examples/): runnable apps, from the smallest boundary to plugins and Rails.
+<CardGrid>
+  <LinkCard title="Cartons" href="/guides/cartons/" description="Entrypoints, Interiors, and loading with Zeitwerk." />
+  <LinkCard title="Exporting" href="/guides/exporting/" description="Choose the value a Carton shares with its Importers." />
+  <LinkCard title="Importing" href="/guides/importing/" description="Find a Carton and use its Export." />
+  <LinkCard title="Bundler" href="/guides/bundler/" description="Give a Carton its own gems." />
+  <LinkCard title="Examples" href="/guides/examples/" description="Runnable apps, including plugins, Rails, and Hanami." />
+</CardGrid>

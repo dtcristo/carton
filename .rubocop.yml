@@ -6,6 +6,16 @@ AllCops:
     - 'test/fixtures/**/*'
     - 'examples/**/db/schema.rb'
 
+# Runnable path-gem examples keep only the metadata their behavior needs.
+# Carton's dependency already supplies their minimum Ruby version.
+Gemspec/RequiredRubyVersion:
+  Exclude:
+    - 'examples/**/*.gemspec'
+
+Gemspec/RequireMFA:
+  Exclude:
+    - 'examples/**/*.gemspec'
+
 Metrics/AbcSize:
   Enabled: false
 
