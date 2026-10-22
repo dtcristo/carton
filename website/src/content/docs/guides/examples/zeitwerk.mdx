@@ -12,11 +12,12 @@ Most Rails apps and many plain Ruby apps autoload their code with Zeitwerk, so m
 - The app's loader must not load a Carton's files into the Main Box.
 - Reloading a Carton replaces its classes, but Importers keep the old ones.
 
-Lazy autoloading needs no care: a constant a Carton leaves to autoload loads in the Carton Box even when the app references it first, including a namespace defined in a Zeitwerk nsfile. This example shows each case, with no Rails involved. `main.rb` raises if any behavior below stops holding.
+Lazy autoloading needs no care: a constant a Carton leaves to autoload loads in the Carton Box even when the app references it first, including a namespace defined in a Zeitwerk nsfile. This example shows each case, with no Rails involved: `main.rb` is a short demo, and `test/zeitwerk_test.rb` checks every behavior below. [Source on GitHub](https://github.com/dtcristo/carton/tree/main/examples/zeitwerk).
 
 ```
 Gemfile                      # carton, zeitwerk 2.8.3 for the app
 main.rb                      # the app's loader for lib/, then the imports
+test/zeitwerk_test.rb        # checks each case below
 lib/
   order_summary.rb           # the app's own code, autoloaded in the Main Box
   shipping.rb                # shipping Carton's Entrypoint: reloadable loader with nsfiles
@@ -28,6 +29,18 @@ cartons/billing/
   lib/billing.rb             # billing Carton's Entrypoint: Zeitwerk::Loader.for_gem
   lib/billing/invoice.rb     # eager loaded inside the Carton
   lib/billing/archive.rb     # left lazy; still loads in the Carton Box
+```
+
+## The app
+
+The app's loader manages `lib/`, ignoring the shipping Carton there; each import then runs a Carton's own loader in its Box:
+
+<ExampleFile path="zeitwerk/main.rb" />
+
+```
+Main Box zeitwerk: 2.8.3
+billing zeitwerk: 2.7.5
+invoice $42.00 + shipping $11.00
 ```
 
 ## A Carton with `Zeitwerk::Loader.for_gem`
@@ -50,7 +63,7 @@ So a Carton can use a Zeitwerk feature, such as nsfiles, that the app's or anoth
 
 ## The app's loader and a Carton in its directory
 
-The app's loader manages `lib/`, and the shipping Carton lives in `lib/` too. Left alone, the app's loader defines an autoload for `Shipping` pointing at `lib/shipping.rb`. Anything in the app that touches `Shipping` before the import, including `app_loader.eager_load`, then runs the Entrypoint in the Main Box, outside any Carton. In this example that fails loudly: the Entrypoint's own `push_dir` lands inside the app loader's root, and Zeitwerk raises `Zeitwerk::Error` ("wants to manage directory .../lib/shipping, which is already managed by" the app's loader). A Carton that used `require_relative` instead would load a Second Copy without any error.
+The app's loader manages `lib/`, and the shipping Carton lives in `lib/` too, on purpose, to show this case; the billing Carton lives under `cartons/`, as other examples' Cartons do. Left alone, the app's loader defines an autoload for `Shipping` pointing at `lib/shipping.rb`. Anything in the app that touches `Shipping` before the import, including `app_loader.eager_load`, then runs the Entrypoint in the Main Box, outside any Carton. In this example that fails loudly: the Entrypoint's own `push_dir` lands inside the app loader's root, and Zeitwerk raises `Zeitwerk::Error` ("wants to manage directory .../lib/shipping, which is already managed by" the app's loader). A Carton that used `require_relative` instead would load a Second Copy without any error.
 
 `main.rb` happens to import before anything references `Shipping`, and the assignment `Shipping = import_relative 'lib/shipping'` replaces the pending autoload, so the example would run without a fix. That depends on load order. The fix is to tell the app's loader the Carton is not its code:
 
@@ -59,25 +72,25 @@ app_loader.push_dir(lib)
 app_loader.ignore(File.join(lib, 'shipping.rb'), File.join(lib, 'shipping'))
 ```
 
-Ignore both the Entrypoint and its directory. `main.rb` checks that the Main Box has no autoload for `Shipping` and, after the app's eager load, that no Carton file is in the Main Box's `$LOADED_FEATURES`. A Carton outside the app's loader roots, like `cartons/billing`, needs nothing.
+Ignore both the Entrypoint and its directory. The test checks that the Main Box has no autoload for `Shipping` and, after the app's eager load, that no Carton file is in the Main Box's `$LOADED_FEATURES`. A Carton outside the app's loader roots, like `cartons/billing`, needs nothing.
 
 ## Lazy autoloads stay in the Carton
 
-An autoload a Carton defines loads in the Carton Box, whichever Box references the constant first. `Billing::Archive` is left lazy to show it: `main.rb` references it first, and `archive.rb` still runs in the billing Carton's Box, through that Box's own Zeitwerk, so `on_load` callbacks and reloading see it.
+An autoload a Carton defines loads in the Carton Box, whichever Box references the constant first. `Billing::Archive` is left lazy to show it: the test references it first from the Main Box, and `archive.rb` still runs in the billing Carton's Box, through that Box's own Zeitwerk, so `on_load` callbacks and reloading see it.
 
-`cartons/billing/lib/billing.rb` still calls `loader.eager_load`, as an app does in production: a broken file then fails at boot, not on first use. `Billing::Invoice` and `Shipping::Rate` record `Ruby::Box.current` when their files run, and neither is the Main Box.
+`cartons/billing/lib/billing.rb` still calls `loader.eager_load`, as an app does in production: a broken file then fails at boot, not on first use. Eager loading runs in the Carton Box too: no Carton file appears in the Main Box's `$LOADED_FEATURES`, and `Shipping::Rate` records `Ruby::Box.current` when its file runs, which is not the Main Box.
 
 ## Namespaces in nsfiles
 
 Zeitwerk 2.8 added nsfiles: with `loader.nsfile = 'ns.rb'`, a directory's `ns.rb` defines the directory's namespace, so a self-contained unit needs no file beside its directory. The shipping Carton's loader sets one, and `lib/shipping/carriers/ns.rb` defines `Shipping::Carriers`, not `Shipping::Carriers::Ns`.
 
-`Shipping::Carriers` is left lazy, so its autoload points at `ns.rb` until `main.rb` references it from the Main Box. `ns.rb` still runs in the shipping Carton's Box, and Zeitwerk then defines `Post`'s autoload there, so `Shipping::Carriers::Post` loads in the Carton Box too. Reloading reloads the nsfile like any other file.
+`Shipping::Carriers` is left lazy, so its autoload points at `ns.rb` until the test references it from the Main Box. `ns.rb` still runs in the shipping Carton's Box, and Zeitwerk then defines `Post`'s autoload there, so `Shipping::Carriers::Post` loads in the Carton Box too. Reloading reloads the nsfile like any other file.
 
 nsfiles organize a Carton's Interior, not Carton boundaries. A Carton still needs its Entrypoint beside its directory, `lib/shipping.rb` beside `lib/shipping/`. A directory whose namespace is defined by its own `ns.rb`, with no file beside it, cannot be imported by its directory as a Carton.
 
 ## Reloading
 
-`Shipping.reload!` calls `loader.reload` and `loader.eager_load`. The block was defined in the shipping Carton's Box, so it runs there even though `main.rb` calls it. After a reload:
+`Shipping.reload!` calls `loader.reload` and `loader.eager_load`. The block was defined in the shipping Carton's Box, so it runs there even though the test calls it from the Main Box. After a reload:
 
 - `Shipping` is the same module. Its Entrypoint defines it and the loader manages only `lib/shipping/` inside it, via `push_dir(..., namespace: Shipping)`.
 - `Shipping::Rate` is a new class, loaded again in the Carton Box, and so is `Shipping::Carriers`, from its nsfile.
@@ -103,4 +116,5 @@ After the task installs the app and billing bundles:
 
 ```sh
 RUBY_BOX=1 ruby examples/zeitwerk/main.rb
+RUBY_BOX=1 ruby examples/zeitwerk/test/zeitwerk_test.rb
 ```
