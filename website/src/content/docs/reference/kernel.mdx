@@ -22,7 +22,7 @@ import Tag from '../../../components/api/Tag.astro';
 
 ## `#import`
 
-<Signature owner="Kernel" private rbs="def import: (::String path) -> untyped" source="lib/carton/kernel_patch.rb#L9" />
+<Signature owner="Kernel" private rbs="def import: (::String | ::Pathname path) -> untyped" source="lib/carton/kernel_patch.rb#L9" />
 
 Imports the Carton at `path` and returns its explicitly declared Export. Every imported Entrypoint must call `export` exactly once.
 
@@ -30,7 +30,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 
 <Tag label="Parameters">
 
-- `path` (`String`): an absolute path, or a name searched on the current Box's `$LOAD_PATH`, like `require`. The current directory is never searched, and `.rb` is optional.
+- `path` (`String`, `Pathname`): an absolute path, or a name searched on the current Box's `$LOAD_PATH`, like `require`. The current directory is never searched, and `.rb` is optional.
 
 </Tag>
 
@@ -43,7 +43,7 @@ The first import of a Carton loads its Entrypoint in a new Carton Box. Later imp
 <Tag label="Raises">
 
 - `LoadError` when nothing matches `path`. For a name, the message suggests `import_relative` when a matching file sits beside the calling file.
-- [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior, the import is circular, or a Shared Gem Carton was built against other gem versions.
+- [`Carton::ImportError`](/reference/errors/#cartonimporterror) when Boxes are disabled, `path` is in a Carton's Interior or is not Ruby source (such as a native extension), the import is circular, or a Shared Gem Carton was built against other gem versions.
 - [`Carton::ExportError`](/reference/errors/#cartonexporterror) when the Entrypoint finishes loading without calling `export`, or breaks an `export` rule while loading.
 
 </Tag>
@@ -60,13 +60,13 @@ import '/srv/app/cartons/billing'        # an absolute path
 
 ## `#import_relative`
 
-<Signature owner="Kernel" private rbs="def import_relative: (::String path) -> untyped" source="lib/carton/kernel_patch.rb#L14" />
+<Signature owner="Kernel" private rbs="def import_relative: (::String | ::Pathname path) -> untyped" source="lib/carton/kernel_patch.rb#L16" />
 
 Like [`#import`](#import), but resolves `path` relative to the calling file, like `require_relative`. It never searches `$LOAD_PATH`.
 
 <Tag label="Parameters">
 
-- `path` (`String`): a path relative to the directory of the file that calls it.
+- `path` (`String`, `Pathname`): a path relative to the directory of the file that calls it. Under `ruby -e`, it is relative to the current directory.
 
 </Tag>
 
@@ -79,6 +79,7 @@ Like [`#import`](#import), but resolves `path` relative to the calling file, lik
 <Tag label="Raises">
 
 - The same as [`#import`](#import).
+- `LoadError` from `eval` code, which has no calling file, as `require_relative` does.
 
 </Tag>
 
@@ -93,7 +94,7 @@ Billing = import_relative '../cartons/billing'
 
 ## `#export`
 
-<Signature owner="Kernel" private rbs="def export: [T] (T value) -> T" source="lib/carton/kernel_patch.rb#L21" />
+<Signature owner="Kernel" private rbs="def export: [T] (T value) -> T" source="lib/carton/kernel_patch.rb#L27" />
 
 Declares the Carton's required Export, which every import of it returns. Only a call in the imported Entrypoint declares anything; in any other file, `export` checks its argument, returns it, and does nothing else. An export in a required file cannot satisfy the Entrypoint's requirement.
 

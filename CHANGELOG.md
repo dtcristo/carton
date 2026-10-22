@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `require 'carton'` works without RubyGems, as under `ruby --disable-gems`, and defines `Carton::VERSION`.
+- `import_relative` resolves against the calling file's absolute path, so it still works after `Dir.chdir` in a script run by relative path. From `eval` it raises `LoadError`, as `require_relative` does.
+- Importing a name that resolves to a native extension, such as `import 'etc'`, raises `Carton::ImportError` saying only a `.rb` Entrypoint can be imported, instead of an `ExportError` with an empty path.
+- Concurrent `Carton.setup_bundle` calls on different threads, from any Carton, take turns, so Bundler never reads another Carton's `BUNDLE_GEMFILE`.
+- Concurrent Shared Imports of a Carton that uses locked gems no longer race while checking gem versions.
+- `export` in an Entrypoint method called after its Import finishes is inert, instead of raising or setting an unread value.
+- A Shared Import's version conflict with a locked gem now says the import "locks" that version, not "activates" it.
+- The RBS signatures accept a `Pathname` for `import` and `import_relative`, and String groups for `setup_bundle`.
+
 ### Changed
 
 - Set both gems' homepages to the Carton website and retain their GitHub source links (#108).
