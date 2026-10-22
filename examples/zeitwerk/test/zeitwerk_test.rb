@@ -21,6 +21,10 @@ SHIPPING_AUTOLOAD = Object.autoload?(:Shipping)
 Billing = import_relative '../cartons/billing'
 Shipping = import_relative '../lib/shipping'
 
+# Carriers is not eager loaded, so until first referenced its autoload points
+# at its nsfile. Checked here, since the reload test references it.
+CARRIERS_AUTOLOAD = Shipping.autoload?(:Carriers)
+
 class ZeitwerkTest < Minitest::Test
   ROOT = File.expand_path('..', __dir__)
 
@@ -52,9 +56,8 @@ class ZeitwerkTest < Minitest::Test
   end
 
   def test_lazy_nsfile_namespace_runs_in_the_carton_box
-    # Carriers is not eager loaded, so its autoload points at its nsfile.
     assert_equal 'lib/shipping/carriers/ns.rb',
-                 relative([Shipping.autoload?(:Carriers)]).first
+                 relative([CARRIERS_AUTOLOAD]).first
     refute_in_main Shipping::Carriers
     refute_in_main Shipping::Carriers::Post
     refute Shipping::Carriers.const_defined?(:Ns, false)
@@ -67,6 +70,7 @@ class ZeitwerkTest < Minitest::Test
   def test_reload_replaces_classes_but_not_held_references
     held_rate_class = Shipping::Rate
     old_rate = Shipping::Rate.new
+    old_carriers = Shipping::Carriers
     Shipping.reload!
 
     assert_same Shipping, import_relative('../lib/shipping')
@@ -75,6 +79,9 @@ class ZeitwerkTest < Minitest::Test
     # The held class still runs the code it was loaded with.
     assert_equal 700, held_rate_class.quote(1)
     refute_kind_of Shipping::Rate, old_rate
+    # The nsfile runs again, in the Carton Box, for a new namespace.
+    refute_same old_carriers, Shipping::Carriers
+    refute_in_main Shipping::Carriers
   end
 
   private
