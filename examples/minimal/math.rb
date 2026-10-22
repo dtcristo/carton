@@ -7,4 +7,5 @@ module MathTools
   def self.percent(amount, rate) = (amount * rate / 100.0).round(2)
 end
 
+# Export: importing math returns this module.
 export MathTools

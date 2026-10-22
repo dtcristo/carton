@@ -3,7 +3,7 @@
 # The billing Carton's Entrypoint. Everything in this file and lib/billing/
 # runs in the billing Carton's own Box.
 
-# This Carton's own bundle (cartons/billing/Gemfile): zeitwerk 2.7.5, while
+# Bundle boundary: cartons/billing/Gemfile locks zeitwerk 2.7.5, while
 # the app locks 2.8.3. Each Box requires its own copy of Zeitwerk.
 Carton.setup_bundle
 require 'zeitwerk'
@@ -29,5 +29,5 @@ end
 # file fails at boot. Lazy autoloads would also run in this Box.
 loader.eager_load
 
-# Only Billing crosses the Carton boundary.
+# Export: only Billing crosses the Carton boundary.
 export Billing

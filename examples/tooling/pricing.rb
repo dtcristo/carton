@@ -9,4 +9,5 @@ module Pricing
   def self.total(subtotal) = subtotal + Tax.on(subtotal)
 end
 
+# Export: importing pricing returns this module.
 export Pricing

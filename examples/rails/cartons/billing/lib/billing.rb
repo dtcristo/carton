@@ -4,6 +4,7 @@ require 'carton'
 require 'zeitwerk'
 
 module Billing
+  # Carton boundary: Rails comes from the framework Carton's Export.
   Framework = import 'framework'
   private_constant :Framework
   Customers = import 'customers'
@@ -24,4 +25,5 @@ end
 
 require_relative 'billing/engine'
 
+# Export: the Engine's namespace.
 export Billing

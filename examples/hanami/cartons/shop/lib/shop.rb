@@ -3,6 +3,7 @@
 require 'carton'
 
 module Shop
+  # Carton boundary: Hanami comes from the framework Carton's Export.
   Framework = import 'framework'
   Hanami = Framework::Hanami
 
@@ -14,6 +15,5 @@ module Shop
   Framework.prepare
 end
 
-# Main receives an ordinary Rack application; it never loads Hanami.
-
+# Export: Main receives an ordinary Rack application; it never loads Hanami.
 export Shop::App

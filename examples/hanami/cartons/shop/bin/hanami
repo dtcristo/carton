@@ -3,6 +3,8 @@
 
 require_relative '../config/boot'
 
+# Carton boundary: import in a module, so the CLI's constants stay out of
+# Object.
 module ShopCLI
   App = import 'shop'
   Framework = import 'framework'

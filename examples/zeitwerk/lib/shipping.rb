@@ -5,7 +5,8 @@
 # ignore this file and lib/shipping/. Everything here runs in the shipping
 # Carton's own Box.
 
-# The app's Gemfile, found by searching upward, set up again in this Box. This
+# Bundle boundary: the app's Gemfile, found by searching upward, set up again
+# in this Box. This
 # Box gets its own copy of zeitwerk 2.8.3, separate from the app's.
 Carton.setup_bundle
 require 'zeitwerk'
@@ -38,5 +39,5 @@ Shipping.define_singleton_method(:reload!) do
   loader.eager_load
 end
 
-# Only Shipping crosses the Carton boundary.
+# Export: only Shipping crosses the Carton boundary.
 export Shipping

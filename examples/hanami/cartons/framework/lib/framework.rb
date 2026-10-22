@@ -40,4 +40,5 @@ module Framework
   end
 end
 
+# Export: shared Hanami and Dry modules and the registration and CLI helpers.
 export Framework

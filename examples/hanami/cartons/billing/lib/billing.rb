@@ -6,6 +6,7 @@ require 'carton'
 require 'json'
 
 module Billing
+  # Carton boundary: Hanami and Dry come from the framework Carton's Export.
   Framework = import 'framework'
   Hanami = Framework::Hanami
   Dry = Framework::Dry
@@ -29,4 +30,5 @@ loader.setup
 Billing::Slice.autoloader.ignore(File.expand_path('billing', __dir__))
 Billing.private_constant :TaxPolicy
 
+# Export: the slice's namespace.
 export Billing

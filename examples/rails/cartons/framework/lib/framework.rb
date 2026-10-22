@@ -41,4 +41,5 @@ module Framework
   end
 end
 
+# Export: shared Rails classes and the registration and CLI helpers.
 export Framework

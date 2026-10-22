@@ -6,11 +6,11 @@ require_relative 'billing/invoice'
 require_relative 'billing/tax'
 
 module Billing
-  # Internal: Ruby's own visibility hides it from importers.
+  # Internal: Ruby's own visibility hides it from Importers.
   private_constant :Tax
 
   def self.invoice(subtotal) = Invoice.new(subtotal, Tax.on(subtotal))
 end
 
-# The export: importing billing returns this module.
+# Export: importing billing returns this module.
 export Billing

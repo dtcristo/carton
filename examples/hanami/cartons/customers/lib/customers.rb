@@ -6,6 +6,7 @@ require 'carton'
 require 'json'
 
 module Customers
+  # Carton boundary: Hanami and Dry come from the framework Carton's Export.
   Framework = import 'framework'
   Hanami = Framework::Hanami
   Dry = Framework::Dry
@@ -28,4 +29,5 @@ loader.setup
 # Hanami keeps its container and conventions; this loader owns source evaluation.
 Customers::Slice.autoloader.ignore(File.expand_path('customers', __dir__))
 
+# Export: the slice's namespace.
 export Customers
