@@ -22,6 +22,7 @@ Shipping = import_relative 'lib/shipping'
 
 puts "Main Box zeitwerk: #{Zeitwerk::VERSION}"
 puts "billing zeitwerk: #{Billing.zeitwerk_version}"
+puts "shipping zeitwerk has nsfiles: #{Shipping.zeitwerk_nsfiles?}"
 
 # OrderSummary is the app's own code, autoloaded in the Main Box. It calls
 # both Cartons through their Exports.
