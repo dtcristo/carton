@@ -93,12 +93,11 @@ module Bench
     puts
   end
 
-  # Whole-process wall time of the Rails examples, when their bundles are
-  # installed: Rails in the Main Box against Rails inside Cartons.
+  # Whole-process wall time of the Rails Engine example, with its bundle installed.
   def examples
     return if EXAMPLES.empty?
 
-    puts "## Rails examples\n\n"
+    puts "## Rails example\n\n"
     puts '| Example | process wall time (ms) |'
     puts '| --- | ---: |'
     EXAMPLES.each do |name|
