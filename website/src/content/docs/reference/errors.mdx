@@ -51,7 +51,7 @@ A missing or invalid Export.
 
 <Tag label="Raises">
 
-- Raised by [`export`](/reference/kernel/#export) on a second call in one Entrypoint, or for a Symbol.
+- Raised by [`export`](/reference/kernel/#export) on a second call while an Entrypoint loads, or for a Symbol. Once the Import finishes, a call from the Entrypoint's methods is inert.
 - Raised by [`import`](/reference/kernel/#import) or [`import_relative`](/reference/kernel/#import_relative) when the Entrypoint finishes loading without calling `export`. An `export` in a required file does not count.
 
 </Tag>

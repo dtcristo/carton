@@ -96,7 +96,7 @@ Billing = import_relative '../cartons/billing'
 
 <Signature owner="Kernel" private rbs="def export: [T] (T value) -> T" source="lib/carton/kernel_patch.rb#L27" />
 
-Declares the Carton's required Export, which every import of it returns. Only a call in the imported Entrypoint declares anything; in any other file, `export` checks its argument, returns it, and does nothing else. An export in a required file cannot satisfy the Entrypoint's requirement.
+Declares the Carton's required Export, which every import of it returns. Only a call in the imported Entrypoint while it loads declares anything; in any other file, or after the Import finishes, `export` checks its argument, returns it, and does nothing else. An export in a required file cannot satisfy the Entrypoint's requirement.
 
 <Tag label="Parameters">
 
@@ -112,7 +112,7 @@ Declares the Carton's required Export, which every import of it returns. Only a 
 
 <Tag label="Raises">
 
-- [`Carton::ExportError`](/reference/errors/#cartonexporterror) on a second call in one Entrypoint, or when `value` is a Symbol, as `export def name` or `export :Name` would give.
+- [`Carton::ExportError`](/reference/errors/#cartonexporterror) on a second call while the Entrypoint loads, or when `value` is a Symbol, as `export def name` or `export :Name` would give.
 - `ArgumentError` without exactly one value.
 
 </Tag>
