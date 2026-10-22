@@ -6,11 +6,13 @@ require_relative '../../lib/carton'
 # app, an object that responds to `call(env)`.
 
 # Carton boundary: each import loads one Carton in its own Box. Only its
-# Export comes back.
+# Export comes back. Rack evaluates this file, and import_relative cannot
+# infer a path from evaluated code, so import absolute paths, marked for
+# `carton check`.
 map '/catalog' do
-  run import_relative('cartons/catalog')
+  run import(File.join(__dir__, 'cartons/catalog')) # carton:dynamic
 end
 
 map '/orders' do
-  run import_relative('cartons/orders')
+  run import(File.join(__dir__, 'cartons/orders')) # carton:dynamic
 end
