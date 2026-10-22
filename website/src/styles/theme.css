@@ -307,6 +307,10 @@ html {
   font-size: 1.25em;
 }
 
+[data-has-hero] .sl-link-button {
+  font-weight: 600;
+}
+
 /* The homepage ends on the closing band, which carries its own footer: drop
    Starlight's empty one and the padding under it. */
 [data-has-hero] :is(main, .content-panel) {
