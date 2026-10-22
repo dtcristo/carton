@@ -38,7 +38,7 @@ class HanamiCommandsTest < Minitest::Test
       Open3.capture2e(
         env,
         RbConfig.ruby,
-        File.join(APP, 'test/workflow_test.rb'),
+        File.join(__dir__, 'workflow_test.rb'),
       )
     assert status.success?, output
     assert_match(/9 runs, \d+ assertions, 0 failures, 0 errors/, output)

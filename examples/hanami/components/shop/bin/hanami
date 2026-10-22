@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative '../../../lib/carton'
+require_relative '../config/boot'
 
 module HanamiCLI
-  App = import_relative '../shop'
-  Framework = import_relative '../lib/framework'
+  App = import 'shop'
+  Framework = import 'framework'
 end
 
 script = File.expand_path(__FILE__)
