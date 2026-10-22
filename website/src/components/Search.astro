@@ -1,0 +1,9 @@
+---
+// The homepage is a splash page with no sidebar, so it has no search. Docs
+// pages keep Starlight's search, which sits beside the site title.
+import Default from '@astrojs/starlight/components/Search.astro';
+
+const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
+---
+
+{!isSplash && <Default class={Astro.props.class} />}

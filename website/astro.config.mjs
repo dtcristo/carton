@@ -59,6 +59,8 @@ export default defineConfig({
         SocialIcons: './src/components/SocialIcons.astro',
         Sidebar: './src/components/Sidebar.astro',
         Head: './src/components/Head.astro',
+        Search: './src/components/Search.astro',
+        ThemeSelect: './src/components/ThemeSelect.astro',
       },
       plugins: [starlightLinksValidator()],
       // Three sections, each a tab in src/components/Sidebar.astro, which

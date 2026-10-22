@@ -1,22 +1,23 @@
 ---
-// Starlight's header has no link slot, so the Docs link rides with the
-// social icons, ahead of the GitHub icon.
+// Starlight's header has no link slot, so the Docs and Examples links ride
+// with the social icons, ahead of the GitHub icon.
 import Default from '@astrojs/starlight/components/SocialIcons.astro';
 ---
 
-<a class="docs-link" href="/start/getting-started/">Docs</a>
+<a class="nav-link" href="/start/getting-started/">Docs</a>
+<a class="nav-link" href="/guides/examples/">Examples</a>
 <Default />
 
 <style>
   /* Same header hover as the wordmark and GitHub icon: ink, then ruby. */
-  .docs-link {
+  .nav-link {
     padding: 0.35rem 0.75rem;
     color: var(--sl-color-white);
     font-weight: 600;
     text-decoration: none;
   }
 
-  .docs-link:hover {
+  .nav-link:hover {
     color: var(--carton-ruby);
   }
 </style>
