@@ -31,7 +31,7 @@
 
 ### Removed
 
-- Removed `examples/rails_with_carton_domain` and its guide, leaving one Rails example with domain-owned Engines.
+- Removed `examples/rails_with_carton_domain` and its guide, leaving one Rails example with domain-owned Engines (#100).
 
 ### Fixed
 
