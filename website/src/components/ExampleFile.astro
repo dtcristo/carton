@@ -1,10 +1,11 @@
 ---
-// A file from the repository's examples/, read at build time, so a page shows
-// the code CI runs. `path` is relative to examples/; a missing file fails the
-// build. The magic comment every Ruby file starts with is left out.
+// Read CI-covered examples at build time. Display the installed gem load in
+// place of the checkout bootstrap, and leave out the frozen-string comment.
+// `path` is relative to examples/; a missing file fails the build.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Code } from '@astrojs/starlight/components';
+import { exampleCode } from '../example-code.mjs';
 
 interface Props {
   path: string;
@@ -16,9 +17,10 @@ const { path, title } = Astro.props;
 // EXAMPLES_DIR is set in astro.config.mjs from its own location, so it holds
 // wherever Astro runs from.
 const file = join(import.meta.env.EXAMPLES_DIR, path);
-const code = readFileSync(file, 'utf8')
-  .replace(/^# frozen_string_literal: true\n\n?/, '')
-  .trimEnd();
+const code = exampleCode(readFileSync(file, 'utf8'), {
+  file,
+  carton: join(import.meta.env.EXAMPLES_DIR, '../lib/carton.rb'),
+});
 const name = path.split('/').slice(1).join('/');
 const langs: Record<string, string> = { rbs: 'rbs', erb: 'erb', yml: 'yaml', md: 'md' };
 const extension = name.includes('.') ? name.split('.').pop()! : '';
