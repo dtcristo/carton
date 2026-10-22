@@ -210,6 +210,11 @@ header.header {
   margin-inline-start: calc((1.15rem - 2rem) / 2);
 }
 
+/* Docs sits 4px further from Examples than the flex gap alone. Scoped to the header because the mobile footer reuses these links. */
+.right-group .nav-link:first-child {
+  margin-inline-end: calc(-0.5em + 0.25rem);
+}
+
 .site-title img {
   height: 2.25rem;
 }
@@ -300,6 +305,10 @@ html {
 /* Button icons scale with their labels in both the hero and closing band. */
 [data-has-hero] .sl-link-button > svg {
   font-size: 1.25em;
+}
+
+[data-has-hero] .sl-link-button {
+  font-weight: 600;
 }
 
 /* The homepage ends on the closing band, which carries its own footer: drop
