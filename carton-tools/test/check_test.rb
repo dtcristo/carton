@@ -408,10 +408,13 @@ class CheckTest < Minitest::Test
       check(
         'main.rb' =>
           "import_relative 'none'\nimport_relative 'two'\n" \
-            "import_relative 'splat'\n",
+            "import_relative 'splat'\nimport_relative 'keywords'\n" \
+            "import_relative 'literal'\n",
         'none.rb' => "export\n",
         'two.rb' => "A = 1\nB = 2\nexport A, B\n",
         'splat.rb' => "export(*[1])\n",
+        'keywords.rb' => "options = {}\nexport(42, **options)\n",
+        'literal.rb' => "export(42, **{})\n",
       )
 
     assert_equal 1, status
@@ -424,6 +427,8 @@ class CheckTest < Minitest::Test
       output,
     )
     refute_match(/^splat\.rb/, output)
+    refute_match(/^keywords\.rb/, output)
+    refute_match(/^literal\.rb/, output)
   end
 
   def test_self_export_counts_as_export

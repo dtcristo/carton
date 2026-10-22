@@ -62,7 +62,7 @@ module Carton
       # if it is one. `keys` maps a keyword or Hash literal export's keys to
       # RBS types, or is nil. `symbol` is true when it was given a Symbol,
       # which `export` refuses. `arity` is the number of arguments, or nil
-      # when a splat hides it; `export` takes exactly one. `branches` lists the enclosing `if`,
+      # when a splat may hide it; `export` takes exactly one. `branches` lists the enclosing `if`,
       # `unless`, and `case` branches as [conditional, branch] pairs, so two
       # calls in different branches of the same conditional are known never
       # to both run.
@@ -411,11 +411,21 @@ module Carton
             value: constant_name(arg),
             keys: hash_types(arg),
             symbol: arg.is_a?(Prism::SymbolNode) || arg.is_a?(Prism::DefNode),
-            arity: (args.size unless args.any?(Prism::SplatNode)),
+            arity: (args.size unless args.any? { |arg| splat?(arg) }),
             line: node.location.start_line,
             column: column(node),
             branches: @branches.dup,
           )
+        end
+
+        # A splat hides how many values it passes, and an empty `**` keyword
+        # splat passes none.
+        def splat?(arg)
+          arg.is_a?(Prism::SplatNode) ||
+            (
+              arg.is_a?(Prism::KeywordHashNode) &&
+                arg.elements.any?(Prism::AssocSplatNode)
+            )
         end
 
         # `export version: '1.0'` or `export({ version: '1.0' })`: each
