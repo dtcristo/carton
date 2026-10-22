@@ -4,12 +4,13 @@
 import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
 import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
 import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import { Icon } from '@astrojs/starlight/components';
 
 const sections = [
-  { label: 'Start here', path: '/start/', icon: 'rocket' },
-  { label: 'Guides', path: '/guides/', icon: 'book' },
-  { label: 'Reference', path: '/reference/', icon: 'code' },
-];
+  { label: 'Start here', path: '/start/', icon: 'gem' },
+  { label: 'Guides', path: '/guides/', icon: 'open-book' },
+  { label: 'Reference', path: '/reference/', icon: 'document' },
+] as const;
 
 const { sidebar } = Astro.locals.starlightRoute;
 const here = Astro.url.pathname;
@@ -25,11 +26,12 @@ const trees = sections.map((section) => ({
   <nav class="section-tabs" aria-label="Sections" hidden>
     {trees.map((s, index) => (
       <button type="button" id={`section-button-${index}`} aria-controls={`section-tree-${index}`} aria-pressed={s.label === current.label}>
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-          {s.icon === 'rocket' && <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />}
-          {s.icon === 'book' && <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z" />}
-          {s.icon === 'code' && <><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></>}
-        </svg>
+        {s.icon === 'gem' ? (
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3h12l4 6-10 12L2 9Z" />
+            <path d="M2 9h20M6 3l6 18 6-18" />
+          </svg>
+        ) : <Icon name={s.icon} size="1.1rem" />}
         <span>{s.label}</span>
       </button>
     ))}
@@ -93,7 +95,7 @@ const trees = sections.map((section) => ({
     cursor: pointer;
   }
 
-  button svg {
+  button :global(svg) {
     flex: none;
     width: 1.1rem;
     height: 1.1rem;
@@ -110,7 +112,7 @@ const trees = sections.map((section) => ({
     color: var(--sl-color-white);
   }
 
-  button[aria-pressed='true'] svg {
+  button[aria-pressed='true'] :global(svg) {
     color: var(--carton-ruby);
   }
 </style>

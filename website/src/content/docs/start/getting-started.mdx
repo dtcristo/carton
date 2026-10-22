@@ -5,6 +5,8 @@ sidebar:
   order: 1
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+
 Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
 
 ## Requirements
@@ -13,73 +15,79 @@ Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in
 - Bundler 4.0.20 or later, if you use Bundler
 - `require 'carton'` before the app first calls `import`, `import_relative`, or `export`; every Carton Box gets Carton automatically
 
-## Install
+<Steps>
 
-```sh
-gem install carton
-```
+1. ## Install
 
-Or add it to your Gemfile:
+   ```sh
+   gem install carton
+   ```
 
-```ruby title="Gemfile"
-gem 'carton'
-```
+   Or add it to your Gemfile:
 
-## Write a Carton
+   ```ruby title="Gemfile"
+   gem 'carton'
+   ```
 
-A Carton's Entrypoint is a Ruby file that exports one value, usually its root module. Start with a tax Carton:
+2. ## Write a Carton
 
-```ruby
-# tax.rb: the tax Carton
-module Tax
-  def self.on(total) = total / 10
-end
+   A Carton's Entrypoint is a Ruby file that exports one value, usually its root module. Start with a tax Carton:
 
-export Tax # the only value that leaves this Carton
-```
+   ```ruby
+   # tax.rb: the tax Carton
+   module Tax
+     def self.on(total) = total / 10
+   end
 
-## Import it
+   export Tax # the only value that leaves this Carton
+   ```
 
-Cartons import each other. The billing Carton imports tax:
+3. ## Import it
 
-```ruby
-# billing.rb: the billing Carton
-Tax = import_relative 'tax' # billing's import, invisible to Importers
+   Cartons import each other. The billing Carton imports tax:
 
-module Billing
-  def self.invoice(total) = total + Tax.on(total)
-end
+   ```ruby
+   # billing.rb: the billing Carton
+   Tax = import_relative 'tax' # billing's import, invisible to Importers
 
-export Billing
-```
+   module Billing
+     def self.invoice(total) = total + Tax.on(total)
+   end
 
-The application imports billing from the Main Box:
+   export Billing
+   ```
 
-```ruby
-# main.rb
-require 'carton'
+   The application imports billing from the Main Box:
 
-Billing = import_relative 'billing' # runs billing.rb in its own Box
-puts Billing.invoice(100)
-```
+   ```ruby
+   # main.rb
+   require 'carton'
 
-Run it with Boxes enabled:
+   Billing = import_relative 'billing' # runs billing.rb in its own Box
+   puts Billing.invoice(100)
+   ```
 
-```sh
-RUBY_BOX=1 ruby main.rb # prints 110
-```
+   `import_relative` returns the exported value itself, and defines nothing in the Importer. Bind it to a constant of the same name.
 
-`import_relative` returns the exported value itself, and defines nothing in the Importer. Bind it to a constant of the same name.
+4. ## Run it
 
-## See the boundary
+   Run it with Boxes enabled:
 
-Add a line to `main.rb` that reaches past billing:
+   ```sh
+   RUBY_BOX=1 ruby main.rb # prints 110
+   ```
 
-```ruby
-Tax # NameError: billing's import
-```
+5. ## See the boundary
 
-In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its imports inside, along with every other top-level constant and Helper it defines.
+   Add a line to `main.rb` that reaches past billing:
+
+   ```ruby
+   Tax # NameError: billing's import
+   ```
+
+   In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its imports inside, along with every other top-level constant and Helper it defines.
+
+</Steps>
 
 ## Grow a Carton
 
