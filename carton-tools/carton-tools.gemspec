@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
       'carton check reports import and export problems and carton ' \
       'rbs writes RBS for what each import returns, reading code with Prism ' \
       'without running it. Requires Ruby 4.0.7+.'
-  spec.homepage = 'https://github.com/dtcristo/carton'
+  spec.homepage = 'https://carton.dtcristo.com'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 4.0.7'
 

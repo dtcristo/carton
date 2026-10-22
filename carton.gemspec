@@ -16,13 +16,14 @@ Gem::Specification.new do |spec|
       'is reachable, monkey patches stay where they ' \
       'are made, and two Cartons can use different versions of the same gem. ' \
       'No manifest needed. Requires Ruby 4.0.7+.'
-  spec.homepage = 'https://github.com/dtcristo/carton'
+  spec.homepage = 'https://carton.dtcristo.com'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 4.0.7'
 
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
   spec.metadata['rubygems_mfa_required'] = 'true'
   spec.metadata['homepage_uri'] = spec.homepage
+  spec.metadata['source_code_uri'] = 'https://github.com/dtcristo/carton'
   spec.metadata[
     'changelog_uri'
   ] = 'https://github.com/dtcristo/carton/blob/main/CHANGELOG.md'

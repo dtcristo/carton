@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Set both gems' homepages to the Carton website and retain their GitHub source links.
+
 ## [0.4.0] - 2026-10-22
 
 Every imported Entrypoint now requires an explicit Export; Bare Cartons and `Carton::Namespace` are removed. `carton check` adds unused import and shared-object reopening warnings plus JSON reports. The Rails and Hanami examples share a Customers and Billing workflow, and Bundler support starts at 4.0.20 (#71, #79, #82, #83, #93, #100, #107).
