@@ -13,7 +13,10 @@ Dir.mktmpdir do |directory|
   ENV['HANAMI_ENV'] = 'test'
   ENV['DATABASE_URL'] = "sqlite://#{directory}/shop.sqlite3"
   hanami = File.join(__dir__, 'cartons/shop/bin/hanami')
+  # Migrate with lazy loading: eager loading would boot repos before their
+  # tables exist.
   system(
+    { 'HANAMI_EAGER_LOAD' => 'false' },
     RbConfig.ruby,
     hanami,
     'db',
