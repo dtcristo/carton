@@ -50,12 +50,13 @@ module Carton
       # An `export` call at top level. `value` names the constant it exports,
       # if it is one. `keys` maps a keyword or Hash literal export's keys to
       # RBS types, or is nil. `symbol` is true when it was given a Symbol,
-      # which `export` refuses. `branches` lists the enclosing `if`,
+      # which `export` refuses. `arity` is the number of arguments, or nil
+      # when a splat hides it; `export` takes exactly one. `branches` lists the enclosing `if`,
       # `unless`, and `case` branches as [conditional, branch] pairs, so two
       # calls in different branches of the same conditional are known never
       # to both run.
       Export =
-        Data.define(:value, :keys, :symbol, :line, :branches) do
+        Data.define(:value, :keys, :symbol, :arity, :line, :branches) do
           def exclusive?(other)
             branches.any? do |id, branch|
               other.branches.any? do |other_id, other_branch|
@@ -216,7 +217,7 @@ module Carton
                (node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode))
             @file.export_lines << node.location.start_line
           end
-          record_call(node) if node.receiver.nil?
+          record_call(node) if node.receiver.nil? || self_export?(node)
           record_use(node) if bindable?(node.receiver)
           super
         end
@@ -337,8 +338,14 @@ module Carton
 
         private
 
+        def self_export?(node)
+          node.name == :export && node.receiver.is_a?(Prism::SelfNode)
+        end
+
         def record_call(node)
-          if IMPORTS.include?(node.name) || REQUIRES.include?(node.name)
+          if self_export?(node)
+            record_export(node) if top_level?
+          elsif IMPORTS.include?(node.name) || REQUIRES.include?(node.name)
             record_load(node)
           elsif node.name == :export && top_level?
             record_export(node)
@@ -374,6 +381,8 @@ module Carton
             value: constant_name(arg),
             keys: hash_types(arg),
             symbol: arg.is_a?(Prism::SymbolNode) || arg.is_a?(Prism::DefNode),
+            arity:
+              (args.size unless args.any? { |a| a.is_a?(Prism::SplatNode) }),
             line: node.location.start_line,
             branches: @branches.dup,
           )

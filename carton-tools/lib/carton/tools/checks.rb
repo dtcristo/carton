@@ -181,6 +181,13 @@ module Carton
                 'export a module, or keywords for a Hash',
             )
           end
+          if export.arity && export.arity != 1
+            problems << error(
+              file.path,
+              export.line,
+              "export takes exactly one value, not #{export.arity}",
+            )
+          end
           if file.exports.first(index).any? { |e| !e.exclusive?(export) }
             problems << error(
               file.path,

@@ -372,6 +372,57 @@ class CheckTest < Minitest::Test
   end
 
   # Calls that can both run still conflict, even inside one branch.
+  def test_case_in_branches_may_each_export
+    status, output =
+      check(
+        'main.rb' => "import_relative 'exclusive'\n",
+        'exclusive.rb' =>
+          "case ENV['A']\nin String then export 1\nin nil then export 3\nelse export 2\nend\n",
+      )
+
+    refute_match(/: error: /, output)
+    assert_equal 0, status
+  end
+
+  def test_export_takes_exactly_one_value
+    status, output =
+      check(
+        'main.rb' =>
+          "import_relative 'none'\nimport_relative 'two'\n" \
+            "import_relative 'splat'\n",
+        'none.rb' => "export\n",
+        'two.rb' => "A = 1\nB = 2\nexport A, B\n",
+        'splat.rb' => "export(*[1])\n",
+      )
+
+    assert_equal 1, status
+    assert_match(
+      /^none\.rb:1: error: export takes exactly one value, not 0$/,
+      output,
+    )
+    assert_match(
+      /^two\.rb:3: error: export takes exactly one value, not 2$/,
+      output,
+    )
+    refute_match(/^splat\.rb/, output)
+  end
+
+  def test_self_export_counts_as_export
+    status, output =
+      check(
+        'main.rb' => "import_relative 'twice'\nimport_relative 'symbol'\n",
+        'twice.rb' => "self.export 1\nexport 2\n",
+        'symbol.rb' => "self.export :Billing\n",
+      )
+
+    assert_equal 1, status
+    assert_match(/^twice\.rb:2: error: export may be called only once/, output)
+    assert_match(
+      /^symbol\.rb:1: error: export takes the value to export/,
+      output,
+    )
+  end
+
   def test_calls_that_can_both_run_still_conflict
     both = <<~RUBY
       if ENV['A']

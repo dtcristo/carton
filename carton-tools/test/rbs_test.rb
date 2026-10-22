@@ -63,6 +63,16 @@ class RbsTest < Minitest::Test
                     'Info: { VERSION: ::String, answer: ::Integer, other: untyped }'
   end
 
+  def test_self_export_is_typed
+    rbs =
+      generate(
+        'main.rb' => "import_relative 'version'\n",
+        'version.rb' => "self.export version: '1.0'\n",
+      )
+
+    assert_includes rbs, '("version" path) -> { version: ::String }'
+  end
+
   def test_literal_hash_export_is_a_record
     rbs =
       generate(
