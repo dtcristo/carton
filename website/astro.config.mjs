@@ -23,6 +23,8 @@ export default defineConfig({
     '/project/glossary/': '/reference/glossary/',
     '/start/examples/': '/guides/examples/',
     '/guides/examples/rails-with-carton-domain/': '/guides/rails/',
+    '/guides/examples/rails-in-cartons/': '/guides/examples/rails/',
+    '/guides/examples/hanami-in-cartons/': '/guides/examples/hanami/',
   },
   integrations: [
     starlight({

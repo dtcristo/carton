@@ -65,7 +65,7 @@ Verified means the assertions passed for the specific experiment, not for all li
 | Existing Gem Carton activation | Failed | `07 --gem`: Psych reload reopens shared objects and raises SyntaxError in generated ClassLoader code. |
 | Two compatible Gem Cartons | Untested | Activation fails before the first fixture Gem Carton completes. |
 | Two Active Record domain Cartons | Verified | `10`: separate Invoice classes use present?, insert rows and query the same in-memory SQLite database. |
-| Unmodified Rails-in-Cartons example with sharing hook | Failed | `10 --existing`: same Psych activation failure. |
+| Unmodified Rails example with sharing hook | Failed | `10 --existing`: same Psych activation failure. |
 | Full Rails requests, reloading and arbitrary framework callbacks | Untested | The Rails-domain test is not a full Rails application boot or request benchmark. |
 | Strict Gem Cartons, multiple shared bundles, concurrent installation | Untested | Outside this spike's supported contract. |
 
