@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+# Written for faraday 1; it calls `request :basic_auth`, removed in 2.0.
+gem 'faraday', '~> 1.10'
+
+# faraday 1 requires base64, which left Ruby's default gems in 3.4.
+gem 'base64'

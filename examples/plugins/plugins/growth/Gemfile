@@ -1,6 +1,0 @@
-# frozen_string_literal: true
-
-source 'https://rubygems.org'
-
-# Needs bigdecimal 4 for BigMath.cbrt.
-gem 'bigdecimal', '~> 4.1'

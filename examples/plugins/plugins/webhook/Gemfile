@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+# Needs faraday 2 for `request :authorization, :basic, user, password`.
+gem 'faraday', '~> 2.0'
