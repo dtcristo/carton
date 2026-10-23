@@ -63,15 +63,15 @@ RUBY_BOX=1 ruby main.rb
 
 ## Status
 
-Carton is experimental, and so is `Ruby::Box`. [Status](https://carton.dtcristo.com/start/status/) lists what must change before production, and [Why Carton](https://carton.dtcristo.com/start/why-carton/) covers what a Box does not isolate and where Carton fits today. Rails and Hanami work experimentally; see the [Rails](https://carton.dtcristo.com/guides/examples/rails/) and [Hanami](https://carton.dtcristo.com/guides/examples/hanami/) examples.
+Carton is experimental, and so is `Ruby::Box`. [Status](https://carton.dtcristo.com/guides/status/) lists what must change before production, and [Why Carton](https://carton.dtcristo.com/guides/why-carton/) covers what a Box does not isolate and where Carton fits today. Rails and Hanami work experimentally; see the [Rails](https://carton.dtcristo.com/guides/examples/rails/) and [Hanami](https://carton.dtcristo.com/guides/examples/hanami/) examples.
 
 ## Docs
 
 Guides and reference live at [carton.dtcristo.com](https://carton.dtcristo.com) (source in [website/](website/README.md)). Start with:
 
-- [Getting started](https://carton.dtcristo.com/start/getting-started/)
-- [Why Carton](https://carton.dtcristo.com/start/why-carton/)
-- [Status](https://carton.dtcristo.com/start/status/)
+- [Getting started](https://carton.dtcristo.com/guides/getting-started/)
+- [Why Carton](https://carton.dtcristo.com/guides/why-carton/)
+- [Status](https://carton.dtcristo.com/guides/status/)
 - [Adopting Carton](https://carton.dtcristo.com/guides/adopting/) in an existing app
 - [Examples](https://carton.dtcristo.com/guides/examples/): runnable apps, starting with [minimal](https://carton.dtcristo.com/guides/examples/minimal/); run one with `bundle exec rake example:<name>`
 

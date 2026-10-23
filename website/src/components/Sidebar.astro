@@ -7,7 +7,6 @@ import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
 import { Icon } from '@astrojs/starlight/components';
 
 const sections = [
-  { label: 'Start here', path: '/start/', icon: 'gem' },
   { label: 'Guides', path: '/guides/', icon: 'open-book' },
   { label: 'Reference', path: '/reference/', icon: 'document' },
 ] as const;
@@ -26,12 +25,7 @@ const trees = sections.map((section) => ({
   <nav class="section-tabs" aria-label="Sections" hidden>
     {trees.map((s, index) => (
       <button type="button" id={`section-button-${index}`} aria-controls={`section-tree-${index}`} aria-pressed={s.label === current.label}>
-        {s.icon === 'gem' ? (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 3h12l4 6-10 12L2 9Z" />
-            <path d="M2 9h20M6 3l6 18 6-18" />
-          </svg>
-        ) : <Icon name={s.icon} size="1.1rem" />}
+        <Icon name={s.icon} size="1.1rem" />
         <span>{s.label}</span>
       </button>
     ))}

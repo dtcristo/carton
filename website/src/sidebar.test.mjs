@@ -8,12 +8,10 @@ function fixture() {
     <main><h1>Importing</h1><a id="anchor" href="#imports">Imports</a></main>
     <carton-sidebar>
       <nav class="section-tabs" hidden>
-        <button aria-controls="start" aria-pressed="false">Start here</button>
         <button aria-controls="guides" aria-pressed="true">Guides</button>
         <button aria-controls="reference" aria-pressed="false">Reference</button>
       </nav>
-      <section id="start"><h2 data-section-heading>Start here</h2><details open><summary>Start here</summary><a href="/start/getting-started/">Getting started</a></details></section>
-      <section id="guides"><h2 data-section-heading>Guides</h2><details open><summary>Concepts</summary><a href="/guides/importing/" aria-current="page">Importing</a></details></section>
+      <section id="guides"><h2 data-section-heading>Guides</h2><details open><summary>Start here</summary><a href="/guides/getting-started/">Getting started</a></details><details open><summary>Concepts</summary><a href="/guides/importing/" aria-current="page">Importing</a></details></section>
       <section id="reference"><h2 data-section-heading>Reference</h2><a href="/reference/carton/">Carton</a></section>
     </carton-sidebar>
   `);
@@ -25,8 +23,8 @@ function fixture() {
 test('initially shows the current document section', () => {
   const { root, buttons } = fixture();
   assert.equal(root.querySelector('.section-tabs').hidden, false);
-  assert.deepEqual(buttons.map((button) => button.getAttribute('aria-pressed')), ['false', 'true', 'false']);
-  assert.deepEqual([...root.querySelectorAll('section')].map((panel) => panel.hidden), [true, false, true]);
+  assert.deepEqual(buttons.map((button) => button.getAttribute('aria-pressed')), ['true', 'false']);
+  assert.deepEqual([...root.querySelectorAll('section')].map((panel) => panel.hidden), [false, true]);
 });
 
 test('section switches preserve the document, current page link, and expanded tree', () => {
@@ -34,10 +32,10 @@ test('section switches preserve the document, current page link, and expanded tr
   const content = document.querySelector('main');
   const before = content.outerHTML;
   const current = root.querySelector('[aria-current="page"]');
-  const concepts = root.querySelector('#guides details');
+  const concepts = root.querySelector('#guides details:last-of-type');
   concepts.removeAttribute('open');
 
-  for (const index of [2, 0, 1, 1]) {
+  for (const index of [1, 0, 0]) {
     buttons[index].click();
     assert.deepEqual(buttons.map((button) => button.getAttribute('aria-pressed')), buttons.map((_, i) => String(i === index)));
     assert.deepEqual([...root.querySelectorAll('section')].map((panel) => panel.hidden), buttons.map((_, i) => i !== index));

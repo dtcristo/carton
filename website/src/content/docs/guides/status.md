@@ -24,7 +24,7 @@ A plain Carton costs about 60 ms and 2.4 MB in the [current measurements](https:
 
 ## Shared classes and objects
 
-Exports are shared objects. Reopening an exported class or changing shared state affects every Importer. `carton check` warns about class/module definitions through directly followed Imports, but adds no runtime guard and cannot follow aliases or dynamic mutations. See [Sharing classes and services](/guides/sharing-classes/) and [what a Box does not isolate](/start/why-carton/#what-a-box-does-not-isolate).
+Exports are shared objects. Reopening an exported class or changing shared state affects every Importer. `carton check` warns about class/module definitions through directly followed Imports, but adds no runtime guard and cannot follow aliases or dynamic mutations. See [Sharing classes and services](/guides/sharing-classes/) and [what a Box does not isolate](/guides/why-carton/#what-a-box-does-not-isolate).
 
 ## Dependency enforcement
 

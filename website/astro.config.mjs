@@ -16,10 +16,14 @@ export default defineConfig({
       'import.meta.env.EXAMPLES_DIR': JSON.stringify(fileURLToPath(new URL('../examples/', import.meta.url))),
     },
   },
-  // Pages that moved when the sections became Start here, Guides, and Reference.
+  // Pages that moved: first into Start here, Guides, and Reference, then when
+  // Start here joined Guides.
   redirects: {
-    '/project/why-carton/': '/start/why-carton/',
-    '/project/status/': '/start/status/',
+    '/project/why-carton/': '/guides/why-carton/',
+    '/project/status/': '/guides/status/',
+    '/start/getting-started/': '/guides/getting-started/',
+    '/start/why-carton/': '/guides/why-carton/',
+    '/start/status/': '/guides/status/',
     '/project/glossary/': '/reference/glossary/',
     '/start/examples/': '/guides/examples/',
     '/guides/examples/rails-in-cartons/': '/guides/examples/rails/',
@@ -66,21 +70,16 @@ export default defineConfig({
       // shows only the selected section's tree.
       sidebar: [
         {
-          label: 'Start here',
+          label: 'Guides',
           items: [
             {
               label: 'Start here',
               items: [
-                'start/getting-started',
-                'start/why-carton',
-                'start/status',
+                'guides/getting-started',
+                'guides/why-carton',
+                'guides/status',
               ],
             },
-          ],
-        },
-        {
-          label: 'Guides',
-          items: [
             {
               label: 'Concepts',
               items: [

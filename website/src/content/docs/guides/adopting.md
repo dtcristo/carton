@@ -13,7 +13,7 @@ Adopt Carton when Ruby's missing boundaries start to cost you:
 
 If none of these hurt yet, you don't need Carton yet.
 
-Carton can enter an existing app one domain at a time. Each step below leaves the app working, and the last one undoes them all. Read [Status](/start/status/#before-production) first: Carton and `Ruby::Box` are both experimental.
+Carton can enter an existing app one domain at a time. Each step below leaves the app working, and the last one undoes them all. Read [Status](/guides/status/#before-production) first: Carton and `Ruby::Box` are both experimental.
 
 ## 1. Run the app with Boxes enabled
 
@@ -73,7 +73,7 @@ Each problem prints as `file:line:column: level: message [rule]`, and `--format 
 
 ## 5. Grow to tens of Cartons
 
-Extract further domains the same way, inner leaves first. Each Carton adds startup time and memory, so split by domain, not by file: aim for tens of Cartons, not hundreds. [Status](/start/status/#cost-per-carton) has the current numbers.
+Extract further domains the same way, inner leaves first. Each Carton adds startup time and memory, so split by domain, not by file: aim for tens of Cartons, not hundreds. [Status](/guides/status/#cost-per-carton) has the current numbers.
 
 ## 6. Roll back
 
