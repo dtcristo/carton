@@ -1,6 +1,6 @@
 ---
 title: "Real boundaries for Ruby"
-description: "Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate Ruby::Box, so Ruby enforces the boundaries at runtime."
+description: "Ruby apps draw boundaries with folders and namespaces. Ruby ignores them. Carton makes them real. Only a Carton's export crosses, enforced at runtime."
 template: splash
 # The homepage hero is src/components/Hero.astro; Starlight renders it for any page with `hero`.
 hero:
@@ -9,8 +9,11 @@ editUrl: false
 lastUpdated: false
 ---
 
+import Boundaries from '../../components/Boundaries.astro';
 import Compartments from '../../components/Compartments.astro';
 import Closing from '../../components/Closing.astro';
+
+<Boundaries />
 
 <Compartments />
 
