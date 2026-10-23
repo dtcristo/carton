@@ -6,7 +6,7 @@ Be the package system Ruby has always needed: real boundaries for Ruby code, enf
 
 ## How close Carton is
 
-The website's [Status](https://carton.dtcristo.com/start/status/) page owns what must change before production and Carton's remaining limitations; [performance.md](performance.md) has the measurements and [todo.md](todo.md) orders the work.
+The website's [Status](https://carton.dtcristo.com/guides/status/) page owns what must change before production and Carton's remaining limitations; [performance.md](performance.md) has the measurements and [todo.md](todo.md) orders the work.
 
 ## Main pieces
 

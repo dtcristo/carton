@@ -7,7 +7,7 @@ sidebar:
 
 import { CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 
-In plain Ruby, every file can reach every constant and every monkey patch applies everywhere. Carton splits an app into gem-sized or domain-sized Cartons, and each Carton is a boundary. It runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses. [Why Carton](/start/why-carton/) covers the problems this solves.
+In plain Ruby, every file can reach every constant and every monkey patch applies everywhere. Carton splits an app into gem-sized or domain-sized Cartons, and each Carton is a boundary. It runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses. [Why Carton](/guides/why-carton/) covers the problems this solves.
 
 You'll build two Cartons, then watch Ruby stop the app from reaching past one into the other.
 

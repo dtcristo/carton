@@ -60,4 +60,4 @@ Static checks only see what they can parse. Packwerk's authors note that a packa
 - **Load plugins that need conflicting gem versions**, which plain Ruby cannot load together; see the [Plugins](/guides/examples/plugins/) example.
 - **Mount domain Cartons in a web app.** Each Carton can export a Rack app, as in the [Rack](/guides/examples/rack/) example. Rails and Hanami work as experimental integrations; see the [Rails](/guides/examples/rails/) and [Hanami](/guides/examples/hanami/) examples.
 
-Each Carton has a startup and memory cost, so aim for tens of Cartons, not hundreds; [Status](/start/status/) has the numbers and what must change before production. [Adopting Carton](/guides/adopting/) shows how to start in an existing app.
+Each Carton has a startup and memory cost, so aim for tens of Cartons, not hundreds; [Status](/guides/status/) has the numbers and what must change before production. [Adopting Carton](/guides/adopting/) shows how to start in an existing app.
