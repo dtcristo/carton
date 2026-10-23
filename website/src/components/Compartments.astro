@@ -8,7 +8,7 @@
   <div class="box">
     <article>
       <h3>Only exports cross</h3>
-      <p>Other Cartons reach what a Carton exports and nothing else: not its top-level constants, its top-level methods, or the Cartons it imports.</p>
+      <p>Other Cartons get the export, not your constants, methods, or imports.</p>
       <pre><code><span class="o"># billing.rb</span>
 <span class="c">TAX_RATE</span> = <span class="m">10</span>
 <span class="o"># main.rb</span>
@@ -16,7 +16,7 @@
     </article>
     <article>
       <h3>Monkey patches stay put</h3>
-      <p>A patch to a builtin class, such as ActiveSupport's <code>String#blank?</code>, applies only inside the Carton that makes it.</p>
+      <p>ActiveSupport's <code>String#blank?</code> applies only in the Carton that loads it.</p>
       <pre><code><span class="o"># billing.rb</span>
 <span class="s">''</span>.blank?  <span class="r"># =&gt; true</span>
 <span class="o"># main.rb</span>
@@ -24,7 +24,7 @@
     </article>
     <article>
       <h3>Gem versions per Carton</h3>
-      <p>Each Carton can set up its own bundle, so two Cartons can load different versions of the same gem in one process.</p>
+      <p>Each Carton can bring its own bundle and gem versions.</p>
       <pre><code><span class="o"># billing/Gemfile.lock</span>
 faraday (<span class="s">2.15.0</span>)
 <span class="o"># shipping/Gemfile.lock</span>
@@ -36,6 +36,12 @@ faraday (<span class="s">1.10.6</span>)</code></pre>
 <style>
   .compartments {
     padding-block: 2rem 1rem;
+  }
+
+  @media (min-width: 68rem) {
+    .compartments {
+      padding-top: 1rem;
+    }
   }
 
   /* Single column: side margins so the tray never meets the screen edge. */

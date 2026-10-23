@@ -18,7 +18,9 @@ import CopyCommand from './CopyCommand.astro';
       </div>
     </div>
     <p class="lede">
-      Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate <code>Ruby::Box</code>, so Ruby enforces the boundaries at runtime.
+      <span>Ruby apps draw boundaries with folders and namespaces.</span>{' '}
+      <span>Ruby ignores them. Carton makes them real.</span>{' '}
+      <span>Only a Carton's export crosses, enforced at runtime.</span>
     </p>
     <div class="cta">
       <div class="actions">
@@ -171,6 +173,14 @@ import CopyCommand from './CopyCommand.astro';
     font-size: var(--sl-text-lg);
     line-height: 1.65;
     color: var(--sl-color-gray-2);
+  }
+
+  /* One sentence group per line once the column is wide enough to hold the
+     longest, so the lede always sets in three even lines. */
+  @media (min-width: 36rem) {
+    .lede span {
+      display: block;
+    }
   }
 
   .lede code {

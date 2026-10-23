@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-A Carton is an Entrypoint file plus the directory named after it, the same shape as a gem's `lib/` and a Zeitwerk explicit namespace:
+A Carton is a boundary in your app, and only its export crosses it. On disk, a Carton is an Entrypoint file plus the directory named after it, the same shape as a gem's `lib/` and a Zeitwerk explicit namespace:
 
 ```
 lib/billing.rb                # the Entrypoint

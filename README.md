@@ -10,13 +10,15 @@
   </p>
 </div>
 
-Split your app into Cartons with explicit imports and exports. Each has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundaries at runtime:
+Ruby apps draw boundaries with folders and namespaces. Ruby ignores them. Any file can reach any top-level constant, a patch to a builtin class applies everywhere, and one Gemfile picks one version of each gem for the whole app. In a big app, that's how a money helper in Billing changes what Shipping prints.
+
+Carton makes them real. Each Carton is a boundary that only its export can cross. It has its own dependencies and runs in a separate [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so Ruby enforces the boundary at runtime:
 
 - other Cartons reach **only what a Carton exports**;
 - **monkey patches to builtin classes** stay in the Carton that makes them;
 - two Cartons can use **different versions of the same gem**.
 
-A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory beside it. There is no manifest, and with a gemspec a Carton can leave the app as a gem.
+Cartons still talk through method calls in one process, not network calls. A Carton is shaped like a gem: `billing.rb` plus the `billing/` directory beside it. There is no manifest, and with a gemspec a Carton can leave the app as a gem.
 
 ## Quick start
 
