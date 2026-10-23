@@ -8,6 +8,8 @@ Carton is a package system for Ruby: a small import and export language for gem-
 
 **Carton**: An importable piece of Ruby code, gem-sized or domain-sized, with an Interior and a Public Surface: an Entrypoint plus the directory named after it. _Avoid_: Package, pack, unit, component, box, plain carton, unbundled carton
 
+**Boundary**: The line around a Carton. Only an Import crosses it, carrying only the Export, and the Carton Box holds it at runtime. _Avoid_: Wall, fence, isolation
+
 **Entrypoint**: The file an Import loads to establish a Carton boundary, such as `billing.rb`. A file with no directory beside it is a Carton of one file. _Avoid_: Manifest, index file, main file
 
 **Interior**: The files under the directory beside a Carton's Entrypoint, such as `billing/invoice.rb`, including implicit-namespace subdirectories. They cannot be imported; the outermost Entrypoint above them owns them. A Carton may nest inside another Carton's tree, but not inside its Interior. _Avoid_: Internals, private files, namespace directory
