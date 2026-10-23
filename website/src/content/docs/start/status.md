@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-Carton provides explicit imports and exports, per-Carton gem versions, and gem-shaped distribution. It remains experimental, as does `Ruby::Box`. Use Ruby 4.0.7 or later and, with Bundler, Bundler 4.0.20 or later.
+Carton's boundaries work today. Only exports cross, patches to builtin classes stay put, each Carton can bring its own gem versions, and a Carton can leave the app as a gem. Carton remains experimental, as does `Ruby::Box`. Use Ruby 4.0.7 or later and, with Bundler, Bundler 4.0.20 or later.
 
 ## Before production
 

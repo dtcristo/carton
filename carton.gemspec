@@ -10,12 +10,13 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Real boundaries for Ruby'
   spec.description =
-    'Split your app into Cartons with explicit imports and exports. Each has ' \
-      'its own dependencies and runs in a separate Ruby::Box, so Ruby enforces ' \
-      'the boundaries at runtime. Only what a Carton exports ' \
-      'is reachable, monkey patches stay where they ' \
-      'are made, and two Cartons can use different versions of the same gem. ' \
-      'No manifest needed. Requires Ruby 4.0.7+.'
+    'Ruby apps draw boundaries with folders and namespaces. Ruby ignores ' \
+      'them. Carton makes them real. Split your app into Cartons with ' \
+      'explicit imports and exports. Each has its own dependencies and runs ' \
+      'in a separate Ruby::Box, so Ruby enforces the boundaries at runtime. ' \
+      'Only what a Carton exports is reachable, monkey patches stay where ' \
+      'they are made, and two Cartons can use different versions of the ' \
+      'same gem. No manifest needed. Requires Ruby 4.0.7+.'
   spec.homepage = 'https://carton.dtcristo.com'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 4.0.7'

@@ -10,10 +10,10 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Static checks and RBS for Carton'
   spec.description =
-    'The carton command for Carton apps with explicit imports and exports. ' \
-      'carton check reports import and export problems and carton ' \
-      'rbs writes RBS for what each import returns, reading code with Prism ' \
-      'without running it. Requires Ruby 4.0.7+.'
+    'Carton enforces boundaries while code runs. The carton command finds ' \
+      'problems before it does: carton check reports import and export ' \
+      'problems and carton rbs writes RBS for what each import returns, ' \
+      'reading code with Prism without running it. Requires Ruby 4.0.7+.'
   spec.homepage = 'https://carton.dtcristo.com'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 4.0.7'

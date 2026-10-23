@@ -5,6 +5,14 @@ sidebar:
   order: 9
 ---
 
+Adopt Carton when Ruby's missing boundaries start to cost you:
+
+- one domain blocks a gem upgrade for the whole app;
+- a patch to a builtin class leaks from one team's code into another's;
+- other domains call a domain's internals directly.
+
+If none of these hurt yet, you don't need Carton yet.
+
 Carton can enter an existing app one domain at a time. Each step below leaves the app working, and the last one undoes them all. Read [Status](/start/status/#before-production) first: Carton and `Ruby::Box` are both experimental.
 
 ## 1. Run the app with Boxes enabled

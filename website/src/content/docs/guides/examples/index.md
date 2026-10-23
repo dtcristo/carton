@@ -28,15 +28,15 @@ Pass host adapters into a checkout Carton and test it with fakes.
 
 ### [Rack](/guides/examples/rack/)
 
-Mount Cartons that export Rack apps in a plain `config.ru`, with no web framework.
+Give each domain its own Rack app and mount them in a plain `config.ru`, with no web framework.
 
 ### [Monorepo](/guides/examples/monorepo/)
 
-Share one app lockfile across path gems with declared dependencies and unit and integration tests.
+Split an app into path gems that Ruby keeps apart, with one shared lockfile, declared dependencies, and unit and integration tests.
 
 ### [Plugins](/guides/examples/plugins/)
 
-Load plugins with conflicting gem versions through Dynamic Imports and a shared interface.
+Load plugins that need conflicting gem versions, through Dynamic Imports and a shared interface.
 
 ### [Zeitwerk](/guides/examples/zeitwerk/)
 
@@ -44,11 +44,11 @@ Use loaders per Box and lazy namespaces, and see why references stay stale after
 
 ### [Rails](/guides/examples/rails/)
 
-Run Customers and Billing inside Rails Engines with Carton-owned loaders and an explicit CLI bridge. This integration is experimental.
+Keep Customers and Billing apart in one Rails app, using Engines with Carton-owned loaders and an explicit CLI bridge. This integration is experimental.
 
 ### [Hanami](/guides/examples/hanami/)
 
-Run Customers and Billing in Hanami slices with contracts, operations, ROM repos, views, and a CLI bridge. This integration is experimental.
+Keep Customers and Billing apart in one Hanami app, using slices with contracts, operations, ROM repos, views, and a CLI bridge. This integration is experimental.
 
 ## Run one
 

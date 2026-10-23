@@ -7,7 +7,9 @@ sidebar:
 
 import { CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 
-Carton splits an app into gem-sized or domain-sized Cartons. Each Carton runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses the boundary.
+In plain Ruby, every file can reach every constant and every monkey patch applies everywhere. Carton splits an app into gem-sized or domain-sized Cartons, and each Carton is a boundary. It runs in its own [`Ruby::Box`](https://docs.ruby-lang.org/en/4.0/Ruby/Box.html), so its constants, gems, and monkey patches stay inside, and only what it exports crosses. [Why Carton](/start/why-carton/) covers the problems this solves.
+
+You'll build two Cartons, then watch Ruby stop the app from reaching past one into the other.
 
 ## Requirements
 
@@ -90,6 +92,21 @@ Build a two-Carton app, then check the boundary.
    ```
 
    In plain Ruby, a file's top-level constants are global, so requiring billing would make `Tax` visible everywhere. The billing Carton keeps its imports inside, along with every other top-level constant and method it defines.
+
+   Monkey patches stay inside too. Patch `String` at the top of `billing.rb`:
+
+   ```ruby
+   # billing.rb
+   class String
+     def blank? = strip.empty? # billing's patch
+   end
+   ```
+
+   Billing's code can call `''.blank?`, but `main.rb` can't:
+
+   ```ruby
+   ''.blank? # NoMethodError
+   ```
 
 </Steps>
 
